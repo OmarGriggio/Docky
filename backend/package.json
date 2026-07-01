@@ -3,15 +3,18 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "tsx watch src/server.ts"
   },
   "author": "Griggio Omar",
   "license": "MIT",
   "description": "REST API for a SaaS dedicated to small construction companies.",
   "dependencies": {
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "pg": "^8.22.0"
   },
   "devDependencies": {
+    "@types/express": "^5.0.6",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3"
   }
