@@ -1,0 +1,14 @@
+{
+  "name": "docky-api",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Griggio Omar",
+  "license": "MIT",
+  "description": "REST API for a SaaS dedicated to small construction companies.",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
