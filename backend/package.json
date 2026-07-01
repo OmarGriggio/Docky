@@ -10,5 +10,9 @@
   "description": "REST API for a SaaS dedicated to small construction companies.",
   "dependencies": {
     "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3"
   }
 }
