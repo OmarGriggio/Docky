@@ -1,5 +1,7 @@
 # 0 - Conception
 
+<img width="1618" height="587" alt="image" src="https://github.com/user-attachments/assets/f438d05f-2849-4180-8401-443acf6066fb" />
+
 # 1 - Cahier des charges
 
 # 2 - Architecture
