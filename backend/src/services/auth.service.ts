@@ -24,5 +24,5 @@ export const authUserService = async (loginData: LoginUserData) => {
     }
   );
 
-  return token
+  return {"token": token}
 };
