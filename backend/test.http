@@ -22,3 +22,8 @@ Content-Type: application/json
 
 GET http://localhost:3000/user
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjksImVtYWlsIjoib21hckB0ZXN0My5jaCIsImlhdCI6MTc4MzAxNTE3NCwiZXhwIjoxNzgzMDMzMTc0fQ.yT3jPtFN3Sa0Lnu-vzM77JaY75_zBBKYdjh9wNqWtcQ
+
+###
+
+GET http://localhost:3000/client
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjksImVtYWlsIjoib21hckB0ZXN0My5jaCIsImlhdCI6MTc4MzAxNTE3NCwiZXhwIjoxNzgzMDMzMTc0fQ.yT3jPtFN3Sa0Lnu-vzM77JaY75_zBBKYdjh9wNqWtcQ
