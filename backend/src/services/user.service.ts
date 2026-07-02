@@ -1,7 +1,6 @@
 import { createUserDB, getUserByEmail, getUsersFromDB } from "../repositories/user.repository";
 import { CreateUserData } from "../types/user";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 
 export const getAllUsers = async () => {
   const SECRET = process.env.JWT_SECRET!;

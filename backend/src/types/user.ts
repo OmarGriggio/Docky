@@ -14,3 +14,8 @@ export interface CreateUserData {
   email: string;
   passwordHash: string;
 }
+
+export interface LoginUserData {
+  email: string;
+  passwordHash: string;
+}

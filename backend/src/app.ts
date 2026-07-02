@@ -2,10 +2,13 @@ import express from "express";
 import healthRoutes from "./routes/health.routes";
 import clientRoutes from "./routes/client.routes";
 import userRoutes from "./routes/user.routes";
+import authRoutes from "./routes/auth.routes";
 
 const app = express();
 
 app.use(express.json());
+
+app.use("/auth/login", authRoutes);
 
 app.use("/health", healthRoutes);
 
