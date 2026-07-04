@@ -1,7 +1,3 @@
-# 0 - Conception
-
-# 1 - Cahier des charges
-
 # 2 - Architecture
 
 ## 2.1 - Architecture général & décision 
