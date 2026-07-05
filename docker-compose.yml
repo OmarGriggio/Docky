@@ -1,0 +1,37 @@
+services:
+
+  postgres:
+    image: postgres:17
+
+    container_name: docky-postgres
+
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: btp_saas
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    container_name: docky-backend
+
+    build:
+      context: ./backend
+
+    ports:
+      - "3000:3000"
+
+    env_file:
+      - ./backend/.env
+
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
