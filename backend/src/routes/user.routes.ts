@@ -7,6 +7,6 @@ const router = Router();
 
 router.get("/", authenticate, getAllUsersController);
 
-router.post("/", authenticate, createUserController)
+router.post("/", createUserController)
 
 export default router;
