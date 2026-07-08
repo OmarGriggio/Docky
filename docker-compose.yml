@@ -33,5 +33,9 @@ services:
     depends_on:
       - postgres
 
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
 volumes:
   postgres_data:

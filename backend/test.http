@@ -26,4 +26,35 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjksImVtY
 ###
 
 GET http://localhost:3000/client
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoib21hckB0ZXN0My5jaCIsImlhdCI6MTc4MzM2MTMwMywiZXhwIjoxNzgzMzc5MzAzfQ.Z4-xxR8X8pNpxsyYdiIS9GDd5mL4Rt2HZ7dhL0gIPd8
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoib21hckB0ZXN0My5jaCIsImlhdCI6MTc4MzUxOTk4MSwiZXhwIjoxNzgzNTM3OTgxfQ.7U7poXqcOCPUZEXh3v2fTvjznur7rZjZ6RU16yTI03o
+
+
+###
+
+POST http://localhost:3000/client
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoib21hckB0ZXN0My5jaCIsImlhdCI6MTc4MzUxOTk4MSwiZXhwIjoxNzgzNTM3OTgxfQ.7U7poXqcOCPUZEXh3v2fTvjznur7rZjZ6RU16yTI03o
+Content-Type: application/json
+
+{
+  "nom": "Boesiger",
+  "prenom": "Charle",
+  "email": "omar.griggio@gmail.com",
+  "code_client": "3",
+  "societe": "Boesiger AG",
+  "telephone": ""
+}
+
+###
+
+DELETE  http://localhost:3000/client
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoib21hckB0ZXN0My5jaCIsImlhdCI6MTc4MzUxOTk4MSwiZXhwIjoxNzgzNTM3OTgxfQ.7U7poXqcOCPUZEXh3v2fTvjznur7rZjZ6RU16yTI03o
+Content-Type: application/json
+
+{
+  "nom": "Boesiger",
+  "prenom": "Charle",
+  "email": "omar.griggio@gmail.com",
+  "code_client": "1",
+  "societe": "Boesiger AG",
+  "telephone": ""
+}
