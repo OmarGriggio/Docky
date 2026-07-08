@@ -1,0 +1,23 @@
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <div>
+    <label>Code fournisseur</label>
+    <input formControlName="code_fournisseur" />
+  </div>
+
+  <div>
+    <label>Société</label>
+    <input formControlName="societe" />
+  </div>
+
+  <div>
+    <label>Adresse</label>
+    <input formControlName="adresse" />
+  </div>
+
+  <div>
+    <label>Catégorie</label>
+    <input formControlName="categorie" />
+  </div>
+
+  <button type="submit">Créer</button>
+</form>

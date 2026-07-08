@@ -1,0 +1,25 @@
+<h1>Fournisseurs</h1>
+
+<p>Nombre de fournisseurs : {{ fournisseurs().length }}</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Code</th>
+      <th>Société</th>
+      <th>Adresse</th>
+      <th>Catégorie</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    @for (fournisseur of fournisseurs(); track fournisseur.id) {
+      <tr>
+        <td>{{ fournisseur.code_fournisseur }}</td>
+        <td>{{ fournisseur.societe }}</td>
+        <td>{{ fournisseur.adresse }}</td>
+        <td>{{ fournisseur.categorie }}</td>
+      </tr>
+    }
+  </tbody>
+</table>
