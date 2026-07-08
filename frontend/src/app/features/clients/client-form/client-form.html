@@ -1,1 +1,33 @@
-<p>client-form works!</p>
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <div>
+    <label>Code client</label>
+    <input formControlName="code_client" />
+  </div>
+
+  <div>
+    <label>Nom</label>
+    <input formControlName="nom" />
+  </div>
+
+  <div>
+    <label>Prénom</label>
+    <input formControlName="prenom" />
+  </div>
+
+  <div>
+    <label>Société</label>
+    <input formControlName="societe" />
+  </div>
+
+  <div>
+    <label>Email</label>
+    <input formControlName="email" type="email" />
+  </div>
+
+  <div>
+    <label>Téléphone</label>
+    <input formControlName="telephone" />
+  </div>
+
+  <button type="submit">Créer</button>
+</form>

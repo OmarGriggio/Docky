@@ -13,4 +13,7 @@ export class ClientService {
     return this.http.get<Client[]>('http://localhost:3000/client');
   }
 
+  createClient(client: Omit<Client, 'id'>) {
+    return this.http.post<Client>('http://localhost:3000/client', client);
+  }
 }

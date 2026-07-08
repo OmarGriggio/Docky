@@ -2,7 +2,6 @@ import {Client} from "../types/client"
 import { createClientInDB, deleteClientInDB, getClientByCode, getClientByEmail, getClientsFromDB } from "../repositories/client.repository";
 
 export const getAllClientsServ = async () => {
-  console.log("test111")
   return await getClientsFromDB();
 };
 
