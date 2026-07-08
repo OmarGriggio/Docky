@@ -21,17 +21,10 @@ export const createUserDB = async (
       email,
       motdepasse_hash
     )
-    VALUES ($1, $2, $3, $4)
+    VALUES ('${userData.firstname}', '${userData.lastname}', '${userData.email}', '${userData.passwordHash}')
     RETURNING *;
   `;
 
-    const values = [
-        userData.firstname,
-        userData.lastname,
-        userData.email,
-        userData.passwordHash
-    ];
-
-    const result = await pool.query(query, values);
+    const result = await pool.query(query);
     return result.rows[0];
 };

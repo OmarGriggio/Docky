@@ -39,7 +39,7 @@ Content-Type: application/json
   "nom": "Boesiger",
   "prenom": "Charle",
   "email": "omar.griggio@gmail.com",
-  "code_client": "3",
+  "code_client": "BSI",
   "societe": "Boesiger AG",
   "telephone": ""
 }
@@ -54,7 +54,7 @@ Content-Type: application/json
   "nom": "Boesiger",
   "prenom": "Charle",
   "email": "omar.griggio@gmail.com",
-  "code_client": "1",
+  "code_client": "BSI",
   "societe": "Boesiger AG",
   "telephone": ""
 }

@@ -29,20 +29,11 @@ export const createClientInDB = async (
       societe,
       telephone
     )
-    VALUES ($1, $2, $3, $4, $5, $6)
+    VALUES ('${client.nom}', '${client.prenom}', '${client.email}', '${client.code_client}', '${client.societe}', '${client.telephone}')
     RETURNING *;
   `;
 
-    const values = [
-        client.nom,
-        client.prenom,
-        client.email,
-        client.code_client,
-        client.societe,
-        client.telephone
-    ];
-
-    const result = await pool.query(query, values);
+    const result = await pool.query(query);
     return result.rows[0];
 };
 
@@ -51,15 +42,11 @@ export const deleteClientInDB = async (
 ): Promise<Client> => {
     const query = `
     DELETE FROM clients
-      WHERE code_client = $1
+      WHERE code_client = '${code_client}'
     RETURNING *;
   `;
 
-    const values = [
-        code_client
-    ];
-
-    const result = await pool.query(query, values);
+    const result = await pool.query(query);
     return result.rows[0];
 };
 
