@@ -1,9 +1,13 @@
 import { Router } from "express";
-import { getClients } from "../controllers/client.controller";
+import { createClient, deleteClient, getClients } from "../controllers/client.controller";
 import { authenticate } from "../middlewares/auth.middleware";
 
 const router = Router();
 
-router.get("/", authenticate, getClients);
+router.get("/", getClients);
+
+router.post("/", createClient);
+
+router.delete("/", deleteClient);
 
 export default router;
