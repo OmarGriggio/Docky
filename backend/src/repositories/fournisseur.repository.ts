@@ -21,10 +21,17 @@ export const createFournisseurInDB = async (
       adresse,
       categorie
     )
-    VALUES ('${fournisseur.code_fournisseur}', '${fournisseur.societe}', '${fournisseur.adresse}', '${fournisseur.categorie}')
+    VALUES ($1, $2, $3, $4)
     RETURNING *;
   `;
 
-  const result = await pool.query(query);
+  const values = [
+    fournisseur.code_fournisseur,
+    fournisseur.societe,
+    fournisseur.adresse,
+    fournisseur.categorie
+  ];
+
+  const result = await pool.query(query, values);
   return result.rows[0];
 };

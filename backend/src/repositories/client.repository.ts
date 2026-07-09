@@ -7,12 +7,12 @@ export const getClientsFromDB = async () => {
 };
 
 export const getClientByCode = async (code: string) => {
-  const result = await pool.query(`SELECT * FROM clients where code_client = '${code}'`);
+  const result = await pool.query("SELECT * FROM clients where code_client = $1", [code]);
   return result.rows[0] ?? null;
 };
 
 export const getClientByEmail = async (email: string) => {
-  const result = await pool.query(`SELECT * FROM clients where email = '${email}'`);
+  const result = await pool.query("SELECT * FROM clients where email = $1", [email]);
   return result.rows[0] ?? null;
 };
 
@@ -29,11 +29,20 @@ export const createClientInDB = async (
       societe,
       telephone
     )
-    VALUES ('${client.nom}', '${client.prenom}', '${client.email}', '${client.code_client}', '${client.societe}', '${client.telephone}')
+    VALUES ($1, $2, $3, $4, $5, $6)
     RETURNING *;
   `;
 
-    const result = await pool.query(query);
+    const values = [
+      client.nom,
+      client.prenom,
+      client.email,
+      client.code_client,
+      client.societe,
+      client.telephone
+    ];
+
+    const result = await pool.query(query, values);
     return result.rows[0];
 };
 
@@ -42,11 +51,11 @@ export const deleteClientInDB = async (
 ): Promise<Client> => {
     const query = `
     DELETE FROM clients
-      WHERE code_client = '${code_client}'
+      WHERE code_client = $1
     RETURNING *;
   `;
 
-    const result = await pool.query(query);
+    const result = await pool.query(query, [code_client]);
     return result.rows[0];
 };
 

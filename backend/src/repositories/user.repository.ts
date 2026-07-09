@@ -7,7 +7,7 @@ export const getUsersFromDB = async () => {
 };
 
 export const getUserByEmail = async (email: string) => {
-    const result = await pool.query(`SELECT * FROM utilisateurs where email = '${email}'`);
+    const result = await pool.query("SELECT * FROM utilisateurs where email = $1", [email]);
     return result.rows[0] ?? null;
 };
 
@@ -21,10 +21,17 @@ export const createUserDB = async (
       email,
       motdepasse_hash
     )
-    VALUES ('${userData.firstname}', '${userData.lastname}', '${userData.email}', '${userData.passwordHash}')
+    VALUES ($1, $2, $3, $4)
     RETURNING *;
   `;
 
-    const result = await pool.query(query);
+    const values = [
+      userData.firstname,
+      userData.lastname,
+      userData.email,
+      userData.passwordHash
+    ];
+
+    const result = await pool.query(query, values);
     return result.rows[0];
 };
