@@ -36,16 +36,9 @@ export class NavBar {
       ]
     },
     {
-      label: 'Factures',
+      label: 'Documents',
       links: [
-        { label: 'Factures', path: '/factures' },
-        { label: 'Factures lignes', path: '/factures-lignes' }
-      ]
-    },
-    {
-      label: 'Offres',
-      links: [
-        { label: 'Offres', path: '/offres' }
+        { label: 'Documents', path: '/documents' }
       ]
     }
   ];

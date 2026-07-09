@@ -1,0 +1,27 @@
+<h1>Documents</h1>
+
+<p-table [value]="documents()" dataKey="id">
+  <ng-template #header>
+    <tr>
+      <th>Numéro</th>
+      <th>Type</th>
+      <th>Date</th>
+      <th>Montant HT</th>
+      <th>Montant TTC</th>
+      <th>Rabais</th>
+      <th>Statut</th>
+    </tr>
+  </ng-template>
+
+  <ng-template #body let-document>
+    <tr>
+      <td>{{ document.numero }}</td>
+      <td>{{ document.type }}</td>
+      <td>{{ document.date }}</td>
+      <td>{{ document.montant_ht }}</td>
+      <td>{{ document.montant_ttc }}</td>
+      <td>{{ document.rabais }}</td>
+      <td>{{ document.statut }}</td>
+    </tr>
+  </ng-template>
+</p-table>
