@@ -1,0 +1,14 @@
+POST http://localhost:3000/user HTTP/1.1
+Content-Type: application/json
+
+{
+  "firstname": "Omar",
+  "lastname": "Griggio",
+  "email": "omar@test3.ch",
+  "passwordHash": "123456"
+}
+
+###
+
+GET http://localhost:3000/user
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoib21hckB0ZXN0My5jaCIsImlhdCI6MTc4MzUxOTk4MSwiZXhwIjoxNzgzNTM3OTgxfQ.7U7poXqcOCPUZEXh3v2fTvjznur7rZjZ6RU16yTI03o
