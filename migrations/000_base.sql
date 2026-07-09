@@ -122,3 +122,82 @@ CREATE TABLE factures_lignes (
         REFERENCES employes_categories(id)
 );
 
+-- ==========================================
+-- OFFRES (DEVIS)
+-- ==========================================
+
+CREATE TABLE offres (
+    id SERIAL PRIMARY KEY,
+
+    id_client INTEGER,
+
+    num_offre VARCHAR(50) UNIQUE,
+    date DATE,
+
+    montant_ht NUMERIC(12,2),
+    montant_ttc NUMERIC(12,2),
+
+    rabais NUMERIC(5,2),
+    statut VARCHAR(50),
+
+    FOREIGN KEY (id_client)
+        REFERENCES clients(id)
+);
+
+
+-- ==========================================
+-- OFFRES MATERIEL
+-- ==========================================
+
+CREATE TABLE offre_materiel (
+    id SERIAL PRIMARY KEY,
+
+    id_offre INTEGER,
+    id_tarifs_materiel INTEGER,
+
+    pos INTEGER,
+
+    ref_materiel VARCHAR(50),
+    libelle_materiel VARCHAR(255),
+
+    quantite NUMERIC(10,2),
+    tarif NUMERIC(10,2),
+
+    rabais NUMERIC(5,2),
+
+    FOREIGN KEY (id_offre)
+        REFERENCES offres(id),
+
+    FOREIGN KEY (id_tarifs_materiel)
+        REFERENCES materiel_tarif(id)
+);
+
+
+-- ==========================================
+-- OFFRES SERVICES
+-- ==========================================
+
+CREATE TABLE offre_service (
+    id SERIAL PRIMARY KEY,
+
+    id_offre INTEGER,
+    id_employe_categorie INTEGER,
+
+    pos INTEGER,
+
+    libelle_service VARCHAR(255),
+
+    quantite NUMERIC(10,2),
+    unite VARCHAR(50),
+
+    tarif NUMERIC(10,2),
+
+    rabais NUMERIC(5,2),
+
+    FOREIGN KEY (id_offre)
+        REFERENCES offres(id),
+
+    FOREIGN KEY (id_employe_categorie)
+        REFERENCES employes_categories(id)
+);
+
