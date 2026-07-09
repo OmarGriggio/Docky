@@ -27,6 +27,7 @@ export const createDocumentInDB = async (
   const query = `
     INSERT INTO documents (
       id_client,
+      id_document_parent,
       type,
       numero,
       date,
@@ -35,12 +36,13 @@ export const createDocumentInDB = async (
       rabais,
       statut
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
     RETURNING *;
   `;
 
   const values = [
     document.id_client,
+    document.id_document_parent,
     document.type,
     document.numero,
     document.date,

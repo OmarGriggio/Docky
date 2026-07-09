@@ -1,25 +1,12 @@
-GET http://localhost:3000/document
+GET http://localhost:3000/catalogue
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoib21hckB0ZXN0My5jaCIsImlhdCI6MTc4MzUxOTk4MSwiZXhwIjoxNzgzNTM3OTgxfQ.7U7poXqcOCPUZEXh3v2fTvjznur7rZjZ6RU16yTI03o
 
 ###
 
-GET http://localhost:3000/document?type=OFFRE
+GET http://localhost:3000/catalogue?type=MATERIEL
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoib21hckB0ZXN0My5jaCIsImlhdCI6MTc4MzUxOTk4MSwiZXhwIjoxNzgzNTM3OTgxfQ.7U7poXqcOCPUZEXh3v2fTvjznur7rZjZ6RU16yTI03o
 
 ###
 
-POST http://localhost:3000/document
+GET http://localhost:3000/catalogue?type=SERVICE
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoib21hckB0ZXN0My5jaCIsImlhdCI6MTc4MzUxOTk4MSwiZXhwIjoxNzgzNTM3OTgxfQ.7U7poXqcOCPUZEXh3v2fTvjznur7rZjZ6RU16yTI03o
-Content-Type: application/json
-
-{
-  "id_client": 1,
-  "id_document_parent": null,
-  "type": "OFFRE",
-  "numero": "OFFRE-2026-001",
-  "date": "2026-07-09",
-  "montant_ht": 1000,
-  "montant_ttc": 1077,
-  "rabais": 0,
-  "statut": "en_attente"
-}

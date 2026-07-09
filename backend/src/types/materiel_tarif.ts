@@ -1,11 +1,11 @@
 export type MaterielTarif = {
   id: number;
 
+  id_catalogue: number;
   id_fournisseur: number;
-  id_materiel: number;
 
-  tarif: number;
-  defaut: boolean;
+  prix_achat: number;
   rabais: number;
   delai_livraison: number;
+  defaut: boolean;
 };
