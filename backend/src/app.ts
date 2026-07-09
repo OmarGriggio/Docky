@@ -7,6 +7,9 @@ import fournisseurRoutes from "./routes/fournisseur.routes";
 import materielRoutes from "./routes/materiel.routes";
 import factureLigneRoutes from "./routes/facture_ligne.routes";
 import factureCompleteRoutes from "./routes/facture_complete.routes";
+import offreRoutes from "./routes/offre.routes";
+import offreMaterielRoutes from "./routes/offre_materiel.routes";
+import offreServiceRoutes from "./routes/offre_service.routes";
 import cors from 'cors';
 
 const app = express();
@@ -26,6 +29,12 @@ app.use("/facture", factureRoutes);
 app.use("/facture-ligne", factureLigneRoutes);
 
 app.use("/facture-complete", factureCompleteRoutes);
+
+app.use("/offre", offreRoutes);
+
+app.use("/offre-materiel", offreMaterielRoutes);
+
+app.use("/offre-service", offreServiceRoutes);
 
 app.use("/user", userRoutes);
 
