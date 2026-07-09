@@ -40,6 +40,12 @@ export class NavBar {
       links: [
         { label: 'Documents', path: '/documents' }
       ]
+    },
+    {
+      label: 'Catalogue',
+      links: [
+        { label: 'Catalogue', path: '/catalogue' }
+      ]
     }
   ];
 

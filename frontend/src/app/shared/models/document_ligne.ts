@@ -10,6 +10,4 @@ export interface DocumentLigne {
   unite: string | null;
   prix_unitaire: number;
   rabais: number;
-  id_tarifs_materiel: number | null;
-  id_service: number | null;
 }

@@ -4,6 +4,7 @@ import { ClientForm } from './features/clients/client-form/client-form';
 import { FournisseurListComponent } from './features/fournisseurs/fournisseur-list/fournisseur-list';
 import { FournisseurForm } from './features/fournisseurs/fournisseur-form/fournisseur-form';
 import { DocumentListComponent } from './features/documents/document-list/document-list';
+import { CatalogueListComponent } from './features/catalogue/catalogue-list/catalogue-list';
 
 export const routes: Routes = [
   {
@@ -25,6 +26,10 @@ export const routes: Routes = [
   {
     path: 'documents',
     component: DocumentListComponent
+  },
+  {
+    path: 'catalogue',
+    component: CatalogueListComponent
   },
   {
     path: '',

@@ -1,0 +1,25 @@
+<h1>Catalogue</h1>
+
+<p-table [value]="catalogue()" dataKey="id">
+  <ng-template #header>
+    <tr>
+      <th>Code</th>
+      <th>Type</th>
+      <th>Libellé</th>
+      <th>Unité</th>
+      <th>Prix de vente</th>
+      <th>Actif</th>
+    </tr>
+  </ng-template>
+
+  <ng-template #body let-item>
+    <tr>
+      <td>{{ item.code }}</td>
+      <td>{{ item.type }}</td>
+      <td>{{ item.libelle }}</td>
+      <td>{{ item.unite }}</td>
+      <td>{{ item.prix_vente }}</td>
+      <td>{{ item.actif }}</td>
+    </tr>
+  </ng-template>
+</p-table>
