@@ -2,14 +2,11 @@ import express from "express";
 import clientRoutes from "./routes/client.routes";
 import userRoutes from "./routes/user.routes";
 import authRoutes from "./routes/auth.routes";
-import factureRoutes from "./routes/facture.routes";
 import fournisseurRoutes from "./routes/fournisseur.routes";
 import materielRoutes from "./routes/materiel.routes";
-import factureLigneRoutes from "./routes/facture_ligne.routes";
-import factureCompleteRoutes from "./routes/facture_complete.routes";
-import offreRoutes from "./routes/offre.routes";
-import offreMaterielRoutes from "./routes/offre_materiel.routes";
-import offreServiceRoutes from "./routes/offre_service.routes";
+import serviceRoutes from "./routes/service.routes";
+import documentRoutes from "./routes/document.routes";
+import documentCompleteRoutes from "./routes/document_complete.routes";
 import cors from 'cors';
 
 const app = express();
@@ -24,17 +21,11 @@ app.use("/fournisseur", fournisseurRoutes);
 
 app.use("/materiel", materielRoutes);
 
-app.use("/facture", factureRoutes);
+app.use("/service", serviceRoutes);
 
-app.use("/facture-ligne", factureLigneRoutes);
+app.use("/document", documentRoutes);
 
-app.use("/facture-complete", factureCompleteRoutes);
-
-app.use("/offre", offreRoutes);
-
-app.use("/offre-materiel", offreMaterielRoutes);
-
-app.use("/offre-service", offreServiceRoutes);
+app.use("/document-complete", documentCompleteRoutes);
 
 app.use("/user", userRoutes);
 

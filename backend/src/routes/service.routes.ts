@@ -1,9 +1,9 @@
 import { Router } from "express";
-import { getFactures } from "../controllers/facture.controller";
+import { getServices } from "../controllers/service.controller";
 import { authenticate } from "../middlewares/auth.middleware";
 
 const router = Router();
 
-router.get("/", getFactures);
+router.get("/", getServices);
 
 export default router;

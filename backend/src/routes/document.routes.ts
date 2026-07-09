@@ -1,11 +1,11 @@
 import { Router } from "express";
-import { createOffre, getOffres } from "../controllers/offre.controller";
+import { createDocument, getDocuments } from "../controllers/document.controller";
 import { authenticate } from "../middlewares/auth.middleware";
 
 const router = Router();
 
-router.get("/", getOffres);
+router.get("/", getDocuments);
 
-router.post("/", createOffre);
+router.post("/", createDocument);
 
 export default router;
