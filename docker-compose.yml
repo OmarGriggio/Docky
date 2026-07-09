@@ -1,31 +1,32 @@
 services:
 
   postgres:
-    image: postgres:17
+    image: postgres:${POSTGRES_VERSION}
 
-    container_name: docky-postgres
+    container_name: ${POSTGRES_CONTAINER_NAME}
 
     restart: unless-stopped
 
     environment:
-      POSTGRES_DB: btp_saas
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT}:5432"
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+
   backend:
-    container_name: docky-backend
+    container_name: ${BACKEND_CONTAINER_NAME}
 
     build:
       context: ./backend
 
     ports:
-      - "3000:3000"
+      - "${BACKEND_PORT}:3000"
 
     env_file:
       - ./backend/.env
@@ -36,6 +37,7 @@ services:
     volumes:
       - ./backend:/app
       - /app/node_modules
+
 
 volumes:
   postgres_data:

@@ -6,6 +6,6 @@ export const getFacturesFromDB = async () => {
 };
 
 export const getFactureByIdFromDB = async (id: number) => {
-  const result = await pool.query("SELECT * FROM factures WHERE id = $1", [id]);
+  const result = await pool.query(`SELECT * FROM factures WHERE id = '${id}'`);
   return result.rows[0] ?? null;
 };
