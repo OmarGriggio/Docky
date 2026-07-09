@@ -1,0 +1,25 @@
+<h1>Offres</h1>
+
+<p-table [value]="offres()" dataKey="id">
+  <ng-template #header>
+    <tr>
+      <th>Numéro</th>
+      <th>Date</th>
+      <th>Montant HT</th>
+      <th>Montant TTC</th>
+      <th>Rabais</th>
+      <th>Statut</th>
+    </tr>
+  </ng-template>
+
+  <ng-template #body let-offre>
+    <tr>
+      <td>{{ offre.num_offre }}</td>
+      <td>{{ offre.date }}</td>
+      <td>{{ offre.montant_ht }}</td>
+      <td>{{ offre.montant_ttc }}</td>
+      <td>{{ offre.rabais }}</td>
+      <td>{{ offre.statut }}</td>
+    </tr>
+  </ng-template>
+</p-table>
