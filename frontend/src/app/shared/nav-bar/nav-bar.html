@@ -1,0 +1,14 @@
+<nav>
+  @for (item of navItems; track item.label) {
+    @if (item.links.length > 1) {
+      <details>
+        <summary>{{ item.label }}</summary>
+        @for (link of item.links; track link.path) {
+          <a [routerLink]="link.path">{{ link.label }}</a>
+        }
+      </details>
+    } @else {
+      <a [routerLink]="item.links[0].path">{{ item.label }}</a>
+    }
+  }
+</nav>

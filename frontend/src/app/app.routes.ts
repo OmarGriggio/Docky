@@ -5,6 +5,7 @@ import { FournisseurListComponent } from './features/fournisseurs/fournisseur-li
 import { FournisseurForm } from './features/fournisseurs/fournisseur-form/fournisseur-form';
 import { FactureListComponent } from './features/factures/facture-list/facture-list';
 import { FactureLigneListComponent } from './features/factures/facture_ligne-list/facture_ligne-list';
+import { OffreListComponent } from './features/offres/offre-list/offre-list';
 
 export const routes: Routes = [
   {
@@ -30,6 +31,10 @@ export const routes: Routes = [
   {
     path: 'factures-lignes',
     component: FactureLigneListComponent
+  },
+  {
+    path: 'offres',
+    component: OffreListComponent
   },
   {
     path: '',
