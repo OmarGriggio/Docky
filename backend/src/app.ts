@@ -5,6 +5,8 @@ import authRoutes from "./routes/auth.routes";
 import factureRoutes from "./routes/facture.routes";
 import fournisseurRoutes from "./routes/fournisseur.routes";
 import materielRoutes from "./routes/materiel.routes";
+import factureLigneRoutes from "./routes/facture_ligne.routes";
+import factureCompleteRoutes from "./routes/facture_complete.routes";
 import cors from 'cors';
 
 const app = express();
@@ -21,7 +23,11 @@ app.use("/materiel", materielRoutes);
 
 app.use("/facture", factureRoutes);
 
-app.use("/user", userRoutes )
+app.use("/facture-ligne", factureLigneRoutes);
+
+app.use("/facture-complete", factureCompleteRoutes);
+
+app.use("/user", userRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is running");

@@ -7,13 +7,11 @@ export type FactureLigne = {
 
   pos: number;
 
-  // matériel snapshot
   ref_materiel: string | null;
   libelle_materiel: string | null;
   quantite_materiel: number | null;
   tarif_materiel: number | null;
 
-  // employé snapshot
   libelle_employe: string | null;
   temps_employe: number | null;
   tarif_employe: number | null;
