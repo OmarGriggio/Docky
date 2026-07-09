@@ -1,0 +1,33 @@
+<h1>Lignes de facture</h1>
+
+<p>Nombre de lignes : {{ lignes().length }}</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Facture</th>
+      <th>Pos</th>
+      <th>Matériel</th>
+      <th>Qté</th>
+      <th>Tarif matériel</th>
+      <th>Employé</th>
+      <th>Temps</th>
+      <th>Tarif employé</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    @for (ligne of lignes(); track ligne.id) {
+      <tr>
+        <td>{{ ligne.id_facture }}</td>
+        <td>{{ ligne.pos }}</td>
+        <td>{{ ligne.libelle_materiel }}</td>
+        <td>{{ ligne.quantite_materiel }}</td>
+        <td>{{ ligne.tarif_materiel }}</td>
+        <td>{{ ligne.libelle_employe }}</td>
+        <td>{{ ligne.temps_employe }}</td>
+        <td>{{ ligne.tarif_employe }}</td>
+      </tr>
+    }
+  </tbody>
+</table>

@@ -1,0 +1,29 @@
+<h1>Factures</h1>
+
+<p>Nombre de factures : {{ factures().length }}</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Numéro</th>
+      <th>Date</th>
+      <th>Montant HT</th>
+      <th>Montant TTC</th>
+      <th>Rabais</th>
+      <th>Statut</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    @for (facture of factures(); track facture.id) {
+      <tr>
+        <td>{{ facture.num_facture }}</td>
+        <td>{{ facture.date }}</td>
+        <td>{{ facture.montant_ht }}</td>
+        <td>{{ facture.montant_ttc }}</td>
+        <td>{{ facture.rabais }}</td>
+        <td>{{ facture.statut }}</td>
+      </tr>
+    }
+  </tbody>
+</table>
