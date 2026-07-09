@@ -1,7 +1,10 @@
-export interface Offre {
+export type DocumentType = 'OFFRE' | 'FACTURE';
+
+export interface Document {
   id: number;
   id_client: number;
-  num_offre: string;
+  type: DocumentType;
+  numero: string;
   date: string;
   montant_ht: number;
   montant_ttc: number;
