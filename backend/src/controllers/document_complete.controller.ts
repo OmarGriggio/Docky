@@ -1,0 +1,13 @@
+import { Request, Response } from "express";
+import { getAllDocumentsCompleteServ, getDocumentCompleteServ } from "../services/document_complete.service";
+
+export const getDocumentsComplete = async (req: Request, res: Response) => {
+  const type = req.query.type as string | undefined;
+  const documents = await getAllDocumentsCompleteServ(type);
+  res.json(documents);
+};
+
+export const getDocumentComplete = async (req: Request, res: Response) => {
+  const document = await getDocumentCompleteServ(Number(req.params.id));
+  res.json(document);
+};
