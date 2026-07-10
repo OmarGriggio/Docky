@@ -6,8 +6,13 @@ export const getClientsFromDB = async () => {
   return result.rows;
 };
 
-export const getClientByCode = async (code: string) => {
-  const result = await pool.query("SELECT * FROM clients where code_client = $1", [code]);
+export const getClientByIdFromDB = async (id: number) => {
+  const result = await pool.query("SELECT * FROM clients where id = $1", [id]);
+  return result.rows[0] ?? null;
+};
+
+export const getClientByNumClient = async (num_client: string) => {
+  const result = await pool.query("SELECT * FROM clients where num_client = $1", [num_client]);
   return result.rows[0] ?? null;
 };
 
@@ -18,28 +23,34 @@ export const getClientByEmail = async (email: string) => {
 
 
 export const createClientInDB = async (
-    client: Client
+    client: Omit<Client, "id">
 ): Promise<Client> => {
     const query = `
     INSERT INTO clients (
+      num_client,
+      societe,
+      tva,
       nom,
       prenom,
+      civilite,
       email,
-      code_client,
-      societe,
-      telephone
+      telephone,
+      remarque
     )
-    VALUES ($1, $2, $3, $4, $5, $6)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
     RETURNING *;
   `;
 
     const values = [
+      client.num_client,
+      client.societe,
+      client.tva,
       client.nom,
       client.prenom,
+      client.civilite,
       client.email,
-      client.code_client,
-      client.societe,
-      client.telephone
+      client.telephone,
+      client.remarque
     ];
 
     const result = await pool.query(query, values);
@@ -47,15 +58,14 @@ export const createClientInDB = async (
 };
 
 export const deleteClientInDB = async (
-    code_client: string
+    num_client: string
 ): Promise<Client> => {
     const query = `
     DELETE FROM clients
-      WHERE code_client = $1
+      WHERE num_client = $1
     RETURNING *;
   `;
 
-    const result = await pool.query(query, [code_client]);
+    const result = await pool.query(query, [num_client]);
     return result.rows[0];
 };
-

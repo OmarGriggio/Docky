@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { addClientServ, deleteClientServ, getAllClientsServ } from "../services/client.service";
+import { addClientServ, deleteClientServ, getAllClientsServ, getClientByIdServ } from "../services/client.service";
 import { Client } from "../types/client";
 
 export const getClients = async (req: Request, res: Response) => {
@@ -7,17 +7,22 @@ export const getClients = async (req: Request, res: Response) => {
   res.json(clients);
 };
 
+export const getClient = async (req: Request, res: Response) => {
+  const client = await getClientByIdServ(Number(req.params.id));
+  res.json(client);
+};
+
 
 export const createClient = async (req: Request, res: Response) => {
-    const clientData : Client = req.body
+    const clientData : Omit<Client, "id"> = req.body
 
-    const userCreated = await addClientServ(clientData);
-    res.json(userCreated);
+    const clientCreated = await addClientServ(clientData);
+    res.json(clientCreated);
 };
 
 export const deleteClient = async (req: Request, res: Response) => {
-  const clientData : Client = req.body
+  const { num_client } = req.body
 
-  const userDeleted = await deleteClientServ(clientData)
-  res.json(userDeleted)
+  const clientDeleted = await deleteClientServ(num_client)
+  res.json(clientDeleted)
 }

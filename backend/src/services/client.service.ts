@@ -1,15 +1,25 @@
-import {Client} from "../types/client"
-import { createClientInDB, deleteClientInDB, getClientByCode, getClientByEmail, getClientsFromDB } from "../repositories/client.repository";
+import {Client, ClientWithAdresses} from "../types/client"
+import { createClientInDB, deleteClientInDB, getClientByIdFromDB, getClientByEmail, getClientByNumClient, getClientsFromDB } from "../repositories/client.repository";
+import { getAdressesByClientIdFromDB } from "../repositories/adresse.repository";
 
 export const getAllClientsServ = async () => {
   return await getClientsFromDB();
 };
 
+export const getClientByIdServ = async (id: number): Promise<ClientWithAdresses> => {
+  const client = await getClientByIdFromDB(id);
+  if (!client) {
+    throw new Error("Client not found");
+  }
 
-export const addClientServ = async (clientData: Client) => {
-  const clientCode = await getClientByCode(clientData.code_client);
-  if (!clientCode) {
-    if (clientData.email != ""){
+  const adresses = await getAdressesByClientIdFromDB(id);
+  return { ...client, adresses };
+};
+
+export const addClientServ = async (clientData: Omit<Client, "id">) => {
+  const existingClient = await getClientByNumClient(clientData.num_client);
+  if (!existingClient) {
+    if (clientData.email) {
       const clientMail = await getClientByEmail(clientData.email)
       if (!clientMail) {
         return await createClientInDB(clientData);
@@ -17,15 +27,16 @@ export const addClientServ = async (clientData: Client) => {
         throw new Error("Client email already exists");
       }
     }
+    return await createClientInDB(clientData);
   } else {
-    throw new Error("Client code already exists");
+    throw new Error("Client num_client already exists");
   }
 }
 
-export const deleteClientServ = async (clientData: Client) => {
-  const client = await getClientByCode(clientData.code_client);
+export const deleteClientServ = async (num_client: string) => {
+  const client = await getClientByNumClient(num_client);
   if (client){
-    return await deleteClientInDB(clientData.code_client) ;
+    return await deleteClientInDB(num_client) ;
   } else {
     throw new Error("Client not found");
   }

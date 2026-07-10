@@ -1,9 +1,11 @@
 import { Router } from "express";
-import { getCatalogue } from "../controllers/catalogue.controller";
+import { createAdresse, getAdresses } from "../controllers/adresse.controller";
 import { authenticate } from "../middlewares/auth.middleware";
 
 const router = Router();
 
-router.get("/", getCatalogue);
+router.get("/", getAdresses);
+
+router.post("/", createAdresse);
 
 export default router;

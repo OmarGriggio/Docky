@@ -1,35 +1,22 @@
-GET http://localhost:3000/client
+GET http://localhost:3000/ressource
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoib21hckB0ZXN0My5jaCIsImlhdCI6MTc4MzUxOTk4MSwiZXhwIjoxNzgzNTM3OTgxfQ.7U7poXqcOCPUZEXh3v2fTvjznur7rZjZ6RU16yTI03o
 
 ###
 
-GET http://localhost:3000/client/1
+GET http://localhost:3000/ressource?type=MATERIEL
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoib21hckB0ZXN0My5jaCIsImlhdCI6MTc4MzUxOTk4MSwiZXhwIjoxNzgzNTM3OTgxfQ.7U7poXqcOCPUZEXh3v2fTvjznur7rZjZ6RU16yTI03o
 
 ###
 
-POST http://localhost:3000/client
+GET http://localhost:3000/ressource?type=MAIN-OEUVRE
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoib21hckB0ZXN0My5jaCIsImlhdCI6MTc4MzUxOTk4MSwiZXhwIjoxNzgzNTM3OTgxfQ.7U7poXqcOCPUZEXh3v2fTvjznur7rZjZ6RU16yTI03o
-Content-Type: application/json
-
-{
-  "num_client": "BSI",
-  "societe": "Boesiger AG",
-  "tva": null,
-  "nom": "Boesiger",
-  "prenom": "Charle",
-  "civilite": "Monsieur",
-  "email": "omar.griggio@gmail.com",
-  "telephone": "",
-  "remarque": null
-}
 
 ###
 
-DELETE  http://localhost:3000/client
+GET http://localhost:3000/ressource?type=SOUS-TRAITANCE
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoib21hckB0ZXN0My5jaCIsImlhdCI6MTc4MzUxOTk4MSwiZXhwIjoxNzgzNTM3OTgxfQ.7U7poXqcOCPUZEXh3v2fTvjznur7rZjZ6RU16yTI03o
-Content-Type: application/json
 
-{
-  "num_client": "BSI"
-}
+###
+
+GET http://localhost:3000/ressource?type=DIVERS
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoib21hckB0ZXN0My5jaCIsImlhdCI6MTc4MzUxOTk4MSwiZXhwIjoxNzgzNTM3OTgxfQ.7U7poXqcOCPUZEXh3v2fTvjznur7rZjZ6RU16yTI03o

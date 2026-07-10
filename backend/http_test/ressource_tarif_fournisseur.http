@@ -1,12 +1,7 @@
-GET http://localhost:3000/catalogue
+GET http://localhost:3000/ressource-tarif-fournisseur
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoib21hckB0ZXN0My5jaCIsImlhdCI6MTc4MzUxOTk4MSwiZXhwIjoxNzgzNTM3OTgxfQ.7U7poXqcOCPUZEXh3v2fTvjznur7rZjZ6RU16yTI03o
 
 ###
 
-GET http://localhost:3000/catalogue?type=MATERIEL
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoib21hckB0ZXN0My5jaCIsImlhdCI6MTc4MzUxOTk4MSwiZXhwIjoxNzgzNTM3OTgxfQ.7U7poXqcOCPUZEXh3v2fTvjznur7rZjZ6RU16yTI03o
-
-###
-
-GET http://localhost:3000/catalogue?type=SERVICE
+GET http://localhost:3000/ressource-tarif-fournisseur?id_ressource=1
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoib21hckB0ZXN0My5jaCIsImlhdCI6MTc4MzUxOTk4MSwiZXhwIjoxNzgzNTM3OTgxfQ.7U7poXqcOCPUZEXh3v2fTvjznur7rZjZ6RU16yTI03o

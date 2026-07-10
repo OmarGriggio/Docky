@@ -1,9 +1,11 @@
 import express from "express";
 import clientRoutes from "./routes/client.routes";
+import adresseRoutes from "./routes/adresse.routes";
 import userRoutes from "./routes/user.routes";
 import authRoutes from "./routes/auth.routes";
 import fournisseurRoutes from "./routes/fournisseur.routes";
-import catalogueRoutes from "./routes/catalogue.routes";
+import ressourceRoutes from "./routes/ressource.routes";
+import ressourceTarifFournisseurRoutes from "./routes/ressource_tarif_fournisseur.routes";
 import documentRoutes from "./routes/document.routes";
 import documentCompleteRoutes from "./routes/document_complete.routes";
 import cors from 'cors';
@@ -16,9 +18,13 @@ app.use("/auth/login", authRoutes);
 
 app.use("/client", clientRoutes);
 
+app.use("/adresse", adresseRoutes);
+
 app.use("/fournisseur", fournisseurRoutes);
 
-app.use("/catalogue", catalogueRoutes);
+app.use("/ressource", ressourceRoutes);
+
+app.use("/ressource-tarif-fournisseur", ressourceTarifFournisseurRoutes);
 
 app.use("/document", documentRoutes);
 
