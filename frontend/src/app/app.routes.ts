@@ -6,8 +6,13 @@ import { FournisseurListComponent } from './features/fournisseurs/fournisseur-li
 import { FournisseurForm } from './features/fournisseurs/fournisseur-form/fournisseur-form';
 import { DocumentListComponent } from './features/documents/document-list/document-list';
 import { RessourceListComponent } from './features/ressources/ressource-list/ressource-list';
+import { UiTest } from './features/uitest/uitest';
 
 export const routes: Routes = [
+  {
+    path: 'uitest',
+    component: UiTest
+  },
   {
     path: 'clients',
     component: ClientListComponent

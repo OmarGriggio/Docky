@@ -1,0 +1,31 @@
+/* Generic form grid, matching the pattern used in client-form.css. */
+
+.ui-form {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.ui-form--1col { grid-template-columns: 1fr; }
+
+.ui-form__full { grid-column: 1 / -1; }
+
+.ui-form p-floatlabel,
+.ui-form p-select,
+.ui-form p-checkbox,
+.ui-form textarea {
+  width: 100%;
+}
+
+.ui-form__actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  .ui-form {
+    grid-template-columns: 1fr;
+  }
+}

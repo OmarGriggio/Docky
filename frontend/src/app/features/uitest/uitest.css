@@ -1,0 +1,13 @@
+.ui-section {
+  margin-bottom: 2.5rem;
+}
+
+.ui-demo-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 4rem;
+  border: 1px dashed #bbb;
+  border-radius: 6px;
+  color: #888;
+}

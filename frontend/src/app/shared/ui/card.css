@@ -1,0 +1,21 @@
+/* Modifiers for p-card, applied via [styleClass]="'ui-card--flat'" etc. */
+
+.p-card.ui-card--flat {
+  box-shadow: none;
+  border: 1px solid #ddd;
+}
+
+.p-card.ui-card--elevated {
+  border: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.p-card.ui-card--compact .p-card-body {
+  padding: 0.75rem;
+}
+
+.ui-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}

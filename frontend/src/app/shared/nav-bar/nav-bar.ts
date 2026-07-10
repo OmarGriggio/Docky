@@ -51,6 +51,12 @@ export class NavBar {
         { label: 'Sous-traitance', path: '/ressources', queryParams: { type: 'SOUS-TRAITANCE' } },
         { label: 'Divers', path: '/ressources', queryParams: { type: 'DIVERS' } }
       ]
+    },
+    {
+      label: 'UI Kit',
+      links: [
+        { label: 'Exemples', path: '/uitest' }
+      ]
     }
   ];
 

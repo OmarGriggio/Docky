@@ -1,0 +1,11 @@
+/* Footer/action alignment for p-dialog content. */
+
+.ui-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.ui-dialog--sm .p-dialog { width: 22rem; }
+.ui-dialog--md .p-dialog { width: 32rem; }
+.ui-dialog--lg .p-dialog { width: 48rem; }
