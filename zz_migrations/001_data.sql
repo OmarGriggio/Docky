@@ -3,13 +3,13 @@
 -- ==========================================
 
 INSERT INTO clients
-(num_client, societe, tva, nom, prenom, civilite, email, telephone, remarque)
+(num_client, type, societe, tva, nom, prenom, civilite, email, telephone, remarque)
 VALUES
-('C0001', NULL, NULL, 'Dupont', 'Jean', 'Monsieur', 'jean.dupont@gmail.com', '0791112233', NULL),
-('C0002', NULL, NULL, 'Martin', 'Sophie', 'Madame', 'sophie.martin@gmail.com', '0792223344', NULL),
-('C0003', 'Entreprise Martin SA', 'CHE-123.456.789', NULL, NULL, NULL, 'contact@martinsa.ch', '0211112233', 'Client professionnel'),
-('C0004', 'ABC Construction SA', 'CHE-987.654.321', NULL, NULL, NULL, 'info@abcconstruction.ch', '0215556677', NULL),
-('C0005', NULL, NULL, 'Durand', 'Paul', 'Monsieur', 'paul.durand@gmail.com', '0783334455', NULL);
+('C0001', 'PARTICULIER', NULL, NULL, 'Dupont', 'Jean', 'Monsieur', 'jean.dupont@gmail.com', '0791112233', NULL),
+('C0002', 'PARTICULIER', NULL, NULL, 'Martin', 'Sophie', 'Madame', 'sophie.martin@gmail.com', '0792223344', NULL),
+('C0003', 'PROFESSIONNEL', 'Entreprise Martin SA', 'CHE-123.456.789', NULL, NULL, NULL, 'contact@martinsa.ch', '0211112233', 'Client professionnel'),
+('C0004', 'PROFESSIONNEL', 'ABC Construction SA', 'CHE-987.654.321', NULL, NULL, NULL, 'info@abcconstruction.ch', '0215556677', NULL),
+('C0005', 'PARTICULIER', NULL, NULL, 'Durand', 'Paul', 'Monsieur', 'paul.durand@gmail.com', '0783334455', NULL);
 
 -- ==========================================
 -- ADRESSES

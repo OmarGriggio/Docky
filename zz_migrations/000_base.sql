@@ -1,4 +1,5 @@
-
+DROP SCHEMA public CASCADE;
+CREATE SCHEMA public;
 
 -- ==========================================
 -- CLIENTS
@@ -7,6 +8,8 @@
 CREATE TABLE clients (
     id SERIAL PRIMARY KEY,
     num_client VARCHAR(50) UNIQUE,
+    type VARCHAR(20) NOT NULL
+        CHECK (type IN ('PARTICULIER', 'PROFESSIONNEL')),
     societe VARCHAR (100),
     tva VARCHAR(20),
     nom VARCHAR(100),

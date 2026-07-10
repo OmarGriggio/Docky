@@ -28,6 +28,7 @@ export const createClientInDB = async (
     const query = `
     INSERT INTO clients (
       num_client,
+      type,
       societe,
       tva,
       nom,
@@ -37,12 +38,13 @@ export const createClientInDB = async (
       telephone,
       remarque
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
     RETURNING *;
   `;
 
     const values = [
       client.num_client,
+      client.type,
       client.societe,
       client.tva,
       client.nom,
