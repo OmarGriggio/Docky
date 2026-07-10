@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { addFournisseurServ, getAllFournisseursServ } from "../services/fournisseur.service";
+import { addFournisseurServ, deleteFournisseurServ, getAllFournisseursServ } from "../services/fournisseur.service";
 import { Fournisseur } from "../types/fournisseur";
 
 export const getFournisseur = async (req: Request, res: Response) => {
@@ -12,4 +12,11 @@ export const createFournisseur = async (req: Request, res: Response) => {
 
   const fournisseurCreated = await addFournisseurServ(fournisseurData);
   res.json(fournisseurCreated);
+};
+
+export const deleteFournisseur = async (req: Request, res: Response) => {
+  const { code_fournisseur } = req.body;
+
+  const fournisseurDeleted = await deleteFournisseurServ(code_fournisseur);
+  res.json(fournisseurDeleted);
 };
