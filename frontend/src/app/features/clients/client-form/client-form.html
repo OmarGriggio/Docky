@@ -1,54 +1,66 @@
-<form [formGroup]="form" (ngSubmit)="submit()" class="form-grid">
-  <p-togglebutton
-    formControlName="isProfessionnel"
-    onLabel="Professionnel"
-    offLabel="Particulier"
-  />
+<div class="client-form-page">
+  <p-card header="Nouveau client" styleClass="ui-card--elevated client-form-card">
+    <form [formGroup]="form" (ngSubmit)="submit()" class="ui-form">
+      <div class="ui-form__full client-form-type">
+        <p-selectbutton
+          formControlName="isProfessionnel"
+          [options]="actifOptions"
+          optionLabel="label"
+          optionValue="value"
+        />
+      </div>
 
-  <p-floatlabel variant="on">
-    <input pInputText id="num_client" formControlName="num_client" />
-    <label for="num_client">N° client</label>
-  </p-floatlabel>
+      <p-floatlabel variant="on">
+        <input pInputText id="nom" formControlName="nom" />
+        <label for="nom">Nom</label>
+      </p-floatlabel>
 
-  <p-floatlabel variant="on">
-    <input pInputText id="civilite" formControlName="civilite" />
-    <label for="civilite">Civilité</label>
-  </p-floatlabel>
+      <p-floatlabel variant="on">
+        <input pInputText id="prenom" formControlName="prenom" />
+        <label for="prenom">Prénom</label>
+      </p-floatlabel>
 
-  <p-floatlabel variant="on">
-    <input pInputText id="nom" formControlName="nom" />
-    <label for="nom">Nom</label>
-  </p-floatlabel>
+      <p-floatlabel variant="on">
+        <input pInputText id="civilite" formControlName="civilite" />
+        <label for="civilite">Civilité</label>
+      </p-floatlabel>
 
-  <p-floatlabel variant="on">
-    <input pInputText id="prenom" formControlName="prenom" />
-    <label for="prenom">Prénom</label>
-  </p-floatlabel>
+      <p-floatlabel variant="on">
+        <input pInputText id="num_client" formControlName="num_client" />
+        <label for="num_client">N° client</label>
+      </p-floatlabel>
 
-  <p-floatlabel variant="on">
-    <input pInputText id="societe" formControlName="societe" />
-    <label for="societe">Société</label>
-  </p-floatlabel>
+      @if (isProfessionnel) {
+        <p-floatlabel variant="on">
+          <input pInputText id="societe" formControlName="societe" />
+          <label for="societe">Société</label>
+        </p-floatlabel>
 
-  <p-floatlabel variant="on">
-    <input pInputText id="tva" formControlName="tva" />
-    <label for="tva">TVA</label>
-  </p-floatlabel>
+        <p-floatlabel variant="on">
+          <input pInputText id="tva" formControlName="tva" />
+          <label for="tva">TVA</label>
+        </p-floatlabel>
+      }
 
-  <p-floatlabel variant="on">
-    <input pInputText id="email" type="email" formControlName="email" />
-    <label for="email">Email</label>
-  </p-floatlabel>
+      <p-floatlabel variant="on">
+        <input pInputText id="email" type="email" formControlName="email" />
+        <label for="email">Email</label>
+      </p-floatlabel>
 
-  <p-floatlabel variant="on">
-    <input pInputText id="telephone" formControlName="telephone" />
-    <label for="telephone">Téléphone</label>
-  </p-floatlabel>
+      <p-floatlabel variant="on">
+        <input pInputText id="telephone" formControlName="telephone" />
+        <label for="telephone">Téléphone</label>
+      </p-floatlabel>
 
-  <p-floatlabel variant="on">
-    <textarea pTextarea id="remarque" formControlName="remarque" rows="4"></textarea>
-    <label for="remarque">Remarque</label>
-  </p-floatlabel>
+      <p-floatlabel variant="on" class="ui-form__full">
+        <textarea pTextarea id="remarque" formControlName="remarque" rows="4"></textarea>
+        <label for="remarque">Remarque</label>
+      </p-floatlabel>
 
-  <p-button type="submit" label="Créer" />
-</form>
+      <div class="ui-form__actions">
+        <p-button type="button" label="Annuler" severity="secondary" (onClick)="cancel()" />
+        <p-button type="submit" label="Créer" />
+      </div>
+    </form>
+  </p-card>
+</div>

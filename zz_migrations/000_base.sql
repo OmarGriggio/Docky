@@ -1,6 +1,14 @@
 DROP SCHEMA public CASCADE;
 CREATE SCHEMA public;
 
+CREATE TABLE entreprise (
+    id SERIAL PRIMARY KEY,
+    nom VARCHAR(100),
+    email VARCHAR(255),
+    telephone VARCHAR(50),
+    logo VARCHAR(255)
+)
+
 -- ==========================================
 -- CLIENTS
 -- ==========================================

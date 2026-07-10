@@ -1,13 +1,16 @@
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
+.client-form-page {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1rem;
 }
 
-p-floatlabel {
+.client-form-card {
   width: 100%;
+  max-width: 640px;
 }
 
-textarea {
-  width: 100%;
+.client-form-type {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.5rem;
 }

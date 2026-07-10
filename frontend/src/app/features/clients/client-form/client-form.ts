@@ -4,14 +4,15 @@ import { Router } from '@angular/router';
 import { InputText } from 'primeng/inputtext';
 import { Textarea } from 'primeng/textarea';
 import { FloatLabel } from 'primeng/floatlabel';
-import { ToggleButton } from 'primeng/togglebutton';
+import { SelectButton } from 'primeng/selectbutton';
 import { Button } from 'primeng/button';
+import { Card } from 'primeng/card';
 import { ClientService } from '../client.service';
 
 @Component({
   selector: 'app-client-form',
   standalone: true,
-  imports: [ReactiveFormsModule, InputText, Textarea, FloatLabel, ToggleButton, Button],
+  imports: [ReactiveFormsModule, InputText, Textarea, FloatLabel, SelectButton, Button, Card],
   templateUrl: './client-form.html',
   styleUrl: './client-form.css',
 })
@@ -33,6 +34,27 @@ export class ClientForm {
     telephone: [''],
     remarque: [''],
   });
+
+  actifOptions = [
+    { label: 'Particulier', value: false },
+    { label: 'Professionnel', value: true }
+  ];
+
+  constructor() {
+    this.form.controls.isProfessionnel.valueChanges.subscribe(isProfessionnel => {
+      if (!isProfessionnel) {
+        this.form.patchValue({ societe: '', tva: '' });
+      }
+    });
+  }
+
+  get isProfessionnel(): boolean {
+    return this.form.controls.isProfessionnel.value;
+  }
+
+  cancel(): void {
+    this.router.navigate(['/clients']);
+  }
 
   submit(): void {
     if (this.form.invalid) {

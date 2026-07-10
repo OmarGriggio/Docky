@@ -1,5 +1,8 @@
 <h1>UI Kit</h1>
-<p>Exemples des classes définies dans <code>shared/ui</code> (grid, card, buttons, form, dialog). À copier/adapter dans les features.</p>
+<p>
+  Exemples des classes définies dans <code>shared/ui</code> (grid, card, buttons, form, dialog). À
+  copier/adapter dans les features.
+</p>
 
 <section class="ui-section">
   <h2>Grid</h2>
@@ -13,7 +16,10 @@
 
 <section class="ui-section">
   <h2>Card</h2>
-  <p><code>p-card</code> + <code>.ui-card--flat / --elevated / --compact</code>, <code>.ui-card-actions</code></p>
+  <p>
+    <code>p-card</code> + <code>.ui-card--flat / --elevated / --compact</code>,
+    <code>.ui-card-actions</code>
+  </p>
   <div class="ui-grid ui-grid--3">
     <p-card header="Carte standard">
       <p>Contenu de la carte.</p>
@@ -61,7 +67,10 @@
 
 <section class="ui-section">
   <h2>Form</h2>
-  <p><code>.ui-form</code> (grille 2 colonnes), <code>.ui-form__full</code>, <code>.ui-form__actions</code></p>
+  <p>
+    <code>.ui-form</code> (grille 2 colonnes), <code>.ui-form__full</code>,
+    <code>.ui-form__actions</code>
+  </p>
 
   <form [formGroup]="form" class="ui-form">
     <p-floatlabel variant="on">
@@ -84,9 +93,24 @@
       <p-togglebutton formControlName="actif" onLabel="Actif" offLabel="Inactif" />
     </div>
 
+    <div>
+      <p-selectbutton
+        formControlName="actif"
+        [options]="actifOptions"
+        optionLabel="label"
+        optionValue="value"
+      >
+      </p-selectbutton>
+    </div>
+
     <div class="ui-form__full ui-btn-row">
       @for (option of priorites; track option) {
-        <p-radiobutton [inputId]="'priorite-' + option" name="priorite" [value]="option" formControlName="priorite" />
+        <p-radiobutton
+          [inputId]="'priorite-' + option"
+          name="priorite"
+          [value]="option"
+          formControlName="priorite"
+        />
         <label [for]="'priorite-' + option">{{ option }}</label>
       }
     </div>
@@ -110,14 +134,22 @@
 
 <section class="ui-section">
   <h2>Dialog</h2>
-  <p><code>p-dialog</code> + <code>.ui-dialog-actions</code>, réutilisation de <code>app-confirm-dialog</code></p>
+  <p>
+    <code>p-dialog</code> + <code>.ui-dialog-actions</code>, réutilisation de
+    <code>app-confirm-dialog</code>
+  </p>
 
   <div class="ui-btn-row">
     <p-button label="Ouvrir un dialogue" (onClick)="openDialog()" />
     <p-button label="Ouvrir une confirmation" severity="danger" (onClick)="openConfirm()" />
   </div>
 
-  <p-dialog [(visible)]="dialogVisible" header="Exemple de dialogue" [modal]="true" [style]="{ width: '28rem' }">
+  <p-dialog
+    [(visible)]="dialogVisible"
+    header="Exemple de dialogue"
+    [modal]="true"
+    [style]="{ width: '28rem' }"
+  >
     <p>Contenu libre du dialogue.</p>
     <ng-template #footer>
       <div class="ui-dialog-actions">

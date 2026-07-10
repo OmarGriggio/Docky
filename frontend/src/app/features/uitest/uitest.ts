@@ -12,6 +12,7 @@ import { Tag } from 'primeng/tag';
 import { Textarea } from 'primeng/textarea';
 import { ToggleButton } from 'primeng/togglebutton';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog';
+import { SelectButton } from 'primeng/selectbutton';
 
 @Component({
   selector: 'app-uitest',
@@ -19,6 +20,7 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
   imports: [
     ReactiveFormsModule,
     Button,
+    SelectButton,
     Card,
     Checkbox,
     Dialog,
@@ -58,6 +60,11 @@ export class UiTest {
 
   dialogVisible = signal(false);
   confirmVisible = signal(false);
+
+  actifOptions = [
+    { label: 'Actif', value: true },
+    { label: 'Inactif', value: false }
+  ];
 
   openDialog(): void {
     this.dialogVisible.set(true);
