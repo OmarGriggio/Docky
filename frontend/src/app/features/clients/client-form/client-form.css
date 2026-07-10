@@ -1,0 +1,15 @@
+form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.5rem;
+  max-width: 28rem;
+}
+
+p-floatlabel {
+  width: 100%;
+}
+
+textarea {
+  width: 100%;
+}

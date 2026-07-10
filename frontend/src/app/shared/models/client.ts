@@ -1,8 +1,11 @@
 import { Adresse } from './adresse';
 
+export type ClientType = 'PARTICULIER' | 'PROFESSIONNEL';
+
 export interface Client {
   id: number;
   num_client: string;
+  type: ClientType;
   societe: string | null;
   tva: string | null;
   nom: string | null;

@@ -1,48 +1,54 @@
 <form [formGroup]="form" (ngSubmit)="submit()">
-  <div>
-    <label>N° client</label>
-    <input formControlName="num_client" />
-  </div>
+  <p-togglebutton
+    formControlName="isProfessionnel"
+    onLabel="Professionnel"
+    offLabel="Particulier"
+  />
 
-  <div>
-    <label>Civilité</label>
-    <input formControlName="civilite" />
-  </div>
+  <p-floatlabel variant="on">
+    <input pInputText id="num_client" formControlName="num_client" />
+    <label for="num_client">N° client</label>
+  </p-floatlabel>
 
-  <div>
-    <label>Nom</label>
-    <input formControlName="nom" />
-  </div>
+  <p-floatlabel variant="on">
+    <input pInputText id="civilite" formControlName="civilite" />
+    <label for="civilite">Civilité</label>
+  </p-floatlabel>
 
-  <div>
-    <label>Prénom</label>
-    <input formControlName="prenom" />
-  </div>
+  <p-floatlabel variant="on">
+    <input pInputText id="nom" formControlName="nom" />
+    <label for="nom">Nom</label>
+  </p-floatlabel>
 
-  <div>
-    <label>Société</label>
-    <input formControlName="societe" />
-  </div>
+  <p-floatlabel variant="on">
+    <input pInputText id="prenom" formControlName="prenom" />
+    <label for="prenom">Prénom</label>
+  </p-floatlabel>
 
-  <div>
-    <label>TVA</label>
-    <input formControlName="tva" />
-  </div>
+  <p-floatlabel variant="on">
+    <input pInputText id="societe" formControlName="societe" />
+    <label for="societe">Société</label>
+  </p-floatlabel>
 
-  <div>
-    <label>Email</label>
-    <input formControlName="email" type="email" />
-  </div>
+  <p-floatlabel variant="on">
+    <input pInputText id="tva" formControlName="tva" />
+    <label for="tva">TVA</label>
+  </p-floatlabel>
 
-  <div>
-    <label>Téléphone</label>
-    <input formControlName="telephone" />
-  </div>
+  <p-floatlabel variant="on">
+    <input pInputText id="email" type="email" formControlName="email" />
+    <label for="email">Email</label>
+  </p-floatlabel>
 
-  <div>
-    <label>Remarque</label>
-    <textarea formControlName="remarque"></textarea>
-  </div>
+  <p-floatlabel variant="on">
+    <input pInputText id="telephone" formControlName="telephone" />
+    <label for="telephone">Téléphone</label>
+  </p-floatlabel>
 
-  <button type="submit">Créer</button>
+  <p-floatlabel variant="on">
+    <textarea pTextarea id="remarque" formControlName="remarque" rows="4"></textarea>
+    <label for="remarque">Remarque</label>
+  </p-floatlabel>
+
+  <p-button type="submit" label="Créer" />
 </form>

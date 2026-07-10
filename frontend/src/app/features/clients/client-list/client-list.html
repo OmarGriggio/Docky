@@ -16,15 +16,22 @@
   <ng-template #body let-client>
     <tr>
       <td>{{ client.num_client }}</td>
+      <td>{{ client.type }}</td>
       <td>{{ client.societe }}</td>
       <td>{{ client.prenom }} {{ client.nom }}</td>
       <td>{{ client.email }}</td>
       <td>{{ client.telephone }}</td>
-      <td><a [routerLink]="['/clients', client.id]">Détails</a></td>
       <td>
-        <p-menu #menu [popup]="true" [model]="getActions(client)" />
-        <button type="button" class="pi pi-ellipsis-v" (click)="menu.toggle($event)"></button>
+        <p-menu #menu [popup]="true" [model]="getActions(client)" appendTo="body"></p-menu>
+        <p-button icon="pi pi-ellipsis-v" (click)="menu.toggle($event)"></p-button>
       </td>
     </tr>
   </ng-template>
 </p-table>
+
+<app-confirm-dialog
+  [(visible)]="confirmVisible"
+  title="Suppression"
+  [message]="confirmMessage()"
+  (confirmed)="onDeleteConfirmed()"
+/>

@@ -1,12 +1,17 @@
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { InputText } from 'primeng/inputtext';
+import { Textarea } from 'primeng/textarea';
+import { FloatLabel } from 'primeng/floatlabel';
+import { ToggleButton } from 'primeng/togglebutton';
+import { Button } from 'primeng/button';
 import { ClientService } from '../client.service';
 
 @Component({
   selector: 'app-client-form',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, InputText, Textarea, FloatLabel, ToggleButton, Button],
   templateUrl: './client-form.html',
   styleUrl: './client-form.css',
 })
@@ -18,6 +23,7 @@ export class ClientForm {
 
   form = this.fb.nonNullable.group({
     num_client: ['', Validators.required],
+    isProfessionnel: [false],
     civilite: [''],
     nom: [''],
     prenom: [''],
@@ -33,7 +39,12 @@ export class ClientForm {
       return;
     }
 
-    this.clientService.createClient(this.form.getRawValue()).subscribe({
+    const { isProfessionnel, ...client } = this.form.getRawValue();
+
+    this.clientService.createClient({
+      ...client,
+      type: isProfessionnel ? 'PROFESSIONNEL' : 'PARTICULIER',
+    }).subscribe({
       next: () => {
         this.router.navigate(['/clients']);
       },
