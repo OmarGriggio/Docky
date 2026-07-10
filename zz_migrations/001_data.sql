@@ -1,77 +1,104 @@
 -- ==========================================
--- FOURNISSEURS
--- ==========================================
-
-INSERT INTO fournisseurs (code_fournisseur, societe, adresse, categorie)
-VALUES
-('FOUR001', 'Point P', 'Rue de l''Industrie 10, Lausanne', 'Matériaux'),
-('FOUR002', 'Sanitas Troesch', 'Chemin des Artisans 5, Genève', 'Sanitaire');
-
--- ==========================================
--- CATALOGUE
--- ==========================================
-
-INSERT INTO catalogue (type, code, libelle, unite, prix_vente)
-VALUES 
-('MATERIEL', 'MAT-0001', 'Cadre de porte 25x100', 'MM', 256.20),
-('MATERIEL', 'MAT-0002', 'Liste en bois 40x50', 'MM', 54.20),
-('SERVICE', 'SERV-0001', 'Découpage de fenetre', 'H', 150),
-('SERVICE', 'SERV-0002', 'Ponsage etcetc', 'H', 150)
-
--- ==========================================
--- TARIFS MATERIEL
--- ==========================================
-
-INSERT INTO materiel_tarifs (id_fournisseur, id_catalogue, prix_achat, defaut, rabais, delai_livraison)
-VALUES
-((select id from fournisseurs where code_fournisseur = 'FOUR001'), 
-	(select id from catalogue where code = 'MAT-0001'), 5.20, TRUE, 0, 2),
-((select id from fournisseurs where code_fournisseur = 'FOUR001'), 
-	(select id from catalogue where code = 'MAT-0002'), 2.80, TRUE, 0, 2),
-((select id from fournisseurs where code_fournisseur = 'FOUR002'), 
-	(select id from catalogue where code = 'SERV-0001'), 129.90, TRUE, 10, 5);
-
--- ==========================================
 -- CLIENTS
 -- ==========================================
 
-INSERT INTO clients (code_client, nom, prenom, societe, email, telephone)
+INSERT INTO clients
+(num_client, societe, tva, nom, prenom, civilite, email, telephone, remarque)
 VALUES
-('CLI001', 'Dupont', 'Jean', 'Dupont Construction SA', 'jean.dupont@test.ch', '0211111111'),
-('CLI002', 'Martin', 'Sophie', 'Martin SA', 'sophie.martin@test.ch', '0222222222');
+('C0001', NULL, NULL, 'Dupont', 'Jean', 'Monsieur', 'jean.dupont@gmail.com', '0791112233', NULL),
+('C0002', NULL, NULL, 'Martin', 'Sophie', 'Madame', 'sophie.martin@gmail.com', '0792223344', NULL),
+('C0003', 'Entreprise Martin SA', 'CHE-123.456.789', NULL, NULL, NULL, 'contact@martinsa.ch', '0211112233', 'Client professionnel'),
+('C0004', 'ABC Construction SA', 'CHE-987.654.321', NULL, NULL, NULL, 'info@abcconstruction.ch', '0215556677', NULL),
+('C0005', NULL, NULL, 'Durand', 'Paul', 'Monsieur', 'paul.durand@gmail.com', '0783334455', NULL);
+
+-- ==========================================
+-- ADRESSES
+-- ==========================================
+
+INSERT INTO adresses
+(id_client, rue, npa, ville, pays)
+VALUES
+(1, 'Rue de Lausanne 12', 1000, 'Lausanne', 'Suisse'),
+(2, 'Route de Genève 5', 1007, 'Lausanne', 'Suisse'),
+(3, 'Rue Centrale 18', 1020, 'Renens', 'Suisse'),
+(4, 'Chemin du Bois 45', 1008, 'Prilly', 'Suisse'),
+(5, 'Avenue des Alpes 9', 1800, 'Vevey', 'Suisse');
+
+-- ==========================================
+-- FOURNISSEURS
+-- ==========================================
+
+INSERT INTO fournisseurs
+(code_fournisseur, societe, adresse, categorie)
+VALUES
+('F001','Hornbach','Villeneuve','Matériaux'),
+('F002','Jumbo','Crissier','Bricolage'),
+('F003','Sanitas Troesch','Crissier','Sanitaire');
+
+-- ==========================================
+-- RESSOURCES
+-- ==========================================
+
+INSERT INTO ressources
+(id_ressources, type, code, designation, unite, prix_vente, prix_achat)
+VALUES
+(NULL,'MATERIEL','MAT001','Sac ciment 25kg','Sac',15.00,8.50),
+(NULL,'MATERIEL','MAT002','Parpaing 20 cm','Pièce',4.50,2.80),
+(NULL,'MATERIEL','MAT003','Tube PVC Ø100','m',22.00,15.00),
+(NULL,'MATERIEL','MAT004','Peinture blanche 10L','Pot',95.00,70.00),
+
+(NULL,'MAIN-OEUVRE','MO001','Maçon qualifié','Heure',95.00,NULL),
+(NULL,'MAIN-OEUVRE','MO002','Apprenti','Heure',55.00,NULL),
+
+(NULL,'SOUS-TRAITANCE','ST001','Electricien externe','Heure',120.00,90.00),
+
+(NULL,'DIVERS','DIV001','Déplacement','Forfait',60.00,NULL),
+(NULL,'DIVERS','DIV002','Location nacelle','Jour',250.00,180.00);
+
+-- ==========================================
+-- TARIFS FOURNISSEURS
+-- ==========================================
+
+INSERT INTO ressources_tarifs_fournisseurs
+(id_ressource,id_fournisseur,prix_achat,rabais,delai_livraison,defaut)
+VALUES
+(1,1,8.20,5,2,TRUE),
+(2,1,2.70,3,2,TRUE),
+(3,2,14.50,0,1,TRUE),
+(4,2,68.00,10,3,TRUE),
+(3,3,15.20,5,5,FALSE);
 
 -- ==========================================
 -- DOCUMENTS
 -- ==========================================
 
-INSERT INTO documents (id_client, type, numero, date, montant_ht, montant_ttc, rabais, statut)
+INSERT INTO documents
+(id_client,id_document_parent,type,numero,date,montant_ht,montant_ttc,rabais,statut)
 VALUES
-(1, 'OFFRE', 'DEV2026001', '2026-07-09', 1070.00, 1156.70, 0, 'Envoyée'),
-(1, 'FACTURE', 'FAC2026001', '2026-07-10', 320.90, 346.60, 0, 'Payée'),
-(2, 'FACTURE', 'FAC2026002', '2026-07-11', 214.90, 232.10, 5, 'En attente');
+(1,NULL,'OFFRE','OFF-2026-0001','2026-07-10',650.00,702.65,0,'EN_ATTENTE'),
+
+(3,NULL,'OFFRE','OFF-2026-0002','2026-07-11',2100.00,2269.20,5,'ACCEPTEE'),
+
+(3,2,'FACTURE','FAC-2026-0001','2026-07-15',2100.00,2269.20,5,'PAYEE');
 
 -- ==========================================
--- LIGNES DOCUMENTS
+-- LIGNES DOCUMENT
 -- ==========================================
 
--- Offre
 INSERT INTO document_lignes
-(id_document, pos, type, libelle, quantite, unite, prix_unitaire, rabais)
+(id_document,type,pos,libelle,quantite,unite,prix_unitaire,rabais)
 VALUES
-(1, 1, 'MATERIEL', 'Tube PVC Ø40', 20, 'm', 5.20, 0),
-(1, 2, 'MATERIEL', 'Coude PVC 90°', 10, 'pcs', 2.80, 0),
-(1, 3, 'SERVICE', 'Installation plomberie', 10, 'heure', 85,0);
 
--- Facture 1
-INSERT INTO document_lignes
-(id_document, pos, type, libelle, quantite, unite, prix_unitaire, rabais)
-VALUES
-(2, 1, 'MATERIEL', 'Tube PVC Ø40', 12, 'm', 5.20, 0),
-(2, 2, 'SERVICE', 'Installation plomberie', 3.5, 'heure', 85, 0);
+-- Offre 1
+(1,'MATERIEL',1,'Sac ciment 25kg',20,'Sac',15,0),
+(1,'MAIN-OEUVRE',2,'Maçon qualifié',5,'Heure',95,0),
 
--- Facture 2
-INSERT INTO document_lignes
-(id_document, pos, type, libelle, quantite, unite, prix_unitaire, rabais)
-VALUES
-(3, 1, 'MATERIEL', 'Robinet mélangeur', 1, 'pcs', 129.90, 0),
-(3, 2, 'SERVICE', 'Chef de chantier', 0.75, 'heure', 120, 0);
+-- Offre 2
+(2,'MATERIEL',1,'Parpaing 20 cm',300,'Pièce',4.50,0),
+(2,'MAIN-OEUVRE',2,'Maçon qualifié',6,'Heure',95,0),
+(2,'DIVERS',3,'Déplacement',1,'Forfait',60,0),
+
+-- Facture issue de l'offre 2
+(3,'MATERIEL',1,'Parpaing 20 cm',300,'Pièce',4.50,0),
+(3,'MAIN-OEUVRE',2,'Maçon qualifié',6,'Heure',95,0),
+(3,'DIVERS',3,'Déplacement',1,'Forfait',60,0);

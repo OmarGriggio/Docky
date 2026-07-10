@@ -1,10 +1,11 @@
 import { Routes } from '@angular/router';
 import { ClientListComponent } from './features/clients/client-list/client-list';
 import { ClientForm } from './features/clients/client-form/client-form';
+import { ClientDetail } from './features/clients/client-detail/client-detail';
 import { FournisseurListComponent } from './features/fournisseurs/fournisseur-list/fournisseur-list';
 import { FournisseurForm } from './features/fournisseurs/fournisseur-form/fournisseur-form';
 import { DocumentListComponent } from './features/documents/document-list/document-list';
-import { CatalogueListComponent } from './features/catalogue/catalogue-list/catalogue-list';
+import { RessourceListComponent } from './features/ressources/ressource-list/ressource-list';
 
 export const routes: Routes = [
   {
@@ -14,6 +15,10 @@ export const routes: Routes = [
   {
     path: 'clients/new',
     component: ClientForm
+  },
+  {
+    path: 'clients/:id',
+    component: ClientDetail
   },
   {
     path: 'fournisseurs',
@@ -28,8 +33,8 @@ export const routes: Routes = [
     component: DocumentListComponent
   },
   {
-    path: 'catalogue',
-    component: CatalogueListComponent
+    path: 'ressources',
+    component: RessourceListComponent
   },
   {
     path: '',

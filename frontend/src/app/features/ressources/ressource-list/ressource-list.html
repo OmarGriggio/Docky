@@ -1,13 +1,14 @@
-<h1>Catalogue</h1>
+<h1>Ressources @if (currentTypeLabel()) { — {{ currentTypeLabel() }} }</h1>
 
-<p-table [value]="catalogue()" dataKey="id">
+<p-table [value]="ressources()" dataKey="id">
   <ng-template #header>
     <tr>
       <th>Code</th>
       <th>Type</th>
-      <th>Libellé</th>
+      <th>Désignation</th>
       <th>Unité</th>
       <th>Prix de vente</th>
+      <th>Prix d'achat</th>
       <th>Actif</th>
     </tr>
   </ng-template>
@@ -16,9 +17,10 @@
     <tr>
       <td>{{ item.code }}</td>
       <td>{{ item.type }}</td>
-      <td>{{ item.libelle }}</td>
+      <td>{{ item.designation }}</td>
       <td>{{ item.unite }}</td>
       <td>{{ item.prix_vente }}</td>
+      <td>{{ item.prix_achat }}</td>
       <td>{{ item.actif }}</td>
     </tr>
   </ng-template>

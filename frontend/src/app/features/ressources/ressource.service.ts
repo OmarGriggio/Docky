@@ -1,16 +1,16 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Catalogue, CatalogueType } from '../../shared/models/catalogue';
+import { Ressource, RessourceType } from '../../shared/models/ressource';
 
 @Injectable({
   providedIn: 'root'
 })
-export class CatalogueService {
+export class RessourceService {
 
   private http = inject(HttpClient);
 
-  getCatalogue(type?: CatalogueType) {
-    return this.http.get<Catalogue[]>('http://localhost:3000/catalogue', {
+  getRessources(type?: RessourceType) {
+    return this.http.get<Ressource[]>('http://localhost:3000/ressource', {
       params: type ? { type } : {}
     });
   }

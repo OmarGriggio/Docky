@@ -1,26 +1,28 @@
 <h1>Clients</h1>
 
-<p>Nombre de clients : {{ clients.length }}</p>
+<p>Nombre de clients : {{ clients().length }}</p>
 
 <table>
   <thead>
     <tr>
-      <th>Code</th>
+      <th>N° client</th>
       <th>Société</th>
       <th>Nom</th>
       <th>Email</th>
       <th>Téléphones</th>
+      <th></th>
     </tr>
   </thead>
 
   <tbody>
     @for (client of clients(); track client.id) {
       <tr>
-        <td>{{ client.code_client }}</td>
+        <td>{{ client.num_client }}</td>
         <td>{{ client.societe }}</td>
         <td>{{ client.prenom }} {{ client.nom }}</td>
         <td>{{ client.email }}</td>
         <td>{{ client.telephone }}</td>
+        <td><a [routerLink]="['/clients', client.id]">Détails</a></td>
       </tr>
     }
   </tbody>

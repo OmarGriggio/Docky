@@ -3,12 +3,12 @@
     @if (item.links.length > 1) {
       <details>
         <summary>{{ item.label }}</summary>
-        @for (link of item.links; track link.path) {
-          <a [routerLink]="link.path">{{ link.label }}</a>
+        @for (link of item.links; track link.label) {
+          <a [routerLink]="link.path" [queryParams]="link.queryParams">{{ link.label }}</a>
         }
       </details>
     } @else {
-      <a [routerLink]="item.links[0].path">{{ item.label }}</a>
+      <a [routerLink]="item.links[0].path" [queryParams]="item.links[0].queryParams">{{ item.label }}</a>
     }
   }
 </nav>

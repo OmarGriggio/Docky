@@ -1,7 +1,12 @@
 <form [formGroup]="form" (ngSubmit)="submit()">
   <div>
-    <label>Code client</label>
-    <input formControlName="code_client" />
+    <label>N° client</label>
+    <input formControlName="num_client" />
+  </div>
+
+  <div>
+    <label>Civilité</label>
+    <input formControlName="civilite" />
   </div>
 
   <div>
@@ -20,6 +25,11 @@
   </div>
 
   <div>
+    <label>TVA</label>
+    <input formControlName="tva" />
+  </div>
+
+  <div>
     <label>Email</label>
     <input formControlName="email" type="email" />
   </div>
@@ -27,6 +37,11 @@
   <div>
     <label>Téléphone</label>
     <input formControlName="telephone" />
+  </div>
+
+  <div>
+    <label>Remarque</label>
+    <textarea formControlName="remarque"></textarea>
   </div>
 
   <button type="submit">Créer</button>

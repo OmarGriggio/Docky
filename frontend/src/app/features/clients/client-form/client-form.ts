@@ -17,12 +17,15 @@ export class ClientForm {
   private router = inject(Router);
 
   form = this.fb.nonNullable.group({
-    code_client: ['', Validators.required],
-    nom: ['', Validators.required],
+    num_client: ['', Validators.required],
+    civilite: [''],
+    nom: [''],
     prenom: [''],
     societe: [''],
-    email: [''],
+    tva: [''],
+    email: ['', Validators.required],
     telephone: [''],
+    remarque: [''],
   });
 
   submit(): void {

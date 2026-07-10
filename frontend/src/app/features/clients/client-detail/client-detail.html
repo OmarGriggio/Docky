@@ -1,0 +1,65 @@
+@if (client(); as c) {
+  <h1>{{ c.societe || (c.prenom + ' ' + c.nom) }}</h1>
+
+  <table>
+    <tbody>
+      <tr><th>N° client</th><td>{{ c.num_client }}</td></tr>
+      <tr><th>Civilité</th><td>{{ c.civilite }}</td></tr>
+      <tr><th>Nom</th><td>{{ c.prenom }} {{ c.nom }}</td></tr>
+      <tr><th>Société</th><td>{{ c.societe }}</td></tr>
+      <tr><th>TVA</th><td>{{ c.tva }}</td></tr>
+      <tr><th>Email</th><td>{{ c.email }}</td></tr>
+      <tr><th>Téléphone</th><td>{{ c.telephone }}</td></tr>
+      <tr><th>Remarque</th><td>{{ c.remarque }}</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Adresses</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Rue</th>
+        <th>NPA</th>
+        <th>Ville</th>
+        <th>Pays</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (adresse of c.adresses; track adresse.id) {
+        <tr>
+          <td>{{ adresse.rue }}</td>
+          <td>{{ adresse.npa }}</td>
+          <td>{{ adresse.ville }}</td>
+          <td>{{ adresse.pays }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+
+  <h3>Ajouter une adresse</h3>
+
+  <form [formGroup]="adresseForm" (ngSubmit)="addAdresse()">
+    <div>
+      <label>Rue</label>
+      <input formControlName="rue" />
+    </div>
+
+    <div>
+      <label>NPA</label>
+      <input formControlName="npa" type="number" />
+    </div>
+
+    <div>
+      <label>Ville</label>
+      <input formControlName="ville" />
+    </div>
+
+    <div>
+      <label>Pays</label>
+      <input formControlName="pays" />
+    </div>
+
+    <button type="submit">Ajouter</button>
+  </form>
+}

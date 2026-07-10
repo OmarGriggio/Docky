@@ -1,16 +1,35 @@
+
+
 -- ==========================================
 -- CLIENTS
 -- ==========================================
 
 CREATE TABLE clients (
     id SERIAL PRIMARY KEY,
-    code_client VARCHAR(50) UNIQUE,
+    num_client VARCHAR(50) UNIQUE,
+    societe VARCHAR (100),
+    tva VARCHAR(20),
     nom VARCHAR(100),
     prenom VARCHAR(100),
-    societe VARCHAR(255),
+    civilite VARCHAR(100),
     email VARCHAR(255),
-    telephone VARCHAR(50)
+    telephone VARCHAR(50),
+    remarque VARCHAR(3000)
 );
+
+-- ==========================================
+-- ADRESSE
+-- ==========================================
+
+CREATE TABLE adresses (
+    id SERIAL PRIMARY KEY,
+    id_client INTEGER,
+    rue VARCHAR(100),
+    npa INTEGER,
+    ville VARCHAR(100),
+    pays VARCHAR(100)
+);
+
 
 -- ==========================================
 -- FOURNISSEURS
@@ -25,35 +44,37 @@ CREATE TABLE fournisseurs (
 );
 
 -- ==========================================
--- CATALOGUE
+-- RESSOURCES
 -- ==========================================
 
-CREATE TABLE catalogue (
+CREATE TABLE ressources (
     id SERIAL PRIMARY KEY,
+    id_ressources INTEGER, --Pour les ressources composés
     type VARCHAR(20) NOT NULL
-        CHECK (type IN ('MATERIEL', 'SERVICE')),
+        CHECK (type IN ('MATERIEL', 'MAIN-OEUVRE', 'SOUS-TRAITANCE', 'DIVERS')),
     code VARCHAR(50) UNIQUE,
-    libelle VARCHAR(255) NOT NULL,
+    designation VARCHAR(255) NOT NULL,
     unite VARCHAR(50) NOT NULL,
     prix_vente NUMERIC(10,2) NOT NULL,
+    prix_achat  NUMERIC(10,2),
     actif BOOLEAN DEFAULT TRUE
 );
 
 -- ==========================================
--- TARIFS MATERIEL
+-- TARIFS FOURNISSEURS MATERIEL
 -- ==========================================
 
-CREATE TABLE materiel_tarifs (
+CREATE TABLE ressources_tarifs_fournisseurs (
     id SERIAL PRIMARY KEY,
-    id_catalogue INTEGER,
+    id_ressource INTEGER,
     id_fournisseur INTEGER,
     prix_achat NUMERIC(10,2),
     rabais NUMERIC(5,2),
     delai_livraison INTEGER,
     defaut BOOLEAN,
 
-    FOREIGN KEY (id_catalogue)
-        REFERENCES catalogue(id),
+    FOREIGN KEY (id_ressource)
+        REFERENCES ressources(id),
 
     FOREIGN KEY (id_fournisseur)
         REFERENCES fournisseurs(id)
@@ -77,7 +98,7 @@ CREATE TABLE documents (
     statut VARCHAR(50),
 
     FOREIGN KEY (id_client)
-        REFERENCES clients(id)
+        REFERENCES clients(id),
 
     FOREIGN KEY (id_document_parent)
         REFERENCES documents(id)
@@ -101,5 +122,5 @@ CREATE TABLE document_lignes (
 
     FOREIGN KEY (id_document)
         REFERENCES documents(id)
-        ON DELETE CASCADE,
+        ON DELETE CASCADE
 );

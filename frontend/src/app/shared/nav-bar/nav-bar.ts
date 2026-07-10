@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 interface NavLink {
   label: string;
   path: string;
+  queryParams?: Record<string, string>;
 }
 
 interface NavItem {
@@ -42,9 +43,12 @@ export class NavBar {
       ]
     },
     {
-      label: 'Catalogue',
+      label: 'Ressources',
       links: [
-        { label: 'Catalogue', path: '/catalogue' }
+        { label: 'Matériel', path: '/ressources', queryParams: { type: 'MATERIEL' } },
+        { label: "Main d'oeuvre", path: '/ressources', queryParams: { type: 'MAIN-OEUVRE' } },
+        { label: 'Sous-traitance', path: '/ressources', queryParams: { type: 'SOUS-TRAITANCE' } },
+        { label: 'Divers', path: '/ressources', queryParams: { type: 'DIVERS' } }
       ]
     }
   ];
