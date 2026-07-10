@@ -1,25 +1,26 @@
 <h1>Fournisseurs</h1>
 
-<p>Nombre de fournisseurs : {{ fournisseurs().length }}</p>
-
-<table>
-  <thead>
+<p-table [value]="fournisseurs()" dataKey="id">
+  <ng-template #header>
     <tr>
       <th>Code</th>
       <th>Société</th>
       <th>Adresse</th>
       <th>Catégorie</th>
+      <th></th>
     </tr>
-  </thead>
+  </ng-template>
 
-  <tbody>
-    @for (fournisseur of fournisseurs(); track fournisseur.id) {
-      <tr>
-        <td>{{ fournisseur.code_fournisseur }}</td>
-        <td>{{ fournisseur.societe }}</td>
-        <td>{{ fournisseur.adresse }}</td>
-        <td>{{ fournisseur.categorie }}</td>
-      </tr>
-    }
-  </tbody>
-</table>
+  <ng-template #body let-fournisseur>
+    <tr>
+      <td>{{ fournisseur.code_fournisseur }}</td>
+      <td>{{ fournisseur.societe }}</td>
+      <td>{{ fournisseur.adresse }}</td>
+      <td>{{ fournisseur.categorie }}</td>
+      <td>
+        <p-menu #menu [popup]="true" [model]="getActions(fournisseur)" />
+        <button type="button" class="pi pi-ellipsis-v" (click)="menu.toggle($event)"></button>
+      </td>
+    </tr>
+  </ng-template>
+</p-table>

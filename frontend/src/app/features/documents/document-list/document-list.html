@@ -1,4 +1,4 @@
-<h1>Documents</h1>
+<h1>Documents @if (currentTypeLabel()) { — {{ currentTypeLabel() }} }</h1>
 
 <p-table [value]="documents()" dataKey="id">
   <ng-template #header>

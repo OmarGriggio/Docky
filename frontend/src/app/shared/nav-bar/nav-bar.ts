@@ -39,7 +39,8 @@ export class NavBar {
     {
       label: 'Documents',
       links: [
-        { label: 'Documents', path: '/documents' }
+        { label: 'Offres', path: '/documents', queryParams: { type: 'OFFRE' } },
+        { label: 'Factures', path: '/documents', queryParams: { type: 'FACTURE' } }
       ]
     },
     {

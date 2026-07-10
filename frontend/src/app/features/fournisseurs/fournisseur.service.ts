@@ -17,4 +17,8 @@ export class FournisseurService {
     return this.http.post<Fournisseur>('http://localhost:3000/fournisseur', fournisseur);
   }
 
+  deleteFournisseur(code_fournisseur: string) {
+    return this.http.delete<Fournisseur>('http://localhost:3000/fournisseur', { body: { code_fournisseur } });
+  }
+
 }

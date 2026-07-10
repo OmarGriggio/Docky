@@ -1,9 +1,7 @@
 <h1>Clients</h1>
 
-<p>Nombre de clients : {{ clients().length }}</p>
-
-<table>
-  <thead>
+<p-table [value]="clients()" dataKey="id">
+  <ng-template #header>
     <tr>
       <th>N° client</th>
       <th>Société</th>
@@ -11,19 +9,22 @@
       <th>Email</th>
       <th>Téléphones</th>
       <th></th>
+      <th></th>
     </tr>
-  </thead>
+  </ng-template>
 
-  <tbody>
-    @for (client of clients(); track client.id) {
-      <tr>
-        <td>{{ client.num_client }}</td>
-        <td>{{ client.societe }}</td>
-        <td>{{ client.prenom }} {{ client.nom }}</td>
-        <td>{{ client.email }}</td>
-        <td>{{ client.telephone }}</td>
-        <td><a [routerLink]="['/clients', client.id]">Détails</a></td>
-      </tr>
-    }
-  </tbody>
-</table>
+  <ng-template #body let-client>
+    <tr>
+      <td>{{ client.num_client }}</td>
+      <td>{{ client.societe }}</td>
+      <td>{{ client.prenom }} {{ client.nom }}</td>
+      <td>{{ client.email }}</td>
+      <td>{{ client.telephone }}</td>
+      <td><a [routerLink]="['/clients', client.id]">Détails</a></td>
+      <td>
+        <p-menu #menu [popup]="true" [model]="getActions(client)" />
+        <button type="button" class="pi pi-ellipsis-v" (click)="menu.toggle($event)"></button>
+      </td>
+    </tr>
+  </ng-template>
+</p-table>

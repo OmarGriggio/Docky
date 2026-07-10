@@ -1,24 +1,22 @@
 nav {
   display: flex;
-  gap: 1rem;
-  padding: 0.75rem 1rem;
-  margin-bottom: 1rem;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.25rem;
+  width: 200px;
+  flex-shrink: 0;
+  padding: 1rem 0.5rem;
+  border-right: 1px solid #ddd;
 }
 
 nav > a,
 nav > details > summary {
+  display: block;
   padding: 0.5rem 0.75rem;
-}
-
-details {
-  position: relative;
+  cursor: pointer;
 }
 
 details > a {
   display: block;
-  padding: 0.5rem 0.75rem;
-}
-
-details[open] > summary ~ a {
-  margin-left: 0.5rem;
+  padding: 0.4rem 0.75rem 0.4rem 1.5rem;
 }
