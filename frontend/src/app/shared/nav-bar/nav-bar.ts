@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+import { AuthService } from '../../features/auth/auth.service';
 
 interface NavLink {
   label: string;
@@ -20,6 +21,12 @@ interface NavItem {
   styleUrl: './nav-bar.css'
 })
 export class NavBar {
+
+  private authService = inject(AuthService);
+  private router = inject(Router);
+
+  isAuthenticated = this.authService.isAuthenticated;
+  currentUser = this.authService.currentUser;
 
   navItems: NavItem[] = [
     {
@@ -59,5 +66,10 @@ export class NavBar {
       ]
     }
   ];
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
+  }
 
 }

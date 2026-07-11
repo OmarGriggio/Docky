@@ -1,0 +1,39 @@
+<div class="auth-page">
+  <p-card header="Créer un compte" styleClass="ui-card--elevated auth-card">
+    <form [formGroup]="form" (ngSubmit)="submit()" class="ui-form">
+      <p-floatlabel variant="on" class="ui-form__full">
+        <input pInputText id="companyName" formControlName="companyName" />
+        <label for="companyName">Nom de l'entreprise</label>
+      </p-floatlabel>
+
+      <p-floatlabel variant="on">
+        <input pInputText id="firstname" formControlName="firstname" />
+        <label for="firstname">Prénom</label>
+      </p-floatlabel>
+
+      <p-floatlabel variant="on">
+        <input pInputText id="lastname" formControlName="lastname" />
+        <label for="lastname">Nom</label>
+      </p-floatlabel>
+
+      <p-floatlabel variant="on">
+        <input pInputText id="email" type="email" formControlName="email" />
+        <label for="email">Email</label>
+      </p-floatlabel>
+
+      <p-floatlabel variant="on">
+        <input pInputText id="password" type="password" formControlName="password" />
+        <label for="password">Mot de passe</label>
+      </p-floatlabel>
+
+      @if (errorMessage()) {
+        <p class="ui-form__full auth-error">{{ errorMessage() }}</p>
+      }
+
+      <div class="ui-form__actions auth-form-actions">
+        <a routerLink="/login">J'ai déjà un compte</a>
+        <p-button type="submit" label="Créer le compte" />
+      </div>
+    </form>
+  </p-card>
+</div>

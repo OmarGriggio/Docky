@@ -20,3 +20,24 @@ details > a {
   display: block;
   padding: 0.4rem 0.75rem 0.4rem 1.5rem;
 }
+
+.nav-bar__auth {
+  display: flex;
+  flex-direction: column;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #ddd;
+}
+
+.nav-bar__auth button {
+  all: unset;
+  cursor: pointer;
+  display: block;
+  padding: 0.5rem 0.75rem;
+}
+
+.nav-bar__user {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  color: #666;
+}

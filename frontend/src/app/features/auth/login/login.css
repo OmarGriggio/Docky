@@ -1,0 +1,20 @@
+.auth-page {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+}
+
+.auth-error {
+  color: #d32f2f;
+  margin: 0;
+}
+
+.auth-form-actions {
+  justify-content: space-between;
+  align-items: center;
+}

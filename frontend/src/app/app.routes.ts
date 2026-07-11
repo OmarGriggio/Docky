@@ -7,8 +7,18 @@ import { FournisseurForm } from './features/fournisseurs/fournisseur-form/fourni
 import { DocumentListComponent } from './features/documents/document-list/document-list';
 import { RessourceListComponent } from './features/ressources/ressource-list/ressource-list';
 import { UiTest } from './features/uitest/uitest';
+import { Login } from './features/auth/login/login';
+import { Register } from './features/auth/register/register';
 
 export const routes: Routes = [
+  {
+    path: 'login',
+    component: Login
+  },
+  {
+    path: 'register',
+    component: Register
+  },
   {
     path: 'uitest',
     component: UiTest

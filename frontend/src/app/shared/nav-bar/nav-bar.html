@@ -11,4 +11,14 @@
       <a [routerLink]="item.links[0].path" [queryParams]="item.links[0].queryParams">{{ item.label }}</a>
     }
   }
+
+  <div class="nav-bar__auth">
+    @if (isAuthenticated()) {
+      <span class="nav-bar__user">{{ currentUser()?.email }}</span>
+      <button type="button" (click)="logout()">Déconnexion</button>
+    } @else {
+      <a routerLink="/login">Connexion</a>
+      <a routerLink="/register">Inscription</a>
+    }
+  </div>
 </nav>
