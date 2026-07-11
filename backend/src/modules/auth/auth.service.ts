@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
-import { getUserByEmail } from "../repositories/user.repository";
-import { LoginUserData, User } from "../types/user";
-import { UnauthorizedError } from "../types/errors";
+import { getUserByEmail } from "../utilisateurs/user.repository";
+import { LoginUserData, User } from "../utilisateurs/user.types";
+import { UnauthorizedError } from "../../shared/types/errors";
 import { generateAccessToken } from "./jwt.service";
 
 export const authUserService = async (loginData: LoginUserData) => {

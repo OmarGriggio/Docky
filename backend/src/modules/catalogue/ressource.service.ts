@@ -1,4 +1,4 @@
-import { getRessourcesFromDB, getRessourcesByTypeFromDB } from "../repositories/ressource.repository";
+import { getRessourcesFromDB, getRessourcesByTypeFromDB } from "./ressource.repository";
 
 export const getAllRessourcesServ = async () => {
   return await getRessourcesFromDB();

@@ -1,10 +1,10 @@
-import { DocumentComplete } from "../types/document_complete";
+import { DocumentComplete } from "./document_complete.types";
 import {
   getDocumentsFromDB,
   getDocumentsByTypeFromDB,
   getDocumentByIdFromDB
-} from "../repositories/document.repository";
-import { getDocumentLignesFromDB, getLignesByDocumentIdFromDB } from "../repositories/document_ligne.repository";
+} from "./document.repository";
+import { getDocumentLignesFromDB, getLignesByDocumentIdFromDB } from "./document_ligne.repository";
 
 export const getDocumentCompleteServ = async (id: number): Promise<DocumentComplete> => {
   const document = await getDocumentByIdFromDB(id);

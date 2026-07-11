@@ -1,4 +1,4 @@
-import { pool } from "../config/database";
+import { pool } from "../../shared/config/database";
 
 export const getDocumentLignesFromDB = async () => {
   const result = await pool.query("SELECT * FROM document_lignes");

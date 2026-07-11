@@ -1,5 +1,5 @@
-import { pool } from "../config/database";
-import { Fournisseur } from "../types/fournisseur";
+import { pool } from "../../shared/config/database";
+import { Fournisseur } from "./fournisseur.types";
 
 export const getFournisseursFromDB = async () => {
   const result = await pool.query("SELECT * FROM fournisseurs");

@@ -1,6 +1,6 @@
-import {Client, ClientWithAdresses} from "../types/client"
-import { createClientInDB, deleteClientInDB, getClientByIdFromDB, getClientByEmail, getClientByNumClient, getClientsFromDB } from "../repositories/client.repository";
-import { getAdressesByClientIdFromDB } from "../repositories/adresse.repository";
+import {Client, ClientWithAdresses} from "./client.types"
+import { createClientInDB, deleteClientInDB, getClientByIdFromDB, getClientByEmail, getClientByNumClient, getClientsFromDB } from "./client.repository";
+import { getAdressesByClientIdFromDB } from "./adresse.repository";
 
 export const getAllClientsServ = async () => {
   return await getClientsFromDB();

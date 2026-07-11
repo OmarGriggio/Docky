@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { getDocumentComplete, getDocumentsComplete } from "../controllers/document_complete.controller";
-import { authenticate } from "../middlewares/auth.middleware";
+import { getDocumentComplete, getDocumentsComplete } from "./document_complete.controller";
+import { authenticate } from "../../shared/middlewares/auth.middleware";
 
 const router = Router();
 

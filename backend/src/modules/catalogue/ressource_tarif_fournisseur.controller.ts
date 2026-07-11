@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import {
   getAllRessourceTarifsFournisseursServ,
   getRessourceTarifsFournisseursByRessourceIdServ
-} from "../services/ressource_tarif_fournisseur.service";
+} from "./ressource_tarif_fournisseur.service";
 
 export const getRessourceTarifsFournisseurs = async (req: Request, res: Response) => {
   const id_ressource = req.query.id_ressource as string | undefined;

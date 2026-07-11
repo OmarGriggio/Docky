@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createEntreprise, getEntreprise, getEntreprises } from "../controllers/entreprise.controller";
+import { createEntreprise, getEntreprise, getEntreprises } from "./entreprise.controller";
 
 const router = Router();
 

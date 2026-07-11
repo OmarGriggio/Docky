@@ -1,5 +1,5 @@
-import { pool } from "../config/database";
-import { CreateUserData, User } from "../types/user";
+import { pool } from "../../shared/config/database";
+import { CreateUserData, User } from "./user.types";
 
 export const getUsersFromDB = async () => {
     const result = await pool.query("SELECT * FROM utilisateurs");

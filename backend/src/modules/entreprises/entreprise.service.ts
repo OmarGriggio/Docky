@@ -1,5 +1,5 @@
-import { Entreprise } from "../types/entreprise";
-import { createEntrepriseInDB, getEntrepriseByIdFromDB, getEntreprisesFromDB } from "../repositories/entreprise.repository";
+import { Entreprise } from "./entreprise.types";
+import { createEntrepriseInDB, getEntrepriseByIdFromDB, getEntreprisesFromDB } from "./entreprise.repository";
 
 export const getAllEntreprisesServ = async () => {
   return await getEntreprisesFromDB();

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { addDocumentServ, getAllDocumentsServ, getDocumentsByTypeServ } from "../services/document.service";
-import { Document } from "../types/document";
+import { addDocumentServ, getAllDocumentsServ, getDocumentsByTypeServ } from "./document.service";
+import { Document } from "./document.types";
 
 export const getDocuments = async (req: Request, res: Response) => {
   const type = req.query.type as string | undefined;

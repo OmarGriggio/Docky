@@ -1,6 +1,6 @@
-import { createEntrepriseInDB } from "../repositories/entreprise.repository";
-import { createUserDB, getUserByEmail, getUsersFromDB } from "../repositories/user.repository";
-import { CreateUserData } from "../types/user";
+import { createEntrepriseInDB } from "../entreprises/entreprise.repository";
+import { createUserDB, getUserByEmail, getUsersFromDB } from "./user.repository";
+import { CreateUserData } from "./user.types";
 import bcrypt from "bcrypt";
 
 export const getAllUsers = async () => {

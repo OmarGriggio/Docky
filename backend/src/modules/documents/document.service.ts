@@ -1,10 +1,10 @@
-import { Document } from "../types/document";
+import { Document } from "./document.types";
 import {
   getDocumentsFromDB,
   getDocumentsByTypeFromDB,
   getDocumentByNumeroFromDB,
   createDocumentInDB
-} from "../repositories/document.repository";
+} from "./document.repository";
 
 export const getAllDocumentsServ = async () => {
   return await getDocumentsFromDB();

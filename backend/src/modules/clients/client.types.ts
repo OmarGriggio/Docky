@@ -1,4 +1,4 @@
-import { Adresse } from "./adresse";
+import { Adresse } from "./adresse.types";
 
 export type ClientType = "PARTICULIER" | "PROFESSIONNEL";
 

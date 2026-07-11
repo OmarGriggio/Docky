@@ -1,7 +1,7 @@
 import {
   getRessourceTarifsFournisseursFromDB,
   getRessourceTarifsFournisseursByRessourceIdFromDB
-} from "../repositories/ressource_tarif_fournisseur.repository";
+} from "./ressource_tarif_fournisseur.repository";
 
 export const getAllRessourceTarifsFournisseursServ = async () => {
   return await getRessourceTarifsFournisseursFromDB();

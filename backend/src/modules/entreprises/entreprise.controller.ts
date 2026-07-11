@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { addEntrepriseServ, getAllEntreprisesServ, getEntrepriseByIdServ } from "../services/entreprise.service";
-import { Entreprise } from "../types/entreprise";
+import { addEntrepriseServ, getAllEntreprisesServ, getEntrepriseByIdServ } from "./entreprise.service";
+import { Entreprise } from "./entreprise.types";
 
 export const getEntreprises = async (req: Request, res: Response) => {
   const entreprises = await getAllEntreprisesServ();

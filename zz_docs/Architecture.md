@@ -16,6 +16,7 @@
 controllers/
 services/
 repositories/
+routes/
 middlewares/
 validators/
 config/

@@ -1,5 +1,5 @@
-import { pool } from "../config/database";
-import { Document } from "../types/document";
+import { pool } from "../../shared/config/database";
+import { Document } from "./document.types";
 
 export const getDocumentsFromDB = async () => {
   const result = await pool.query("SELECT * FROM documents");

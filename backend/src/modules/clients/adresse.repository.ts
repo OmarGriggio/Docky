@@ -1,5 +1,5 @@
-import { pool } from "../config/database";
-import { Adresse } from "../types/adresse";
+import { pool } from "../../shared/config/database";
+import { Adresse } from "./adresse.types";
 
 export const getAdressesFromDB = async () => {
   const result = await pool.query("SELECT * FROM adresses");

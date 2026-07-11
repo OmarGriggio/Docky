@@ -1,5 +1,5 @@
-import { getFournisseursFromDB, getFournisseurByCode, createFournisseurInDB, deleteFournisseurInDB } from "../repositories/fournisseur.repository";
-import { Fournisseur } from "../types/fournisseur";
+import { getFournisseursFromDB, getFournisseurByCode, createFournisseurInDB, deleteFournisseurInDB } from "./fournisseur.repository";
+import { Fournisseur } from "./fournisseur.types";
 
 export const getAllFournisseursServ = async () => {
   return await getFournisseursFromDB();

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { addFournisseurServ, deleteFournisseurServ, getAllFournisseursServ } from "../services/fournisseur.service";
-import { Fournisseur } from "../types/fournisseur";
+import { addFournisseurServ, deleteFournisseurServ, getAllFournisseursServ } from "./fournisseur.service";
+import { Fournisseur } from "./fournisseur.types";
 
 export const getFournisseur = async (req: Request, res: Response) => {
   const fournisseurs = await getAllFournisseursServ();

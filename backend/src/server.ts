@@ -10,7 +10,7 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
-import { pool } from "./config/database";
+import { pool } from "./shared/config/database";
 
 pool.query("SELECT NOW()")
   .then(res => console.log("DB OK:", res.rows[0]))

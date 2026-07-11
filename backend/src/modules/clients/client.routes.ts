@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { createClient, deleteClient, getClient, getClients } from "../controllers/client.controller";
-import { authenticate } from "../middlewares/auth.middleware";
+import { createClient, deleteClient, getClient, getClients } from "./client.controller";
+import { authenticate } from "../../shared/middlewares/auth.middleware";
 
 const router = Router();
 

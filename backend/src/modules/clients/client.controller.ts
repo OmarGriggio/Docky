@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { addClientServ, deleteClientServ, getAllClientsServ, getClientByIdServ } from "../services/client.service";
-import { Client } from "../types/client";
+import { addClientServ, deleteClientServ, getAllClientsServ, getClientByIdServ } from "./client.service";
+import { Client } from "./client.types";
 
 export const getClients = async (req: Request, res: Response) => {
   const clients = await getAllClientsServ();

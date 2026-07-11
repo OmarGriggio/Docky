@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { getAllRessourcesServ, getRessourcesByTypeServ } from "../services/ressource.service";
+import { getAllRessourcesServ, getRessourcesByTypeServ } from "./ressource.service";
 
 export const getRessources = async (req: Request, res: Response) => {
   const type = req.query.type as string | undefined;

@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { getRessourceTarifsFournisseurs } from "../controllers/ressource_tarif_fournisseur.controller";
-import { authenticate } from "../middlewares/auth.middleware";
+import { getRessourceTarifsFournisseurs } from "./ressource_tarif_fournisseur.controller";
+import { authenticate } from "../../shared/middlewares/auth.middleware";
 
 const router = Router();
 

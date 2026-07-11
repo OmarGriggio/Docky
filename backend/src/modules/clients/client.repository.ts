@@ -1,5 +1,5 @@
-import { pool } from "../config/database";
-import {Client} from "../types/client"
+import { pool } from "../../shared/config/database";
+import {Client} from "./client.types"
 
 export const getClientsFromDB = async () => {
   const result = await pool.query("SELECT * FROM clients");

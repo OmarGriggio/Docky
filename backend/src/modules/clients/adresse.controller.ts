@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { addAdresseServ, getAllAdressesServ } from "../services/adresse.service";
-import { Adresse } from "../types/adresse";
+import { addAdresseServ, getAllAdressesServ } from "./adresse.service";
+import { Adresse } from "./adresse.types";
 
 export const getAdresses = async (req: Request, res: Response) => {
   const adresses = await getAllAdressesServ();

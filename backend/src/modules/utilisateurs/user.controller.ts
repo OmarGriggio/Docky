@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { createUserService, getAllUsers } from "../services/user.service";
-import { CreateUserData } from "../types/user";
+import { createUserService, getAllUsers } from "./user.service";
+import { CreateUserData } from "./user.types";
 
 export const getAllUsersController = async (req: Request, res: Response) => {
     const users = await getAllUsers();

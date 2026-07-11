@@ -1,6 +1,6 @@
-import { Adresse } from "../types/adresse";
-import { getAdressesFromDB, createAdresseInDB } from "../repositories/adresse.repository";
-import { getClientByIdFromDB } from "../repositories/client.repository";
+import { Adresse } from "./adresse.types";
+import { getAdressesFromDB, createAdresseInDB } from "./adresse.repository";
+import { getClientByIdFromDB } from "./client.repository";
 
 export const getAllAdressesServ = async () => {
   return await getAdressesFromDB();
