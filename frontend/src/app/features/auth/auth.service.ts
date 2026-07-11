@@ -10,6 +10,7 @@ const TOKEN_KEY = 'docky_token';
 interface TokenPayload {
   userId: number;
   email: string;
+  role: 'ADMIN' | 'UTILISATEUR';
 }
 
 function decodeToken(token: string): TokenPayload | null {
