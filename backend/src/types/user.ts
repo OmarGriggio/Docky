@@ -9,6 +9,7 @@ export interface User {
 }
 
 export interface CreateUserData {
+  id_entreprise: number;
   firstname: string;
   lastname: string;
   email: string;

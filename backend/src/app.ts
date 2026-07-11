@@ -8,6 +8,7 @@ import ressourceRoutes from "./routes/ressource.routes";
 import ressourceTarifFournisseurRoutes from "./routes/ressource_tarif_fournisseur.routes";
 import documentRoutes from "./routes/document.routes";
 import documentCompleteRoutes from "./routes/document_complete.routes";
+import entrepriseRoutes from "./routes/entreprise.routes";
 import cors from 'cors';
 
 const app = express();
@@ -29,6 +30,8 @@ app.use("/ressource-tarif-fournisseur", ressourceTarifFournisseurRoutes);
 app.use("/document", documentRoutes);
 
 app.use("/document-complete", documentCompleteRoutes);
+
+app.use("/entreprise", entrepriseRoutes);
 
 app.use("/user", userRoutes);
 

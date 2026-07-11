@@ -1,0 +1,19 @@
+import jwt from "jsonwebtoken";
+
+type TokenPayload = { userId: number; email: string };
+
+export const generateAccessToken = (payload: TokenPayload) => {
+  return jwt.sign(payload, process.env.JWT_SECRET!, {
+    expiresIn: "5h"
+  });
+};
+
+export const generateRefreshToken = (payload: TokenPayload) => {
+  return jwt.sign(payload, process.env.JWT_REFRESH_SECRET!, {
+    expiresIn: "7d"
+  });
+};
+
+export const verifyToken = (token: string) => {
+  return jwt.verify(token, process.env.JWT_SECRET!);
+};

@@ -8,7 +8,7 @@ export const getUsersFromDB = async () => {
 
 export const getUserByEmail = async (email: string) => {
     const result = await pool.query("SELECT * FROM utilisateurs where email = $1", [email]);
-    return result.rows[0] ?? null;
+    return result.rows[0];
 };
 
 export const createUserDB = async (
@@ -16,16 +16,18 @@ export const createUserDB = async (
 ): Promise<User> => {
     const query = `
     INSERT INTO utilisateurs (
+      id_entreprise,
       nom,
       prenom,
       email,
       motdepasse_hash
     )
-    VALUES ($1, $2, $3, $4)
+    VALUES ($1, $2, $3, $4, $5)
     RETURNING *;
   `;
 
     const values = [
+      userData.id_entreprise,
       userData.firstname,
       userData.lastname,
       userData.email,

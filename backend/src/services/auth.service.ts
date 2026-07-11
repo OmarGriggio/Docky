@@ -1,28 +1,31 @@
-import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 import { getUserByEmail } from "../repositories/user.repository";
 import { LoginUserData, User } from "../types/user";
-import bcrypt from "bcrypt";
+import { UnauthorizedError } from "../types/errors";
+import { generateAccessToken } from "./jwt.service";
 
 export const authUserService = async (loginData: LoginUserData) => {
-  const user: User = await getUserByEmail(loginData.email)
+  const user: User | undefined = await getUserByEmail(loginData.email)
+
+  if (!user) {
+    throw new UnauthorizedError();
+  }
+
   const isPasswordValid = await bcrypt.compare(
     loginData.passwordHash,
     user.motdepasse_hash
   );
+
   if (!isPasswordValid) {
-    throw new Error("Invalid credentials");
+    throw new UnauthorizedError();
   }
 
-  const token = jwt.sign(
-    {
-      userId: user.id,
-      email: user.email
-    },
-    process.env.JWT_SECRET!,
-    {
-      expiresIn: "5h"
-    }
-  );
+  const token = generateAccessToken({
+    userId: user.id,
+    email: user.email
+  });
+
+  //TODO : add generateRefreshToken() (need to see how to stock refresh in front)
 
   return {"token": token}
 };
