@@ -11,7 +11,7 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
 @Component({
   selector: 'app-client-list',
   standalone: true,
-  imports: [RouterLink, TableModule, Menu, Button, ConfirmDialogComponent],
+  imports: [TableModule, Menu, Button, ConfirmDialogComponent],
   templateUrl: './client-list.html'
 })
 export class ClientListComponent implements OnInit {

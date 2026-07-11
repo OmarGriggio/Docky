@@ -28,7 +28,6 @@ import { SelectButton } from 'primeng/selectbutton';
     InputText,
     RadioButton,
     Select,
-    Tag,
     Textarea,
     ToggleButton,
     ConfirmDialogComponent
