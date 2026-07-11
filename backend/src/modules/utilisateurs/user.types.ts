@@ -1,5 +1,7 @@
 export interface User {
   id: number;
+  id_entreprise: number;
+  role: 'ADMIN' | 'UTILISATEUR';
   nom: string;
   prenom: string;
   email: string;
