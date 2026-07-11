@@ -1,3 +1,8 @@
+INSERT INTO entreprises 
+(nom, email, telephone, rue, npa, ville, pays, logo)
+VALUES
+('DEDONNOSTYLE', 'dedonnostyle@gmail.com', '+41799549936', 'Rue de boujean 37', 2502, 'Biel/Bienne', 'Suisse', 'CheminDuLogo');
+
 -- ==========================================
 -- CLIENTS
 -- ==========================================

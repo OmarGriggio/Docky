@@ -1,0 +1,21 @@
+GET http://localhost:3000/entreprise
+
+###
+
+GET http://localhost:3000/entreprise/1
+
+###
+
+POST http://localhost:3000/entreprise
+Content-Type: application/json
+
+{
+  "nom": "DEDONNOSTYLE",
+  "email": "dedonnostyle@gmail.com",
+  "telephone": "+41799549936",
+  "rue": "Rue de boujean 37",
+  "npa": 2502,
+  "ville": "Biel/Bienne",
+  "pays": "Suisse",
+  "logo": "CheminDuLogo"
+}

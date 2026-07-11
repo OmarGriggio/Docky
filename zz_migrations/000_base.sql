@@ -1,12 +1,43 @@
 DROP SCHEMA public CASCADE;
 CREATE SCHEMA public;
 
-CREATE TABLE entreprise (
+-- ==========================================
+-- ENTREPRISES
+-- ==========================================
+
+CREATE TABLE entreprises (
     id SERIAL PRIMARY KEY,
-    nom VARCHAR(100),
+    nom_entreprise VARCHAR(100),
     email VARCHAR(255),
     telephone VARCHAR(50),
+    rue VARCHAR(100),
+    npa INTEGER,
+    ville VARCHAR(100),
+    pays VARCHAR(100),
     logo VARCHAR(255)
+);
+
+-- ==========================================
+-- UTILISATEURS
+-- ==========================================
+
+CREATE TABLE utilisateurs
+(
+    id SERIAL PRIMARY KEY,
+    id_entreprise INTEGER,
+    role VARCHAR(20) NOT NULL DEFAULT ('UTILISATEUR')
+        CHECK (role IN ('ADMIN', 'UTILISATEUR')),
+    nom character varying(100) COLLATE pg_catalog."default",
+    prenom character varying(100) COLLATE pg_catalog."default",
+    email character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    motdepasse_hash text COLLATE pg_catalog."default" UNIQUE NOT NULL,
+    date_creat timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    date_modif timestamp without time zone,
+    date_derniere_connexion timestamp without time zone,
+    actif BOOLEAN DEFAULT TRUE,
+
+    FOREIGN KEY (id_entreprise)
+        REFERENCES entreprises(id)
 )
 
 -- ==========================================
@@ -15,7 +46,8 @@ CREATE TABLE entreprise (
 
 CREATE TABLE clients (
     id SERIAL PRIMARY KEY,
-    num_client VARCHAR(50) UNIQUE,
+    id_entreprise INTEGER,
+    num_client VARCHAR(50) UNIQUE NOT NULL,
     type VARCHAR(20) NOT NULL
         CHECK (type IN ('PARTICULIER', 'PROFESSIONNEL')),
     societe VARCHAR (100),
@@ -25,7 +57,10 @@ CREATE TABLE clients (
     civilite VARCHAR(100),
     email VARCHAR(255),
     telephone VARCHAR(50),
-    remarque VARCHAR(3000)
+    remarque VARCHAR(3000),
+
+    FOREIGN KEY (id_entreprise)
+        REFERENCES entreprises(id)
 );
 
 -- ==========================================
@@ -34,11 +69,15 @@ CREATE TABLE clients (
 
 CREATE TABLE adresses (
     id SERIAL PRIMARY KEY,
+    id_entreprise INTEGER,
     id_client INTEGER,
     rue VARCHAR(100),
     npa INTEGER,
     ville VARCHAR(100),
-    pays VARCHAR(100)
+    pays VARCHAR(100),
+
+    FOREIGN KEY (id_entreprise)
+        REFERENCES entreprises(id)
 );
 
 
@@ -48,10 +87,14 @@ CREATE TABLE adresses (
 
 CREATE TABLE fournisseurs (
     id SERIAL PRIMARY KEY,
+    id_entreprise INTEGER,
     code_fournisseur VARCHAR(50) UNIQUE,
     societe VARCHAR(255),
     adresse TEXT,
-    categorie VARCHAR(100)
+    categorie VARCHAR(100),
+
+    FOREIGN KEY (id_entreprise)
+        REFERENCES entreprises(id)
 );
 
 -- ==========================================
@@ -60,6 +103,7 @@ CREATE TABLE fournisseurs (
 
 CREATE TABLE ressources (
     id SERIAL PRIMARY KEY,
+    id_entreprise INTEGER,
     id_ressources INTEGER, --Pour les ressources composés
     type VARCHAR(20) NOT NULL
         CHECK (type IN ('MATERIEL', 'MAIN-OEUVRE', 'SOUS-TRAITANCE', 'DIVERS')),
@@ -68,7 +112,10 @@ CREATE TABLE ressources (
     unite VARCHAR(50) NOT NULL,
     prix_vente NUMERIC(10,2) NOT NULL,
     prix_achat  NUMERIC(10,2),
-    actif BOOLEAN DEFAULT TRUE
+    actif BOOLEAN DEFAULT TRUE,
+
+    FOREIGN KEY (id_entreprise)
+        REFERENCES entreprises(id)
 );
 
 -- ==========================================
@@ -77,6 +124,7 @@ CREATE TABLE ressources (
 
 CREATE TABLE ressources_tarifs_fournisseurs (
     id SERIAL PRIMARY KEY,
+    id_entreprise INTEGER,
     id_ressource INTEGER,
     id_fournisseur INTEGER,
     prix_achat NUMERIC(10,2),
@@ -88,7 +136,10 @@ CREATE TABLE ressources_tarifs_fournisseurs (
         REFERENCES ressources(id),
 
     FOREIGN KEY (id_fournisseur)
-        REFERENCES fournisseurs(id)
+        REFERENCES fournisseurs(id),
+
+    FOREIGN KEY (id_entreprise)
+        REFERENCES entreprises(id)
 );
 
 -- ==========================================
@@ -97,6 +148,7 @@ CREATE TABLE ressources_tarifs_fournisseurs (
 
 CREATE TABLE documents (
     id SERIAL PRIMARY KEY,
+    id_entreprise INTEGER,
     id_client INTEGER NOT NULL,
     id_document_parent INTEGER,
     type VARCHAR(20) NOT NULL
@@ -112,7 +164,10 @@ CREATE TABLE documents (
         REFERENCES clients(id),
 
     FOREIGN KEY (id_document_parent)
-        REFERENCES documents(id)
+        REFERENCES documents(id),
+
+    FOREIGN KEY (id_entreprise)
+        REFERENCES entreprises(id)
 );
 
 
@@ -122,6 +177,7 @@ CREATE TABLE documents (
 
 CREATE TABLE document_lignes (
     id SERIAL PRIMARY KEY,
+    id_entreprise INTEGER,
     id_document INTEGER NOT NULL,
     type VARCHAR(20) NOT NULL,
     pos INTEGER NOT NULL,
@@ -133,5 +189,8 @@ CREATE TABLE document_lignes (
 
     FOREIGN KEY (id_document)
         REFERENCES documents(id)
-        ON DELETE CASCADE
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (id_entreprise)
+        REFERENCES entreprises(id)
 );
