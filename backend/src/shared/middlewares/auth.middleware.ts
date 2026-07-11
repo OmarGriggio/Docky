@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
+import { verifyToken } from "./jwt.service";
 
 export const authenticate = (
   req: Request,
@@ -17,7 +17,7 @@ export const authenticate = (
   const token = authHeader.replace("Bearer ", "");
 
   try {
-    jwt.verify(token, process.env.JWT_SECRET!);
+    verifyToken(token);
 
     next();
   } catch {
