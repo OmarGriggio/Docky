@@ -1,5 +1,5 @@
 <nav>
-  @for (item of navItems; track item.label) {
+  @for (item of visibleNavItems(); track item.label) {
     @if (item.links.length > 1) {
       <details>
         <summary>{{ item.label }}</summary>

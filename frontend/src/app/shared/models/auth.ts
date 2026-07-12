@@ -1,3 +1,5 @@
+export type UserRole = 'ADMIN' | 'UTILISATEUR';
+
 export interface AuthResponse {
   token: string;
 }

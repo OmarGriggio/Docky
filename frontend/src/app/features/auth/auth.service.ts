@@ -1,7 +1,7 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { switchMap, tap } from 'rxjs';
-import { AuthResponse, LoginPayload, RegisterPayload } from '../../shared/models/auth';
+import { AuthResponse, LoginPayload, RegisterPayload, UserRole } from '../../shared/models/auth';
 import { Entreprise } from '../../shared/models/entreprise';
 import { User } from '../../shared/models/user';
 
@@ -10,13 +10,13 @@ const TOKEN_KEY = 'docky_token';
 interface TokenPayload {
   userId: number;
   email: string;
+  role: UserRole;
 }
 
 function decodeToken(token: string): TokenPayload | null {
   try {
     const payload = token.split('.')[1];
     const json = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
-    console.log(JSON.parse(json));
     return JSON.parse(json);
   } catch {
     return null;
@@ -37,6 +37,14 @@ export class AuthService {
     const token = this.token();
     return token ? decodeToken(token) : null;
   });
+  
+  isAdmin = computed(() =>
+    this.currentUser()?.role === 'ADMIN'
+  );
+
+  isUser = computed(() =>
+    this.currentUser()?.role === 'UTILISATEUR'
+  );
 
   getToken(): string | null {
     return this.token();

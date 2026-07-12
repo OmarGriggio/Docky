@@ -9,6 +9,7 @@ import { RessourceListComponent } from './features/ressources/ressource-list/res
 import { UiTest } from './features/uitest/uitest';
 import { Login } from './features/auth/login/login';
 import { Register } from './features/auth/register/register';
+import { roleGuard } from './features/auth/role.guard';
 
 export const routes: Routes = [
   {
@@ -21,7 +22,11 @@ export const routes: Routes = [
   },
   {
     path: 'uitest',
-    component: UiTest
+    component: UiTest,
+    canActivate: [roleGuard],
+    data: {
+      roles: ['ADMIN']
+    }
   },
   {
     path: 'clients',

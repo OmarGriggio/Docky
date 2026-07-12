@@ -1,6 +1,7 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../features/auth/auth.service';
+import { UserRole } from '../models/auth';
 
 interface NavLink {
   label: string;
@@ -11,6 +12,7 @@ interface NavLink {
 interface NavItem {
   label: string;
   links: NavLink[];
+  roles?: UserRole[];
 }
 
 @Component({
@@ -63,9 +65,15 @@ export class NavBar {
       label: 'UI Kit',
       links: [
         { label: 'Exemples', path: '/uitest' }
-      ]
+      ],
+      roles: ['ADMIN']
     }
   ];
+
+  visibleNavItems = computed(() => {
+    const role = this.currentUser()?.role;
+    return this.navItems.filter(item => !item.roles || (role && item.roles.includes(role)));
+  });
 
   logout(): void {
     this.authService.logout();
