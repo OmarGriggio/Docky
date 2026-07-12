@@ -62,6 +62,13 @@ export class NavBar {
       ]
     },
     {
+      label: 'Chantiers',
+      links: [
+        { label: 'Liste', path: '/chantiers' },
+        { label: 'Nouveau', path: '/chantiers/new' }
+      ]
+    },
+    {
       label: 'UI Kit',
       links: [
         { label: 'Exemples', path: '/uitest' }

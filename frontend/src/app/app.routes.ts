@@ -12,6 +12,8 @@ import { Register } from './features/auth/register/register';
 import { roleGuard } from './features/auth/role.guard';
 import { UserListComponent } from './features/admin/user-list/user-list';
 import { UserForm } from './features/admin/user-form/user-form';
+import { ChantierListComponent } from './features/chantiers/chantier-list/chantier-list';
+import { ChantierForm } from './features/chantiers/chantier-form/chantier-form';
 
 export const routes: Routes = [
   {
@@ -57,6 +59,14 @@ export const routes: Routes = [
   {
     path: 'ressources',
     component: RessourceListComponent
+  },
+  {
+    path: 'chantiers',
+    component: ChantierListComponent
+  },
+  {
+    path: 'chantiers/new',
+    component: ChantierForm
   },
   {
     path: 'admin/users',
