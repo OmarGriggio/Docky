@@ -11,23 +11,30 @@ export const getUserByEmail = async (email: string) => {
     return result.rows[0];
 };
 
+export const deleteUserDB = async (id: Number) => {
+    const result = await pool.query("DELETE FROM utilisateurs where id = $1", [id]);
+    return result.rows[0];
+};
+
 export const createUserDB = async (
     userData: CreateUserData
 ): Promise<User> => {
     const query = `
     INSERT INTO utilisateurs (
       id_entreprise,
+      role,
       nom,
       prenom,
       email,
       motdepasse_hash
     )
-    VALUES ($1, $2, $3, $4, $5)
+    VALUES ($1, $2, $3, $4, $5, $6)
     RETURNING *;
   `;
 
     const values = [
       userData.id_entreprise,
+      userData.role,
       userData.firstname,
       userData.lastname,
       userData.email,

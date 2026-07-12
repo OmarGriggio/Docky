@@ -1,10 +1,14 @@
 import { createEntrepriseInDB } from "../entreprises/entreprise.repository";
-import { createUserDB, getUserByEmail, getUsersFromDB } from "./user.repository";
+import { createUserDB, getUserByEmail, getUsersFromDB, deleteUserDB } from "./user.repository";
 import { CreateUserData } from "./user.types";
 import bcrypt from "bcrypt";
 
 export const getAllUsers = async () => {
   return await getUsersFromDB();
+};
+
+export const deleteUserService = async (id: Number) => {
+  return await deleteUserDB(id);
 };
 
 export const createUserService = async (userData: CreateUserData) => {
