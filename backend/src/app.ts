@@ -9,6 +9,8 @@ import ressourceTarifFournisseurRoutes from "./modules/catalogue/ressource_tarif
 import documentRoutes from "./modules/documents/document.routes";
 import documentCompleteRoutes from "./modules/documents/document_complete.routes";
 import entrepriseRoutes from "./modules/entreprises/entreprise.routes";
+import chantierRoutes from "./modules/chantiers/chantier.routes";
+import typeChantierRoutes from "./modules/chantiers/type_chantier.routes";
 import cors from 'cors';
 
 const app = express();
@@ -34,6 +36,10 @@ app.use("/document-complete", documentCompleteRoutes);
 app.use("/entreprise", entrepriseRoutes);
 
 app.use("/user", userRoutes);
+
+app.use("/chantier", chantierRoutes);
+
+app.use("/type-chantier", typeChantierRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is running");

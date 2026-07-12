@@ -1,7 +1,7 @@
 INSERT INTO entreprises 
 (nom, email, telephone, rue, npa, ville, pays, logo)
 VALUES
-('DEDONNOSTYLE', 'dedonnostyle@gmail.com', '+41799549936', 'Rue de boujean 37', 2502, 'Biel/Bienne', 'Suisse', 'CheminDuLogo');
+('DEDONNOSTYLE', 'dedonnostyle@gmail.com', '+41799549936', 'Rue de boujean 37', '2502', 'Biel/Bienne', 'Suisse', 'CheminDuLogo');
 
 -- ==========================================
 -- CLIENTS
@@ -23,11 +23,31 @@ VALUES
 INSERT INTO adresses
 (id_client, rue, npa, ville, pays)
 VALUES
-(1, 'Rue de Lausanne 12', 1000, 'Lausanne', 'Suisse'),
-(2, 'Route de Genève 5', 1007, 'Lausanne', 'Suisse'),
-(3, 'Rue Centrale 18', 1020, 'Renens', 'Suisse'),
-(4, 'Chemin du Bois 45', 1008, 'Prilly', 'Suisse'),
-(5, 'Avenue des Alpes 9', 1800, 'Vevey', 'Suisse');
+(1, 'Rue de Lausanne 12', '1000', 'Lausanne', 'Suisse'),
+(2, 'Route de Genève 5', '1007', 'Lausanne', 'Suisse'),
+(3, 'Rue Centrale 18', '1020', 'Renens', 'Suisse'),
+(4, 'Chemin du Bois 45', '1008', 'Prilly', 'Suisse'),
+(5, 'Avenue des Alpes 9', '1800', 'Vevey', 'Suisse');
+
+-- ==========================================
+-- CHANTIER
+-- ==========================================
+
+INSERT INTO types_chantier (libelle) 
+VALUES 
+('Porte'),
+('Cuisines'),
+('Salle de bain'),
+('Réparation'),
+('Isolation'),
+('Autre');
+
+INSERT INTO chantiers (id_client, id_type_chantier, nom, adresse_identique_client, rue, npa, ville, pays)
+VALUES 
+(1, 1, 'Réparation de porte de cave', FALSE, 'Rue de la gare 2', '2500', 'Lausanne', 'Suisse'),
+(1, 2, 'Création de cuisine sur mesure', FALSE, 'Rue de Génève 2', '3300', 'Geneve', 'Suisse'),
+(2, 3, 'Réparation de meuble de salle de bain', TRUE, NULL, NULL, NULL, NULL),
+(2, 4, 'Posage de l''isolation', TRUE, NULL, NULL, NULL, NULL);
 
 -- ==========================================
 -- FOURNISSEURS

@@ -11,7 +11,7 @@ CREATE TABLE entreprises (
     email VARCHAR(255),
     telephone VARCHAR(50),
     rue VARCHAR(100),
-    npa INTEGER,
+    npa VARCHAR(20),
     ville VARCHAR(100),
     pays VARCHAR(100),
     logo VARCHAR(255)
@@ -72,7 +72,7 @@ CREATE TABLE adresses (
     id_entreprise INTEGER,
     id_client INTEGER,
     rue VARCHAR(100),
-    npa INTEGER,
+    npa VARCHAR(20),
     ville VARCHAR(100),
     pays VARCHAR(100),
 
@@ -80,6 +80,33 @@ CREATE TABLE adresses (
         REFERENCES entreprises(id)
 );
 
+-- ==========================================
+-- CHANTIER
+-- ==========================================
+
+CREATE TABLE types_chantier (
+    id SERIAL PRIMARY KEY,
+    libelle VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE chantiers (
+    id SERIAL PRIMARY KEY,
+    id_client INTEGER,
+    id_type_chantier INTEGER,
+    nom VARCHAR(255) NOT NULL,
+    remarque TEXT,
+    adresse_identique_client BOOLEAN NOT NULL DEFAULT TRUE,
+    rue VARCHAR(255),
+    npa VARCHAR(20),
+    ville VARCHAR(100),
+    pays VARCHAR(100),
+    date_creation TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (id_client)
+        REFERENCES clients(id),
+    FOREIGN KEY (id_type_chantier)
+        REFERENCES types_chantier(id)
+);
 
 -- ==========================================
 -- FOURNISSEURS
