@@ -1,0 +1,43 @@
+<div class="user-form-page">
+  <p-card header="Nouvel utilisateur" styleClass="ui-card--elevated user-form-card">
+    <form [formGroup]="form" (ngSubmit)="submit()" class="ui-form">
+      <div class="ui-form__full">
+        <p-selectbutton
+          formControlName="role"
+          [options]="roleOptions"
+          optionLabel="label"
+          optionValue="value"
+        />
+      </div>
+
+      <p-floatlabel variant="on">
+        <input pInputText id="firstname" formControlName="firstname" />
+        <label for="firstname">Prénom</label>
+      </p-floatlabel>
+
+      <p-floatlabel variant="on">
+        <input pInputText id="lastname" formControlName="lastname" />
+        <label for="lastname">Nom</label>
+      </p-floatlabel>
+
+      <p-floatlabel variant="on">
+        <input pInputText id="email" type="email" formControlName="email" />
+        <label for="email">Email</label>
+      </p-floatlabel>
+
+      <p-floatlabel variant="on">
+        <input pInputText id="password" type="password" formControlName="password" />
+        <label for="password">Mot de passe</label>
+      </p-floatlabel>
+
+      @if (errorMessage()) {
+        <p class="ui-form__full user-form-error">{{ errorMessage() }}</p>
+      }
+
+      <div class="ui-form__actions">
+        <p-button type="button" label="Annuler" severity="secondary" (onClick)="cancel()" />
+        <p-button type="submit" label="Créer" />
+      </div>
+    </form>
+  </p-card>
+</div>

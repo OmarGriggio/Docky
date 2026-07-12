@@ -10,6 +10,8 @@ import { UiTest } from './features/uitest/uitest';
 import { Login } from './features/auth/login/login';
 import { Register } from './features/auth/register/register';
 import { roleGuard } from './features/auth/role.guard';
+import { UserListComponent } from './features/admin/user-list/user-list';
+import { UserForm } from './features/admin/user-form/user-form';
 
 export const routes: Routes = [
   {
@@ -55,6 +57,22 @@ export const routes: Routes = [
   {
     path: 'ressources',
     component: RessourceListComponent
+  },
+  {
+    path: 'admin/users',
+    component: UserListComponent,
+    canActivate: [roleGuard],
+    data: {
+      roles: ['ADMIN']
+    }
+  },
+  {
+    path: 'admin/users/new',
+    component: UserForm,
+    canActivate: [roleGuard],
+    data: {
+      roles: ['ADMIN']
+    }
   },
   {
     path: '',

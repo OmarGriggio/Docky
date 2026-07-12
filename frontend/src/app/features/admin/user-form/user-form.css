@@ -1,0 +1,15 @@
+.user-form-page {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.user-form-card {
+  width: 100%;
+  max-width: 560px;
+}
+
+.user-form-error {
+  color: #d32f2f;
+  margin: 0;
+}

@@ -67,6 +67,14 @@ export class NavBar {
         { label: 'Exemples', path: '/uitest' }
       ],
       roles: ['ADMIN']
+    },
+    {
+      label: 'Admin',
+      links: [
+        { label: 'Utilisateurs', path: '/admin/users' },
+        { label: 'Nouvel utilisateur', path: '/admin/users/new' }
+      ],
+      roles: ['ADMIN']
     }
   ];
 
