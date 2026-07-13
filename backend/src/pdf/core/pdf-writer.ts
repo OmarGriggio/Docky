@@ -1,5 +1,5 @@
 import { PDFDocument, PDFFont, PDFPage, StandardFonts, rgb } from "pdf-lib";
-import { PdfDocumentOptions, PdfTextOptions } from "./PdfTypes";
+import { PdfDocumentOptions, PdfTextOptions } from "./pdf-writer.types";
 
 const DEFAULT_OPTIONS: Required<PdfDocumentOptions> = {
     margin: 50,
@@ -8,7 +8,7 @@ const DEFAULT_OPTIONS: Required<PdfDocumentOptions> = {
 
 const LINE_SPACING = 16;
 
-export class PdfDocument {
+export class PdfWriter {
 
     private page: PDFPage;
     private cursorY: number;
@@ -23,12 +23,12 @@ export class PdfDocument {
         this.cursorY = this.page.getHeight() - options.margin;
     }
 
-    static async create(options: PdfDocumentOptions = {}): Promise<PdfDocument> {
+    static async create(options: PdfDocumentOptions = {}): Promise<PdfWriter> {
         const doc = await PDFDocument.create();
         const regularFont = await doc.embedFont(StandardFonts.Helvetica);
         const boldFont = await doc.embedFont(StandardFonts.HelveticaBold);
 
-        return new PdfDocument(doc, regularFont, boldFont, { ...DEFAULT_OPTIONS, ...options });
+        return new PdfWriter(doc, regularFont, boldFont, { ...DEFAULT_OPTIONS, ...options });
     }
 
     title(text: string) {

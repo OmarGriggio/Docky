@@ -1,6 +1,6 @@
-import { PdfDocument } from "./PdfDocument";
-import { FacturePdf } from "./templates/FacturePdf";
-import { FactureDto } from "./PdfTypes";
+import { PdfWriter } from "./core/pdf-writer";
+import { FactureTemplate } from "./templates/facture.template";
+import { FactureDto } from "./templates/facture.types";
 import { getDocumentCompleteServ } from "../modules/documents/document_complete.service";
 import { getClientByIdServ } from "../modules/clients/client.service";
 
@@ -26,8 +26,8 @@ export const generateFacturePdfServ = async (documentId: number): Promise<Uint8A
         montantTtc: document.montant_ttc,
     };
 
-    const pdf = await PdfDocument.create();
-    FacturePdf.render(pdf, data);
+    const pdf = await PdfWriter.create();
+    FactureTemplate.render(pdf, data);
 
     return pdf.save();
 };

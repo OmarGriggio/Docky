@@ -1,9 +1,9 @@
-import { PdfDocument } from "../PdfDocument";
-import { FactureDto } from "../PdfTypes";
+import { PdfWriter } from "../core/pdf-writer";
+import { FactureDto } from "./facture.types";
 
-export class FacturePdf {
+export class FactureTemplate {
 
-    static render(pdf: PdfDocument, data: FactureDto) {
+    static render(pdf: PdfWriter, data: FactureDto) {
         pdf.title(`Facture ${data.numero}`);
         pdf.text(new Date(data.date).toLocaleDateString("fr-CH"));
         pdf.line();

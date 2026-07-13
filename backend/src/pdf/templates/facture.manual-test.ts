@@ -1,7 +1,7 @@
 import { writeFile } from "fs/promises";
-import { PdfDocument } from "./PdfDocument";
-import { FacturePdf } from "./templates/FacturePdf";
-import { FactureDto } from "./PdfTypes";
+import { PdfWriter } from "../core/pdf-writer";
+import { FactureTemplate } from "./facture.template";
+import { FactureDto } from "./facture.types";
 
 const data: FactureDto = {
     numero: "F-2026-0012",
@@ -19,8 +19,8 @@ const data: FactureDto = {
 };
 
 const main = async () => {
-    const pdf = await PdfDocument.create();
-    FacturePdf.render(pdf, data);
+    const pdf = await PdfWriter.create();
+    FactureTemplate.render(pdf, data);
     const bytes = await pdf.save();
 
     await writeFile("facture-test.pdf", bytes);
