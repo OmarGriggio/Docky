@@ -1,7 +1,7 @@
 import { pool } from "../../shared/config/database";
 
-export const getDocumentLignesFromDB = async () => {
-  const result = await pool.query("SELECT * FROM document_lignes");
+export const getDocumentLignesFromDB = async (id_entreprise: number) => {
+  const result = await pool.query("SELECT * FROM document_lignes WHERE id_entreprise = $1", [id_entreprise]);
   return result.rows;
 };
 

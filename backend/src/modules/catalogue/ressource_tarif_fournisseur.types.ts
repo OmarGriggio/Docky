@@ -1,6 +1,7 @@
 export interface RessourceTarifFournisseur {
   id: number;
 
+  id_entreprise: number;
   id_ressource: number;
   id_fournisseur: number;
 

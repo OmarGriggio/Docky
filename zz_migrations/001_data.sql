@@ -1,5 +1,5 @@
 INSERT INTO entreprises 
-(nom, email, telephone, rue, npa, ville, pays, logo)
+(nom_entreprise, email, telephone, rue, npa, ville, pays, logo)
 VALUES
 ('DEDONNOSTYLE', 'dedonnostyle@gmail.com', '+41799549936', 'Rue de boujean 37', '2502', 'Biel/Bienne', 'Suisse', 'CheminDuLogo');
 
@@ -8,26 +8,26 @@ VALUES
 -- ==========================================
 
 INSERT INTO clients
-(num_client, type, societe, tva, nom, prenom, civilite, email, telephone, remarque)
+(id_entreprise, num_client, type, societe, tva, nom, prenom, civilite, email, telephone, remarque)
 VALUES
-('C0001', 'PARTICULIER', NULL, NULL, 'Dupont', 'Jean', 'Monsieur', 'jean.dupont@gmail.com', '0791112233', NULL),
-('C0002', 'PARTICULIER', NULL, NULL, 'Martin', 'Sophie', 'Madame', 'sophie.martin@gmail.com', '0792223344', NULL),
-('C0003', 'PROFESSIONNEL', 'Entreprise Martin SA', 'CHE-123.456.789', NULL, NULL, NULL, 'contact@martinsa.ch', '0211112233', 'Client professionnel'),
-('C0004', 'PROFESSIONNEL', 'ABC Construction SA', 'CHE-987.654.321', NULL, NULL, NULL, 'info@abcconstruction.ch', '0215556677', NULL),
-('C0005', 'PARTICULIER', NULL, NULL, 'Durand', 'Paul', 'Monsieur', 'paul.durand@gmail.com', '0783334455', NULL);
+(1, 'C0001', 'PARTICULIER', NULL, NULL, 'Dupont', 'Jean', 'Monsieur', 'jean.dupont@gmail.com', '0791112233', NULL),
+(1, 'C0002', 'PARTICULIER', NULL, NULL, 'Martin', 'Sophie', 'Madame', 'sophie.martin@gmail.com', '0792223344', NULL),
+(1, 'C0003', 'PROFESSIONNEL', 'Entreprise Martin SA', 'CHE-123.456.789', NULL, NULL, NULL, 'contact@martinsa.ch', '0211112233', 'Client professionnel'),
+(1, 'C0004', 'PROFESSIONNEL', 'ABC Construction SA', 'CHE-987.654.321', NULL, NULL, NULL, 'info@abcconstruction.ch', '0215556677', NULL),
+(1, 'C0005', 'PARTICULIER', NULL, NULL, 'Durand', 'Paul', 'Monsieur', 'paul.durand@gmail.com', '0783334455', NULL);
 
 -- ==========================================
 -- ADRESSES
 -- ==========================================
 
 INSERT INTO adresses
-(id_client, rue, npa, ville, pays)
+(id_entreprise, id_client, rue, npa, ville, pays)
 VALUES
-(1, 'Rue de Lausanne 12', '1000', 'Lausanne', 'Suisse'),
-(2, 'Route de Genève 5', '1007', 'Lausanne', 'Suisse'),
-(3, 'Rue Centrale 18', '1020', 'Renens', 'Suisse'),
-(4, 'Chemin du Bois 45', '1008', 'Prilly', 'Suisse'),
-(5, 'Avenue des Alpes 9', '1800', 'Vevey', 'Suisse');
+(1, 1, 'Rue de Lausanne 12', '1000', 'Lausanne', 'Suisse'),
+(1, 2, 'Route de Genève 5', '1007', 'Lausanne', 'Suisse'),
+(1, 3, 'Rue Centrale 18', '1020', 'Renens', 'Suisse'),
+(1, 4, 'Chemin du Bois 45', '1008', 'Prilly', 'Suisse'),
+(1, 5, 'Avenue des Alpes 9', '1800', 'Vevey', 'Suisse');
 
 -- ==========================================
 -- CHANTIER
@@ -42,88 +42,86 @@ VALUES
 ('Isolation'),
 ('Autre');
 
-INSERT INTO chantiers (id_client, id_type_chantier, nom, adresse_identique_client, rue, npa, ville, pays)
+INSERT INTO chantiers (id_entreprise, id_client, id_type_chantier, nom, adresse_identique_client, rue, npa, ville, pays)
 VALUES 
-(1, 1, 'Réparation de porte de cave', FALSE, 'Rue de la gare 2', '2500', 'Lausanne', 'Suisse'),
-(1, 2, 'Création de cuisine sur mesure', FALSE, 'Rue de Génève 2', '3300', 'Geneve', 'Suisse'),
-(2, 3, 'Réparation de meuble de salle de bain', TRUE, NULL, NULL, NULL, NULL),
-(2, 4, 'Posage de l''isolation', TRUE, NULL, NULL, NULL, NULL);
+(1, 1, 1, 'Réparation de porte de cave', FALSE, 'Rue de la gare 2', '2500', 'Lausanne', 'Suisse'),
+(1, 1, 2, 'Création de cuisine sur mesure', FALSE, 'Rue de Génève 2', '3300', 'Geneve', 'Suisse'),
+(1, 2, 3, 'Réparation de meuble de salle de bain', TRUE, NULL, NULL, NULL, NULL),
+(1, 2, 4, 'Posage de l''isolation', TRUE, NULL, NULL, NULL, NULL);
 
 -- ==========================================
 -- FOURNISSEURS
 -- ==========================================
 
 INSERT INTO fournisseurs
-(code_fournisseur, societe, adresse, categorie)
+(id_entreprise, code_fournisseur, societe, adresse, categorie)
 VALUES
-('F001','Hornbach','Villeneuve','Matériaux'),
-('F002','Jumbo','Crissier','Bricolage'),
-('F003','Sanitas Troesch','Crissier','Sanitaire');
+(1, 'F001','Hornbach','Villeneuve','Matériaux'),
+(1, 'F002','Jumbo','Crissier','Bricolage'),
+(1, 'F003','Sanitas Troesch','Crissier','Sanitaire');
 
 -- ==========================================
 -- RESSOURCES
 -- ==========================================
 
 INSERT INTO ressources
-(id_ressources, type, code, designation, unite, prix_vente, prix_achat)
+(id_entreprise, id_ressources, type, code, designation, unite, prix_vente, prix_achat)
 VALUES
-(NULL,'MATERIEL','MAT001','Sac ciment 25kg','Sac',15.00,8.50),
-(NULL,'MATERIEL','MAT002','Parpaing 20 cm','Pièce',4.50,2.80),
-(NULL,'MATERIEL','MAT003','Tube PVC Ø100','m',22.00,15.00),
-(NULL,'MATERIEL','MAT004','Peinture blanche 10L','Pot',95.00,70.00),
+(1, NULL,'MATERIEL','MAT001','Sac ciment 25kg','Sac',15.00,8.50),
+(1, NULL,'MATERIEL','MAT002','Parpaing 20 cm','Pièce',4.50,2.80),
+(1, NULL,'MATERIEL','MAT003','Tube PVC Ø100','m',22.00,15.00),
+(1, NULL,'MATERIEL','MAT004','Peinture blanche 10L','Pot',95.00,70.00),
 
-(NULL,'MAIN-OEUVRE','MO001','Maçon qualifié','Heure',95.00,NULL),
-(NULL,'MAIN-OEUVRE','MO002','Apprenti','Heure',55.00,NULL),
+(1, NULL,'MAIN-OEUVRE','MO001','Maçon qualifié','Heure',95.00,NULL),
+(1, NULL,'MAIN-OEUVRE','MO002','Apprenti','Heure',55.00,NULL),
 
-(NULL,'SOUS-TRAITANCE','ST001','Electricien externe','Heure',120.00,90.00),
+(1, NULL,'SOUS-TRAITANCE','ST001','Electricien externe','Heure',120.00,90.00),
 
-(NULL,'DIVERS','DIV001','Déplacement','Forfait',60.00,NULL),
-(NULL,'DIVERS','DIV002','Location nacelle','Jour',250.00,180.00);
+(1, NULL,'DIVERS','DIV001','Déplacement','Forfait',60.00,NULL),
+(1, NULL,'DIVERS','DIV002','Location nacelle','Jour',250.00,180.00);
 
 -- ==========================================
 -- TARIFS FOURNISSEURS
 -- ==========================================
 
 INSERT INTO ressources_tarifs_fournisseurs
-(id_ressource,id_fournisseur,prix_achat,rabais,delai_livraison,defaut)
+(id_entreprise, id_ressource,id_fournisseur,prix_achat,rabais,delai_livraison,defaut)
 VALUES
-(1,1,8.20,5,2,TRUE),
-(2,1,2.70,3,2,TRUE),
-(3,2,14.50,0,1,TRUE),
-(4,2,68.00,10,3,TRUE),
-(3,3,15.20,5,5,FALSE);
+(1, 1,1,8.20,5,2,TRUE),
+(1, 2,1,2.70,3,2,TRUE),
+(1, 3,2,14.50,0,1,TRUE),
+(1, 4,2,68.00,10,3,TRUE),
+(1, 3,3,15.20,5,5,FALSE);
 
 -- ==========================================
 -- DOCUMENTS
 -- ==========================================
 
 INSERT INTO documents
-(id_client,id_document_parent,type,numero,date,montant_ht,montant_ttc,rabais,statut)
+(id_entreprise, id_client,id_document_parent,type,numero,date,montant_ht,montant_ttc,rabais,statut)
 VALUES
-(1,NULL,'OFFRE','OFF-2026-0001','2026-07-10',650.00,702.65,0,'EN_ATTENTE'),
-
-(3,NULL,'OFFRE','OFF-2026-0002','2026-07-11',2100.00,2269.20,5,'ACCEPTEE'),
-
-(3,2,'FACTURE','FAC-2026-0001','2026-07-15',2100.00,2269.20,5,'PAYEE');
+(1, 1,NULL,'OFFRE','OFF-2026-0001','2026-07-10',650.00,702.65,0,'EN_ATTENTE'),
+(1, 3,NULL,'OFFRE','OFF-2026-0002','2026-07-11',2100.00,2269.20,5,'ACCEPTEE'),
+(1, 3,2,'FACTURE','FAC-2026-0001','2026-07-15',2100.00,2269.20,5,'PAYEE');
 
 -- ==========================================
 -- LIGNES DOCUMENT
 -- ==========================================
 
 INSERT INTO document_lignes
-(id_document,type,pos,libelle,quantite,unite,prix_unitaire,rabais)
+(id_entreprise, id_document,type,pos,libelle,quantite,unite,prix_unitaire,rabais)
 VALUES
 
 -- Offre 1
-(1,'MATERIEL',1,'Sac ciment 25kg',20,'Sac',15,0),
-(1,'MAIN-OEUVRE',2,'Maçon qualifié',5,'Heure',95,0),
+(1, 1,'MATERIEL',1,'Sac ciment 25kg',20,'Sac',15,0),
+(1, 1,'MAIN-OEUVRE',2,'Maçon qualifié',5,'Heure',95,0),
 
 -- Offre 2
-(2,'MATERIEL',1,'Parpaing 20 cm',300,'Pièce',4.50,0),
-(2,'MAIN-OEUVRE',2,'Maçon qualifié',6,'Heure',95,0),
-(2,'DIVERS',3,'Déplacement',1,'Forfait',60,0),
+(1, 2,'MATERIEL',1,'Parpaing 20 cm',300,'Pièce',4.50,0),
+(1, 2,'MAIN-OEUVRE',2,'Maçon qualifié',6,'Heure',95,0),
+(1, 2,'DIVERS',3,'Déplacement',1,'Forfait',60,0),
 
 -- Facture issue de l'offre 2
-(3,'MATERIEL',1,'Parpaing 20 cm',300,'Pièce',4.50,0),
-(3,'MAIN-OEUVRE',2,'Maçon qualifié',6,'Heure',95,0),
-(3,'DIVERS',3,'Déplacement',1,'Forfait',60,0);
+(1, 3,'MATERIEL',1,'Parpaing 20 cm',300,'Pièce',4.50,0),
+(1, 3,'MAIN-OEUVRE',2,'Maçon qualifié',6,'Heure',95,0),
+(1, 3,'DIVERS',3,'Déplacement',1,'Forfait',60,0);

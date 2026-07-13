@@ -1,7 +1,10 @@
+@token = PASTE_FRESH_TOKEN_FROM_AUTH.HTTP_HERE
+
 POST http://localhost:3000/user HTTP/1.1
 Content-Type: application/json
 
 {
+  "id_entreprise": 1,
   "role":"ADMIN",
   "firstname": "Omar",
   "lastname": "Griggio",
@@ -12,7 +15,9 @@ Content-Type: application/json
 ###
 
 DELETE http://localhost:3000/user/2 HTTP/1.1
+Authorization: Bearer {{token}}
 
 ###
 
 GET http://localhost:3000/user
+Authorization: Bearer {{token}}

@@ -17,7 +17,7 @@ export const authenticate = (
   const token = authHeader.replace("Bearer ", "");
 
   try {
-    verifyToken(token);
+    req.user = verifyToken(token);
 
     next();
   } catch {

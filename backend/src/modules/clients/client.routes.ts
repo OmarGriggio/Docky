@@ -4,6 +4,8 @@ import { authenticate } from "../../shared/middlewares/auth.middleware";
 
 const router = Router();
 
+router.use(authenticate);
+
 router.get("/", getClients);
 
 router.get("/:id", getClient);

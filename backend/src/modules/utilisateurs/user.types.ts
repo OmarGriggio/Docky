@@ -7,7 +7,9 @@ export interface User {
   email: string;
   motdepasse_hash: string;
   date_creat: Date;
-  date_modif: Date;
+  date_modif: Date | null;
+  date_derniere_connexion: Date | null;
+  actif: boolean;
 }
 
 export interface CreateUserData {

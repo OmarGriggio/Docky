@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 
-type TokenPayload = { userId: number; email: string, role: 'ADMIN' | 'UTILISATEUR' };
+export type TokenPayload = { userId: number; email: string; role: 'ADMIN' | 'UTILISATEUR'; id_entreprise: number };
 
 export const generateAccessToken = (payload: TokenPayload) => {
   return jwt.sign(payload, process.env.JWT_SECRET!, {
@@ -14,6 +14,6 @@ export const generateRefreshToken = (payload: TokenPayload) => {
   });
 };
 
-export const verifyToken = (token: string) => {
-  return jwt.verify(token, process.env.JWT_SECRET!);
+export const verifyToken = (token: string): TokenPayload => {
+  return jwt.verify(token, process.env.JWT_SECRET!) as TokenPayload;
 };

@@ -3,6 +3,7 @@ export type DocumentLigneType = "MATERIEL" | "SERVICE";
 export interface DocumentLigne {
   id: number;
 
+  id_entreprise: number;
   id_document: number;
 
   pos: number;

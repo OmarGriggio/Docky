@@ -16,9 +16,11 @@ export const getDocumentCompleteServ = async (id: number): Promise<DocumentCompl
   return { ...document, lignes };
 };
 
-export const getAllDocumentsCompleteServ = async (type?: string): Promise<DocumentComplete[]> => {
-  const documents = type ? await getDocumentsByTypeFromDB(type) : await getDocumentsFromDB();
-  const lignes = await getDocumentLignesFromDB();
+export const getAllDocumentsCompleteServ = async (id_entreprise: number, type?: string): Promise<DocumentComplete[]> => {
+  const documents = type
+    ? await getDocumentsByTypeFromDB(type, id_entreprise)
+    : await getDocumentsFromDB(id_entreprise);
+  const lignes = await getDocumentLignesFromDB(id_entreprise);
 
   return documents.map(document => ({
     ...document,

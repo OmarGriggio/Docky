@@ -1,13 +1,16 @@
 import { pool } from "../../shared/config/database";
 import { Document } from "./document.types";
 
-export const getDocumentsFromDB = async () => {
-  const result = await pool.query("SELECT * FROM documents");
+export const getDocumentsFromDB = async (id_entreprise: number) => {
+  const result = await pool.query("SELECT * FROM documents WHERE id_entreprise = $1", [id_entreprise]);
   return result.rows;
 };
 
-export const getDocumentsByTypeFromDB = async (type: string) => {
-  const result = await pool.query("SELECT * FROM documents WHERE type = $1", [type]);
+export const getDocumentsByTypeFromDB = async (type: string, id_entreprise: number) => {
+  const result = await pool.query(
+    "SELECT * FROM documents WHERE type = $1 AND id_entreprise = $2",
+    [type, id_entreprise]
+  );
   return result.rows;
 };
 
@@ -26,6 +29,7 @@ export const createDocumentInDB = async (
 ): Promise<Document> => {
   const query = `
     INSERT INTO documents (
+      id_entreprise,
       id_client,
       id_document_parent,
       type,
@@ -36,11 +40,12 @@ export const createDocumentInDB = async (
       rabais,
       statut
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
     RETURNING *;
   `;
 
   const values = [
+    document.id_entreprise,
     document.id_client,
     document.id_document_parent,
     document.type,

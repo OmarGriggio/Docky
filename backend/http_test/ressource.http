@@ -1,22 +1,24 @@
+@token = PASTE_FRESH_TOKEN_FROM_AUTH.HTTP_HERE
+
 GET http://localhost:3000/ressource
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoib21hckB0ZXN0My5jaCIsImlhdCI6MTc4MzUxOTk4MSwiZXhwIjoxNzgzNTM3OTgxfQ.7U7poXqcOCPUZEXh3v2fTvjznur7rZjZ6RU16yTI03o
+Authorization: Bearer {{token}}
 
 ###
 
 GET http://localhost:3000/ressource?type=MATERIEL
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoib21hckB0ZXN0My5jaCIsImlhdCI6MTc4MzUxOTk4MSwiZXhwIjoxNzgzNTM3OTgxfQ.7U7poXqcOCPUZEXh3v2fTvjznur7rZjZ6RU16yTI03o
+Authorization: Bearer {{token}}
 
 ###
 
 GET http://localhost:3000/ressource?type=MAIN-OEUVRE
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoib21hckB0ZXN0My5jaCIsImlhdCI6MTc4MzUxOTk4MSwiZXhwIjoxNzgzNTM3OTgxfQ.7U7poXqcOCPUZEXh3v2fTvjznur7rZjZ6RU16yTI03o
+Authorization: Bearer {{token}}
 
 ###
 
 GET http://localhost:3000/ressource?type=SOUS-TRAITANCE
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoib21hckB0ZXN0My5jaCIsImlhdCI6MTc4MzUxOTk4MSwiZXhwIjoxNzgzNTM3OTgxfQ.7U7poXqcOCPUZEXh3v2fTvjznur7rZjZ6RU16yTI03o
+Authorization: Bearer {{token}}
 
 ###
 
 GET http://localhost:3000/ressource?type=DIVERS
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoib21hckB0ZXN0My5jaCIsImlhdCI6MTc4MzUxOTk4MSwiZXhwIjoxNzgzNTM3OTgxfQ.7U7poXqcOCPUZEXh3v2fTvjznur7rZjZ6RU16yTI03o
+Authorization: Bearer {{token}}

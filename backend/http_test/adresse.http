@@ -1,16 +1,18 @@
+@token = PASTE_FRESH_TOKEN_FROM_AUTH.HTTP_HERE
+
 GET http://localhost:3000/adresse
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoib21hckB0ZXN0My5jaCIsImlhdCI6MTc4MzUxOTk4MSwiZXhwIjoxNzgzNTM3OTgxfQ.7U7poXqcOCPUZEXh3v2fTvjznur7rZjZ6RU16yTI03o
+Authorization: Bearer {{token}}
 
 ###
 
 POST http://localhost:3000/adresse
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoib21hckB0ZXN0My5jaCIsImlhdCI6MTc4MzUxOTk4MSwiZXhwIjoxNzgzNTM3OTgxfQ.7U7poXqcOCPUZEXh3v2fTvjznur7rZjZ6RU16yTI03o
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
   "id_client": 1,
   "rue": "Rue de la Gare 1",
-  "npa": 2000,
+  "npa": "2000",
   "ville": "Neuchâtel",
   "pays": "Suisse"
 }

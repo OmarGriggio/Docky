@@ -3,7 +3,7 @@ import { getAllDocumentsCompleteServ, getDocumentCompleteServ } from "./document
 
 export const getDocumentsComplete = async (req: Request, res: Response) => {
   const type = req.query.type as string | undefined;
-  const documents = await getAllDocumentsCompleteServ(type);
+  const documents = await getAllDocumentsCompleteServ(req.user.id_entreprise, type);
   res.json(documents);
 };
 

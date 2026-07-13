@@ -1,19 +1,22 @@
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoib21hckB0ZXN0My5jaCIsInJvbGUiOiJBRE1JTiIsImlkX2VudHJlcHJpc2UiOjEsImlhdCI6MTc4Mzk1NzU0MywiZXhwIjoxNzgzOTc1NTQzfQ.cIR62mHMPIm0w-IH6q3CVAQDpOgGDN34IvE3EOEfE7c
+
 GET http://localhost:3000/client
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoib21hckB0ZXN0My5jaCIsImlhdCI6MTc4MzUxOTk4MSwiZXhwIjoxNzgzNTM3OTgxfQ.7U7poXqcOCPUZEXh3v2fTvjznur7rZjZ6RU16yTI03o
+Authorization: Bearer {{token}}
 
 ###
 
 GET http://localhost:3000/client/1
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoib21hckB0ZXN0My5jaCIsImlhdCI6MTc4MzUxOTk4MSwiZXhwIjoxNzgzNTM3OTgxfQ.7U7poXqcOCPUZEXh3v2fTvjznur7rZjZ6RU16yTI03o
+Authorization: Bearer {{token}}
 
 ###
 
 POST http://localhost:3000/client
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoib21hckB0ZXN0My5jaCIsImlhdCI6MTc4MzUxOTk4MSwiZXhwIjoxNzgzNTM3OTgxfQ.7U7poXqcOCPUZEXh3v2fTvjznur7rZjZ6RU16yTI03o
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
   "num_client": "BSI",
+  "type": "PROFESSIONNEL",
   "societe": "Boesiger AG",
   "tva": null,
   "nom": "Boesiger",
@@ -27,7 +30,7 @@ Content-Type: application/json
 ###
 
 DELETE  http://localhost:3000/client
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoib21hckB0ZXN0My5jaCIsImlhdCI6MTc4MzUxOTk4MSwiZXhwIjoxNzgzNTM3OTgxfQ.7U7poXqcOCPUZEXh3v2fTvjznur7rZjZ6RU16yTI03o
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {

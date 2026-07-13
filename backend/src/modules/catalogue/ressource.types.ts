@@ -3,6 +3,7 @@ export type RessourceType = "MATERIEL" | "MAIN-OEUVRE" | "SOUS-TRAITANCE" | "DIV
 export interface Ressource {
   id: number;
 
+  id_entreprise: number;
   id_ressources: number | null;
 
   type: RessourceType;

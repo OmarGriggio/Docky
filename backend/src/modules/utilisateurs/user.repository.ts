@@ -1,8 +1,8 @@
 import { pool } from "../../shared/config/database";
 import { CreateUserData, User } from "./user.types";
 
-export const getUsersFromDB = async () => {
-    const result = await pool.query("SELECT * FROM utilisateurs");
+export const getUsersFromDB = async (id_entreprise: number) => {
+    const result = await pool.query("SELECT * FROM utilisateurs WHERE id_entreprise = $1", [id_entreprise]);
     return result.rows;
 };
 

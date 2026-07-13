@@ -5,6 +5,8 @@ export type ClientType = "PARTICULIER" | "PROFESSIONNEL";
 export interface Client {
   id: number;
 
+  id_entreprise: number;
+
   num_client: string;
   type: ClientType;
   societe: string | null;

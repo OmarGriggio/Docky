@@ -33,6 +33,7 @@ export const createChantierInDB = async (
 ): Promise<Chantier> => {
   const query = `
     INSERT INTO chantiers (
+      id_entreprise,
       id_client,
       id_type_chantier,
       nom,
@@ -48,6 +49,7 @@ export const createChantierInDB = async (
   `;
 
   const values = [
+    chantier.id_entreprise,
     chantier.id_client,
     chantier.id_type_chantier,
     chantier.nom,

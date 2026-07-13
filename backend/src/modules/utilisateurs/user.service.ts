@@ -3,8 +3,8 @@ import { createUserDB, getUserByEmail, getUsersFromDB, deleteUserDB } from "./us
 import { CreateUserData } from "./user.types";
 import bcrypt from "bcrypt";
 
-export const getAllUsers = async () => {
-  return await getUsersFromDB();
+export const getAllUsers = async (id_entreprise: number) => {
+  return await getUsersFromDB(id_entreprise);
 };
 
 export const deleteUserService = async (id: Number) => {

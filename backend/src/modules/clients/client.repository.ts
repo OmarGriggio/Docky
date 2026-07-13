@@ -1,8 +1,8 @@
 import { pool } from "../../shared/config/database";
 import {Client} from "./client.types"
 
-export const getClientsFromDB = async () => {
-  const result = await pool.query("SELECT * FROM clients");
+export const getClientsFromDB = async (id_entreprise: number) => {
+  const result = await pool.query("SELECT * FROM clients where id_entreprise = $1", [id_entreprise]);
   return result.rows;
 };
 
@@ -27,6 +27,7 @@ export const createClientInDB = async (
 ): Promise<Client> => {
     const query = `
     INSERT INTO clients (
+      id_entreprise,
       num_client,
       type,
       societe,
@@ -38,11 +39,12 @@ export const createClientInDB = async (
       telephone,
       remarque
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
     RETURNING *;
   `;
 
     const values = [
+      client.id_entreprise,
       client.num_client,
       client.type,
       client.societe,

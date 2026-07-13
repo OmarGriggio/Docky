@@ -5,10 +5,10 @@ import { authenticate } from "../../shared/middlewares/auth.middleware";
 
 const router = Router();
 
-router.get("/", getAllUsersController);
+router.get("/", authenticate, getAllUsersController);
 
 router.post("/", createUserController);
 
-router.delete("/:id", deleteUserController);
+router.delete("/:id", authenticate, deleteUserController);
 
 export default router;

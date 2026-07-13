@@ -10,11 +10,11 @@ POST http://localhost:3000/entreprise
 Content-Type: application/json
 
 {
-  "nom": "DEDONNOSTYLE",
+  "nom_entreprise": "DEDONNOSTYLE",
   "email": "dedonnostyle@gmail.com",
   "telephone": "+41799549936",
   "rue": "Rue de boujean 37",
-  "npa": 2502,
+  "npa": "2502",
   "ville": "Biel/Bienne",
   "pays": "Suisse",
   "logo": "CheminDuLogo"

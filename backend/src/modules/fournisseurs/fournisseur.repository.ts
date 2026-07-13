@@ -1,8 +1,8 @@
 import { pool } from "../../shared/config/database";
 import { Fournisseur } from "./fournisseur.types";
 
-export const getFournisseursFromDB = async () => {
-  const result = await pool.query("SELECT * FROM fournisseurs");
+export const getFournisseursFromDB = async (id_entreprise: number) => {
+  const result = await pool.query("SELECT * FROM fournisseurs WHERE id_entreprise = $1", [id_entreprise]);
   return result.rows;
 };
 
@@ -25,20 +25,22 @@ export const deleteFournisseurInDB = async (
 };
 
 export const createFournisseurInDB = async (
-  fournisseur: Fournisseur
+  fournisseur: Omit<Fournisseur, "id">
 ): Promise<Fournisseur> => {
   const query = `
     INSERT INTO fournisseurs (
+      id_entreprise,
       code_fournisseur,
       societe,
       adresse,
       categorie
     )
-    VALUES ($1, $2, $3, $4)
+    VALUES ($1, $2, $3, $4, $5)
     RETURNING *;
   `;
 
   const values = [
+    fournisseur.id_entreprise,
     fournisseur.code_fournisseur,
     fournisseur.societe,
     fournisseur.adresse,

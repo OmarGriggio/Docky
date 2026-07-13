@@ -3,6 +3,7 @@ export type DocumentType = "OFFRE" | "FACTURE";
 export interface Document {
   id: number;
 
+  id_entreprise: number;
   id_client: number;
   id_document_parent: number | null;
 

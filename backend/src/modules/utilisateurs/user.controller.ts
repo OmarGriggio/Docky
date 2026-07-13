@@ -3,7 +3,7 @@ import { createUserService, deleteUserService, getAllUsers } from "./user.servic
 import { CreateUserData } from "./user.types";
 
 export const getAllUsersController = async (req: Request, res: Response) => {
-    const users = await getAllUsers();
+    const users = await getAllUsers(req.user.id_entreprise);
     res.json(users);
 }
 

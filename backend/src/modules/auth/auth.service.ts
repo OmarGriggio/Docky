@@ -23,7 +23,8 @@ export const authUserService = async (loginData: LoginUserData) => {
   const token = generateAccessToken({
     userId: user.id,
     email: user.email,
-    role: user.role
+    role: user.role,
+    id_entreprise: user.id_entreprise
   });
 
   //TODO : add generateRefreshToken() (need to see how to stock refresh in front)

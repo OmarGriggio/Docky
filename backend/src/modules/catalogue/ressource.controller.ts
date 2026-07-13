@@ -3,6 +3,9 @@ import { getAllRessourcesServ, getRessourcesByTypeServ } from "./ressource.servi
 
 export const getRessources = async (req: Request, res: Response) => {
   const type = req.query.type as string | undefined;
-  const ressources = type ? await getRessourcesByTypeServ(type) : await getAllRessourcesServ();
+  const id_entreprise = req.user.id_entreprise;
+  const ressources = type
+    ? await getRessourcesByTypeServ(type, id_entreprise)
+    : await getAllRessourcesServ(id_entreprise);
   res.json(ressources);
 };
