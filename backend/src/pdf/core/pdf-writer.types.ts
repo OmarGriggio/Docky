@@ -13,3 +13,21 @@ export interface PdfDocumentOptions {
     pageSize?: [number, number];
 
 }
+
+export interface PdfTableColumn {
+
+    key: string;
+
+    title: string;
+
+    width: number;
+
+}
+
+export interface PdfTable {
+
+    columns: PdfTableColumn[];
+
+    rows: Record<string, unknown>[];
+
+}

@@ -1,5 +1,5 @@
 import { PDFDocument, PDFFont, PDFPage, StandardFonts, rgb } from "pdf-lib";
-import { PdfDocumentOptions, PdfTextOptions } from "./pdf-writer.types";
+import { PdfDocumentOptions, PdfTable, PdfTextOptions } from "./pdf-writer.types";
 
 const DEFAULT_OPTIONS: Required<PdfDocumentOptions> = {
     margin: 50,
@@ -64,6 +64,43 @@ export class PdfWriter {
         this.cursorY -= LINE_SPACING;
     }
 
+    table(table: PdfTable) {
+        this.ensureSpace();
+
+        let x = this.options.margin;
+        for (const column of table.columns) {
+            this.page.drawText(column.title, {
+                x,
+                y: this.cursorY,
+                size: 11,
+                font: this.boldFont,
+                color: rgb(0, 0, 0),
+            });
+            x += column.width;
+        }
+        this.cursorY -= LINE_SPACING;
+
+        this.line();
+
+        for (const row of table.rows) {
+            this.ensureSpace();
+
+            x = this.options.margin;
+            for (const column of table.columns) {
+                const value = row[column.key];
+                this.page.drawText(value == null ? "" : String(value), {
+                    x,
+                    y: this.cursorY,
+                    size: 11,
+                    font: this.regularFont,
+                    color: rgb(0, 0, 0),
+                });
+                x += column.width;
+            }
+            this.cursorY -= LINE_SPACING;
+        }
+    }
+
     private ensureSpace() {
         if (this.cursorY < this.options.margin) {
             this.page = this.doc.addPage(this.options.pageSize);
@@ -74,5 +111,4 @@ export class PdfWriter {
     async save(): Promise<Uint8Array> {
         return this.doc.save();
     }
-
 }
