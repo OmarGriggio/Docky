@@ -1,9 +1,9 @@
 export interface PdfTextOptions {
-
     size?: number;
-
     bold?: boolean;
-
+    indent?: number;
+    marginBottom?: number;
+    marginTop?: number;
 }
 
 export interface PdfDocumentOptions {

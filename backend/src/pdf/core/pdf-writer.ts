@@ -37,18 +37,52 @@ export class PdfWriter {
     }
 
     text(text: string, options: PdfTextOptions = {}) {
-        this.ensureSpace();
-
         const size = options.size ?? 11;
-        this.page.drawText(text, {
-            x: this.options.margin,
-            y: this.cursorY,
-            size,
-            font: options.bold ? this.boldFont : this.regularFont,
-            color: rgb(0, 0, 0),
-        });
+        const indent = options.indent ?? 0;
+        const marginBottom = options.marginBottom ?? 0;
+        const marginTop = options.marginTop ?? 0;
+        const font = options.bold ? this.boldFont : this.regularFont;
+        const maxWidth = this.page.getWidth() - this.options.margin * 2 - indent;
 
-        this.cursorY -= size + 4;
+        this.cursorY -= marginTop;
+        
+        for (const paragraph of text.replace(/\t/g, " ").split("\n")) {
+            for (const line of this.wrapText(paragraph, font, size, maxWidth)) {
+                this.ensureSpace();
+
+                this.page.drawText(line, {
+                    x: this.options.margin + indent,
+                    y: this.cursorY,
+                    size,
+                    font,
+                    color: rgb(0, 0, 0),
+                });
+
+                this.cursorY -= size + 4;
+            }
+        }
+
+        this.cursorY -= marginBottom;
+    }
+
+    private wrapText(text: string, font: PDFFont, size: number, maxWidth: number): string[] {
+        const words = text.split(" ");
+        const lines: string[] = [];
+        let currentLine = "";
+
+        for (const word of words) {
+            const candidate = currentLine ? `${currentLine} ${word}` : word;
+
+            if (!currentLine || font.widthOfTextAtSize(candidate, size) <= maxWidth) {
+                currentLine = candidate;
+            } else {
+                lines.push(currentLine);
+                currentLine = word;
+            }
+        }
+        lines.push(currentLine);
+
+        return lines;
     }
 
     line() {

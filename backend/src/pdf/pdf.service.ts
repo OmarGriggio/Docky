@@ -7,10 +7,12 @@ import { getEntrepriseByIdServ } from "../modules/entreprises/entreprise.service
 
 export const generateFacturePdfServ = async (documentId: number): Promise<Uint8Array> => {
     const document = await getDocumentCompleteServ(documentId);
+    console.log(document);
     const client = await getClientByIdServ(document.id_client);
-    const entreprise = await getEntrepriseByIdServ(document.id_entreprise)
-    const facture = createFactureDto(document, client);
+    const entreprise = await getEntrepriseByIdServ(client.id_entreprise);
 
+    const facture = createFactureDto(document, client, entreprise);
+    
     const pdf = await PdfWriter.create();
     FactureTemplate.render(pdf, facture);
 
