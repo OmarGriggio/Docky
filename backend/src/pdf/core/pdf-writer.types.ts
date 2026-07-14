@@ -31,3 +31,14 @@ export interface PdfTable {
     rows: Record<string, unknown>[];
 
 }
+
+export interface PdfPoint {
+    x: number;
+    y: number;
+}
+
+export interface PdfColor {
+    r: number;
+    g: number;
+    b: number;
+}

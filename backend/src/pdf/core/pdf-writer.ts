@@ -1,5 +1,5 @@
-import { PDFDocument, PDFFont, PDFPage, StandardFonts, rgb } from "pdf-lib";
-import { PdfDocumentOptions, PdfTable, PdfTextOptions } from "./pdf-writer.types";
+import { PDFDocument, PDFFont, PDFImage, PDFPage, StandardFonts, rgb } from "pdf-lib";
+import { PdfColor, PdfDocumentOptions, PdfTable, PdfTextOptions } from "./pdf-writer.types";
 
 const DEFAULT_OPTIONS: Required<PdfDocumentOptions> = {
     margin: 50,
@@ -140,6 +140,48 @@ export class PdfWriter {
             this.page = this.doc.addPage(this.options.pageSize);
             this.cursorY = this.page.getHeight() - this.options.margin;
         }
+    }
+
+    /** Starts a fresh page, independent of the text cursor, and returns to work on it. */
+    newPage(size: [number, number] = this.options.pageSize) {
+        this.page = this.doc.addPage(size);
+        this.cursorY = this.page.getHeight() - this.options.margin;
+    }
+
+    pageWidth(): number {
+        return this.page.getWidth();
+    }
+
+    pageHeight(): number {
+        return this.page.getHeight();
+    }
+
+    /** Draws text at an explicit position, bypassing the flowing text cursor. */
+    drawTextAt(text: string, x: number, y: number, options: PdfTextOptions = {}) {
+        this.page.drawText(text, {
+            x,
+            y,
+            size: options.size ?? 11,
+            font: options.bold ? this.boldFont : this.regularFont,
+            color: rgb(0, 0, 0),
+        });
+    }
+
+    /** Draws a line between two explicit points, bypassing the flowing text cursor. */
+    drawLineAt(from: { x: number; y: number }, to: { x: number; y: number }, thickness = 1) {
+        this.page.drawLine({ start: from, end: to, thickness });
+    }
+
+    drawRect(x: number, y: number, width: number, height: number, color: PdfColor) {
+        this.page.drawRectangle({ x, y, width, height, color: rgb(color.r, color.g, color.b) });
+    }
+
+    async embedPng(imageBytes: Uint8Array): Promise<PDFImage> {
+        return this.doc.embedPng(imageBytes);
+    }
+
+    drawImage(image: PDFImage, x: number, y: number, width: number, height: number) {
+        this.page.drawImage(image, { x, y, width, height });
     }
 
     async save(): Promise<Uint8Array> {
