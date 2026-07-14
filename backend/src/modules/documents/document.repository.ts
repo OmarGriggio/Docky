@@ -38,9 +38,11 @@ export const createDocumentInDB = async (
       montant_ht,
       montant_ttc,
       rabais,
-      statut
+      statut,
+      introduction,
+      conclusion,
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
     RETURNING *;
   `;
 
@@ -54,7 +56,9 @@ export const createDocumentInDB = async (
     document.montant_ht,
     document.montant_ttc,
     document.rabais,
-    document.statut
+    document.statut,
+    document.introduction,
+    document.conclusion
   ];
 
   const result = await pool.query(query, values);

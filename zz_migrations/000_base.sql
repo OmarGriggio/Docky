@@ -187,13 +187,13 @@ CREATE TABLE documents (
     montant_ttc NUMERIC(12,2) DEFAULT 0,
     rabais NUMERIC(5,2) DEFAULT 0,
     statut VARCHAR(50),
+    introduction TEXT,
+    conclusion TEXT,
 
     FOREIGN KEY (id_client)
         REFERENCES clients(id),
-
     FOREIGN KEY (id_document_parent)
         REFERENCES documents(id),
-
     FOREIGN KEY (id_entreprise)
         REFERENCES entreprises(id)
 );

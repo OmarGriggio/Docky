@@ -12,8 +12,8 @@ INSERT INTO clients
 VALUES
 (1, 'C0001', 'PARTICULIER', NULL, NULL, 'Dupont', 'Jean', 'Monsieur', 'jean.dupont@gmail.com', '0791112233', NULL),
 (1, 'C0002', 'PARTICULIER', NULL, NULL, 'Martin', 'Sophie', 'Madame', 'sophie.martin@gmail.com', '0792223344', NULL),
-(1, 'C0003', 'PROFESSIONNEL', 'Entreprise Martin SA', 'CHE-123.456.789', NULL, NULL, NULL, 'contact@martinsa.ch', '0211112233', 'Client professionnel'),
-(1, 'C0004', 'PROFESSIONNEL', 'ABC Construction SA', 'CHE-987.654.321', NULL, NULL, NULL, 'info@abcconstruction.ch', '0215556677', NULL),
+(1, 'C0003', 'PROFESSIONNEL', 'Entreprise Martin SA', 'CHE-123.456.789', NULL, NULL, 'Madame, Monsieur,', 'contact@martinsa.ch', '0211112233', 'Client professionnel'),
+(1, 'C0004', 'PROFESSIONNEL', 'ABC Construction SA', 'CHE-987.654.321', NULL, NULL, 'Madame, Monsieur', 'info@abcconstruction.ch', '0215556677', NULL),
 (1, 'C0005', 'PARTICULIER', NULL, NULL, 'Durand', 'Paul', 'Monsieur', 'paul.durand@gmail.com', '0783334455', NULL);
 
 -- ==========================================
@@ -98,11 +98,15 @@ VALUES
 -- ==========================================
 
 INSERT INTO documents
-(id_entreprise, id_client,id_document_parent,type,numero,date,montant_ht,montant_ttc,rabais,statut)
+(id_entreprise, id_client,id_document_parent,type,numero,date,montant_ht,montant_ttc,rabais,statut, introduction, conclusion)
 VALUES
-(1, 1,NULL,'OFFRE','OFF-2026-0001','2026-07-10',650.00,702.65,0,'EN_ATTENTE'),
-(1, 3,NULL,'OFFRE','OFF-2026-0002','2026-07-11',2100.00,2269.20,5,'ACCEPTEE'),
-(1, 3,2,'FACTURE','FAC-2026-0001','2026-07-15',2100.00,2269.20,5,'PAYEE');
+(1, 1,NULL,'OFFRE','OFF-2026-0001','2026-07-10',650.00,702.65,0,'EN_ATTENTE', null, null),
+(1, 3,NULL,'OFFRE','OFF-2026-0002','2026-07-11',2100.00,2269.20,5,'ACCEPTEE', null, null),
+(1, 3,2,'FACTURE','FAC-2026-0001','2026-07-15',2100.00,2269.20,5,'PAYEE', 
+	'Nous avons le plaisir de vous soumettre la facture suivante.', 
+	'Nous vous remercions de votre confiance et restons à votre disposition pour toute information complémentaire.
+
+	Avec nos meilleures salutations.');
 
 -- ==========================================
 -- LIGNES DOCUMENT
