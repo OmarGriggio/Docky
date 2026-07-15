@@ -4,8 +4,6 @@ A SaaS platform that helps small construction companies manage clients, supplier
 
 This is a personal project I'm building end-to-end to practice full-stack development with Angular, Node.js/Express and PostgreSQL, and to get comfortable with SaaS architecture (multi-company data, auth, layered backend design).
 
-<img width="1618" height="587" alt="Docky architecture / conception overview" src="https://github.com/user-attachments/assets/f438d05f-2849-4180-8401-443acf6066fb" />
-
 ## Table of contents
 
 - [About the project](#about-the-project)
