@@ -22,7 +22,7 @@ export class ClientDetail implements OnInit {
 
   adresseForm = this.fb.nonNullable.group({
     rue: ['', Validators.required],
-    npa: [-1, Validators.required],
+    npa: ['', Validators.required],
     ville: ['', Validators.required],
     pays: ['', Validators.required],
   });

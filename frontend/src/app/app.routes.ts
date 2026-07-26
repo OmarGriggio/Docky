@@ -10,6 +10,7 @@ import { UiTest } from './features/uitest/uitest';
 import { Login } from './features/auth/login/login';
 import { Register } from './features/auth/register/register';
 import { roleGuard } from './features/auth/role.guard';
+import { authGuard } from './features/auth/auth.guard';
 import { UserListComponent } from './features/admin/user-list/user-list';
 import { UserForm } from './features/admin/user-form/user-form';
 import { ChantierListComponent } from './features/chantiers/chantier-list/chantier-list';
@@ -27,51 +28,60 @@ export const routes: Routes = [
   {
     path: 'uitest',
     component: UiTest,
-    canActivate: [roleGuard],
+    canActivate: [authGuard, roleGuard],
     data: {
       roles: ['ADMIN']
     }
   },
   {
     path: 'clients',
-    component: ClientListComponent
+    component: ClientListComponent,
+    canActivate: [authGuard]
   },
   {
     path: 'clients/new',
-    component: ClientForm
+    component: ClientForm,
+    canActivate: [authGuard]
   },
   {
     path: 'clients/:id',
-    component: ClientDetail
+    component: ClientDetail,
+    canActivate: [authGuard]
   },
   {
     path: 'fournisseurs',
-    component: FournisseurListComponent
+    component: FournisseurListComponent,
+    canActivate: [authGuard]
   },
   {
     path: 'fournisseurs/new',
-    component: FournisseurForm
+    component: FournisseurForm,
+    canActivate: [authGuard]
   },
   {
     path: 'documents',
-    component: DocumentListComponent
+    component: DocumentListComponent,
+    canActivate: [authGuard]
   },
   {
     path: 'ressources',
-    component: RessourceListComponent
+    component: RessourceListComponent,
+    canActivate: [authGuard]
   },
   {
     path: 'chantiers',
-    component: ChantierListComponent
+    component: ChantierListComponent,
+    canActivate: [authGuard]
   },
   {
     path: 'chantiers/new',
-    component: ChantierForm
+    component: ChantierForm,
+    canActivate: [authGuard]
   },
   {
     path: 'admin/users',
     component: UserListComponent,
-    canActivate: [roleGuard],
+    canActivate: [authGuard, roleGuard],
     data: {
       roles: ['ADMIN']
     }
@@ -79,7 +89,7 @@ export const routes: Routes = [
   {
     path: 'admin/users/new',
     component: UserForm,
-    canActivate: [roleGuard],
+    canActivate: [authGuard, roleGuard],
     data: {
       roles: ['ADMIN']
     }

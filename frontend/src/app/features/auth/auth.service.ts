@@ -61,9 +61,10 @@ export class AuthService {
 
   register(payload: RegisterPayload) {
     const entreprise: Omit<Entreprise, 'id'> = {
-      nom: payload.companyName,
+      nom_entreprise: payload.companyName,
       email: null,
       telephone: null,
+      iban: null,
       rue: null,
       npa: null,
       ville: null,
