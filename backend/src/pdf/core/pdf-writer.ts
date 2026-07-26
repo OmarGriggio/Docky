@@ -8,6 +8,9 @@ const DEFAULT_OPTIONS: Required<PdfDocumentOptions> = {
 
 const LINE_SPACING = 16;
 
+/** Converts a length in millimeters to PDF points, for templates laid out against a physical spec (e.g. Swiss QR-bill). */
+export const mm = (value: number) => value * (72 / 25.4);
+
 export class PdfWriter {
 
     private page: PDFPage;
@@ -174,6 +177,21 @@ export class PdfWriter {
 
     drawRect(x: number, y: number, width: number, height: number, color: PdfColor) {
         this.page.drawRectangle({ x, y, width, height, color: rgb(color.r, color.g, color.b) });
+    }
+
+    /** Draws an "L" tick at each corner of a rectangle, marking an empty field to fill in by hand. */
+    drawCornerMarks(x1: number, y1: number, x2: number, y2: number, markLength = 8.5) {
+        const corners = [
+            { x: x1, y: y1, dx: 1, dy: 1 },
+            { x: x2, y: y1, dx: -1, dy: 1 },
+            { x: x1, y: y2, dx: 1, dy: -1 },
+            { x: x2, y: y2, dx: -1, dy: -1 },
+        ];
+
+        for (const corner of corners) {
+            this.drawLineAt({ x: corner.x, y: corner.y }, { x: corner.x + corner.dx * markLength, y: corner.y });
+            this.drawLineAt({ x: corner.x, y: corner.y }, { x: corner.x, y: corner.y + corner.dy * markLength });
+        }
     }
 
     async embedPng(imageBytes: Uint8Array): Promise<PDFImage> {

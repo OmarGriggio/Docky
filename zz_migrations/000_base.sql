@@ -10,6 +10,7 @@ CREATE TABLE entreprises (
     nom_entreprise VARCHAR(100),
     email VARCHAR(255),
     telephone VARCHAR(50),
+    iban VARCHAR(22),
     rue VARCHAR(100),
     npa VARCHAR(20),
     ville VARCHAR(100),

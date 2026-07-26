@@ -10,35 +10,17 @@ import { generateSwissQrBillImage } from "./swiss-qr-bill/swiss-qr-bill.generato
 
 export const generateFacturePdfServ = async (documentId: number): Promise<Uint8Array> => {
     const document = await getDocumentCompleteServ(documentId);
-    console.log(document);
     const client = await getClientByIdServ(document.id_client);
     const entreprise = await getEntrepriseByIdServ(client.id_entreprise);
 
     const facture = createFactureDto(document, client, entreprise);
+    const qrBill = createSwissQrBillDto(document, client, entreprise);
+    const qrImageBytes = await generateSwissQrBillImage(qrBill);
 
     const pdf = await PdfWriter.create();
     FactureTemplate.render(pdf, facture);
 
-    return pdf.save();
-};
-
-/**
- * Generates a standalone Swiss QR-bill (payment slip) for a document.
- * `creditorIban` is temporary: see the TODO on `createSwissQrBillDto`.
- */
-export const generateSwissQrBillPdfServ = async (
-    documentId: number,
-    creditorIban: string,
-    compact = false,
-): Promise<Uint8Array> => {
-    const document = await getDocumentCompleteServ(documentId);
-    const client = await getClientByIdServ(document.id_client);
-    const entreprise = await getEntrepriseByIdServ(client.id_entreprise);
-
-    const qrBill = createSwissQrBillDto(document, client, entreprise, creditorIban);
-    const qrImageBytes = await generateSwissQrBillImage(qrBill);
-
-    const pdf = await PdfWriter.create(compact ? { pageSize: SwissQrBillTemplate.compactPageSize() } : {});
+    pdf.newPage();
     await SwissQrBillTemplate.render(pdf, qrBill, qrImageBytes);
 
     return pdf.save();

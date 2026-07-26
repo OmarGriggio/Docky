@@ -1,7 +1,7 @@
 INSERT INTO entreprises 
-(nom_entreprise, email, telephone, rue, npa, ville, pays, logo)
+(nom_entreprise, email, telephone, iban, rue, npa, ville, pays, logo)
 VALUES
-('DEDONNOSTYLE', 'dedonnostyle@gmail.com', '+41799549936', 'Rue de boujean 37', '2502', 'Biel/Bienne', 'Suisse', 'CheminDuLogo');
+('DEDONNOSTYLE', 'dedonnostyle@gmail.com', '+41799549936', 'CH25 2536 6985 4587 7', 'Rue de boujean 37', '2502', 'Biel/Bienne', 'Suisse', 'CheminDuLogo');
 
 -- ==========================================
 -- CLIENTS

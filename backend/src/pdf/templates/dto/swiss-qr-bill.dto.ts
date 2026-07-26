@@ -3,16 +3,10 @@ import { DocumentComplete } from "../../../modules/documents/document_complete.t
 import { Entreprise } from "../../../modules/entreprises/entreprise.types";
 import { SwissQrBillDto } from "../../swiss-qr-bill/swiss-qr-bill.types";
 
-/**
- * TODO: `creditorIban` is passed explicitly because `entreprises` has no
- * `iban` column yet. Once it does, drop this parameter and read
- * `entreprise.iban` directly, like the rest of the creditor fields.
- */
 export const createSwissQrBillDto = (
     document: DocumentComplete,
     client: ClientWithAdresses,
     entreprise: Entreprise,
-    creditorIban: string,
 ): SwissQrBillDto => {
     const adresse = client.adresses[0];
 
@@ -22,7 +16,7 @@ export const createSwissQrBillDto = (
             addressLine1: entreprise.rue ?? "",
             addressLine2: `${entreprise.npa ?? ""} ${entreprise.ville ?? ""}`.trim(),
             country: toIsoCountryCode(entreprise.pays),
-            iban: creditorIban,
+            iban: entreprise.iban ?? "",
         },
         debtor: {
             name: client.societe ?? `${client.prenom ?? ""} ${client.nom ?? ""}`.trim(),

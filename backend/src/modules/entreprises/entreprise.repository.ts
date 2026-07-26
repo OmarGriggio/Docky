@@ -16,14 +16,21 @@ export const createEntrepriseInDB = async (
 ): Promise<Entreprise> => {
     const query = `
     INSERT INTO entreprises (
-      nom_entreprise, email, telephone, rue, npa, ville, pays, logo
+      nom_entreprise, email, telephone, iban, rue, npa, ville, pays, logo
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
     RETURNING *;
   `;
     const values = [
-      entreprise.nom_entreprise, entreprise.email, entreprise.telephone, entreprise.rue,
-      entreprise.npa, entreprise.ville, entreprise.pays, entreprise.logo
+      entreprise.nom_entreprise, 
+      entreprise.email, 
+      entreprise.telephone,
+      entreprise.iban,
+      entreprise.rue,
+      entreprise.npa, 
+      entreprise.ville, 
+      entreprise.pays, 
+      entreprise.logo
     ];
     const result = await pool.query(query, values);
     return result.rows[0];

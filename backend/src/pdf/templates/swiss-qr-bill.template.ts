@@ -15,16 +15,9 @@ const QR_Y = mm(42);
 
 /**
  * Draws the Swiss QR-bill receipt + payment part in the bottom 105mm of the
- * writer's current page. The caller decides the page itself: a dedicated
- * compact page for a standalone slip, or the last page of an invoice to
- * attach it as a tear-off stub.
+ * writer's current page, rendered as the second page of the invoice.
  */
 export class SwissQrBillTemplate {
-
-    /** Page size (points) of a standalone payment slip, without an invoice above it. */
-    static compactPageSize(): [number, number] {
-        return [mm(210), mm(105)];
-    }
 
     static async render(pdf: PdfWriter, dto: SwissQrBillDto, qrImageBytes: Buffer) {
         this.drawSeparators(pdf);

@@ -47,18 +47,14 @@ function checkCountry(value: string): ValidationError[] {
 }
 
 function checkIban(value: string): ValidationError[] {
-    const iban = normalize(value).replace(/\s/g, "");
-    if (iban.length === 0) {
+    if (value.length === 0) {
         return [{ code: "IBAN_EMPTY", message: "L'IBAN du créancier est vide" }];
     }
-    if (iban.length !== 21) {
+    if (value.length !== 21) {
         return [{ code: "IBAN_LENGTH", message: "L'IBAN doit contenir 21 caractères" }];
     }
-    if (iban.slice(0, 2) !== "CH" && iban.slice(0, 2) !== "LI") {
+    if (value.slice(0, 2) !== "CH" && value.slice(0, 2) !== "LI") {
         return [{ code: "IBAN_COUNTRY", message: "L'IBAN doit commencer par CH ou LI" }];
-    }
-    if (!isNumeric(iban.slice(2))) {
-        return [{ code: "IBAN_FORMAT", message: "L'IBAN contient un caractère invalide" }];
     }
     return [];
 }
