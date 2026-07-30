@@ -1,24 +1,26 @@
-<form [formGroup]="form" (ngSubmit)="submit()">
-  <div>
-    <label>Code fournisseur</label>
-    <input formControlName="code_fournisseur" />
-  </div>
+<form [formGroup]="form" (ngSubmit)="submit()" class="ui-form">
+  <p-floatlabel variant="on">
+    <input pInputText id="code_fournisseur" formControlName="code_fournisseur" />
+    <label for="code_fournisseur">Code fournisseur</label>
+  </p-floatlabel>
 
-  <div>
-    <label>Société</label>
-    <input formControlName="societe" />
-  </div>
+  <p-floatlabel variant="on">
+    <input pInputText id="societe" formControlName="societe" />
+    <label for="societe">Société</label>
+  </p-floatlabel>
 
-  <div>
-    <label>Adresse</label>
-    <input formControlName="adresse" />
-  </div>
+  <p-floatlabel variant="on">
+    <input pInputText id="adresse" formControlName="adresse" />
+    <label for="adresse">Adresse</label>
+  </p-floatlabel>
 
-  <div>
-    <label>Catégorie</label>
-    <input formControlName="categorie" />
-  </div>
+  <p-floatlabel variant="on">
+    <input pInputText id="categorie" formControlName="categorie" />
+    <label for="categorie">Catégorie</label>
+  </p-floatlabel>
 
-  <button type="button" (click)="cancel()">Annuler</button>
-  <button type="submit">Créer</button>
+  <div class="ui-form__actions">
+    <p-button type="button" label="Annuler" severity="secondary" (onClick)="cancel()" />
+    <p-button type="submit" label="Créer" />
+  </div>
 </form>

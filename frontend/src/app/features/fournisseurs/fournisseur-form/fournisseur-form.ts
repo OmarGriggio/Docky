@@ -1,11 +1,14 @@
 import { Component, inject, output } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { InputText } from 'primeng/inputtext';
+import { FloatLabel } from 'primeng/floatlabel';
+import { Button } from 'primeng/button';
 import { FournisseurService } from '../fournisseur.service';
 
 @Component({
   selector: 'app-fournisseur-form',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, InputText, FloatLabel, Button],
   templateUrl: './fournisseur-form.html',
 })
 export class FournisseurForm {
