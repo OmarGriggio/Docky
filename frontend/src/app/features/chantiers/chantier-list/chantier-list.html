@@ -1,4 +1,18 @@
-<h1>Chantiers</h1>
+<div class="chantier-list-header">
+  <h1>Chantiers</h1>
+  <p-button label="Ajouter" icon="pi pi-plus" (onClick)="createDialogVisible.set(true)" />
+</div>
+
+<p-dialog
+  [(visible)]="createDialogVisible"
+  header="Nouveau chantier"
+  [modal]="true"
+  [style]="{ width: '32rem' }"
+>
+  @if (createDialogVisible()) {
+    <app-chantier-form (saved)="onChantierSaved()" (cancelled)="createDialogVisible.set(false)" />
+  }
+</p-dialog>
 
 <p-table [value]="chantiers()" dataKey="id">
   <ng-template #header>

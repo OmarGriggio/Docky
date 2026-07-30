@@ -1,14 +1,3 @@
-.client-form-page {
-  display: flex;
-  justify-content: center;
-  padding: 2rem 1rem;
-}
-
-.client-form-card {
-  width: 100%;
-  max-width: 640px;
-}
-
 .client-form-type {
   display: flex;
   justify-content: center;

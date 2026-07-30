@@ -1,21 +1,27 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { TableModule } from 'primeng/table';
 import { Menu } from 'primeng/menu';
+import { Dialog } from 'primeng/dialog';
+import { Button } from 'primeng/button';
 import { MenuItem } from 'primeng/api';
 import { FournisseurService } from '../fournisseur.service';
 import { Fournisseur } from '../../../shared/models/fournisseur';
+import { FournisseurForm } from '../fournisseur-form/fournisseur-form';
 
 @Component({
   selector: 'app-fournisseur-list',
   standalone: true,
-  imports: [TableModule, Menu],
-  templateUrl: './fournisseur-list.html'
+  imports: [TableModule, Menu, Dialog, Button, FournisseurForm],
+  templateUrl: './fournisseur-list.html',
+  styleUrl: './fournisseur-list.css'
 })
 export class FournisseurListComponent implements OnInit {
 
   private fournisseurService = inject(FournisseurService);
 
   fournisseurs = signal<Fournisseur[]>([]);
+
+  createDialogVisible = signal(false);
 
   ngOnInit(): void {
     this.loadFournisseurs();
@@ -30,6 +36,11 @@ export class FournisseurListComponent implements OnInit {
         console.error('fournisseur-list : ' + err);
       }
     });
+  }
+
+  onFournisseurSaved(): void {
+    this.createDialogVisible.set(false);
+    this.loadFournisseurs();
   }
 
   getActions(fournisseur: Fournisseur): MenuItem[] {

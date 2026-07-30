@@ -1,19 +1,22 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { TableModule } from 'primeng/table';
 import { Menu } from 'primeng/menu';
+import { Dialog } from 'primeng/dialog';
 import { MenuItem } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { ChantierService } from '../chantier.service';
 import { ClientService } from '../../clients/client.service';
 import { Chantier } from '../../../shared/models/chantier';
 import { Client } from '../../../shared/models/client';
+import { ChantierForm } from '../chantier-form/chantier-form';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 
 @Component({
   selector: 'app-chantier-list',
   standalone: true,
-  imports: [TableModule, Menu, Button, ConfirmDialogComponent],
-  templateUrl: './chantier-list.html'
+  imports: [TableModule, Menu, Button, Dialog, ChantierForm, ConfirmDialogComponent],
+  templateUrl: './chantier-list.html',
+  styleUrl: './chantier-list.css'
 })
 export class ChantierListComponent implements OnInit {
 
@@ -22,6 +25,8 @@ export class ChantierListComponent implements OnInit {
 
   chantiers = signal<Chantier[]>([]);
   clients = signal<Client[]>([]);
+
+  createDialogVisible = signal(false);
 
   confirmVisible = signal(false);
   confirmMessage = signal('');
@@ -62,6 +67,11 @@ export class ChantierListComponent implements OnInit {
 
   clientName(chantier: Chantier): string {
     return this.clientNames().get(chantier.id_client) ?? '—';
+  }
+
+  onChantierSaved(): void {
+    this.createDialogVisible.set(false);
+    this.loadChantiers();
   }
 
   getActions(chantier: Chantier): MenuItem[] {

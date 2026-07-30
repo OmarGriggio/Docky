@@ -34,15 +34,13 @@ export class NavBar {
     {
       label: 'Clients',
       links: [
-        { label: 'Liste', path: '/clients' },
-        { label: 'Nouveau', path: '/clients/new' }
+        { label: 'Liste', path: '/clients' }
       ]
     },
     {
       label: 'Fournisseurs',
       links: [
-        { label: 'Liste', path: '/fournisseurs' },
-        { label: 'Nouveau', path: '/fournisseurs/new' }
+        { label: 'Liste', path: '/fournisseurs' }
       ]
     },
     {
@@ -64,8 +62,7 @@ export class NavBar {
     {
       label: 'Chantiers',
       links: [
-        { label: 'Liste', path: '/chantiers' },
-        { label: 'Nouveau', path: '/chantiers/new' }
+        { label: 'Liste', path: '/chantiers' }
       ]
     },
     {

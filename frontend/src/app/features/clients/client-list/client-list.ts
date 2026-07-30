@@ -1,24 +1,28 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { TableModule } from 'primeng/table';
 import { Menu } from 'primeng/menu';
+import { Dialog } from 'primeng/dialog';
 import { MenuItem } from 'primeng/api';
 import { ClientService } from '../client.service';
 import { Client } from '../../../shared/models/client';
 import { Button } from 'primeng/button';
+import { ClientForm } from '../client-form/client-form';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 
 @Component({
   selector: 'app-client-list',
   standalone: true,
-  imports: [TableModule, Menu, Button, ConfirmDialogComponent],
-  templateUrl: './client-list.html'
+  imports: [TableModule, Menu, Button, Dialog, ClientForm, ConfirmDialogComponent],
+  templateUrl: './client-list.html',
+  styleUrl: './client-list.css'
 })
 export class ClientListComponent implements OnInit {
 
   private clientService = inject(ClientService);
 
   clients = signal<Client[]>([]);
+
+  createDialogVisible = signal(false);
 
   confirmVisible = signal(false);
   confirmMessage = signal('');
@@ -38,6 +42,11 @@ export class ClientListComponent implements OnInit {
         console.error("client-list : " + err);
       }
     });
+  }
+
+  onClientSaved(): void {
+    this.createDialogVisible.set(false);
+    this.loadClients();
   }
 
   getActions(client: Client): MenuItem[] {

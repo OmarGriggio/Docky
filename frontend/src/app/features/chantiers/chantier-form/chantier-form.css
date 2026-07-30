@@ -1,14 +1,3 @@
-.chantier-form-page {
-  display: flex;
-  justify-content: center;
-  padding: 2rem 1rem;
-}
-
-.chantier-form-card {
-  width: 100%;
-  max-width: 640px;
-}
-
 .chantier-form-type {
   display: flex;
   align-items: flex-end;

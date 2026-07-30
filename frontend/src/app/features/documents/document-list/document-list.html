@@ -10,6 +10,7 @@
       <th>Montant TTC</th>
       <th>Rabais</th>
       <th>Statut</th>
+      <th></th>
     </tr>
   </ng-template>
 
@@ -22,6 +23,11 @@
       <td>{{ document.montant_ttc }}</td>
       <td>{{ document.rabais }}</td>
       <td>{{ document.statut }}</td>
+      <td>
+        @if (document.type === 'FACTURE') {
+          <p-button label="Voir la facture" icon="pi pi-file-pdf" (click)="openFacturePdf(document)" />
+        }
+      </td>
     </tr>
   </ng-template>
 </p-table>

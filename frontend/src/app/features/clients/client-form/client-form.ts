@@ -1,18 +1,16 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, output } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
 import { InputText } from 'primeng/inputtext';
 import { Textarea } from 'primeng/textarea';
 import { FloatLabel } from 'primeng/floatlabel';
 import { SelectButton } from 'primeng/selectbutton';
 import { Button } from 'primeng/button';
-import { Card } from 'primeng/card';
 import { ClientService } from '../client.service';
 
 @Component({
   selector: 'app-client-form',
   standalone: true,
-  imports: [ReactiveFormsModule, InputText, Textarea, FloatLabel, SelectButton, Button, Card],
+  imports: [ReactiveFormsModule, InputText, Textarea, FloatLabel, SelectButton, Button],
   templateUrl: './client-form.html',
   styleUrl: './client-form.css',
 })
@@ -20,7 +18,9 @@ export class ClientForm {
 
   private fb = inject(FormBuilder);
   private clientService = inject(ClientService);
-  private router = inject(Router);
+
+  saved = output<void>();
+  cancelled = output<void>();
 
   form = this.fb.nonNullable.group({
     num_client: ['', Validators.required],
@@ -53,7 +53,7 @@ export class ClientForm {
   }
 
   cancel(): void {
-    this.router.navigate(['/clients']);
+    this.cancelled.emit();
   }
 
   submit(): void {
@@ -68,7 +68,7 @@ export class ClientForm {
       type: isProfessionnel ? 'PROFESSIONNEL' : 'PARTICULIER',
     }).subscribe({
       next: () => {
-        this.router.navigate(['/clients']);
+        this.saved.emit();
       },
       error: err => {
         console.error('client-form : ' + err);

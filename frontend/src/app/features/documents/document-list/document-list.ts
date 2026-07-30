@@ -1,6 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { TableModule } from 'primeng/table';
+import { Button } from 'primeng/button';
 import { DocumentService } from '../document.service';
 import { Document, DocumentType } from '../../../shared/models/document';
 
@@ -12,7 +13,7 @@ const TYPE_LABELS: Record<DocumentType, string> = {
 @Component({
   selector: 'app-document-list',
   standalone: true,
-  imports: [TableModule],
+  imports: [TableModule, Button],
   templateUrl: './document-list.html'
 })
 export class DocumentListComponent implements OnInit {
@@ -37,6 +38,10 @@ export class DocumentListComponent implements OnInit {
         }
       });
     });
+  }
+
+  openFacturePdf(document: Document): void {
+    window.open(`http://localhost:3000/pdf/facture/${document.id}`, '_blank');
   }
 
 }

@@ -1,9 +1,7 @@
 import { Routes } from '@angular/router';
 import { ClientListComponent } from './features/clients/client-list/client-list';
-import { ClientForm } from './features/clients/client-form/client-form';
 import { ClientDetail } from './features/clients/client-detail/client-detail';
 import { FournisseurListComponent } from './features/fournisseurs/fournisseur-list/fournisseur-list';
-import { FournisseurForm } from './features/fournisseurs/fournisseur-form/fournisseur-form';
 import { DocumentListComponent } from './features/documents/document-list/document-list';
 import { RessourceListComponent } from './features/ressources/ressource-list/ressource-list';
 import { UiTest } from './features/uitest/uitest';
@@ -14,7 +12,6 @@ import { authGuard } from './features/auth/auth.guard';
 import { UserListComponent } from './features/admin/user-list/user-list';
 import { UserForm } from './features/admin/user-form/user-form';
 import { ChantierListComponent } from './features/chantiers/chantier-list/chantier-list';
-import { ChantierForm } from './features/chantiers/chantier-form/chantier-form';
 
 export const routes: Routes = [
   {
@@ -39,11 +36,6 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
-    path: 'clients/new',
-    component: ClientForm,
-    canActivate: [authGuard]
-  },
-  {
     path: 'clients/:id',
     component: ClientDetail,
     canActivate: [authGuard]
@@ -51,11 +43,6 @@ export const routes: Routes = [
   {
     path: 'fournisseurs',
     component: FournisseurListComponent,
-    canActivate: [authGuard]
-  },
-  {
-    path: 'fournisseurs/new',
-    component: FournisseurForm,
     canActivate: [authGuard]
   },
   {
@@ -71,11 +58,6 @@ export const routes: Routes = [
   {
     path: 'chantiers',
     component: ChantierListComponent,
-    canActivate: [authGuard]
-  },
-  {
-    path: 'chantiers/new',
-    component: ChantierForm,
     canActivate: [authGuard]
   },
   {

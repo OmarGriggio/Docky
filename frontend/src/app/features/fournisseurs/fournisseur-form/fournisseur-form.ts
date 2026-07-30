@@ -1,6 +1,5 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, output } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
 import { FournisseurService } from '../fournisseur.service';
 
 @Component({
@@ -13,7 +12,9 @@ export class FournisseurForm {
 
   private fb = inject(FormBuilder);
   private fournisseurService = inject(FournisseurService);
-  private router = inject(Router);
+
+  saved = output<void>();
+  cancelled = output<void>();
 
   form = this.fb.nonNullable.group({
     code_fournisseur: ['', Validators.required],
@@ -22,6 +23,10 @@ export class FournisseurForm {
     categorie: [''],
   });
 
+  cancel(): void {
+    this.cancelled.emit();
+  }
+
   submit(): void {
     if (this.form.invalid) {
       return;
@@ -29,7 +34,7 @@ export class FournisseurForm {
 
     this.fournisseurService.createFournisseur(this.form.getRawValue()).subscribe({
       next: () => {
-        this.router.navigate(['/fournisseurs']);
+        this.saved.emit();
       },
       error: err => {
         console.error('fournisseur-form : ' + err);

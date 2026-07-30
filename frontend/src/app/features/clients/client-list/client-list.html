@@ -1,4 +1,18 @@
-<h1>Clients</h1>
+<div class="client-list-header">
+  <h1>Clients</h1>
+  <p-button label="Ajouter" icon="pi pi-plus" (onClick)="createDialogVisible.set(true)" />
+</div>
+
+<p-dialog
+  [(visible)]="createDialogVisible"
+  header="Nouveau client"
+  [modal]="true"
+  [style]="{ width: '32rem' }"
+>
+  @if (createDialogVisible()) {
+    <app-client-form (saved)="onClientSaved()" (cancelled)="createDialogVisible.set(false)" />
+  }
+</p-dialog>
 
 <p-table [value]="clients()" dataKey="id">
   <ng-template #header>

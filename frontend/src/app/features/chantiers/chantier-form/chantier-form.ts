@@ -1,13 +1,11 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
 import { InputText } from 'primeng/inputtext';
 import { Textarea } from 'primeng/textarea';
 import { FloatLabel } from 'primeng/floatlabel';
 import { SelectButton } from 'primeng/selectbutton';
 import { Select } from 'primeng/select';
 import { Button } from 'primeng/button';
-import { Card } from 'primeng/card';
 import { ChantierService } from '../chantier.service';
 import { ClientService } from '../../clients/client.service';
 import { Client } from '../../../shared/models/client';
@@ -16,7 +14,7 @@ import { TypeChantier } from '../../../shared/models/chantier';
 @Component({
   selector: 'app-chantier-form',
   standalone: true,
-  imports: [ReactiveFormsModule, InputText, Textarea, FloatLabel, SelectButton, Select, Button, Card],
+  imports: [ReactiveFormsModule, InputText, Textarea, FloatLabel, SelectButton, Select, Button],
   templateUrl: './chantier-form.html',
   styleUrl: './chantier-form.css',
 })
@@ -25,7 +23,9 @@ export class ChantierForm implements OnInit {
   private fb = inject(FormBuilder);
   private chantierService = inject(ChantierService);
   private clientService = inject(ClientService);
-  private router = inject(Router);
+
+  saved = output<void>();
+  cancelled = output<void>();
 
   clients = signal<Client[]>([]);
   typesChantier = signal<TypeChantier[]>([]);
@@ -118,7 +118,7 @@ export class ChantierForm implements OnInit {
   }
 
   cancel(): void {
-    this.router.navigate(['/chantiers']);
+    this.cancelled.emit();
   }
 
   submit(): void {
@@ -134,7 +134,7 @@ export class ChantierForm implements OnInit {
       id_type_chantier: id_type_chantier!,
     }).subscribe({
       next: () => {
-        this.router.navigate(['/chantiers']);
+        this.saved.emit();
       },
       error: err => {
         console.error('chantier-form : ' + err);
