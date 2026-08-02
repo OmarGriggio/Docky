@@ -66,6 +66,12 @@ export class NavBar {
       ]
     },
     {
+      label: 'Profil',
+      links: [
+        { label: 'Mon entreprise', path: '/profile' }
+      ]
+    },
+    {
       label: 'UI Kit',
       links: [
         { label: 'Exemples', path: '/uitest' }

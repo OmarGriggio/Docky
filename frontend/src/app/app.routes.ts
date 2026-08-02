@@ -12,6 +12,7 @@ import { authGuard } from './features/auth/auth.guard';
 import { UserListComponent } from './features/admin/user-list/user-list';
 import { UserForm } from './features/admin/user-form/user-form';
 import { ChantierListComponent } from './features/chantiers/chantier-list/chantier-list';
+import { Profile } from './features/profile/profile';
 
 export const routes: Routes = [
   {
@@ -58,6 +59,11 @@ export const routes: Routes = [
   {
     path: 'chantiers',
     component: ChantierListComponent,
+    canActivate: [authGuard]
+  },
+  {
+    path: 'profile',
+    component: Profile,
     canActivate: [authGuard]
   },
   {

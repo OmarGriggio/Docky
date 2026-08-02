@@ -1,0 +1,66 @@
+<div class="profile-page">
+  <p-card header="Mon entreprise" styleClass="ui-card--elevated profile-card">
+    @if (loading()) {
+      <p>Chargement...</p>
+    } @else {
+      <form [formGroup]="form" (ngSubmit)="submit()" class="ui-form">
+        <p-floatlabel variant="on">
+          <input pInputText id="nom_entreprise" formControlName="nom_entreprise" />
+          <label for="nom_entreprise">Nom de l'entreprise</label>
+        </p-floatlabel>
+
+        <p-floatlabel variant="on">
+          <input pInputText id="email" type="email" formControlName="email" />
+          <label for="email">Email</label>
+        </p-floatlabel>
+
+        <p-floatlabel variant="on">
+          <input pInputText id="telephone" formControlName="telephone" />
+          <label for="telephone">Téléphone</label>
+        </p-floatlabel>
+
+        <p-floatlabel variant="on">
+          <input pInputText id="iban" formControlName="iban" />
+          <label for="iban">IBAN</label>
+        </p-floatlabel>
+
+        <p-floatlabel variant="on">
+          <input pInputText id="rue" formControlName="rue" />
+          <label for="rue">Rue</label>
+        </p-floatlabel>
+
+        <p-floatlabel variant="on">
+          <input pInputText id="npa" formControlName="npa" />
+          <label for="npa">NPA</label>
+        </p-floatlabel>
+
+        <p-floatlabel variant="on">
+          <input pInputText id="ville" formControlName="ville" />
+          <label for="ville">Ville</label>
+        </p-floatlabel>
+
+        <p-floatlabel variant="on">
+          <input pInputText id="pays" formControlName="pays" />
+          <label for="pays">Pays</label>
+        </p-floatlabel>
+
+        <p-floatlabel variant="on" class="ui-form__full">
+          <input pInputText id="logo" formControlName="logo" />
+          <label for="logo">Logo</label>
+        </p-floatlabel>
+
+        @if (successMessage()) {
+          <p class="ui-form__full profile-success">{{ successMessage() }}</p>
+        }
+
+        @if (errorMessage()) {
+          <p class="ui-form__full profile-error">{{ errorMessage() }}</p>
+        }
+
+        <div class="ui-form__actions">
+          <p-button type="submit" label="Enregistrer" />
+        </div>
+      </form>
+    }
+  </p-card>
+</div>
