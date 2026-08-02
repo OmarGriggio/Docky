@@ -19,3 +19,20 @@ Content-Type: application/json
   "pays": "Suisse",
   "logo": "CheminDuLogo"
 }
+
+###
+
+PUT http://localhost:3000/entreprise/1
+Content-Type: application/json
+
+{
+  "nom_entreprise": "DE DONNO STYLE SARL",
+  "email": "dedonnostyle@gmail.com",
+  "telephone": "+41799549936",
+  "iban": "CH8500790016247615012",
+  "rue": "Rue de boujean 37",
+  "npa": "2502",
+  "ville": "Biel/Bienne",
+  "pays": "Suisse",
+  "logo": "CheminDuLogo"
+}

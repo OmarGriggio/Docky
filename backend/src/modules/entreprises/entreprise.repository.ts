@@ -35,3 +35,38 @@ export const createEntrepriseInDB = async (
     const result = await pool.query(query, values);
     return result.rows[0];
 };
+
+export const updateEntrepriseInDB = async (
+    id: number,
+    entreprise: Omit<Entreprise, "id">
+): Promise<Entreprise> => {
+    const query = `
+    UPDATE entreprises
+    SET
+      nom_entreprise = $1,
+      email = $2,
+      telephone = $3,
+      iban = $4,
+      rue = $5,
+      npa = $6,
+      ville = $7,
+      pays = $8,
+      logo = $9
+    WHERE id = $10
+    RETURNING *;
+  `;
+    const values = [
+      entreprise.nom_entreprise,
+      entreprise.email,
+      entreprise.telephone,
+      entreprise.iban,
+      entreprise.rue,
+      entreprise.npa,
+      entreprise.ville,
+      entreprise.pays,
+      entreprise.logo,
+      id
+    ];
+    const result = await pool.query(query, values);
+    return result.rows[0] ?? null;
+};
