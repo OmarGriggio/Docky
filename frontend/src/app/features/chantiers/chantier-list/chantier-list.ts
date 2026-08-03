@@ -1,5 +1,6 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { TableModule } from 'primeng/table';
+import { TagModule } from 'primeng/tag';
 import { Menu } from 'primeng/menu';
 import { Dialog } from 'primeng/dialog';
 import { MenuItem } from 'primeng/api';
@@ -14,7 +15,7 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
 @Component({
   selector: 'app-chantier-list',
   standalone: true,
-  imports: [TableModule, Menu, Button, Dialog, ChantierForm, ConfirmDialogComponent],
+  imports: [TableModule, TagModule, Menu, Button, Dialog, ChantierForm, ConfirmDialogComponent],
   templateUrl: './chantier-list.html',
   styleUrl: './chantier-list.css'
 })

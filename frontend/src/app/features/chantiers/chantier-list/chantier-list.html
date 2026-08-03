@@ -14,12 +14,12 @@
   }
 </p-dialog>
 
-<p-table [value]="chantiers()" dataKey="id">
+<p-table [value]="chantiers()" dataKey="id" showGridlines [tableStyle]="{ 'min-width': '50rem' }">
   <ng-template #header>
     <tr>
       <th>Nom</th>
       <th>Client</th>
-      <th>Type</th>
+      <th pSortableColumn="type_chantier"><div>Type</div></th>
       <th>Ville</th>
       <th></th>
     </tr>
@@ -29,7 +29,7 @@
     <tr>
       <td>{{ chantier.nom }}</td>
       <td>{{ clientName(chantier) }}</td>
-      <td>{{ chantier.type_chantier }}</td>
+      <td><p-tag [value]="chantier.type_chantier" severity="secondary" /></td>
       <td>{{ chantier.ville }}</td>
       <td>
         <p-menu #menu [popup]="true" [model]="getActions(chantier)" appendTo="body"></p-menu>
