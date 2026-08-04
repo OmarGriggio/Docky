@@ -44,10 +44,20 @@
           <label for="pays">Pays</label>
         </p-floatlabel>
 
-        <p-floatlabel variant="on" class="ui-form__full">
-          <input pInputText id="logo" formControlName="logo" />
-          <label for="logo">Logo</label>
-        </p-floatlabel>
+        <div class="ui-form__full profile-logo">
+          @if (logoPreviewUrl()) {
+            <img [src]="logoPreviewUrl()" alt="Logo de l'entreprise" class="profile-logo__preview" />
+          }
+          <div class="profile-logo__actions">
+            <input type="file" accept="image/jpeg,image/png" (change)="onLogoSelected($event)" />
+            @if (selectedLogoFile()) {
+              <p-button type="button" label="Uploader le logo" [loading]="uploadingLogo()" (onClick)="uploadLogo()" />
+            }
+          </div>
+          @if (logoErrorMessage()) {
+            <p class="profile-error">{{ logoErrorMessage() }}</p>
+          }
+        </div>
 
         @if (successMessage()) {
           <p class="ui-form__full profile-success">{{ successMessage() }}</p>
