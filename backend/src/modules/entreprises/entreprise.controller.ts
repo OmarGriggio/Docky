@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
-import { addEntrepriseServ, getAllEntreprisesServ, getEntrepriseByIdServ, updateEntrepriseServ } from "./entreprise.service";
+import path from "path";
+import { addEntrepriseServ, getAllEntreprisesServ, getEntrepriseByIdServ, updateEntrepriseServ, updateEntrepriseLogoServ } from "./entreprise.service";
 import { Entreprise } from "./entreprise.types";
 
 export const getEntreprises = async (req: Request, res: Response) => {
@@ -24,4 +25,15 @@ export const updateEntreprise = async (req: Request, res: Response) => {
 
     const entrepriseUpdated = await updateEntrepriseServ(Number(req.params.id), entrepriseData);
     res.json(entrepriseUpdated);
+};
+
+export const uploadEntrepriseLogo = async (req: Request, res: Response) => {
+    if (!req.file) {
+        res.status(400).json({ message: "Aucun fichier reçu" });
+        return;
+    }
+
+    const logo = path.posix.join("entreprises", String(req.params.id), req.file.filename);
+    const entreprise = await updateEntrepriseLogoServ(Number(req.params.id), logo);
+    res.json(entreprise);
 };

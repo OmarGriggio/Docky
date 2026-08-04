@@ -70,3 +70,11 @@ export const updateEntrepriseInDB = async (
     const result = await pool.query(query, values);
     return result.rows[0] ?? null;
 };
+
+export const updateEntrepriseLogoInDB = async (id: number, logo: string) => {
+    const result = await pool.query(
+        "UPDATE entreprises SET logo = $1 WHERE id = $2 RETURNING *",
+        [logo, id]
+    );
+    return result.rows[0] ?? null;
+};

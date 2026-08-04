@@ -11,11 +11,13 @@
   "description": "REST API for a SaaS dedicated to small construction companies.",
   "dependencies": {
     "@types/cors": "^2.8.19",
+    "@types/multer": "^2.2.0",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
+    "multer": "^2.2.0",
     "pdf-lib": "^1.17.1",
     "pg": "^8.22.0",
     "qrcode": "^1.5.4"

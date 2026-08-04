@@ -1,4 +1,5 @@
 import express from "express";
+import path from "path";
 import clientRoutes from "./modules/clients/client.routes";
 import adresseRoutes from "./modules/clients/adresse.routes";
 import userRoutes from "./modules/utilisateurs/user.routes";
@@ -17,6 +18,8 @@ import cors from 'cors';
 const app = express();
 
 app.use(express.json(), cors());
+
+app.use("/uploads", express.static(path.resolve(process.cwd(), "uploads")));
 
 app.use("/auth/login", authRoutes);
 
