@@ -49,7 +49,7 @@ export class PdfWriter {
 
         this.cursorY -= marginTop;
         
-        for (const paragraph of text.replace(/\t/g, " ").split("\n")) {
+        for (const paragraph of text.replace(/\t/g, " ").replace(/\r\n?/g, "\n").split("\n")) {
             for (const line of this.wrapText(paragraph, font, size, maxWidth)) {
                 this.ensureSpace();
 
@@ -198,8 +198,22 @@ export class PdfWriter {
         return this.doc.embedPng(imageBytes);
     }
 
+    async embedJpg(imageBytes: Uint8Array): Promise<PDFImage> {
+        return this.doc.embedJpg(imageBytes);
+    }
+
     drawImage(image: PDFImage, x: number, y: number, width: number, height: number) {
         this.page.drawImage(image, { x, y, width, height });
+    }
+
+    /** Draws an image centered horizontally on the page, advancing the flowing text cursor below it. */
+    drawImageCentered(image: PDFImage, width: number, height: number, marginBottom = 0) {
+        this.ensureSpace();
+
+        const x = (this.page.getWidth() - width) / 2;
+        this.cursorY -= height;
+        this.page.drawImage(image, { x, y: this.cursorY, width, height });
+        this.cursorY -= marginBottom;
     }
 
     async save(): Promise<Uint8Array> {

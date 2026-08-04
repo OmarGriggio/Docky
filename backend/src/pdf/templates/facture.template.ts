@@ -1,17 +1,26 @@
 import { blob } from "stream/consumers";
+import { PDFImage } from "pdf-lib";
 import { PdfWriter } from "../core/pdf-writer";
 import { PdfTable } from "../core/pdf-writer.types";
 import { FactureDto } from "./facture.types";
 
+const LOGO_MAX_WIDTH = 120;
+const LOGO_MAX_HEIGHT = 60;
+
 export class FactureTemplate {
 
-    static render(pdf: PdfWriter, facture: FactureDto) {
+    static async render(pdf: PdfWriter, facture: FactureDto, logoBytes: Buffer | null) {
         const date = new Date(facture.date).toLocaleDateString("fr-CH", {
             day: "numeric",
             month: "long",
             year: "numeric",
         });
         const table = this.createLignesTable(facture);
+
+        if (logoBytes) {
+            await this.drawLogo(pdf, logoBytes);
+        }
+
         pdf.title(`Facture ${facture.numero}`);
 
         pdf.text(facture.entreprise.nom, {bold: true});
@@ -71,6 +80,27 @@ export class FactureTemplate {
                 total: `${(ligne.quantite * ligne.prixUnitaire).toFixed(2)} CHF`,
             })),
         };
-    }    
+    }
+
+    private static async drawLogo(pdf: PdfWriter, logoBytes: Buffer) {
+        const image = await this.embedLogo(pdf, logoBytes);
+        if (!image) return;
+
+        const scale = Math.min(LOGO_MAX_WIDTH / image.width, LOGO_MAX_HEIGHT / image.height, 1);
+        pdf.drawImageCentered(image, image.width * scale, image.height * scale, 15);
+    }
+
+    /** The logo file may be a JPEG or a PNG; try both embedders rather than trusting the file extension. */
+    private static async embedLogo(pdf: PdfWriter, logoBytes: Buffer): Promise<PDFImage | null> {
+        try {
+            return await pdf.embedJpg(logoBytes);
+        } catch {
+            try {
+                return await pdf.embedPng(logoBytes);
+            } catch {
+                return null;
+            }
+        }
+    }
 
 }

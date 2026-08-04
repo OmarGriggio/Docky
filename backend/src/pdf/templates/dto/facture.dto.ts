@@ -14,6 +14,7 @@ export const createFactureDto = (document: DocumentComplete, client: ClientWithA
             rue: entreprise.rue ?? "",
             ville: entreprise.ville ?? "",
             npaVille: `${entreprise.npa ?? ""} ${entreprise.ville ?? ""}`,
+            logo: entreprise.logo,
         },
         client: {
             nom: client.societe ?? `${client.prenom ?? ""} ${client.nom ?? ""}`.trim(),

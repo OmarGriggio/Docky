@@ -13,6 +13,7 @@ export interface FactureDto {
         rue: string;
         ville: string;
         npaVille: string;
+        logo: string | null;
     };
     client: {
         nom: string;
