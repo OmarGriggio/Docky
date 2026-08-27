@@ -28,7 +28,7 @@ Docky aims to be a simple, focused SaaS where a construction company can:
 - add materials and labor to a quote/invoice and get totals automatically,
 - keep a history of past invoices.
 
-Three types of users are planned: **employees** (day-to-day usage), **company admins** (manage their company's data and staff) and a **platform admin** (manages the SaaS itself, subscriptions and companies). Full details are in [docs/Définition du projet.md](docs/Définition%20du%20projet.md).
+Three types of users are planned: **employees** (day-to-day usage), **company admins** (manage their company's data and staff) and a **platform admin** (manages the SaaS itself, subscriptions and companies). Full details are in [zz_docs/Définition du projet.md](zz_docs/Définition%20du%20projet.md).
 
 ## Project status
 
@@ -38,7 +38,7 @@ Three types of users are planned: **employees** (day-to-day usage), **company ad
 - [x] Express + TypeScript API with a layered architecture (`controller` → `service` → `repository`)
 - [x] JWT-based authentication
 - [x] CRUD endpoints for clients, suppliers, materials, material pricing, employee categories, invoices, invoice lines, and quotes ("offres")
-- [x] PostgreSQL access via raw SQL (no ORM, by design — see [docs/Architecture.md](docs/Architecture.md))
+- [x] PostgreSQL access via raw SQL (no ORM, by design — see [zz_docs/Architecture.md](zz_docs/Architecture.md))
 - [ ] Role/permission enforcement (admin vs. employee vs. platform admin)
 - [ ] Automated tests
 - [ ] Database migrations (schema is currently created manually)
@@ -131,13 +131,8 @@ All routes are prefixed by their resource name and return JSON. Most are protect
 
 ### Backend
 
-(Docker incoming...)
-
 ```bash
-cd backend
-npm install
-cp ../.env.example .env   # then fill in your own DB credentials and JWT secret
-npm run dev
+docker compose up --build
 ```
 
 The API starts on `http://localhost:3000`.
@@ -149,32 +144,54 @@ The API starts on `http://localhost:3000`.
 ```bash
 cd frontend
 npm install
-npm start
+ng serve
 ```
 
 The Angular app starts on `http://localhost:4200`.
 
 ### Environment variables
 
-| Variable      | Description                     |
-| ------------- | -------------------------------- |
-| `DB_HOST`     | PostgreSQL host                  |
-| `DB_PORT`     | PostgreSQL port                  |
-| `DB_USER`     | PostgreSQL user                  |
-| `DB_PASSWORD` | PostgreSQL password              |
-| `DB_NAME`     | PostgreSQL database name         |
-| `JWT_SECRET`  | Secret used to sign/verify JWTs  |
+Two `.env` files are used, for two different consumers — copy both examples before running anything:
 
-> The database schema itself isn't automated yet — you'll need to create the tables described in [docs/Définition des données.md](docs/Définition%20des%20données.md) manually until migrations are added.
+```bash
+cp .env.example .env
+cp backend/.env.example backend/.env
+```
+
+**Root `.env`** — read by `docker compose` itself, for variable substitution in [docker-compose.yml](docker-compose.yml):
+
+| Variable                 | Description                          |
+| ------------------------- | ------------------------------------ |
+| `POSTGRES_VERSION`        | PostgreSQL Docker image tag          |
+| `POSTGRES_CONTAINER_NAME` | Name of the Postgres container       |
+| `POSTGRES_DB`             | Database created on first boot       |
+| `POSTGRES_USER`           | Database user                        |
+| `POSTGRES_PASSWORD`       | Database password                    |
+| `POSTGRES_PORT`           | Host port mapped to Postgres' `5432` |
+| `BACKEND_CONTAINER_NAME`  | Name of the backend container        |
+| `BACKEND_PORT`            | Host port mapped to the API's `3000` |
+
+**`backend/.env`** — loaded by the Express app itself at runtime:
+
+| Variable      | Description                                                   |
+| ------------- | --------------------------------------------------------------- |
+| `DB_HOST`     | PostgreSQL host (`postgres`, the Compose service name)          |
+| `DB_PORT`     | PostgreSQL port                                                  |
+| `DB_USER`     | PostgreSQL user                                                  |
+| `DB_PASSWORD` | PostgreSQL password                                              |
+| `DB_NAME`     | PostgreSQL database name                                         |
+| `JWT_SECRET`  | Secret used to sign/verify JWTs                                  |
+
+> The database schema is bootstrapped automatically the first time the Postgres container starts, from the SQL files in [zz_migrations/](zz_migrations/) (mounted into `/docker-entrypoint-initdb.d`). To re-run them, drop the `postgres_data` volume and start the containers again.
 
 ## Documentation
 
-The `docs/` folder (in French) contains the detailed specs this project is built from:
+The `zz_docs/` folder (in French) contains the detailed specs this project is built from:
 
 - [Définition du projet.md](docs/Définition%20du%20projet.md) — problem statement, user types, user journeys
 - [Définition des données.md](docs/Définition%20des%20données.md) — entities, fields, relations
 - [Architecture.md](docs/Architecture.md) — architecture decisions and folder conventions
-- [docs/note/](docs/note/) — personal notes taken while learning Express, npm, and setting up the dev environment
+- [zz_docs/note/](docs/note/) — personal notes taken while learning Express, npm, and setting up the dev environment
 
 ## Author
 
