@@ -8,6 +8,6 @@ export const getDocumentsComplete = async (req: Request, res: Response) => {
 };
 
 export const getDocumentComplete = async (req: Request, res: Response) => {
-  const document = await getDocumentCompleteServ(Number(req.params.id));
+  const document = await getDocumentCompleteServ(Number(req.params.id), req.user.id_entreprise);
   res.json(document);
 };

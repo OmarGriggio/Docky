@@ -14,8 +14,11 @@ export const getDocumentsByTypeFromDB = async (type: string, id_entreprise: numb
   return result.rows;
 };
 
-export const getDocumentByIdFromDB = async (id: number) => {
-  const result = await pool.query("SELECT * FROM documents WHERE id = $1", [id]);
+export const getDocumentByIdFromDB = async (id: number, id_entreprise: number) => {
+  const result = await pool.query(
+    "SELECT * FROM documents WHERE id = $1 AND id_entreprise = $2",
+    [id, id_entreprise]
+  );
   return result.rows[0] ?? null;
 };
 

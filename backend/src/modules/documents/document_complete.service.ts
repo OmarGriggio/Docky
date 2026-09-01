@@ -6,8 +6,8 @@ import {
 } from "./document.repository";
 import { getDocumentLignesFromDB, getLignesByDocumentIdFromDB } from "./document_ligne.repository";
 
-export const getDocumentCompleteServ = async (id: number): Promise<DocumentComplete> => {
-  const document = await getDocumentByIdFromDB(id);
+export const getDocumentCompleteServ = async (id: number, id_entreprise: number): Promise<DocumentComplete> => {
+  const document = await getDocumentByIdFromDB(id, id_entreprise);
   if (!document) {
     throw new Error("Document not found");
   }
