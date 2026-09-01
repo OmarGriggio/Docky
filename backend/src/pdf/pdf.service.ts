@@ -22,9 +22,9 @@ const readLogoBytes = async (logo: string | null): Promise<Buffer | null> => {
     }
 };
 
-export const generateFacturePdfServ = async (documentId: number): Promise<Uint8Array> => {
-    const document = await getDocumentCompleteServ(documentId);
-    const client = await getClientByIdServ(document.id_client);
+export const generateFacturePdfServ = async (documentId: number, id_entreprise: number): Promise<Uint8Array> => {
+    const document = await getDocumentCompleteServ(documentId, id_entreprise);
+    const client = await getClientByIdServ(document.id_client, id_entreprise);
     const entreprise = await getEntrepriseByIdServ(client.id_entreprise);
 
     const facture = createFactureDto(document, client, entreprise);
