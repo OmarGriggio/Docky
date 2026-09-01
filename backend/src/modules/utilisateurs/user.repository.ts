@@ -11,8 +11,19 @@ export const getUserByEmail = async (email: string) => {
     return result.rows[0];
 };
 
-export const deleteUserDB = async (id: Number) => {
-    const result = await pool.query("DELETE FROM utilisateurs where id = $1", [id]);
+export const getUserByIdForEntreprise = async (id: Number, id_entreprise: number) => {
+    const result = await pool.query(
+        "SELECT * FROM utilisateurs WHERE id = $1 AND id_entreprise = $2",
+        [id, id_entreprise]
+    );
+    return result.rows[0] ?? null;
+};
+
+export const deleteUserDB = async (id: Number, id_entreprise: number) => {
+    const result = await pool.query(
+        "DELETE FROM utilisateurs WHERE id = $1 AND id_entreprise = $2 RETURNING *",
+        [id, id_entreprise]
+    );
     return result.rows[0];
 };
 

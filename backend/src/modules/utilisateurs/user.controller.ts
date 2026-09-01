@@ -9,7 +9,7 @@ export const getAllUsersController = async (req: Request, res: Response) => {
 
 export const deleteUserController = async (req: Request, res: Response) => {
     const id = Number(req.params.id);
-    const userDeleted = await deleteUserService(id);
+    const userDeleted = await deleteUserService(id, req.user.id_entreprise);
     res.json(userDeleted);
 };
 

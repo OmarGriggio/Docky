@@ -1,5 +1,5 @@
 import { createEntrepriseInDB } from "../entreprises/entreprise.repository";
-import { createUserDB, getUserByEmail, getUsersFromDB, deleteUserDB } from "./user.repository";
+import { createUserDB, getUserByEmail, getUserByIdForEntreprise, getUsersFromDB, deleteUserDB } from "./user.repository";
 import { CreateUserData } from "./user.types";
 import bcrypt from "bcrypt";
 
@@ -7,8 +7,12 @@ export const getAllUsers = async (id_entreprise: number) => {
   return await getUsersFromDB(id_entreprise);
 };
 
-export const deleteUserService = async (id: Number) => {
-  return await deleteUserDB(id);
+export const deleteUserService = async (id: Number, id_entreprise: number) => {
+  const user = await getUserByIdForEntreprise(id, id_entreprise);
+  if (!user) {
+    throw new Error("User not found");
+  }
+  return await deleteUserDB(id, id_entreprise);
 };
 
 export const createUserService = async (userData: CreateUserData) => {
