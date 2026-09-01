@@ -1,4 +1,10 @@
-<h1>Ressources @if (currentTypeLabel()) { — {{ currentTypeLabel() }} }</h1>
+<div class="ressource-list-header">
+  <h1>Ressources @if (currentTypeLabel()) { — {{ currentTypeLabel() }} }</h1>
+  <label>
+    <p-checkbox [binary]="true" [ngModel]="showArchived()" (ngModelChange)="onShowArchivedChange($event)" />
+    Afficher les archivés
+  </label>
+</div>
 
 <p-table [value]="ressources()" dataKey="id">
   <ng-template #header>
@@ -10,6 +16,7 @@
       <th>Prix de vente</th>
       <th>Prix d'achat</th>
       <th>Actif</th>
+      <th></th>
     </tr>
   </ng-template>
 
@@ -22,6 +29,17 @@
       <td>{{ item.prix_vente }}</td>
       <td>{{ item.prix_achat }}</td>
       <td>{{ item.actif }}</td>
+      <td>
+        <p-menu #menu [popup]="true" [model]="getActions(item)" appendTo="body"></p-menu>
+        <p-button icon="pi pi-ellipsis-v" (click)="menu.toggle($event)"></p-button>
+      </td>
     </tr>
   </ng-template>
 </p-table>
+
+<app-confirm-dialog
+  [(visible)]="confirmVisible"
+  title="Archivage"
+  [message]="confirmMessage()"
+  (confirmed)="onArchiveConfirmed()"
+/>

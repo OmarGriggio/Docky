@@ -9,10 +9,21 @@ export class RessourceService {
 
   private http = inject(HttpClient);
 
-  getRessources(type?: RessourceType) {
+  getRessources(type?: RessourceType, includeArchived = false) {
     return this.http.get<Ressource[]>('http://localhost:3000/ressource', {
-      params: type ? { type } : {}
+      params: {
+        ...(type ? { type } : {}),
+        ...(includeArchived ? { includeArchived: 'true' } : {})
+      }
     });
+  }
+
+  archiveRessource(id: number) {
+    return this.http.patch<Ressource>(`http://localhost:3000/ressource/${id}/archive`, {});
+  }
+
+  unarchiveRessource(id: number) {
+    return this.http.patch<Ressource>(`http://localhost:3000/ressource/${id}/unarchive`, {});
   }
 
 }
