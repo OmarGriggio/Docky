@@ -1,3 +1,7 @@
+// TODO (security): the README plans 3 user types (employee, company admin, platform
+// admin) but this enum only has the first two — there's no platform-admin role yet,
+// and nothing enforces `role` anywhere (no requireRole/requireAdmin middleware).
+// See entreprise.routes.ts and user.routes.ts for the endpoints that need it.
 export interface User {
   id: number;
   id_entreprise: number;
