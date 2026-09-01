@@ -45,6 +45,8 @@ export class Profile implements OnInit {
 
   private idEntreprise: number | null = null;
 
+  isAdmin = this.authService.isAdmin;
+
   ngOnInit(): void {
     this.loadEntreprise();
   }
@@ -77,6 +79,10 @@ export class Profile implements OnInit {
             });
             this.logoPath.set(entreprise.logo);
             this.loading.set(false);
+
+            if (!this.isAdmin()) {
+              this.form.disable();
+            }
           },
           error: err => {
             console.error('profile : ' + err);

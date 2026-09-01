@@ -48,16 +48,22 @@
           @if (logoPreviewUrl()) {
             <img [src]="logoPreviewUrl()" alt="Logo de l'entreprise" class="profile-logo__preview" />
           }
-          <div class="profile-logo__actions">
-            <input type="file" accept="image/jpeg,image/png" (change)="onLogoSelected($event)" />
-            @if (selectedLogoFile()) {
-              <p-button type="button" label="Uploader le logo" [loading]="uploadingLogo()" (onClick)="uploadLogo()" />
-            }
-          </div>
+          @if (isAdmin()) {
+            <div class="profile-logo__actions">
+              <input type="file" accept="image/jpeg,image/png" (change)="onLogoSelected($event)" />
+              @if (selectedLogoFile()) {
+                <p-button type="button" label="Uploader le logo" [loading]="uploadingLogo()" (onClick)="uploadLogo()" />
+              }
+            </div>
+          }
           @if (logoErrorMessage()) {
             <p class="profile-error">{{ logoErrorMessage() }}</p>
           }
         </div>
+
+        @if (!isAdmin()) {
+          <p class="ui-form__full">Seul un administrateur peut modifier les informations de l'entreprise.</p>
+        }
 
         @if (successMessage()) {
           <p class="ui-form__full profile-success">{{ successMessage() }}</p>
@@ -67,9 +73,11 @@
           <p class="ui-form__full profile-error">{{ errorMessage() }}</p>
         }
 
-        <div class="ui-form__actions">
-          <p-button type="submit" label="Enregistrer" />
-        </div>
+        @if (isAdmin()) {
+          <div class="ui-form__actions">
+            <p-button type="submit" label="Enregistrer" />
+          </div>
+        }
       </form>
     }
   </p-card>
