@@ -15,6 +15,7 @@ export interface Chantier {
   ville: string | null;
   pays: string | null;
   date_creation: string;
+  actif: boolean;
 }
 
 export interface CreateChantierPayload {

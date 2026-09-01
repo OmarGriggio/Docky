@@ -1,5 +1,9 @@
 <div class="chantier-list-header">
   <h1>Chantiers</h1>
+  <label>
+    <p-checkbox [binary]="true" [ngModel]="showArchived()" (ngModelChange)="onShowArchivedChange($event)" />
+    Afficher les archivés
+  </label>
   <p-button label="Ajouter" icon="pi pi-plus" (onClick)="createDialogVisible.set(true)" />
 </div>
 
@@ -41,7 +45,7 @@
 
 <app-confirm-dialog
   [(visible)]="confirmVisible"
-  title="Suppression"
+  title="Archivage"
   [message]="confirmMessage()"
-  (confirmed)="onDeleteConfirmed()"
+  (confirmed)="onArchiveConfirmed()"
 />

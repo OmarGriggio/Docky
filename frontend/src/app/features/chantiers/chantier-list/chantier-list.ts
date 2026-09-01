@@ -1,8 +1,10 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { Menu } from 'primeng/menu';
 import { Dialog } from 'primeng/dialog';
+import { Checkbox } from 'primeng/checkbox';
 import { MenuItem } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { ChantierService } from '../chantier.service';
@@ -15,7 +17,7 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
 @Component({
   selector: 'app-chantier-list',
   standalone: true,
-  imports: [TableModule, TagModule, Menu, Button, Dialog, ChantierForm, ConfirmDialogComponent],
+  imports: [TableModule, TagModule, Menu, Button, Dialog, Checkbox, FormsModule, ChantierForm, ConfirmDialogComponent],
   templateUrl: './chantier-list.html',
   styleUrl: './chantier-list.css'
 })
@@ -26,13 +28,14 @@ export class ChantierListComponent implements OnInit {
 
   chantiers = signal<Chantier[]>([]);
   clients = signal<Client[]>([]);
+  showArchived = signal(false);
 
   createDialogVisible = signal(false);
 
   confirmVisible = signal(false);
   confirmMessage = signal('');
 
-  private chantierPendingDelete: Chantier | null = null;
+  private chantierPendingArchive: Chantier | null = null;
 
   private clientNames = computed(() => {
     const names = new Map<number, string>();
@@ -56,7 +59,7 @@ export class ChantierListComponent implements OnInit {
   }
 
   private loadChantiers(): void {
-    this.chantierService.getChantiers().subscribe({
+    this.chantierService.getChantiers(this.showArchived()).subscribe({
       next: data => {
         this.chantiers.set(data);
       },
@@ -64,6 +67,11 @@ export class ChantierListComponent implements OnInit {
         console.error("chantier-list : " + err);
       }
     });
+  }
+
+  onShowArchivedChange(value: boolean): void {
+    this.showArchived.set(value);
+    this.loadChantiers();
   }
 
   clientName(chantier: Chantier): string {
@@ -77,27 +85,37 @@ export class ChantierListComponent implements OnInit {
 
   getActions(chantier: Chantier): MenuItem[] {
     return [
-      {
-        label: 'Supprimer',
-        command: () => this.deleteChantier(chantier)
-      }
+      chantier.actif
+        ? { label: 'Archiver', command: () => this.archiveChantier(chantier) }
+        : { label: 'Restaurer', command: () => this.unarchiveChantier(chantier) }
     ];
   }
 
-  private deleteChantier(chantier: Chantier): void {
-    this.chantierPendingDelete = chantier;
-    this.confirmMessage.set(`Supprimer le chantier ${chantier.nom} ?`);
+  private archiveChantier(chantier: Chantier): void {
+    this.chantierPendingArchive = chantier;
+    this.confirmMessage.set(`Archiver le chantier ${chantier.nom} ?`);
     this.confirmVisible.set(true);
   }
 
-  onDeleteConfirmed(): void {
-    const chantier = this.chantierPendingDelete;
+  onArchiveConfirmed(): void {
+    const chantier = this.chantierPendingArchive;
     if (!chantier) {
       return;
     }
-    this.chantierPendingDelete = null;
+    this.chantierPendingArchive = null;
 
-    this.chantierService.deleteChantier(chantier.id).subscribe({
+    this.chantierService.archiveChantier(chantier.id).subscribe({
+      next: () => {
+        this.loadChantiers();
+      },
+      error: err => {
+        console.error("chantier-list : " + err);
+      }
+    });
+  }
+
+  private unarchiveChantier(chantier: Chantier): void {
+    this.chantierService.unarchiveChantier(chantier.id).subscribe({
       next: () => {
         this.loadChantiers();
       },

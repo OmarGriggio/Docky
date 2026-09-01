@@ -9,16 +9,22 @@ export class ChantierService {
 
   private http = inject(HttpClient);
 
-  getChantiers() {
-    return this.http.get<Chantier[]>('http://localhost:3000/chantier');
+  getChantiers(includeArchived = false) {
+    return this.http.get<Chantier[]>('http://localhost:3000/chantier', {
+      params: includeArchived ? { includeArchived: 'true' } : {}
+    });
   }
 
   createChantier(chantier: CreateChantierPayload) {
     return this.http.post<Chantier>('http://localhost:3000/chantier', chantier);
   }
 
-  deleteChantier(id: number) {
-    return this.http.delete<Chantier>(`http://localhost:3000/chantier/${id}`);
+  archiveChantier(id: number) {
+    return this.http.patch<Chantier>(`http://localhost:3000/chantier/${id}/archive`, {});
+  }
+
+  unarchiveChantier(id: number) {
+    return this.http.patch<Chantier>(`http://localhost:3000/chantier/${id}/unarchive`, {});
   }
 
   getTypesChantier() {
