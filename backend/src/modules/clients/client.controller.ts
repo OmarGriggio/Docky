@@ -9,7 +9,7 @@ export const getClients = async (req: Request, res: Response) => {
 };
 
 export const getClient = async (req: Request, res: Response) => {
-  const client = await getClientByIdServ(Number(req.params.id));
+  const client = await getClientByIdServ(Number(req.params.id), req.user.id_entreprise);
   res.json(client);
 };
 
@@ -24,6 +24,6 @@ export const createClient = async (req: Request, res: Response) => {
 export const deleteClient = async (req: Request, res: Response) => {
   const { num_client } = req.body
 
-  const clientDeleted = await deleteClientServ(num_client)
+  const clientDeleted = await deleteClientServ(num_client, req.user.id_entreprise)
   res.json(clientDeleted)
 }

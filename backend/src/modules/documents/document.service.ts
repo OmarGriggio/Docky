@@ -21,8 +21,8 @@ export const addDocumentServ = async (documentData: Omit<Document, "id" | "id_en
     throw new Error("Document number already exists");
   }
 
-  const client = await getClientByIdFromDB(documentData.id_client);
-  if (!client || client.id_entreprise !== id_entreprise) {
+  const client = await getClientByIdFromDB(documentData.id_client, id_entreprise);
+  if (!client) {
     throw new Error("Client not found");
   }
 

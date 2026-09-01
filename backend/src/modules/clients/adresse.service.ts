@@ -7,8 +7,8 @@ export const getAllAdressesServ = async (id_entreprise: number) => {
 };
 
 export const addAdresseServ = async (adresseData: Omit<Adresse, "id" | "id_entreprise">, id_entreprise: number) => {
-  const client = await getClientByIdFromDB(adresseData.id_client);
-  if (!client || client.id_entreprise !== id_entreprise) {
+  const client = await getClientByIdFromDB(adresseData.id_client, id_entreprise);
+  if (!client) {
     throw new Error("Client not found");
   }
   return await createAdresseInDB({ ...adresseData, id_entreprise });

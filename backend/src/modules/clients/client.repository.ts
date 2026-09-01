@@ -6,13 +6,21 @@ export const getClientsFromDB = async (id_entreprise: number) => {
   return result.rows;
 };
 
-export const getClientByIdFromDB = async (id: number) => {
-  const result = await pool.query("SELECT * FROM clients where id = $1", [id]);
+export const getClientByIdFromDB = async (id: number, id_entreprise: number) => {
+  const result = await pool.query("SELECT * FROM clients where id = $1 AND id_entreprise = $2", [id, id_entreprise]);
   return result.rows[0] ?? null;
 };
 
 export const getClientByNumClient = async (num_client: string) => {
   const result = await pool.query("SELECT * FROM clients where num_client = $1", [num_client]);
+  return result.rows[0] ?? null;
+};
+
+export const getClientByNumClientForEntreprise = async (num_client: string, id_entreprise: number) => {
+  const result = await pool.query(
+    "SELECT * FROM clients where num_client = $1 AND id_entreprise = $2",
+    [num_client, id_entreprise]
+  );
   return result.rows[0] ?? null;
 };
 
@@ -62,14 +70,15 @@ export const createClientInDB = async (
 };
 
 export const deleteClientInDB = async (
-    num_client: string
+    num_client: string,
+    id_entreprise: number
 ): Promise<Client> => {
     const query = `
     DELETE FROM clients
-      WHERE num_client = $1
+      WHERE num_client = $1 AND id_entreprise = $2
     RETURNING *;
   `;
 
-    const result = await pool.query(query, [num_client]);
+    const result = await pool.query(query, [num_client, id_entreprise]);
     return result.rows[0];
 };
