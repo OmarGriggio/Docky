@@ -1,9 +1,10 @@
 import { Request, Response } from "express";
-import { addFournisseurServ, deleteFournisseurServ, getAllFournisseursServ } from "./fournisseur.service";
+import { addFournisseurServ, archiveFournisseurServ, unarchiveFournisseurServ, getAllFournisseursServ } from "./fournisseur.service";
 import { Fournisseur } from "./fournisseur.types";
 
 export const getFournisseur = async (req: Request, res: Response) => {
-  const fournisseurs = await getAllFournisseursServ(req.user.id_entreprise);
+  const includeArchived = req.query.includeArchived === "true";
+  const fournisseurs = await getAllFournisseursServ(req.user.id_entreprise, includeArchived);
   res.json(fournisseurs);
 };
 
@@ -14,9 +15,12 @@ export const createFournisseur = async (req: Request, res: Response) => {
   res.json(fournisseurCreated);
 };
 
-export const deleteFournisseur = async (req: Request, res: Response) => {
-  const { code_fournisseur } = req.body;
+export const archiveFournisseur = async (req: Request, res: Response) => {
+  const fournisseurArchived = await archiveFournisseurServ(Number(req.params.id), req.user.id_entreprise);
+  res.json(fournisseurArchived);
+};
 
-  const fournisseurDeleted = await deleteFournisseurServ(code_fournisseur, req.user.id_entreprise);
-  res.json(fournisseurDeleted);
+export const unarchiveFournisseur = async (req: Request, res: Response) => {
+  const fournisseurUnarchived = await unarchiveFournisseurServ(Number(req.params.id), req.user.id_entreprise);
+  res.json(fournisseurUnarchived);
 };
