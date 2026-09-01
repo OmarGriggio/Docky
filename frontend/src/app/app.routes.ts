@@ -1,31 +1,19 @@
 import { Routes } from '@angular/router';
-import { ClientListComponent } from './features/clients/client-list/client-list';
-import { ClientDetail } from './features/clients/client-detail/client-detail';
-import { FournisseurListComponent } from './features/fournisseurs/fournisseur-list/fournisseur-list';
-import { DocumentListComponent } from './features/documents/document-list/document-list';
-import { RessourceListComponent } from './features/ressources/ressource-list/ressource-list';
-import { UiTest } from './features/uitest/uitest';
-import { Login } from './features/auth/login/login';
-import { Register } from './features/auth/register/register';
 import { roleGuard } from './features/auth/role.guard';
 import { authGuard } from './features/auth/auth.guard';
-import { UserListComponent } from './features/admin/user-list/user-list';
-import { UserForm } from './features/admin/user-form/user-form';
-import { ChantierListComponent } from './features/chantiers/chantier-list/chantier-list';
-import { Profile } from './features/profile/profile';
 
 export const routes: Routes = [
   {
     path: 'login',
-    component: Login
+    loadComponent: () => import('./features/auth/login/login').then(m => m.Login)
   },
   {
     path: 'register',
-    component: Register
+    loadComponent: () => import('./features/auth/register/register').then(m => m.Register)
   },
   {
     path: 'uitest',
-    component: UiTest,
+    loadComponent: () => import('./features/uitest/uitest').then(m => m.UiTest),
     canActivate: [authGuard, roleGuard],
     data: {
       roles: ['ADMIN']
@@ -33,42 +21,42 @@ export const routes: Routes = [
   },
   {
     path: 'clients',
-    component: ClientListComponent,
+    loadComponent: () => import('./features/clients/client-list/client-list').then(m => m.ClientListComponent),
     canActivate: [authGuard]
   },
   {
     path: 'clients/:id',
-    component: ClientDetail,
+    loadComponent: () => import('./features/clients/client-detail/client-detail').then(m => m.ClientDetail),
     canActivate: [authGuard]
   },
   {
     path: 'fournisseurs',
-    component: FournisseurListComponent,
+    loadComponent: () => import('./features/fournisseurs/fournisseur-list/fournisseur-list').then(m => m.FournisseurListComponent),
     canActivate: [authGuard]
   },
   {
     path: 'documents',
-    component: DocumentListComponent,
+    loadComponent: () => import('./features/documents/document-list/document-list').then(m => m.DocumentListComponent),
     canActivate: [authGuard]
   },
   {
     path: 'ressources',
-    component: RessourceListComponent,
+    loadComponent: () => import('./features/ressources/ressource-list/ressource-list').then(m => m.RessourceListComponent),
     canActivate: [authGuard]
   },
   {
     path: 'chantiers',
-    component: ChantierListComponent,
+    loadComponent: () => import('./features/chantiers/chantier-list/chantier-list').then(m => m.ChantierListComponent),
     canActivate: [authGuard]
   },
   {
     path: 'profile',
-    component: Profile,
+    loadComponent: () => import('./features/profile/profile').then(m => m.Profile),
     canActivate: [authGuard]
   },
   {
     path: 'admin/users',
-    component: UserListComponent,
+    loadComponent: () => import('./features/admin/user-list/user-list').then(m => m.UserListComponent),
     canActivate: [authGuard, roleGuard],
     data: {
       roles: ['ADMIN']
@@ -76,7 +64,7 @@ export const routes: Routes = [
   },
   {
     path: 'admin/users/new',
-    component: UserForm,
+    loadComponent: () => import('./features/admin/user-form/user-form').then(m => m.UserForm),
     canActivate: [authGuard, roleGuard],
     data: {
       roles: ['ADMIN']
