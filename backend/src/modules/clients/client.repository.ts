@@ -1,8 +1,11 @@
 import { pool } from "../../shared/config/database";
 import {Client} from "./client.types"
 
-export const getClientsFromDB = async (id_entreprise: number) => {
-  const result = await pool.query("SELECT * FROM clients where id_entreprise = $1", [id_entreprise]);
+export const getClientsFromDB = async (id_entreprise: number, includeArchived = false) => {
+  const query = includeArchived
+    ? "SELECT * FROM clients where id_entreprise = $1"
+    : "SELECT * FROM clients where id_entreprise = $1 AND actif = true";
+  const result = await pool.query(query, [id_entreprise]);
   return result.rows;
 };
 
@@ -16,13 +19,6 @@ export const getClientByNumClient = async (num_client: string) => {
   return result.rows[0] ?? null;
 };
 
-export const getClientByNumClientForEntreprise = async (num_client: string, id_entreprise: number) => {
-  const result = await pool.query(
-    "SELECT * FROM clients where num_client = $1 AND id_entreprise = $2",
-    [num_client, id_entreprise]
-  );
-  return result.rows[0] ?? null;
-};
 
 export const getClientByEmail = async (email: string) => {
   const result = await pool.query("SELECT * FROM clients where email = $1", [email]);
@@ -69,16 +65,30 @@ export const createClientInDB = async (
     return result.rows[0];
 };
 
-export const deleteClientInDB = async (
-    num_client: string,
+export const archiveClientInDB = async (
+    id: number,
     id_entreprise: number
 ): Promise<Client> => {
     const query = `
-    DELETE FROM clients
-      WHERE num_client = $1 AND id_entreprise = $2
+    UPDATE clients SET actif = false
+      WHERE id = $1 AND id_entreprise = $2
     RETURNING *;
   `;
 
-    const result = await pool.query(query, [num_client, id_entreprise]);
+    const result = await pool.query(query, [id, id_entreprise]);
+    return result.rows[0];
+};
+
+export const unarchiveClientInDB = async (
+    id: number,
+    id_entreprise: number
+): Promise<Client> => {
+    const query = `
+    UPDATE clients SET actif = true
+      WHERE id = $1 AND id_entreprise = $2
+    RETURNING *;
+  `;
+
+    const result = await pool.query(query, [id, id_entreprise]);
     return result.rows[0];
 };

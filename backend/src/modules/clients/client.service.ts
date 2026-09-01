@@ -1,10 +1,10 @@
 import {Client, ClientWithAdresses} from "./client.types"
-import { createClientInDB, deleteClientInDB, getClientByIdFromDB, getClientByEmail, getClientByNumClient, getClientByNumClientForEntreprise, getClientsFromDB } from "./client.repository";
+import { createClientInDB, archiveClientInDB, unarchiveClientInDB, getClientByIdFromDB, getClientByEmail, getClientByNumClient, getClientsFromDB } from "./client.repository";
 import { getAdressesByClientIdFromDB } from "./adresse.repository";
 import { NotFoundError, ConflictError } from "../../shared/types/errors";
 
-export const getAllClientsServ = async (id_entreprise: number) => {
-  return await getClientsFromDB(id_entreprise);
+export const getAllClientsServ = async (id_entreprise: number, includeArchived = false) => {
+  return await getClientsFromDB(id_entreprise, includeArchived);
 };
 
 export const getClientByIdServ = async (id: number, id_entreprise: number): Promise<ClientWithAdresses> => {
@@ -34,12 +34,18 @@ export const addClientServ = async (clientData: Omit<Client, "id" | "id_entrepri
   }
 }
 
-export const deleteClientServ = async (num_client: string, id_entreprise: number) => {
-  const client = await getClientByNumClientForEntreprise(num_client, id_entreprise);
-  if (client){
-    return await deleteClientInDB(num_client, id_entreprise) ;
-  } else {
+export const archiveClientServ = async (id: number, id_entreprise: number) => {
+  const client = await getClientByIdFromDB(id, id_entreprise);
+  if (!client) {
     throw new NotFoundError("Client not found");
   }
+  return await archiveClientInDB(id, id_entreprise);
+}
 
+export const unarchiveClientServ = async (id: number, id_entreprise: number) => {
+  const client = await getClientByIdFromDB(id, id_entreprise);
+  if (!client) {
+    throw new NotFoundError("Client not found");
+  }
+  return await unarchiveClientInDB(id, id_entreprise);
 }

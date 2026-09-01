@@ -17,6 +17,7 @@ export interface Client {
   email: string;
   telephone: string | null;
   remarque: string | null;
+  actif: boolean;
 }
 
 export interface ClientWithAdresses extends Client {

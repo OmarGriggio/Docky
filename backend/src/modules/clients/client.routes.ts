@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createClient, deleteClient, getClient, getClients } from "./client.controller";
+import { createClient, archiveClient, unarchiveClient, getClient, getClients } from "./client.controller";
 import { authenticate } from "../../shared/middlewares/auth.middleware";
 
 const router = Router();
@@ -12,6 +12,8 @@ router.get("/:id", getClient);
 
 router.post("/", createClient);
 
-router.delete("/", deleteClient);
+router.patch("/:id/archive", archiveClient);
+
+router.patch("/:id/unarchive", unarchiveClient);
 
 export default router;
