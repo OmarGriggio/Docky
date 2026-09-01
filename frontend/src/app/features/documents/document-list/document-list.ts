@@ -41,7 +41,13 @@ export class DocumentListComponent implements OnInit {
   }
 
   openFacturePdf(document: Document): void {
-    window.open(`http://localhost:3000/pdf/facture/${document.id}`, '_blank');
+    this.documentService.getFacturePdf(document.id).subscribe({
+      next: blob => {
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, '_blank');
+      },
+      error: err => console.error('document-list : ' + err)
+    });
   }
 
 }

@@ -18,4 +18,8 @@ export class DocumentService {
   createDocument(document: Omit<Document, 'id'>) {
     return this.http.post<Document>('http://localhost:3000/document', document);
   }
+
+  getFacturePdf(id: number) {
+    return this.http.get(`http://localhost:3000/pdf/facture/${id}`, { responseType: 'blob' });
+  }
 }
