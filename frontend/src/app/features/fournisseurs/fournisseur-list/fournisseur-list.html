@@ -1,5 +1,9 @@
 <div class="fournisseur-list-header">
   <h1>Fournisseurs</h1>
+  <label>
+    <p-checkbox [binary]="true" [ngModel]="showArchived()" (ngModelChange)="onShowArchivedChange($event)" />
+    Afficher les archivés
+  </label>
   <p-button label="Ajouter" icon="pi pi-plus" (onClick)="createDialogVisible.set(true)" />
 </div>
 
@@ -38,3 +42,10 @@
     </tr>
   </ng-template>
 </p-table>
+
+<app-confirm-dialog
+  [(visible)]="confirmVisible"
+  title="Archivage"
+  [message]="confirmMessage()"
+  (confirmed)="onArchiveConfirmed()"
+/>

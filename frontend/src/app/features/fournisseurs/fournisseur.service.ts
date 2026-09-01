@@ -9,16 +9,22 @@ export class FournisseurService {
 
   private http = inject(HttpClient);
 
-  getFournisseurs() {
-    return this.http.get<Fournisseur[]>('http://localhost:3000/fournisseur');
+  getFournisseurs(includeArchived = false) {
+    return this.http.get<Fournisseur[]>('http://localhost:3000/fournisseur', {
+      params: includeArchived ? { includeArchived: 'true' } : {}
+    });
   }
 
-  createFournisseur(fournisseur: Omit<Fournisseur, 'id'>) {
+  createFournisseur(fournisseur: Omit<Fournisseur, 'id' | 'actif'>) {
     return this.http.post<Fournisseur>('http://localhost:3000/fournisseur', fournisseur);
   }
 
-  deleteFournisseur(code_fournisseur: string) {
-    return this.http.delete<Fournisseur>('http://localhost:3000/fournisseur', { body: { code_fournisseur } });
+  archiveFournisseur(id: number) {
+    return this.http.patch<Fournisseur>(`http://localhost:3000/fournisseur/${id}/archive`, {});
+  }
+
+  unarchiveFournisseur(id: number) {
+    return this.http.patch<Fournisseur>(`http://localhost:3000/fournisseur/${id}/unarchive`, {});
   }
 
 }

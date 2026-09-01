@@ -1,17 +1,20 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { Menu } from 'primeng/menu';
 import { Dialog } from 'primeng/dialog';
+import { Checkbox } from 'primeng/checkbox';
 import { Button } from 'primeng/button';
 import { MenuItem } from 'primeng/api';
 import { FournisseurService } from '../fournisseur.service';
 import { Fournisseur } from '../../../shared/models/fournisseur';
 import { FournisseurForm } from '../fournisseur-form/fournisseur-form';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 
 @Component({
   selector: 'app-fournisseur-list',
   standalone: true,
-  imports: [TableModule, Menu, Dialog, Button, FournisseurForm],
+  imports: [TableModule, Menu, Dialog, Checkbox, FormsModule, Button, FournisseurForm, ConfirmDialogComponent],
   templateUrl: './fournisseur-list.html',
   styleUrl: './fournisseur-list.css'
 })
@@ -20,15 +23,21 @@ export class FournisseurListComponent implements OnInit {
   private fournisseurService = inject(FournisseurService);
 
   fournisseurs = signal<Fournisseur[]>([]);
+  showArchived = signal(false);
 
   createDialogVisible = signal(false);
+
+  confirmVisible = signal(false);
+  confirmMessage = signal('');
+
+  private fournisseurPendingArchive: Fournisseur | null = null;
 
   ngOnInit(): void {
     this.loadFournisseurs();
   }
 
   private loadFournisseurs(): void {
-    this.fournisseurService.getFournisseurs().subscribe({
+    this.fournisseurService.getFournisseurs(this.showArchived()).subscribe({
       next: data => {
         this.fournisseurs.set(data);
       },
@@ -38,6 +47,11 @@ export class FournisseurListComponent implements OnInit {
     });
   }
 
+  onShowArchivedChange(value: boolean): void {
+    this.showArchived.set(value);
+    this.loadFournisseurs();
+  }
+
   onFournisseurSaved(): void {
     this.createDialogVisible.set(false);
     this.loadFournisseurs();
@@ -45,20 +59,37 @@ export class FournisseurListComponent implements OnInit {
 
   getActions(fournisseur: Fournisseur): MenuItem[] {
     return [
-      {
-        label: 'Supprimer',
-        icon: 'pi pi-trash',
-        command: () => this.deleteFournisseur(fournisseur)
-      }
+      fournisseur.actif
+        ? { label: 'Archiver', icon: 'pi pi-trash', command: () => this.archiveFournisseur(fournisseur) }
+        : { label: 'Restaurer', icon: 'pi pi-refresh', command: () => this.unarchiveFournisseur(fournisseur) }
     ];
   }
 
-  private deleteFournisseur(fournisseur: Fournisseur): void {
-    if (!confirm(`Supprimer le fournisseur ${fournisseur.code_fournisseur} ?`)) {
+  private archiveFournisseur(fournisseur: Fournisseur): void {
+    this.fournisseurPendingArchive = fournisseur;
+    this.confirmMessage.set(`Archiver le fournisseur ${fournisseur.code_fournisseur} ?`);
+    this.confirmVisible.set(true);
+  }
+
+  onArchiveConfirmed(): void {
+    const fournisseur = this.fournisseurPendingArchive;
+    if (!fournisseur) {
       return;
     }
+    this.fournisseurPendingArchive = null;
 
-    this.fournisseurService.deleteFournisseur(fournisseur.code_fournisseur).subscribe({
+    this.fournisseurService.archiveFournisseur(fournisseur.id).subscribe({
+      next: () => {
+        this.loadFournisseurs();
+      },
+      error: err => {
+        console.error('fournisseur-list : ' + err);
+      }
+    });
+  }
+
+  private unarchiveFournisseur(fournisseur: Fournisseur): void {
+    this.fournisseurService.unarchiveFournisseur(fournisseur.id).subscribe({
       next: () => {
         this.loadFournisseurs();
       },

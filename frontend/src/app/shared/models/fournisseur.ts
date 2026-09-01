@@ -4,4 +4,5 @@ export interface Fournisseur {
   societe: string;
   adresse: string;
   categorie: string;
+  actif: boolean;
 }
