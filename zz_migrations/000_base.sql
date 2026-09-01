@@ -59,6 +59,7 @@ CREATE TABLE clients (
     email VARCHAR(255),
     telephone VARCHAR(50),
     remarque VARCHAR(3000),
+    actif BOOLEAN DEFAULT TRUE,
 
     FOREIGN KEY (id_entreprise)
         REFERENCES entreprises(id)
@@ -103,6 +104,7 @@ CREATE TABLE chantiers (
     ville VARCHAR(100),
     pays VARCHAR(100),
     date_creation TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    actif BOOLEAN DEFAULT TRUE,
 
     FOREIGN KEY (id_client)
         REFERENCES clients(id),
@@ -121,6 +123,7 @@ CREATE TABLE fournisseurs (
     societe VARCHAR(255),
     adresse TEXT,
     categorie VARCHAR(100),
+    actif BOOLEAN DEFAULT TRUE,
 
     FOREIGN KEY (id_entreprise)
         REFERENCES entreprises(id)
@@ -190,6 +193,7 @@ CREATE TABLE documents (
     statut VARCHAR(50),
     introduction TEXT,
     conclusion TEXT,
+    actif BOOLEAN DEFAULT TRUE,
 
     FOREIGN KEY (id_client)
         REFERENCES clients(id),
