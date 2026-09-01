@@ -19,7 +19,6 @@ export interface ChantierWithType extends Omit<Chantier, "id_type_chantier"> {
 
 export interface CreateChantierData {
   id_client: number;
-  id_entreprise: number;
   id_type_chantier: number;
   nom: string;
   remarque?: string | null;

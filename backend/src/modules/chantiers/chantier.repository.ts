@@ -1,7 +1,7 @@
 import { pool } from "../../shared/config/database";
 import { Chantier, ChantierWithType, CreateChantierData } from "./chantier.types";
 
-export const getChantiersFromDB = async (): Promise<ChantierWithType[]> => {
+export const getChantiersFromDB = async (id_entreprise: number): Promise<ChantierWithType[]> => {
   const query = `
     SELECT
       c.id,
@@ -17,19 +17,23 @@ export const getChantiersFromDB = async (): Promise<ChantierWithType[]> => {
       c.date_creation
     FROM chantiers c
     JOIN types_chantier tc ON tc.id = c.id_type_chantier
+    WHERE c.id_entreprise = $1
   `;
 
-  const result = await pool.query(query);
+  const result = await pool.query(query, [id_entreprise]);
   return result.rows;
 };
 
-export const getChantierByIdFromDB = async (id: number) => {
-  const result = await pool.query("SELECT * FROM chantiers WHERE id = $1", [id]);
+export const getChantierByIdFromDB = async (id: number, id_entreprise: number) => {
+  const result = await pool.query(
+    "SELECT * FROM chantiers WHERE id = $1 AND id_entreprise = $2",
+    [id, id_entreprise]
+  );
   return result.rows[0] ?? null;
 };
 
 export const createChantierInDB = async (
-  chantier: CreateChantierData
+  chantier: CreateChantierData & { id_entreprise: number }
 ): Promise<Chantier> => {
   const query = `
     INSERT INTO chantiers (
@@ -66,14 +70,15 @@ export const createChantierInDB = async (
 };
 
 export const deleteChantierInDB = async (
-  id: number
+  id: number,
+  id_entreprise: number
 ): Promise<Chantier> => {
   const query = `
     DELETE FROM chantiers
-      WHERE id = $1
+      WHERE id = $1 AND id_entreprise = $2
     RETURNING *;
   `;
 
-  const result = await pool.query(query, [id]);
+  const result = await pool.query(query, [id, id_entreprise]);
   return result.rows[0];
 };
