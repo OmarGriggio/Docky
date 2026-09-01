@@ -1,6 +1,7 @@
 import { createEntrepriseInDB } from "../entreprises/entreprise.repository";
 import { createUserDB, getUserByEmail, getUserByIdForEntreprise, getUsersFromDB, deleteUserDB } from "./user.repository";
 import { CreateUserData } from "./user.types";
+import { NotFoundError, ConflictError } from "../../shared/types/errors";
 import bcrypt from "bcrypt";
 
 export const getAllUsers = async (id_entreprise: number) => {
@@ -10,7 +11,7 @@ export const getAllUsers = async (id_entreprise: number) => {
 export const deleteUserService = async (id: Number, id_entreprise: number) => {
   const user = await getUserByIdForEntreprise(id, id_entreprise);
   if (!user) {
-    throw new Error("User not found");
+    throw new NotFoundError("User not found");
   }
   return await deleteUserDB(id, id_entreprise);
 };
@@ -22,6 +23,6 @@ export const createUserService = async (userData: CreateUserData) => {
     userData.passwordHash = await bcrypt.hash(userData.passwordHash, 10);
     return await createUserDB(userData);
   } else {
-    throw new Error("Email already exists");
+    throw new ConflictError("Email already exists");
   }
 };

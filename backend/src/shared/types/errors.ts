@@ -1,5 +1,23 @@
-export class UnauthorizedError extends Error {
-    constructor() {
-        super("Invalid credentials");
+export class AppError extends Error {
+    constructor(message: string, public statusCode: number) {
+        super(message);
+    }
+}
+
+export class NotFoundError extends AppError {
+    constructor(message = "Not found") {
+        super(message, 404);
+    }
+}
+
+export class ConflictError extends AppError {
+    constructor(message = "Conflict") {
+        super(message, 409);
+    }
+}
+
+export class UnauthorizedError extends AppError {
+    constructor(message = "Invalid credentials") {
+        super(message, 401);
     }
 }

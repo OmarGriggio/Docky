@@ -1,6 +1,7 @@
 import {Client, ClientWithAdresses} from "./client.types"
 import { createClientInDB, deleteClientInDB, getClientByIdFromDB, getClientByEmail, getClientByNumClient, getClientByNumClientForEntreprise, getClientsFromDB } from "./client.repository";
 import { getAdressesByClientIdFromDB } from "./adresse.repository";
+import { NotFoundError, ConflictError } from "../../shared/types/errors";
 
 export const getAllClientsServ = async (id_entreprise: number) => {
   return await getClientsFromDB(id_entreprise);
@@ -9,7 +10,7 @@ export const getAllClientsServ = async (id_entreprise: number) => {
 export const getClientByIdServ = async (id: number, id_entreprise: number): Promise<ClientWithAdresses> => {
   const client = await getClientByIdFromDB(id, id_entreprise);
   if (!client) {
-    throw new Error("Client not found");
+    throw new NotFoundError("Client not found");
   }
 
   const adresses = await getAdressesByClientIdFromDB(id);
@@ -24,12 +25,12 @@ export const addClientServ = async (clientData: Omit<Client, "id" | "id_entrepri
       if (!clientMail) {
         return await createClientInDB({ ...clientData, id_entreprise });
       } else {
-        throw new Error("Client email already exists");
+        throw new ConflictError("Client email already exists");
       }
     }
     return await createClientInDB({ ...clientData, id_entreprise });
   } else {
-    throw new Error("Client num_client already exists");
+    throw new ConflictError("Client num_client already exists");
   }
 }
 
@@ -38,7 +39,7 @@ export const deleteClientServ = async (num_client: string, id_entreprise: number
   if (client){
     return await deleteClientInDB(num_client, id_entreprise) ;
   } else {
-    throw new Error("Client not found");
+    throw new NotFoundError("Client not found");
   }
 
 }

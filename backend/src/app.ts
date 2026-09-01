@@ -1,5 +1,6 @@
-import express from "express";
+import express, { NextFunction, Request, Response } from "express";
 import path from "path";
+import { AppError } from "./shared/types/errors";
 import clientRoutes from "./modules/clients/client.routes";
 import adresseRoutes from "./modules/clients/adresse.routes";
 import userRoutes from "./modules/utilisateurs/user.routes";
@@ -49,6 +50,20 @@ app.use("/pdf", pdfRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is running");
+});
+
+// Central error handler: business errors (NotFoundError, ConflictError,
+// UnauthorizedError, ...) map to their own status code, anything else is an
+// unexpected bug and stays a 500. Express 5 forwards rejected promises from
+// async route handlers here automatically, so no try/catch is needed in
+// controllers/services — just `throw new NotFoundError(...)` etc.
+app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
+  if (err instanceof AppError) {
+    res.status(err.statusCode).json({ message: err.message });
+    return;
+  }
+  console.error(err);
+  res.status(500).json({ message: "Internal server error" });
 });
 
 export default app;
