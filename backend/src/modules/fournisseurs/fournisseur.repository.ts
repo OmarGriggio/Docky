@@ -11,16 +11,25 @@ export const getFournisseurByCode = async (code: string) => {
   return result.rows[0] ?? null;
 };
 
+export const getFournisseurByCodeForEntreprise = async (code: string, id_entreprise: number) => {
+  const result = await pool.query(
+    "SELECT * FROM fournisseurs WHERE code_fournisseur = $1 AND id_entreprise = $2",
+    [code, id_entreprise]
+  );
+  return result.rows[0] ?? null;
+};
+
 export const deleteFournisseurInDB = async (
-  code_fournisseur: string
+  code_fournisseur: string,
+  id_entreprise: number
 ): Promise<Fournisseur> => {
   const query = `
     DELETE FROM fournisseurs
-      WHERE code_fournisseur = $1
+      WHERE code_fournisseur = $1 AND id_entreprise = $2
     RETURNING *;
   `;
 
-  const result = await pool.query(query, [code_fournisseur]);
+  const result = await pool.query(query, [code_fournisseur, id_entreprise]);
   return result.rows[0];
 };
 

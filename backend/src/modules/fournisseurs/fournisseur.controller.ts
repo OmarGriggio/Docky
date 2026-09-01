@@ -17,6 +17,6 @@ export const createFournisseur = async (req: Request, res: Response) => {
 export const deleteFournisseur = async (req: Request, res: Response) => {
   const { code_fournisseur } = req.body;
 
-  const fournisseurDeleted = await deleteFournisseurServ(code_fournisseur);
+  const fournisseurDeleted = await deleteFournisseurServ(code_fournisseur, req.user.id_entreprise);
   res.json(fournisseurDeleted);
 };
