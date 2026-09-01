@@ -11,6 +11,7 @@ export interface Chantier {
   ville: string | null;
   pays: string | null;
   date_creation: Date;
+  actif: boolean;
 }
 
 export interface ChantierWithType extends Omit<Chantier, "id_type_chantier"> {

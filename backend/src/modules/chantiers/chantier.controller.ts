@@ -1,9 +1,10 @@
 import { Request, Response } from "express";
-import { addChantierServ, deleteChantierServ, getAllChantiersServ } from "./chantier.service";
+import { addChantierServ, archiveChantierServ, unarchiveChantierServ, getAllChantiersServ } from "./chantier.service";
 import { CreateChantierData } from "./chantier.types";
 
 export const getChantiers = async (req: Request, res: Response) => {
-  const chantiers = await getAllChantiersServ(req.user.id_entreprise);
+  const includeArchived = req.query.includeArchived === "true";
+  const chantiers = await getAllChantiersServ(req.user.id_entreprise, includeArchived);
   res.json(chantiers);
 };
 
@@ -14,9 +15,16 @@ export const createChantier = async (req: Request, res: Response) => {
   res.json(chantierCreated);
 };
 
-export const deleteChantier = async (req: Request, res: Response) => {
+export const archiveChantier = async (req: Request, res: Response) => {
   const id = Number(req.params.id);
 
-  const chantierDeleted = await deleteChantierServ(id, req.user.id_entreprise);
-  res.json(chantierDeleted);
+  const chantierArchived = await archiveChantierServ(id, req.user.id_entreprise);
+  res.json(chantierArchived);
+};
+
+export const unarchiveChantier = async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+
+  const chantierUnarchived = await unarchiveChantierServ(id, req.user.id_entreprise);
+  res.json(chantierUnarchived);
 };

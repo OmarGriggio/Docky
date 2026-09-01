@@ -1,7 +1,7 @@
 import { pool } from "../../shared/config/database";
 import { Chantier, ChantierWithType, CreateChantierData } from "./chantier.types";
 
-export const getChantiersFromDB = async (id_entreprise: number): Promise<ChantierWithType[]> => {
+export const getChantiersFromDB = async (id_entreprise: number, includeArchived = false): Promise<ChantierWithType[]> => {
   const query = `
     SELECT
       c.id,
@@ -14,10 +14,12 @@ export const getChantiersFromDB = async (id_entreprise: number): Promise<Chantie
       c.npa,
       c.ville,
       c.pays,
-      c.date_creation
+      c.date_creation,
+      c.actif
     FROM chantiers c
     JOIN types_chantier tc ON tc.id = c.id_type_chantier
     WHERE c.id_entreprise = $1
+    ${includeArchived ? "" : "AND c.actif = true"}
   `;
 
   const result = await pool.query(query, [id_entreprise]);
@@ -69,12 +71,26 @@ export const createChantierInDB = async (
   return result.rows[0];
 };
 
-export const deleteChantierInDB = async (
+export const archiveChantierInDB = async (
   id: number,
   id_entreprise: number
 ): Promise<Chantier> => {
   const query = `
-    DELETE FROM chantiers
+    UPDATE chantiers SET actif = false
+      WHERE id = $1 AND id_entreprise = $2
+    RETURNING *;
+  `;
+
+  const result = await pool.query(query, [id, id_entreprise]);
+  return result.rows[0];
+};
+
+export const unarchiveChantierInDB = async (
+  id: number,
+  id_entreprise: number
+): Promise<Chantier> => {
+  const query = `
+    UPDATE chantiers SET actif = true
       WHERE id = $1 AND id_entreprise = $2
     RETURNING *;
   `;
