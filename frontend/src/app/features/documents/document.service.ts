@@ -1,6 +1,9 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Document, DocumentType } from '../../shared/models/document';
+import { environment } from '../../../environments/environment';
+
+const API_BASE = environment.apiUrl;
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +13,7 @@ export class DocumentService {
   private http = inject(HttpClient);
 
   getDocuments(type?: DocumentType, includeArchived = false) {
-    return this.http.get<Document[]>('http://localhost:3000/document', {
+    return this.http.get<Document[]>(`${API_BASE}/document`, {
       params: {
         ...(type ? { type } : {}),
         ...(includeArchived ? { includeArchived: 'true' } : {})
@@ -19,18 +22,18 @@ export class DocumentService {
   }
 
   createDocument(document: Omit<Document, 'id'>) {
-    return this.http.post<Document>('http://localhost:3000/document', document);
+    return this.http.post<Document>(`${API_BASE}/document`, document);
   }
 
   archiveDocument(id: number) {
-    return this.http.patch<Document>(`http://localhost:3000/document/${id}/archive`, {});
+    return this.http.patch<Document>(`${API_BASE}/document/${id}/archive`, {});
   }
 
   unarchiveDocument(id: number) {
-    return this.http.patch<Document>(`http://localhost:3000/document/${id}/unarchive`, {});
+    return this.http.patch<Document>(`${API_BASE}/document/${id}/unarchive`, {});
   }
 
   getFacturePdf(id: number) {
-    return this.http.get(`http://localhost:3000/pdf/facture/${id}`, { responseType: 'blob' });
+    return this.http.get(`${API_BASE}/pdf/facture/${id}`, { responseType: 'blob' });
   }
 }

@@ -1,8 +1,9 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Entreprise } from '../../shared/models/entreprise';
+import { environment } from '../../../environments/environment';
 
-const API_BASE = 'http://localhost:3000';
+const API_BASE = environment.apiUrl;
 
 @Injectable({
   providedIn: 'root'

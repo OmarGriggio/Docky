@@ -4,7 +4,9 @@ import { switchMap, tap } from 'rxjs';
 import { AuthResponse, LoginPayload, RegisterPayload, UserRole } from '../../shared/models/auth';
 import { Entreprise } from '../../shared/models/entreprise';
 import { User } from '../../shared/models/user';
+import { environment } from '../../../environments/environment';
 
+const API_BASE = environment.apiUrl;
 const TOKEN_KEY = 'docky_token';
 
 interface TokenPayload {
@@ -51,7 +53,7 @@ export class AuthService {
   }
 
   login(payload: LoginPayload) {
-    return this.http.post<AuthResponse>('http://localhost:3000/auth/login', {
+    return this.http.post<AuthResponse>(`${API_BASE}/auth/login`, {
       email: payload.email,
       passwordHash: payload.password,
     }).pipe(
@@ -72,9 +74,9 @@ export class AuthService {
       logo: null,
     };
 
-    return this.http.post<Entreprise>('http://localhost:3000/entreprise', entreprise).pipe(
+    return this.http.post<Entreprise>(`${API_BASE}/entreprise`, entreprise).pipe(
       switchMap(createdEntreprise =>
-        this.http.post<User>('http://localhost:3000/user', {
+        this.http.post<User>(`${API_BASE}/user`, {
           id_entreprise: createdEntreprise.id,
           firstname: payload.firstname,
           lastname: payload.lastname,
