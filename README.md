@@ -36,22 +36,23 @@ Three types of users are planned: **employees** (day-to-day usage), **company ad
 
 **Backend**
 - [x] Express + TypeScript API with a layered architecture (`controller` → `service` → `repository`)
-- [x] JWT-based authentication
+- [x] JWT-based authentication, with rate limiting on login
 - [x] CRUD endpoints for clients, suppliers, materials, material pricing, employee categories, invoices, invoice lines, and quotes ("offres")
 - [x] PostgreSQL access via raw SQL (no ORM, by design — see [zz_docs/Architecture.md](zz_docs/Architecture.md))
-- [ ] Role/permission enforcement (admin vs. employee vs. platform admin)
+- [x] Role/permission enforcement (`ADMIN` vs `UTILISATEUR` vs `ADMIN_PLATEFORME` — see [zz_docs/Décisions.md](zz_docs/Décisions.md))
+- [x] Multi-tenant data isolation between companies, and archive (soft-delete) instead of hard delete for business records
 - [ ] Automated tests
 - [ ] Database migrations (schema is currently created manually)
 
 **Frontend**
-- [x] Angular app skeleton with routing
-- [x] Client and supplier list/form features wired to the API
-- [ ] Invoice and quote screens
-- [ ] Authentication flow / login screen
+- [x] Angular app skeleton with routing (every route lazy-loaded)
+- [x] Client, supplier, chantier, document and material list/form features wired to the API, with archive/restore
+- [x] Authentication flow / login and registration screens
+- [ ] Invoice and quote creation screens (listing exists, creation doesn't yet)
 - [ ] Dashboard
 
 **Ops**
-- [ ] Docker Compose setup (planned, not implemented yet)
+- [x] Docker Compose setup for local dev; a separate, leaner production image (multi-stage `Dockerfile`, compiled, non-root) exists but isn't wired into a CI/CD pipeline yet
 - [ ] Deployment
 
 ## Tech stack
@@ -63,7 +64,7 @@ Three types of users are planned: **employees** (day-to-day usage), **company ad
 | Database         | PostgreSQL                    | Robust, relational, fits business/invoicing data well            |
 | Data access      | Raw SQL via a repository layer | Full control over queries, keeps the stack simple              |
 | Authentication   | JWT                           | Standard, stateless auth for a REST API                         |
-| Deployment (planned) | Docker Compose            | Reproducible environment                                       |
+| Deployment       | Docker Compose (dev) / multi-stage `Dockerfile` (prod image) | Reproducible environment; CI/CD pipeline still to come |
 
 ## Project structure
 
@@ -71,20 +72,20 @@ Three types of users are planned: **employees** (day-to-day usage), **company ad
 Docky/
 ├── backend/                  # Express + TypeScript REST API
 │   └── src/
-│       ├── controllers/      # HTTP request handling
-│       ├── services/         # Business logic
-│       ├── repositories/     # SQL queries / data access
-│       ├── middlewares/      # e.g. JWT auth guard
-│       ├── routes/
-│       ├── types/
-│       └── config/           # DB connection
+│       ├── modules/          # One folder per domain (clients, fournisseurs,
+│       │                     #   chantiers, documents, utilisateurs, entreprises,
+│       │                     #   catalogue...), each with its own
+│       │                     #   controller/service/repository/routes/types
+│       ├── pdf/               # PDF & Swiss QR-bill generation
+│       └── shared/
+│           ├── middlewares/   # auth, roles, rate limiting
+│           ├── types/         # typed HTTP errors
+│           └── config/        # DB connection
 ├── frontend/                  # Angular application
 │   └── src/app/
-│       ├── core/
-│       ├── shared/            # Shared models/services
-│       ├── features/          # Feature modules (clients, suppliers, invoices...)
-│       └── layout/
-└── docs/                      # Project specs & architecture decisions (French)
+│       ├── shared/             # Shared models/components
+│       └── features/           # Feature modules (clients, suppliers, invoices...)
+└── zz_docs/                    # Project specs, architecture & decisions log (French)
 ```
 
 ## Domain model
@@ -102,7 +103,7 @@ The core entities and how they relate:
 - **Ligne de facture / d'offre** (Invoice/quote line) — a material or a labor entry
 - **Catégorie d'employé** (Employee category) — defines hourly labor rates
 
-Full field-level definitions are in [docs/Définition des données.md](docs/Définition%20des%20données.md).
+Full field-level definitions are in [zz_docs/Définition des données.md](zz_docs/Définition%20des%20données.md).
 
 ## API overview
 
@@ -188,10 +189,11 @@ cp backend/.env.example backend/.env
 
 The `zz_docs/` folder (in French) contains the detailed specs this project is built from:
 
-- [Définition du projet.md](docs/Définition%20du%20projet.md) — problem statement, user types, user journeys
-- [Définition des données.md](docs/Définition%20des%20données.md) — entities, fields, relations
-- [Architecture.md](docs/Architecture.md) — architecture decisions and folder conventions
-- [zz_docs/note/](docs/note/) — personal notes taken while learning Express, npm, and setting up the dev environment
+- [Définition du projet.md](zz_docs/Définition%20du%20projet.md) — problem statement, user types, user journeys
+- [Définition des données.md](zz_docs/Définition%20des%20données.md) — entities, fields, relations
+- [Architecture.md](zz_docs/Architecture.md) — architecture decisions and folder conventions
+- [Décisions.md](zz_docs/Décisions.md) — trade-off log for choices that had more than one reasonable option, with what was picked and what was turned down, and why
+- [zz_docs/note/](zz_docs/note/) — personal notes taken while learning Express, npm, and setting up the dev environment
 
 ## Author
 
