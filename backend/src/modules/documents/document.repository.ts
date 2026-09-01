@@ -1,16 +1,19 @@
 import { pool } from "../../shared/config/database";
 import { Document } from "./document.types";
 
-export const getDocumentsFromDB = async (id_entreprise: number) => {
-  const result = await pool.query("SELECT * FROM documents WHERE id_entreprise = $1", [id_entreprise]);
+export const getDocumentsFromDB = async (id_entreprise: number, includeArchived = false) => {
+  const query = includeArchived
+    ? "SELECT * FROM documents WHERE id_entreprise = $1"
+    : "SELECT * FROM documents WHERE id_entreprise = $1 AND actif = true";
+  const result = await pool.query(query, [id_entreprise]);
   return result.rows;
 };
 
-export const getDocumentsByTypeFromDB = async (type: string, id_entreprise: number) => {
-  const result = await pool.query(
-    "SELECT * FROM documents WHERE type = $1 AND id_entreprise = $2",
-    [type, id_entreprise]
-  );
+export const getDocumentsByTypeFromDB = async (type: string, id_entreprise: number, includeArchived = false) => {
+  const query = includeArchived
+    ? "SELECT * FROM documents WHERE type = $1 AND id_entreprise = $2"
+    : "SELECT * FROM documents WHERE type = $1 AND id_entreprise = $2 AND actif = true";
+  const result = await pool.query(query, [type, id_entreprise]);
   return result.rows;
 };
 
@@ -25,6 +28,28 @@ export const getDocumentByIdFromDB = async (id: number, id_entreprise: number) =
 export const getDocumentByNumeroFromDB = async (numero: string) => {
   const result = await pool.query("SELECT * FROM documents WHERE numero = $1", [numero]);
   return result.rows[0] ?? null;
+};
+
+export const archiveDocumentInDB = async (id: number, id_entreprise: number): Promise<Document> => {
+  const query = `
+    UPDATE documents SET actif = false
+      WHERE id = $1 AND id_entreprise = $2
+    RETURNING *;
+  `;
+
+  const result = await pool.query(query, [id, id_entreprise]);
+  return result.rows[0];
+};
+
+export const unarchiveDocumentInDB = async (id: number, id_entreprise: number): Promise<Document> => {
+  const query = `
+    UPDATE documents SET actif = true
+      WHERE id = $1 AND id_entreprise = $2
+    RETURNING *;
+  `;
+
+  const result = await pool.query(query, [id, id_entreprise]);
+  return result.rows[0];
 };
 
 export const createDocumentInDB = async (
