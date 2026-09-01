@@ -1,25 +1,36 @@
-import { Router } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import { createEntreprise, getEntreprise, getEntreprises, updateEntreprise, uploadEntrepriseLogo } from "./entreprise.controller";
 import { uploadLogo } from "./entreprise.upload";
+import { authenticate } from "../../shared/middlewares/auth.middleware";
+import { requireRole } from "../../shared/middlewares/role.middleware";
+import { ForbiddenError } from "../../shared/types/errors";
 
 const router = Router();
 
-// TODO (security): none of these routes require `authenticate` yet, and there's no
-// platform-admin role to check even if they did (the `role` on the JWT is only
-// 'ADMIN' | 'UTILISATEUR', i.e. company-level — see user.types.ts). Right now
-// GET / leaks every company on the SaaS, and GET/PUT /:id + POST /:id/logo let
-// anyone read or overwrite any company's data with no login at all.
-// Once a platform-admin role exists:
-//   - GET /        -> platform-admin only (lists every company)
-//   - GET/PUT /:id -> platform-admin OR a user whose own id_entreprise === :id
-//   - POST /       -> stays open (this is company self-registration)
-//   - POST /:id/logo -> same rule as GET/PUT /:id
-// Left as-is for now (see conversation from 2026-09-01) — not fixing until the
-// role system is designed.
-router.get("/", getEntreprises);
-router.get("/:id", getEntreprise);
+// Reading your own company's info is open to any role — viewing it isn't an admin
+// action. Only an ADMIN_PLATEFORME can read a company that isn't their own.
+const requireOwnEntrepriseOrPlatformAdmin = (req: Request, res: Response, next: NextFunction) => {
+  if (req.user.role === "ADMIN_PLATEFORME" || req.user.id_entreprise === Number(req.params.id)) {
+    return next();
+  }
+  throw new ForbiddenError();
+};
+
+// Editing a company's info (or its logo) requires being that company's own ADMIN —
+// an ordinary UTILISATEUR of the company can't, even for their own company.
+const requireEntrepriseAdminOrPlatformAdmin = (req: Request, res: Response, next: NextFunction) => {
+  const isOwnCompanyAdmin = req.user.role === "ADMIN" && req.user.id_entreprise === Number(req.params.id);
+  if (req.user.role === "ADMIN_PLATEFORME" || isOwnCompanyAdmin) {
+    return next();
+  }
+  throw new ForbiddenError();
+};
+
+router.get("/", authenticate, requireRole("ADMIN_PLATEFORME"), getEntreprises);
+router.get("/:id", authenticate, requireOwnEntrepriseOrPlatformAdmin, getEntreprise);
+// No `authenticate` here on purpose — this is public company self-registration.
 router.post("/", createEntreprise);
-router.put("/:id", updateEntreprise);
-router.post("/:id/logo", uploadLogo, uploadEntrepriseLogo);
+router.put("/:id", authenticate, requireEntrepriseAdminOrPlatformAdmin, updateEntreprise);
+router.post("/:id/logo", authenticate, requireEntrepriseAdminOrPlatformAdmin, uploadLogo, uploadEntrepriseLogo);
 
 export default router;

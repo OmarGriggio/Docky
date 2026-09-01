@@ -27,7 +27,7 @@ CREATE TABLE utilisateurs
     id SERIAL PRIMARY KEY,
     id_entreprise INTEGER NOT NULL,
     role VARCHAR(20) NOT NULL DEFAULT ('UTILISATEUR')
-        CHECK (role IN ('ADMIN', 'UTILISATEUR')),
+        CHECK (role IN ('ADMIN', 'UTILISATEUR', 'ADMIN_PLATEFORME')),
     nom character varying(100) COLLATE pg_catalog."default",
     prenom character varying(100) COLLATE pg_catalog."default",
     email character varying(255) COLLATE pg_catalog."default" NOT NULL,

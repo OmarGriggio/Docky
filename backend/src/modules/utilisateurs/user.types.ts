@@ -1,11 +1,13 @@
-// TODO (security): the README plans 3 user types (employee, company admin, platform
-// admin) but this enum only has the first two — there's no platform-admin role yet,
-// and nothing enforces `role` anywhere (no requireRole/requireAdmin middleware).
-// See entreprise.routes.ts and user.routes.ts for the endpoints that need it.
+// ADMIN_PLATEFORME manages the SaaS itself (every company, not just one) — see
+// role.middleware.ts. There's no self-service way to create one: id_entreprise stays
+// NOT NULL on purpose (see CLAUDE.md), so a platform-admin account is always created
+// by hand directly in the database, never through POST /user.
+export type Role = 'ADMIN' | 'UTILISATEUR' | 'ADMIN_PLATEFORME';
+
 export interface User {
   id: number;
   id_entreprise: number;
-  role: 'ADMIN' | 'UTILISATEUR';
+  role: Role;
   nom: string;
   prenom: string;
   email: string;
@@ -18,7 +20,7 @@ export interface User {
 
 export interface CreateUserData {
   id_entreprise: number;
-  role: 'ADMIN' | 'UTILISATEUR',
+  role: Role,
   firstname: string;
   lastname: string;
   email: string;
