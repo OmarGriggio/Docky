@@ -14,4 +14,5 @@ export interface Document {
   statut: string;
   introduction: string | null;
   conclusion: string | null;
+  actif: boolean;
 }
