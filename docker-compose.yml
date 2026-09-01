@@ -27,6 +27,7 @@ services:
 
     build:
       context: ./backend
+      target: dev
 
     ports:
       - "${BACKEND_PORT}:3000"
