@@ -18,6 +18,12 @@ import cors from 'cors';
 
 const app = express();
 
+// Trust the first hop in front of us (nearly every host — even a "no infra"
+// PaaS plan — proxies requests through their own edge/load balancer). Without
+// this, req.ip is always the proxy's IP, which silently breaks IP-based rate
+// limiting (everyone shares one counter) once this is actually deployed.
+app.set("trust proxy", 1);
+
 app.use(express.json(), cors());
 
 app.use("/uploads", express.static(path.resolve(process.cwd(), "uploads")));
