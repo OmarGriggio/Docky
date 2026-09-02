@@ -21,7 +21,11 @@ export class DocumentService {
     });
   }
 
-  createDocument(document: Omit<Document, 'id'>) {
+  getDocument(id: number) {
+    return this.http.get<Document>(`${API_BASE}/document/${id}`);
+  }
+
+  createDocument(document: Omit<Document, 'id' | 'id_entreprise' | 'actif' | 'montant_ht' | 'montant_ttc'>) {
     return this.http.post<Document>(`${API_BASE}/document`, document);
   }
 

@@ -1,0 +1,82 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="ui-form">
+  <p-floatlabel variant="on">
+    <p-select
+      inputId="type"
+      formControlName="type"
+      [options]="typeOptions"
+      optionLabel="label"
+      optionValue="value"
+    />
+    <label for="type">Type</label>
+  </p-floatlabel>
+
+  <p-floatlabel variant="on">
+    <input pInputText id="numero" formControlName="numero" />
+    <label for="numero">Numéro</label>
+  </p-floatlabel>
+
+  <p-floatlabel variant="on">
+    <p-datepicker inputId="date" formControlName="date" dateFormat="dd.mm.yy" />
+    <label for="date">Date</label>
+  </p-floatlabel>
+
+  <p-floatlabel variant="on">
+    <p-select
+      inputId="id_client"
+      formControlName="id_client"
+      [options]="clientOptions()"
+      optionLabel="label"
+      optionValue="value"
+    />
+    <label for="id_client">Client</label>
+  </p-floatlabel>
+
+  <p-floatlabel variant="on">
+    <p-select
+      inputId="id_chantier"
+      formControlName="id_chantier"
+      [options]="chantierOptions()"
+      optionLabel="label"
+      optionValue="value"
+      [showClear]="true"
+    />
+    <label for="id_chantier">Chantier (optionnel)</label>
+  </p-floatlabel>
+
+  <p-floatlabel variant="on">
+    <p-select
+      inputId="statut"
+      formControlName="statut"
+      [options]="statutOptions"
+      optionLabel="label"
+      optionValue="value"
+    />
+    <label for="statut">Statut</label>
+  </p-floatlabel>
+
+  <p-floatlabel variant="on">
+    <p-inputnumber inputId="rabais" formControlName="rabais" mode="decimal" [minFractionDigits]="2" suffix=" %" />
+    <label for="rabais">Rabais</label>
+  </p-floatlabel>
+
+  <p-floatlabel variant="on" class="ui-form__full">
+    <textarea pTextarea id="introduction" formControlName="introduction" rows="3"></textarea>
+    <label for="introduction">Introduction</label>
+  </p-floatlabel>
+
+  <p-floatlabel variant="on" class="ui-form__full">
+    <textarea pTextarea id="conclusion" formControlName="conclusion" rows="3"></textarea>
+    <label for="conclusion">Conclusion</label>
+  </p-floatlabel>
+
+  <p class="ui-form__full">Les montants HT/TTC se calculent à partir des lignes ajoutées ensuite, depuis la page détail du document.</p>
+
+  @if (errorMessage()) {
+    <p class="ui-form__full">{{ errorMessage() }}</p>
+  }
+
+  <div class="ui-form__actions">
+    <p-button type="button" label="Annuler" severity="secondary" (onClick)="cancel()" />
+    <p-button type="submit" label="Créer" />
+  </div>
+</form>

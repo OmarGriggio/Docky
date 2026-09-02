@@ -4,7 +4,19 @@
     <p-checkbox [binary]="true" [ngModel]="showArchived()" (ngModelChange)="onShowArchivedChange($event)" />
     Afficher les archivés
   </label>
+  <p-button label="Ajouter" icon="pi pi-plus" (onClick)="createDialogVisible.set(true)" />
 </div>
+
+<p-dialog
+  [(visible)]="createDialogVisible"
+  header="Nouveau document"
+  [modal]="true"
+  [style]="{ width: '40rem' }"
+>
+  @if (createDialogVisible()) {
+    <app-document-form (saved)="onDocumentSaved()" (cancelled)="createDialogVisible.set(false)" />
+  }
+</p-dialog>
 
 <p-table [value]="documents()" dataKey="id">
   <ng-template #header>

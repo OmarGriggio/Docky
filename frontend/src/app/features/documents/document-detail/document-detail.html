@@ -1,0 +1,81 @@
+@if (document(); as d) {
+  <p-card [header]="d.numero" styleClass="ui-card--elevated">
+    <table>
+      <tbody>
+        <tr><th>Type</th><td>{{ d.type }}</td></tr>
+        <tr><th>Date</th><td>{{ d.date }}</td></tr>
+        <tr><th>Client</th><td>{{ clientName() }}</td></tr>
+        @if (chantierName()) {
+          <tr><th>Chantier</th><td>{{ chantierName() }}</td></tr>
+        }
+        <tr><th>Statut</th><td>{{ d.statut }}</td></tr>
+        <tr><th>Montant HT</th><td>{{ d.montant_ht }}</td></tr>
+        <tr><th>Montant TTC</th><td>{{ d.montant_ttc }}</td></tr>
+        <tr><th>Rabais</th><td>{{ d.rabais }} %</td></tr>
+        @if (d.introduction) {
+          <tr><th>Introduction</th><td>{{ d.introduction }}</td></tr>
+        }
+        @if (d.conclusion) {
+          <tr><th>Conclusion</th><td>{{ d.conclusion }}</td></tr>
+        }
+      </tbody>
+    </table>
+  </p-card>
+
+  <div class="detail-lignes-header">
+    <h2>Lignes</h2>
+    <label>
+      <p-checkbox [binary]="true" [ngModel]="showArchivedLignes()" (ngModelChange)="onShowArchivedLignesChange($event)" />
+      Afficher les archivées
+    </label>
+    <p-button label="Ajouter une ligne" icon="pi pi-plus" (onClick)="addLigneDialogVisible.set(true)" />
+  </div>
+
+  <p-table [value]="lignes()" dataKey="id">
+    <ng-template #header>
+      <tr>
+        <th>Type</th>
+        <th>Libellé</th>
+        <th>Quantité</th>
+        <th>Unité</th>
+        <th>Prix unitaire</th>
+        <th>Rabais</th>
+        <th>Total</th>
+        <th></th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-ligne>
+      <tr>
+        <td>{{ ligne.type }}</td>
+        <td>{{ ligne.libelle }}</td>
+        <td>{{ ligne.quantite }}</td>
+        <td>{{ ligne.unite }}</td>
+        <td>{{ ligne.prix_unitaire }}</td>
+        <td>{{ ligne.rabais }} %</td>
+        <td>{{ ligneTotal(ligne) | number:'1.2-2' }}</td>
+        <td>
+          <p-menu #menu [popup]="true" [model]="getLigneActions(ligne)" appendTo="body"></p-menu>
+          <p-button icon="pi pi-ellipsis-v" (click)="menu.toggle($event)"></p-button>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <p-dialog
+    [(visible)]="addLigneDialogVisible"
+    header="Nouvelle ligne"
+    [modal]="true"
+    [style]="{ width: '32rem' }"
+  >
+    @if (addLigneDialogVisible()) {
+      <app-document-ligne-form [idDocument]="d.id" (saved)="onLigneSaved()" (cancelled)="addLigneDialogVisible.set(false)" />
+    }
+  </p-dialog>
+
+  <app-confirm-dialog
+    [(visible)]="confirmVisible"
+    title="Archivage"
+    [message]="confirmMessage()"
+    (confirmed)="onArchiveConfirmed()"
+  />
+}

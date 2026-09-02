@@ -1,0 +1,42 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="ui-form">
+  <p-floatlabel variant="on">
+    <p-select
+      inputId="type"
+      formControlName="type"
+      [options]="typeOptions"
+      optionLabel="label"
+      optionValue="value"
+    />
+    <label for="type">Type</label>
+  </p-floatlabel>
+
+  <p-floatlabel variant="on" class="ui-form__full">
+    <input pInputText id="libelle" formControlName="libelle" />
+    <label for="libelle">Libellé</label>
+  </p-floatlabel>
+
+  <p-floatlabel variant="on">
+    <p-inputnumber inputId="quantite" formControlName="quantite" mode="decimal" [minFractionDigits]="2" />
+    <label for="quantite">Quantité</label>
+  </p-floatlabel>
+
+  <p-floatlabel variant="on">
+    <input pInputText id="unite" formControlName="unite" />
+    <label for="unite">Unité</label>
+  </p-floatlabel>
+
+  <p-floatlabel variant="on">
+    <p-inputnumber inputId="prix_unitaire" formControlName="prix_unitaire" mode="decimal" [minFractionDigits]="2" />
+    <label for="prix_unitaire">Prix unitaire</label>
+  </p-floatlabel>
+
+  <p-floatlabel variant="on">
+    <p-inputnumber inputId="rabais" formControlName="rabais" mode="decimal" [minFractionDigits]="2" suffix=" %" />
+    <label for="rabais">Rabais</label>
+  </p-floatlabel>
+
+  <div class="ui-form__actions">
+    <p-button type="button" label="Annuler" severity="secondary" (onClick)="cancel()" />
+    <p-button type="submit" label="Ajouter" />
+  </div>
+</form>
