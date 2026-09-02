@@ -1,15 +1,15 @@
 import { Router } from "express";
-import { createAdresse, deleteAdresse, getAdresses } from "./adresse.controller";
+import { createAddress, deleteAddress, getAddresses } from "./address.controller";
 import { authenticate } from "../../shared/middlewares/auth.middleware";
 
 const router = Router();
 
 router.use(authenticate);
 
-router.get("/", getAdresses);
+router.get("/", getAddresses);
 
-router.post("/", createAdresse);
+router.post("/", createAddress);
 
-router.delete("/:id", deleteAdresse);
+router.delete("/:id", deleteAddress);
 
 export default router;
