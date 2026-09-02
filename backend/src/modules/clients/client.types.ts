@@ -1,25 +1,25 @@
-import { Adresse } from "./adresse.types";
+import { Address } from "./address.types";
 
-export type ClientType = "PARTICULIER" | "PROFESSIONNEL";
+export type ClientType = "INDIVIDUAL" | "PROFESSIONAL";
 
 export interface Client {
   id: number;
 
-  id_entreprise: number;
+  company_id: number;
 
-  num_client: string;
+  client_number: string;
   type: ClientType;
-  societe: string | null;
-  tva: string | null;
-  nom: string | null;
-  prenom: string | null;
-  civilite: string | null;
+  company_name: string | null;
+  vat_number: string | null;
+  last_name: string | null;
+  first_name: string | null;
+  title: string | null;
   email: string;
-  telephone: string | null;
-  remarque: string | null;
-  actif: boolean;
+  phone: string | null;
+  note: string | null;
+  is_active: boolean;
 }
 
-export interface ClientWithAdresses extends Client {
-  adresses: Adresse[];
+export interface ClientWithAddresses extends Client {
+  addresses: Address[];
 }
