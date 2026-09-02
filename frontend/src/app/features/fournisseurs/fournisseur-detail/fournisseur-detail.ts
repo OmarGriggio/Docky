@@ -5,27 +5,27 @@ import { Tag } from 'primeng/tag';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { Card } from 'primeng/card';
-import { ClientService } from '../client.service';
+import { FournisseurService } from '../fournisseur.service';
 import { AdresseService } from '../../adresses/adresse.service';
-import { ClientWithAdresses } from '../../../shared/models/client';
+import { FournisseurWithAdresses } from '../../../shared/models/fournisseur';
 import { Adresse } from '../../../shared/models/adresse';
 import { AdresseForm } from '../../../shared/components/adresse-form/adresse-form';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 
 @Component({
-  selector: 'app-client-detail',
+  selector: 'app-fournisseur-detail',
   standalone: true,
   imports: [TableModule, Tag, Button, Dialog, Card, AdresseForm, ConfirmDialogComponent],
-  templateUrl: './client-detail.html',
-  styleUrl: './client-detail.css'
+  templateUrl: './fournisseur-detail.html',
+  styleUrl: './fournisseur-detail.css'
 })
-export class ClientDetail implements OnInit {
+export class FournisseurDetail implements OnInit {
 
   private route = inject(ActivatedRoute);
-  private clientService = inject(ClientService);
+  private fournisseurService = inject(FournisseurService);
   private adresseService = inject(AdresseService);
 
-  client = signal<ClientWithAdresses | null>(null);
+  fournisseur = signal<FournisseurWithAdresses | null>(null);
   addAdresseDialogVisible = signal(false);
 
   confirmVisible = signal(false);
@@ -34,25 +34,25 @@ export class ClientDetail implements OnInit {
   private adressePendingDelete: Adresse | null = null;
 
   ngOnInit(): void {
-    this.loadClient();
+    this.loadFournisseur();
   }
 
-  private loadClient(): void {
+  private loadFournisseur(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
 
-    this.clientService.getClient(id).subscribe({
+    this.fournisseurService.getFournisseur(id).subscribe({
       next: data => {
-        this.client.set(data);
+        this.fournisseur.set(data);
       },
       error: err => {
-        console.error('client-detail : ' + err);
+        console.error('fournisseur-detail : ' + err);
       }
     });
   }
 
   onAdresseSaved(): void {
     this.addAdresseDialogVisible.set(false);
-    this.loadClient();
+    this.loadFournisseur();
   }
 
   deleteAdresse(adresse: Adresse): void {
@@ -70,10 +70,10 @@ export class ClientDetail implements OnInit {
 
     this.adresseService.deleteAdresse(adresse.id).subscribe({
       next: () => {
-        this.loadClient();
+        this.loadFournisseur();
       },
       error: err => {
-        console.error('client-detail : ' + err);
+        console.error('fournisseur-detail : ' + err);
       }
     });
   }

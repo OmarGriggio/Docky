@@ -23,7 +23,6 @@
     <tr>
       <th>Code</th>
       <th>Société</th>
-      <th>Adresse</th>
       <th>Catégorie</th>
       <th></th>
     </tr>
@@ -33,7 +32,6 @@
     <tr>
       <td>{{ fournisseur.code_fournisseur }}</td>
       <td>{{ fournisseur.societe }}</td>
-      <td>{{ fournisseur.adresse }}</td>
       <td>{{ fournisseur.categorie }}</td>
       <td>
         <p-menu #menu [popup]="true" [model]="getActions(fournisseur)" />

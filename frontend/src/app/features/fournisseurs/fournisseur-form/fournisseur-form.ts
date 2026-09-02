@@ -22,7 +22,6 @@ export class FournisseurForm {
   form = this.fb.nonNullable.group({
     code_fournisseur: ['', Validators.required],
     societe: ['', Validators.required],
-    adresse: [''],
     categorie: [''],
   });
 

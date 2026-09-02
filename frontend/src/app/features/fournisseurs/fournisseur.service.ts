@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Fournisseur } from '../../shared/models/fournisseur';
+import { Fournisseur, FournisseurWithAdresses } from '../../shared/models/fournisseur';
 import { environment } from '../../../environments/environment';
 
 const API_BASE = environment.apiUrl;
@@ -16,6 +16,10 @@ export class FournisseurService {
     return this.http.get<Fournisseur[]>(`${API_BASE}/fournisseur`, {
       params: includeArchived ? { includeArchived: 'true' } : {}
     });
+  }
+
+  getFournisseur(id: number) {
+    return this.http.get<FournisseurWithAdresses>(`${API_BASE}/fournisseur/${id}`);
   }
 
   createFournisseur(fournisseur: Omit<Fournisseur, 'id' | 'actif'>) {

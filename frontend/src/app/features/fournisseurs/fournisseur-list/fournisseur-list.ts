@@ -1,4 +1,5 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { Menu } from 'primeng/menu';
@@ -21,6 +22,7 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
 export class FournisseurListComponent implements OnInit {
 
   private fournisseurService = inject(FournisseurService);
+  private router = inject(Router);
 
   fournisseurs = signal<Fournisseur[]>([]);
   showArchived = signal(false);
@@ -61,7 +63,12 @@ export class FournisseurListComponent implements OnInit {
     return [
       fournisseur.actif
         ? { label: 'Archiver', icon: 'pi pi-trash', command: () => this.archiveFournisseur(fournisseur) }
-        : { label: 'Restaurer', icon: 'pi pi-refresh', command: () => this.unarchiveFournisseur(fournisseur) }
+        : { label: 'Restaurer', icon: 'pi pi-refresh', command: () => this.unarchiveFournisseur(fournisseur) },
+      {
+        label: 'Détail',
+        icon: 'pi pi-eye',
+        command: () => this.router.navigate(['/fournisseurs', fournisseur.id])
+      }
     ];
   }
 

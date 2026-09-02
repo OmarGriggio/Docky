@@ -1,15 +1,10 @@
-@if (client(); as c) {
-  <p-card [header]="c.societe || (c.prenom + ' ' + c.nom)" styleClass="ui-card--elevated">
+@if (fournisseur(); as f) {
+  <p-card [header]="f.societe" styleClass="ui-card--elevated">
     <table>
       <tbody>
-        <tr><th>N° client</th><td>{{ c.num_client }}</td></tr>
-        <tr><th>Civilité</th><td>{{ c.civilite }}</td></tr>
-        <tr><th>Nom</th><td>{{ c.prenom }} {{ c.nom }}</td></tr>
-        <tr><th>Société</th><td>{{ c.societe }}</td></tr>
-        <tr><th>TVA</th><td>{{ c.tva }}</td></tr>
-        <tr><th>Email</th><td>{{ c.email }}</td></tr>
-        <tr><th>Téléphone</th><td>{{ c.telephone }}</td></tr>
-        <tr><th>Remarque</th><td>{{ c.remarque }}</td></tr>
+        <tr><th>Code fournisseur</th><td>{{ f.code_fournisseur }}</td></tr>
+        <tr><th>Société</th><td>{{ f.societe }}</td></tr>
+        <tr><th>Catégorie</th><td>{{ f.categorie }}</td></tr>
       </tbody>
     </table>
   </p-card>
@@ -19,7 +14,7 @@
     <p-button label="Ajouter une adresse" icon="pi pi-plus" (onClick)="addAdresseDialogVisible.set(true)" />
   </div>
 
-  <p-table [value]="c.adresses" dataKey="id">
+  <p-table [value]="f.adresses" dataKey="id">
     <ng-template #header>
       <tr>
         <th>Rue</th>
@@ -55,7 +50,7 @@
     [style]="{ width: '28rem' }"
   >
     @if (addAdresseDialogVisible()) {
-      <app-adresse-form [idClient]="c.id" (saved)="onAdresseSaved()" (cancelled)="addAdresseDialogVisible.set(false)" />
+      <app-adresse-form [idFournisseur]="f.id" (saved)="onAdresseSaved()" (cancelled)="addAdresseDialogVisible.set(false)" />
     }
   </p-dialog>
 

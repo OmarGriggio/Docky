@@ -19,4 +19,8 @@ export class AdresseService {
   createAdresse(adresse: Omit<Adresse, 'id'>) {
     return this.http.post<Adresse>(`${API_BASE}/adresse`, adresse);
   }
+
+  deleteAdresse(id: number) {
+    return this.http.delete<Adresse>(`${API_BASE}/adresse/${id}`);
+  }
 }

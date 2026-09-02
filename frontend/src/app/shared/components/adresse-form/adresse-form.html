@@ -1,0 +1,31 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="ui-form">
+  <p-floatlabel variant="on">
+    <input pInputText id="rue" formControlName="rue" />
+    <label for="rue">Rue</label>
+  </p-floatlabel>
+
+  <p-floatlabel variant="on">
+    <input pInputText id="npa" formControlName="npa" />
+    <label for="npa">NPA</label>
+  </p-floatlabel>
+
+  <p-floatlabel variant="on">
+    <input pInputText id="ville" formControlName="ville" />
+    <label for="ville">Ville</label>
+  </p-floatlabel>
+
+  <p-floatlabel variant="on">
+    <input pInputText id="pays" formControlName="pays" />
+    <label for="pays">Pays</label>
+  </p-floatlabel>
+
+  <label class="ui-form__full">
+    <p-checkbox [binary]="true" formControlName="principale" />
+    Adresse principale
+  </label>
+
+  <div class="ui-form__actions">
+    <p-button type="button" label="Annuler" severity="secondary" (onClick)="cancel()" />
+    <p-button type="submit" label="Ajouter" />
+  </div>
+</form>

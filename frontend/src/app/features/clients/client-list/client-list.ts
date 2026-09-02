@@ -1,4 +1,5 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { Menu } from 'primeng/menu';
@@ -21,6 +22,7 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
 export class ClientListComponent implements OnInit {
 
   private clientService = inject(ClientService);
+  private router = inject(Router);
 
   clients = signal<Client[]>([]);
   showArchived = signal(false);
@@ -68,7 +70,7 @@ export class ClientListComponent implements OnInit {
       },
       {
         label: 'Détail',
-        command: () => console.log("Détail")
+        command: () => this.router.navigate(['/clients', client.id])
       },
     ];
   }
