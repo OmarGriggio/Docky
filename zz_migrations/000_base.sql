@@ -2,43 +2,43 @@ DROP SCHEMA public CASCADE;
 CREATE SCHEMA public;
 
 -- ==========================================
--- ENTREPRISES
+-- COMPANIES
 -- ==========================================
 
-CREATE TABLE entreprises (
+CREATE TABLE companies (
     id SERIAL PRIMARY KEY,
-    nom_entreprise VARCHAR(100),
+    name VARCHAR(100),
     email VARCHAR(255),
-    telephone VARCHAR(50),
+    phone VARCHAR(50),
     iban VARCHAR(22),
-    rue VARCHAR(100),
-    npa VARCHAR(20),
-    ville VARCHAR(100),
-    pays VARCHAR(100),
+    street VARCHAR(100),
+    postal_code VARCHAR(20),
+    city VARCHAR(100),
+    country VARCHAR(100),
     logo VARCHAR(255)
 );
 
 -- ==========================================
--- UTILISATEURS
+-- USERS
 -- ==========================================
 
-CREATE TABLE utilisateurs
+CREATE TABLE users
 (
     id SERIAL PRIMARY KEY,
-    id_entreprise INTEGER NOT NULL,
-    role VARCHAR(20) NOT NULL DEFAULT ('UTILISATEUR')
-        CHECK (role IN ('ADMIN', 'UTILISATEUR', 'ADMIN_PLATEFORME')),
-    nom character varying(100) COLLATE pg_catalog."default",
-    prenom character varying(100) COLLATE pg_catalog."default",
+    company_id INTEGER NOT NULL,
+    role VARCHAR(20) NOT NULL DEFAULT ('USER')
+        CHECK (role IN ('ADMIN', 'USER', 'PLATFORM_ADMIN')),
+    last_name character varying(100) COLLATE pg_catalog."default",
+    first_name character varying(100) COLLATE pg_catalog."default",
     email character varying(255) COLLATE pg_catalog."default" NOT NULL,
-    motdepasse_hash text COLLATE pg_catalog."default" UNIQUE NOT NULL,
-    date_creat timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    date_modif timestamp without time zone,
-    date_derniere_connexion timestamp without time zone,
-    actif BOOLEAN DEFAULT TRUE,
+    password_hash text COLLATE pg_catalog."default" UNIQUE NOT NULL,
+    created_at timestamp without time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at timestamp without time zone,
+    last_login_at timestamp without time zone,
+    is_active BOOLEAN DEFAULT TRUE,
 
-    FOREIGN KEY (id_entreprise)
-        REFERENCES entreprises(id)
+    FOREIGN KEY (company_id)
+        REFERENCES companies(id)
 );
 
 -- ==========================================
@@ -47,144 +47,144 @@ CREATE TABLE utilisateurs
 
 CREATE TABLE clients (
     id SERIAL PRIMARY KEY,
-    id_entreprise INTEGER NOT NULL,
-    num_client VARCHAR(50) UNIQUE NOT NULL,
+    company_id INTEGER NOT NULL,
+    client_number VARCHAR(50) UNIQUE NOT NULL,
     type VARCHAR(20) NOT NULL
-        CHECK (type IN ('PARTICULIER', 'PROFESSIONNEL')),
-    societe VARCHAR (100),
-    tva VARCHAR(20),
-    nom VARCHAR(100),
-    prenom VARCHAR(100),
-    civilite VARCHAR(100),
+        CHECK (type IN ('INDIVIDUAL', 'PROFESSIONAL')),
+    company_name VARCHAR (100),
+    vat_number VARCHAR(20),
+    last_name VARCHAR(100),
+    first_name VARCHAR(100),
+    title VARCHAR(100),
     email VARCHAR(255),
-    telephone VARCHAR(50),
-    remarque VARCHAR(3000),
-    actif BOOLEAN DEFAULT TRUE,
+    phone VARCHAR(50),
+    note VARCHAR(3000),
+    is_active BOOLEAN DEFAULT TRUE,
 
-    FOREIGN KEY (id_entreprise)
-        REFERENCES entreprises(id)
+    FOREIGN KEY (company_id)
+        REFERENCES companies(id)
 );
 
 -- ==========================================
--- CHANTIER
+-- PROJECT
 -- ==========================================
 
-CREATE TABLE types_chantier (
+CREATE TABLE project_types (
     id SERIAL PRIMARY KEY,
-    libelle VARCHAR(100) NOT NULL UNIQUE
+    label VARCHAR(100) NOT NULL UNIQUE
 );
 
-CREATE TABLE chantiers (
+CREATE TABLE projects (
     id SERIAL PRIMARY KEY,
-    id_entreprise INTEGER NOT NULL,
-    id_client INTEGER,
-    id_type_chantier INTEGER,
-    nom VARCHAR(255) NOT NULL,
-    remarque TEXT,
-    adresse_identique_client BOOLEAN NOT NULL DEFAULT TRUE,
-    rue VARCHAR(255),
-    npa VARCHAR(20),
-    ville VARCHAR(100),
-    pays VARCHAR(100),
-    date_creation TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    actif BOOLEAN DEFAULT TRUE,
+    company_id INTEGER NOT NULL,
+    client_id INTEGER,
+    project_type_id INTEGER,
+    name VARCHAR(255) NOT NULL,
+    note TEXT,
+    same_address_as_client BOOLEAN NOT NULL DEFAULT TRUE,
+    street VARCHAR(255),
+    postal_code VARCHAR(20),
+    city VARCHAR(100),
+    country VARCHAR(100),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT TRUE,
 
-    FOREIGN KEY (id_client)
+    FOREIGN KEY (client_id)
         REFERENCES clients(id),
-    FOREIGN KEY (id_type_chantier)
-        REFERENCES types_chantier(id)
+    FOREIGN KEY (project_type_id)
+        REFERENCES project_types(id)
 );
 
 -- ==========================================
--- FOURNISSEURS
+-- SUPPLIERS
 -- ==========================================
 
-CREATE TABLE fournisseurs (
+CREATE TABLE suppliers (
     id SERIAL PRIMARY KEY,
-    id_entreprise INTEGER NOT NULL,
-    code_fournisseur VARCHAR(50) UNIQUE,
-    societe VARCHAR(255),
-    categorie VARCHAR(100),
-    actif BOOLEAN DEFAULT TRUE,
+    company_id INTEGER NOT NULL,
+    supplier_code VARCHAR(50) UNIQUE,
+    name VARCHAR(255),
+    category VARCHAR(100),
+    is_active BOOLEAN DEFAULT TRUE,
 
-    FOREIGN KEY (id_entreprise)
-        REFERENCES entreprises(id)
+    FOREIGN KEY (company_id)
+        REFERENCES companies(id)
 );
 
 -- ==========================================
--- ADRESSE
+-- ADDRESSES
 -- ==========================================
 
--- Belongs to exactly one of client / fournisseur, never both, never neither.
-CREATE TABLE adresses (
+-- Belongs to exactly one of client / supplier, never both, never neither.
+CREATE TABLE addresses (
     id SERIAL PRIMARY KEY,
-    id_entreprise INTEGER NOT NULL,
-    id_client INTEGER,
-    id_fournisseur INTEGER,
-    principale BOOLEAN NOT NULL DEFAULT FALSE,
-    rue VARCHAR(100),
-    npa VARCHAR(20),
-    ville VARCHAR(100),
-    pays VARCHAR(100),
+    company_id INTEGER NOT NULL,
+    client_id INTEGER,
+    supplier_id INTEGER,
+    is_primary BOOLEAN NOT NULL DEFAULT FALSE,
+    street VARCHAR(100),
+    postal_code VARCHAR(20),
+    city VARCHAR(100),
+    country VARCHAR(100),
 
-    FOREIGN KEY (id_entreprise)
-        REFERENCES entreprises(id),
-    FOREIGN KEY (id_client)
+    FOREIGN KEY (company_id)
+        REFERENCES companies(id),
+    FOREIGN KEY (client_id)
         REFERENCES clients(id),
-    FOREIGN KEY (id_fournisseur)
-        REFERENCES fournisseurs(id),
-    CHECK ((id_client IS NOT NULL) <> (id_fournisseur IS NOT NULL))
+    FOREIGN KEY (supplier_id)
+        REFERENCES suppliers(id),
+    CHECK ((client_id IS NOT NULL) <> (supplier_id IS NOT NULL))
 );
 
--- At most one "principale" address per client, and per fournisseur.
-CREATE UNIQUE INDEX adresses_one_principale_par_client
-    ON adresses (id_client) WHERE principale = TRUE AND id_client IS NOT NULL;
-CREATE UNIQUE INDEX adresses_one_principale_par_fournisseur
-    ON adresses (id_fournisseur) WHERE principale = TRUE AND id_fournisseur IS NOT NULL;
+-- At most one "primary" address per client, and per supplier.
+CREATE UNIQUE INDEX addresses_one_primary_per_client
+    ON addresses (client_id) WHERE is_primary = TRUE AND client_id IS NOT NULL;
+CREATE UNIQUE INDEX addresses_one_primary_per_supplier
+    ON addresses (supplier_id) WHERE is_primary = TRUE AND supplier_id IS NOT NULL;
 
 -- ==========================================
--- RESSOURCES
+-- RESOURCES
 -- ==========================================
 
-CREATE TABLE ressources (
+CREATE TABLE resources (
     id SERIAL PRIMARY KEY,
-    id_entreprise INTEGER NOT NULL,
-    id_ressources INTEGER, --Pour les ressources composés
+    company_id INTEGER NOT NULL,
+    parent_resource_id INTEGER, -- for composite resources
     type VARCHAR(20) NOT NULL
-        CHECK (type IN ('MATERIEL', 'MAIN-OEUVRE', 'SOUS-TRAITANCE', 'DIVERS')),
+        CHECK (type IN ('MATERIAL', 'LABOR', 'SUBCONTRACTING', 'OTHER')),
     code VARCHAR(50) UNIQUE,
-    designation VARCHAR(255) NOT NULL,
-    unite VARCHAR(50) NOT NULL,
-    prix_vente NUMERIC(10,2) NOT NULL,
-    prix_achat  NUMERIC(10,2),
-    actif BOOLEAN DEFAULT TRUE,
+    name VARCHAR(255) NOT NULL,
+    unit VARCHAR(50) NOT NULL,
+    selling_price NUMERIC(10,2) NOT NULL,
+    purchase_price  NUMERIC(10,2),
+    is_active BOOLEAN DEFAULT TRUE,
 
-    FOREIGN KEY (id_entreprise)
-        REFERENCES entreprises(id)
+    FOREIGN KEY (company_id)
+        REFERENCES companies(id)
 );
 
 -- ==========================================
--- TARIFS FOURNISSEURS MATERIEL
+-- RESOURCE SUPPLIER PRICES
 -- ==========================================
 
-CREATE TABLE ressources_tarifs_fournisseurs (
+CREATE TABLE resource_supplier_prices (
     id SERIAL PRIMARY KEY,
-    id_entreprise INTEGER NOT NULL,
-    id_ressource INTEGER,
-    id_fournisseur INTEGER,
-    prix_achat NUMERIC(10,2),
-    rabais NUMERIC(5,2),
-    delai_livraison INTEGER,
-    defaut BOOLEAN,
+    company_id INTEGER NOT NULL,
+    resource_id INTEGER,
+    supplier_id INTEGER,
+    purchase_price NUMERIC(10,2),
+    discount NUMERIC(5,2),
+    delivery_time INTEGER,
+    is_default BOOLEAN,
 
-    FOREIGN KEY (id_ressource)
-        REFERENCES ressources(id),
+    FOREIGN KEY (resource_id)
+        REFERENCES resources(id),
 
-    FOREIGN KEY (id_fournisseur)
-        REFERENCES fournisseurs(id),
+    FOREIGN KEY (supplier_id)
+        REFERENCES suppliers(id),
 
-    FOREIGN KEY (id_entreprise)
-        REFERENCES entreprises(id)
+    FOREIGN KEY (company_id)
+        REFERENCES companies(id)
 );
 
 -- ==========================================
@@ -193,55 +193,55 @@ CREATE TABLE ressources_tarifs_fournisseurs (
 
 CREATE TABLE documents (
     id SERIAL PRIMARY KEY,
-    id_entreprise INTEGER NOT NULL,
-    id_client INTEGER NOT NULL,
-    id_chantier INTEGER,
-    id_document_parent INTEGER,
+    company_id INTEGER NOT NULL,
+    client_id INTEGER NOT NULL,
+    project_id INTEGER,
+    parent_document_id INTEGER,
     type VARCHAR(20) NOT NULL
-        CHECK (type IN ('OFFRE', 'FACTURE')),
-    numero VARCHAR(50) UNIQUE NOT NULL,
+        CHECK (type IN ('QUOTE', 'INVOICE')),
+    number VARCHAR(50) UNIQUE NOT NULL,
     date DATE NOT NULL,
-    montant_ht NUMERIC(12,2) DEFAULT 0,
-    montant_ttc NUMERIC(12,2) DEFAULT 0,
-    rabais NUMERIC(5,2) DEFAULT 0,
-    statut VARCHAR(50)
-        CHECK (statut IN ('BROUILLON', 'ENVOYE', 'ACCEPTE', 'REFUSE', 'PAYE', 'ANNULE')),
+    amount_excl_vat NUMERIC(12,2) DEFAULT 0,
+    amount_incl_vat NUMERIC(12,2) DEFAULT 0,
+    discount NUMERIC(5,2) DEFAULT 0,
+    status VARCHAR(50)
+        CHECK (status IN ('DRAFT', 'SENT', 'ACCEPTED', 'REJECTED', 'PAID', 'CANCELLED')),
     introduction TEXT,
     conclusion TEXT,
-    actif BOOLEAN DEFAULT TRUE,
+    is_active BOOLEAN DEFAULT TRUE,
 
-    FOREIGN KEY (id_client)
+    FOREIGN KEY (client_id)
         REFERENCES clients(id),
-    FOREIGN KEY (id_chantier)
-        REFERENCES chantiers(id),
-    FOREIGN KEY (id_document_parent)
+    FOREIGN KEY (project_id)
+        REFERENCES projects(id),
+    FOREIGN KEY (parent_document_id)
         REFERENCES documents(id),
-    FOREIGN KEY (id_entreprise)
-        REFERENCES entreprises(id)
+    FOREIGN KEY (company_id)
+        REFERENCES companies(id)
 );
 
 
 -- ==========================================
--- LIGNES DOCUMENT
+-- DOCUMENT LINES
 -- ==========================================
 
-CREATE TABLE document_lignes (
+CREATE TABLE document_lines (
     id SERIAL PRIMARY KEY,
-    id_entreprise INTEGER NOT NULL,
-    id_document INTEGER NOT NULL,
+    company_id INTEGER NOT NULL,
+    document_id INTEGER NOT NULL,
     type VARCHAR(20) NOT NULL,
-    pos INTEGER NOT NULL,
-    libelle VARCHAR(255) NOT NULL,
-    quantite NUMERIC(10,2) NOT NULL,
-    unite VARCHAR(50),
-    prix_unitaire NUMERIC(10,2) NOT NULL,
-    rabais NUMERIC(5,2) DEFAULT 0,
-    actif BOOLEAN DEFAULT TRUE,
+    position INTEGER NOT NULL,
+    label VARCHAR(255) NOT NULL,
+    quantity NUMERIC(10,2) NOT NULL,
+    unit VARCHAR(50),
+    unit_price NUMERIC(10,2) NOT NULL,
+    discount NUMERIC(5,2) DEFAULT 0,
+    is_active BOOLEAN DEFAULT TRUE,
 
-    FOREIGN KEY (id_document)
+    FOREIGN KEY (document_id)
         REFERENCES documents(id)
         ON DELETE CASCADE,
 
-    FOREIGN KEY (id_entreprise)
-        REFERENCES entreprises(id)
+    FOREIGN KEY (company_id)
+        REFERENCES companies(id)
 );
