@@ -1,0 +1,22 @@
+GET http://localhost:3000/project
+
+###
+
+POST http://localhost:3000/project
+Content-Type: application/json
+
+{
+  "client_id": 1,
+  "project_type_id": 1,
+  "name": "Réparation de porte de garage",
+  "note": null,
+  "same_address_as_client": false,
+  "street": "Rue de la gare 2",
+  "postal_code": "2500",
+  "city": "Lausanne",
+  "country": "Suisse"
+}
+
+###
+
+DELETE http://localhost:3000/project/1

@@ -1,11 +1,11 @@
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoib21hckB0ZXN0My5jaCIsInJvbGUiOiJBRE1JTiIsImlkX2VudHJlcHJpc2UiOjEsImlhdCI6MTc4Mzk1NzU0MywiZXhwIjoxNzgzOTc1NTQzfQ.cIR62mHMPIm0w-IH6q3CVAQDpOgGDN34IvE3EOEfE7c
+@token = PASTE_FRESH_TOKEN_FROM_AUTH.HTTP_HERE
 
 GET http://localhost:3000/document
 Authorization: Bearer {{token}}
 
 ###
 
-GET http://localhost:3000/document?type=OFFRE
+GET http://localhost:3000/document?type=QUOTE
 Authorization: Bearer {{token}}
 
 ###
@@ -15,13 +15,11 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "id_client": 1,
-  "id_document_parent": null,
-  "type": "OFFRE",
-  "numero": "OFFRE-2026-001",
+  "client_id": 1,
+  "parent_document_id": null,
+  "type": "QUOTE",
+  "number": "QUOTE-2026-001",
   "date": "2026-07-09",
-  "montant_ht": 1000,
-  "montant_ttc": 1077,
-  "rabais": 0,
-  "statut": "en_attente"
+  "discount": 0,
+  "status": "DRAFT"
 }

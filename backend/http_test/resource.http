@@ -1,0 +1,24 @@
+@token = PASTE_FRESH_TOKEN_FROM_AUTH.HTTP_HERE
+
+GET http://localhost:3000/resource
+Authorization: Bearer {{token}}
+
+###
+
+GET http://localhost:3000/resource?type=MATERIAL
+Authorization: Bearer {{token}}
+
+###
+
+GET http://localhost:3000/resource?type=LABOR
+Authorization: Bearer {{token}}
+
+###
+
+GET http://localhost:3000/resource?type=SUBCONTRACTING
+Authorization: Bearer {{token}}
+
+###
+
+GET http://localhost:3000/resource?type=OTHER
+Authorization: Bearer {{token}}

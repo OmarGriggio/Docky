@@ -1,4 +1,4 @@
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoib21hckB0ZXN0My5jaCIsInJvbGUiOiJBRE1JTiIsImlkX2VudHJlcHJpc2UiOjEsImlhdCI6MTc4Mzk1NzU0MywiZXhwIjoxNzgzOTc1NTQzfQ.cIR62mHMPIm0w-IH6q3CVAQDpOgGDN34IvE3EOEfE7c
+@token = PASTE_FRESH_TOKEN_FROM_AUTH.HTTP_HERE
 
 GET http://localhost:3000/client
 Authorization: Bearer {{token}}
@@ -15,24 +15,19 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-  "num_client": "BSI",
-  "type": "PROFESSIONNEL",
-  "societe": "Boesiger AG",
-  "tva": null,
-  "nom": "Boesiger",
-  "prenom": "Charle",
-  "civilite": "Monsieur",
+  "client_number": "BSI",
+  "type": "PROFESSIONAL",
+  "company_name": "Boesiger AG",
+  "vat_number": null,
+  "last_name": "Boesiger",
+  "first_name": "Charle",
+  "title": "Monsieur",
   "email": "omar.griggio@gmail.com",
-  "telephone": "",
-  "remarque": null
+  "phone": "",
+  "note": null
 }
 
 ###
 
-DELETE  http://localhost:3000/client
+PATCH http://localhost:3000/client/1/archive
 Authorization: Bearer {{token}}
-Content-Type: application/json
-
-{
-  "num_client": "BSI"
-}

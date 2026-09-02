@@ -1,0 +1,21 @@
+@token = PASTE_FRESH_TOKEN_FROM_AUTH.HTTP_HERE
+
+GET http://localhost:3000/supplier
+Authorization: Bearer {{token}}
+
+###
+
+POST http://localhost:3000/supplier
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "supplier_code" : "SELLITA",
+  "name": "selltia",
+  "category": "horlogerie"
+}
+
+###
+
+PATCH http://localhost:3000/supplier/1/archive
+Authorization: Bearer {{token}}

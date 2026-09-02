@@ -1,4 +1,4 @@
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoib21hckB0ZXN0My5jaCIsInJvbGUiOiJBRE1JTiIsImlkX2VudHJlcHJpc2UiOjEsImlhdCI6MTc4Mzk1NzU0MywiZXhwIjoxNzgzOTc1NTQzfQ.cIR62mHMPIm0w-IH6q3CVAQDpOgGDN34IvE3EOEfE7c
+@token = PASTE_FRESH_TOKEN_FROM_AUTH.HTTP_HERE
 
 GET http://localhost:3000/document-complete
 Authorization: Bearer {{token}}
@@ -6,7 +6,7 @@ Content-Type: application/json
 
 ###
 
-GET http://localhost:3000/document-complete?type=FACTURE
+GET http://localhost:3000/document-complete?type=INVOICE
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
