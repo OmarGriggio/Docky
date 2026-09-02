@@ -1,22 +1,22 @@
-export type DocumentType = "OFFRE" | "FACTURE";
+export type DocumentType = "QUOTE" | "INVOICE";
 
-export type DocumentStatut = "BROUILLON" | "ENVOYE" | "ACCEPTE" | "REFUSE" | "PAYE" | "ANNULE";
+export type DocumentStatus = "DRAFT" | "SENT" | "ACCEPTED" | "REJECTED" | "PAID" | "CANCELLED";
 
 export interface Document {
   id: number;
 
-  id_entreprise: number;
-  id_client: number;
-  id_chantier: number | null;
-  id_document_parent: number | null;
+  company_id: number;
+  client_id: number;
+  project_id: number | null;
+  parent_document_id: number | null;
   type: DocumentType;
-  numero: string;
+  number: string;
   date: Date;
-  montant_ht: number;
-  montant_ttc: number;
-  rabais: number;
-  statut: DocumentStatut;
+  amount_excl_vat: number;
+  amount_incl_vat: number;
+  discount: number;
+  status: DocumentStatus;
   introduction: string | null;
   conclusion: string | null;
-  actif: boolean;
+  is_active: boolean;
 }

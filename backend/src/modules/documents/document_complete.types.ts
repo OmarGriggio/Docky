@@ -1,6 +1,6 @@
 import { Document } from "./document.types";
-import { DocumentLigne } from "./document_ligne.types";
+import { DocumentLine } from "./document_line.types";
 
 export interface DocumentComplete extends Document {
-  lignes: DocumentLigne[];
+  lines: DocumentLine[];
 }
