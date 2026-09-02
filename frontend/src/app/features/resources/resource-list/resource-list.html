@@ -1,4 +1,4 @@
-<div class="ressource-list-header">
+<div class="resource-list-header">
   <h1>Ressources @if (currentTypeLabel()) { — {{ currentTypeLabel() }} }</h1>
   <label>
     <p-checkbox [binary]="true" [ngModel]="showArchived()" (ngModelChange)="onShowArchivedChange($event)" />
@@ -6,7 +6,7 @@
   </label>
 </div>
 
-<p-table [value]="ressources()" dataKey="id">
+<p-table [value]="resources()" dataKey="id">
   <ng-template #header>
     <tr>
       <th>Code</th>
@@ -24,11 +24,11 @@
     <tr>
       <td>{{ item.code }}</td>
       <td>{{ item.type }}</td>
-      <td>{{ item.designation }}</td>
-      <td>{{ item.unite }}</td>
-      <td>{{ item.prix_vente }}</td>
-      <td>{{ item.prix_achat }}</td>
-      <td>{{ item.actif }}</td>
+      <td>{{ item.name }}</td>
+      <td>{{ item.unit }}</td>
+      <td>{{ item.selling_price }}</td>
+      <td>{{ item.purchase_price }}</td>
+      <td>{{ item.is_active }}</td>
       <td>
         <p-menu #menu [popup]="true" [model]="getActions(item)" appendTo="body"></p-menu>
         <p-button icon="pi pi-ellipsis-v" (click)="menu.toggle($event)"></p-button>
