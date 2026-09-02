@@ -29,23 +29,23 @@ export class UserForm implements OnInit {
     lastname: ['', Validators.required],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(8)]],
-    role: ['UTILISATEUR' as UserRole, Validators.required],
+    role: ['USER' as UserRole, Validators.required],
   });
 
   roleOptions = [
-    { label: 'Utilisateur', value: 'UTILISATEUR' },
+    { label: 'Utilisateur', value: 'USER' },
     { label: 'Administrateur', value: 'ADMIN' },
   ];
 
   errorMessage = signal<string | null>(null);
 
-  private idEntreprise: number | null = null;
+  private companyId: number | null = null;
 
   ngOnInit(): void {
     this.userService.getUsers().subscribe({
       next: users => {
         const self = users.find(user => user.id === this.authService.currentUser()?.userId);
-        this.idEntreprise = self?.id_entreprise ?? null;
+        this.companyId = self?.company_id ?? null;
       },
       error: err => {
         console.error("user-form : " + err);
@@ -58,7 +58,7 @@ export class UserForm implements OnInit {
   }
 
   submit(): void {
-    if (this.form.invalid || this.idEntreprise === null) {
+    if (this.form.invalid || this.companyId === null) {
       return;
     }
 
@@ -68,7 +68,7 @@ export class UserForm implements OnInit {
 
     this.userService.createUser({
       ...user,
-      id_entreprise: this.idEntreprise,
+      company_id: this.companyId,
       passwordHash: password,
     }).subscribe({
       next: () => {
