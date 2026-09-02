@@ -4,27 +4,27 @@ import {
   getDocumentsByTypeFromDB,
   getDocumentByIdFromDB
 } from "./document.repository";
-import { getDocumentLignesFromDB, getLignesByDocumentIdFromDB } from "./document_ligne.repository";
+import { getDocumentLinesFromDB, getLinesByDocumentIdFromDB } from "./document_line.repository";
 import { NotFoundError } from "../../shared/types/errors";
 
-export const getDocumentCompleteServ = async (id: number, id_entreprise: number): Promise<DocumentComplete> => {
-  const document = await getDocumentByIdFromDB(id, id_entreprise);
+export const getDocumentCompleteServ = async (id: number, company_id: number): Promise<DocumentComplete> => {
+  const document = await getDocumentByIdFromDB(id, company_id);
   if (!document) {
     throw new NotFoundError("Document not found");
   }
 
-  const lignes = await getLignesByDocumentIdFromDB(id);
-  return { ...document, lignes };
+  const lines = await getLinesByDocumentIdFromDB(id);
+  return { ...document, lines };
 };
 
-export const getAllDocumentsCompleteServ = async (id_entreprise: number, type?: string): Promise<DocumentComplete[]> => {
+export const getAllDocumentsCompleteServ = async (company_id: number, type?: string): Promise<DocumentComplete[]> => {
   const documents = type
-    ? await getDocumentsByTypeFromDB(type, id_entreprise)
-    : await getDocumentsFromDB(id_entreprise);
-  const lignes = await getDocumentLignesFromDB(id_entreprise);
+    ? await getDocumentsByTypeFromDB(type, company_id)
+    : await getDocumentsFromDB(company_id);
+  const lines = await getDocumentLinesFromDB(company_id);
 
   return documents.map(document => ({
     ...document,
-    lignes: lignes.filter(ligne => ligne.id_document === document.id)
+    lines: lines.filter(line => line.document_id === document.id)
   }));
 };

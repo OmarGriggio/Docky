@@ -4,32 +4,32 @@ import { Document } from "./document.types";
 
 export const getDocuments = async (req: Request, res: Response) => {
   const type = req.query.type as string | undefined;
-  const id_entreprise = req.user.id_entreprise;
+  const company_id = req.user.company_id;
   const includeArchived = req.query.includeArchived === "true";
   const documents = type
-    ? await getDocumentsByTypeServ(type, id_entreprise, includeArchived)
-    : await getAllDocumentsServ(id_entreprise, includeArchived);
+    ? await getDocumentsByTypeServ(type, company_id, includeArchived)
+    : await getAllDocumentsServ(company_id, includeArchived);
   res.json(documents);
 };
 
 export const getDocument = async (req: Request, res: Response) => {
-  const document = await getDocumentByIdServ(Number(req.params.id), req.user.id_entreprise);
+  const document = await getDocumentByIdServ(Number(req.params.id), req.user.company_id);
   res.json(document);
 };
 
 export const createDocument = async (req: Request, res: Response) => {
-  const documentData: Omit<Document, "id" | "id_entreprise"> = req.body;
+  const documentData: Omit<Document, "id" | "company_id"> = req.body;
 
-  const documentCreated = await addDocumentServ(documentData, req.user.id_entreprise);
+  const documentCreated = await addDocumentServ(documentData, req.user.company_id);
   res.json(documentCreated);
 };
 
 export const archiveDocument = async (req: Request, res: Response) => {
-  const documentArchived = await archiveDocumentServ(Number(req.params.id), req.user.id_entreprise);
+  const documentArchived = await archiveDocumentServ(Number(req.params.id), req.user.company_id);
   res.json(documentArchived);
 };
 
 export const unarchiveDocument = async (req: Request, res: Response) => {
-  const documentUnarchived = await unarchiveDocumentServ(Number(req.params.id), req.user.id_entreprise);
+  const documentUnarchived = await unarchiveDocumentServ(Number(req.params.id), req.user.company_id);
   res.json(documentUnarchived);
 };
