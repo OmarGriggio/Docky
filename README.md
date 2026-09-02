@@ -183,7 +183,7 @@ cp backend/.env.example backend/.env
 | `DB_NAME`     | PostgreSQL database name                                         |
 | `JWT_SECRET`  | Secret used to sign/verify JWTs                                  |
 
-> The database schema is bootstrapped automatically the first time the Postgres container starts, from the SQL files in [zz_migrations/](zz_migrations/) (mounted into `/docker-entrypoint-initdb.d`). To re-run them, drop the `postgres_data` volume and start the containers again.
+> The database schema is bootstrapped automatically the first time the Postgres container starts, from the SQL files in [zz_migrations/](zz_migrations/) (mounted into `/docker-entrypoint-initdb.d`). To re-run them, drop the `postgres_data` volume and start the containers again. This also seeds a full sample dataset (a company, clients, chantiers, fournisseurs, a material catalog, quotes/invoices...) so there's always something to explore right away — log in with **`admin@dedonnostyle.ch` / `password123`**.
 
 ## Documentation
 

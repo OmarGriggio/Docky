@@ -76,3 +76,17 @@ Ce fichier trace les choix techniques qui avaient plusieurs options raisonnables
 - **Pour** : le frontend (`AuthService.register()`) dépend déjà de cet enchaînement `POST /entreprise` → `POST /user` sans être connecté (impossible d'être connecté avant que son propre compte existe) ; pas de nouvel endpoint à documenter/maintenir.
 - **Contre** : la logique de la route est un peu moins lisible d'un coup d'œil sur `user.routes.ts` (il faut lire le service pour comprendre les deux chemins) — compensé par un commentaire explicite à cet endroit.
 - **Durci au passage** : avant, n'importe qui pouvait s'ajouter comme `ADMIN` sur une entreprise déjà existante en devinant son `id_entreprise` (aucune vérification). Maintenant, le chemin non-authentifié ne fonctionne que si l'entreprise n'a encore *aucun* utilisateur (`getUsersFromDB(id_entreprise).length === 0`) — donc uniquement pour amorcer une entreprise flambant neuve.
+
+## Stockage des logos : disque local pour l'instant, décision reportée au choix d'hébergeur
+
+**Contexte** : `entreprise.upload.ts` écrit les logos sur le disque local du conteneur backend (`backend/uploads/entreprises/<id>/logo.<ext>`). En creusant (2026-09-02), deux bugs trouvés autour de ça, corrigés indépendamment de la décision ci-dessous :
+- un logo de test s'était retrouvé commité dans git (`uploads/` n'était pas dans `.gitignore`) ;
+- une ligne de volume Docker censée persister les uploads (`./uploads:/app/uploads`) était montée sur le service `postgres` au lieu de `backend` — en fait totalement inutile de toute façon : le bind mount `./backend:/app` (déjà là pour le hot-reload) persiste déjà `/app/uploads` vers `backend/uploads/` sur l'hôte. Cette ligne a été retirée plutôt que déplacée.
+
+**Le vrai problème** : ce bind mount n'existe qu'en dev (`docker-compose.yml`). L'image `prod` (utilisée en déploiement réel) n'a aucun mécanisme de persistance pour `/app/uploads` — un logo uploadé disparaît au prochain redémarrage/redéploiement du conteneur, silencieusement.
+
+**Pas encore tranché, dépend de l'hébergeur choisi** :
+- *Disque local + volume persistant* — simple, zéro nouvelle dépendance, mais seulement si l'hébergeur propose un volume attaché au conteneur applicatif (souvent une option payante/pas dispo sur les plans les plus simples).
+- *Stockage objet compatible S3* (Cloudflare R2 suggéré : API S3, pas de frais de sortie, offre gratuite généreuse) — fonctionne peu importe l'hébergeur, survit à tout redéploiement, mais ajoute un compte externe + une clé API à gérer. Changement de code limité (`multer.memoryStorage()` + un envoi du buffer vers le bucket au lieu du disque).
+
+À trancher une fois l'hébergeur de prod choisi, pas avant.
