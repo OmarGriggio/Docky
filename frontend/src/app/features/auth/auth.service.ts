@@ -2,7 +2,7 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { switchMap, tap } from 'rxjs';
 import { AuthResponse, LoginPayload, RegisterPayload, UserRole } from '../../shared/models/auth';
-import { Entreprise } from '../../shared/models/entreprise';
+import { Company } from '../../shared/models/company';
 import { User } from '../../shared/models/user';
 import { environment } from '../../../environments/environment';
 
@@ -39,13 +39,13 @@ export class AuthService {
     const token = this.token();
     return token ? decodeToken(token) : null;
   });
-  
+
   isAdmin = computed(() =>
     this.currentUser()?.role === 'ADMIN'
   );
 
   isUser = computed(() =>
-    this.currentUser()?.role === 'UTILISATEUR'
+    this.currentUser()?.role === 'USER'
   );
 
   getToken(): string | null {
@@ -62,22 +62,22 @@ export class AuthService {
   }
 
   register(payload: RegisterPayload) {
-    const entreprise: Omit<Entreprise, 'id'> = {
-      nom_entreprise: payload.companyName,
+    const company: Omit<Company, 'id'> = {
+      name: payload.companyName,
       email: null,
-      telephone: null,
+      phone: null,
       iban: null,
-      rue: null,
-      npa: null,
-      ville: null,
-      pays: null,
+      street: null,
+      postal_code: null,
+      city: null,
+      country: null,
       logo: null,
     };
 
-    return this.http.post<Entreprise>(`${API_BASE}/entreprise`, entreprise).pipe(
-      switchMap(createdEntreprise =>
+    return this.http.post<Company>(`${API_BASE}/company`, company).pipe(
+      switchMap(createdCompany =>
         this.http.post<User>(`${API_BASE}/user`, {
-          id_entreprise: createdEntreprise.id,
+          company_id: createdCompany.id,
           firstname: payload.firstname,
           lastname: payload.lastname,
           email: payload.email,

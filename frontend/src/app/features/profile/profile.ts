@@ -4,7 +4,7 @@ import { InputText } from 'primeng/inputtext';
 import { FloatLabel } from 'primeng/floatlabel';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
-import { EntrepriseService } from './entreprise.service';
+import { CompanyService } from './company.service';
 import { UserService } from '../admin/user.service';
 import { AuthService } from '../auth/auth.service';
 
@@ -18,19 +18,19 @@ import { AuthService } from '../auth/auth.service';
 export class Profile implements OnInit {
 
   private fb = inject(FormBuilder);
-  private entrepriseService = inject(EntrepriseService);
+  private companyService = inject(CompanyService);
   private userService = inject(UserService);
   private authService = inject(AuthService);
 
   form = this.fb.nonNullable.group({
-    nom_entreprise: ['', Validators.required],
+    name: ['', Validators.required],
     email: [''],
-    telephone: [''],
+    phone: [''],
     iban: [''],
-    rue: [''],
-    npa: [''],
-    ville: [''],
-    pays: [''],
+    street: [''],
+    postal_code: [''],
+    city: [''],
+    country: [''],
   });
 
   loading = signal(true);
@@ -38,46 +38,46 @@ export class Profile implements OnInit {
   errorMessage = signal<string | null>(null);
 
   logoPath = signal<string | null>(null);
-  logoPreviewUrl = computed(() => this.entrepriseService.getLogoUrl(this.logoPath()));
+  logoPreviewUrl = computed(() => this.companyService.getLogoUrl(this.logoPath()));
   selectedLogoFile = signal<File | null>(null);
   uploadingLogo = signal(false);
   logoErrorMessage = signal<string | null>(null);
 
-  private idEntreprise: number | null = null;
+  private companyId: number | null = null;
 
   isAdmin = this.authService.isAdmin;
 
   ngOnInit(): void {
-    this.loadEntreprise();
+    this.loadCompany();
   }
 
-  private loadEntreprise(): void {
+  private loadCompany(): void {
     this.loading.set(true);
 
     this.userService.getUsers().subscribe({
       next: users => {
         const self = users.find(user => user.id === this.authService.currentUser()?.userId);
-        this.idEntreprise = self?.id_entreprise ?? null;
+        this.companyId = self?.company_id ?? null;
 
-        if (this.idEntreprise === null) {
+        if (this.companyId === null) {
           this.errorMessage.set('Impossible de retrouver votre entreprise.');
           this.loading.set(false);
           return;
         }
 
-        this.entrepriseService.getEntreprise(this.idEntreprise).subscribe({
-          next: entreprise => {
+        this.companyService.getCompany(this.companyId).subscribe({
+          next: company => {
             this.form.patchValue({
-              nom_entreprise: entreprise.nom_entreprise ?? '',
-              email: entreprise.email ?? '',
-              telephone: entreprise.telephone ?? '',
-              iban: entreprise.iban ?? '',
-              rue: entreprise.rue ?? '',
-              npa: entreprise.npa ?? '',
-              ville: entreprise.ville ?? '',
-              pays: entreprise.pays ?? '',
+              name: company.name ?? '',
+              email: company.email ?? '',
+              phone: company.phone ?? '',
+              iban: company.iban ?? '',
+              street: company.street ?? '',
+              postal_code: company.postal_code ?? '',
+              city: company.city ?? '',
+              country: company.country ?? '',
             });
-            this.logoPath.set(entreprise.logo);
+            this.logoPath.set(company.logo);
             this.loading.set(false);
 
             if (!this.isAdmin()) {
@@ -100,14 +100,14 @@ export class Profile implements OnInit {
   }
 
   submit(): void {
-    if (this.form.invalid || this.idEntreprise === null) {
+    if (this.form.invalid || this.companyId === null) {
       return;
     }
 
     this.successMessage.set(null);
     this.errorMessage.set(null);
 
-    this.entrepriseService.updateEntreprise(this.idEntreprise, { ...this.form.getRawValue(), logo: this.logoPath() }).subscribe({
+    this.companyService.updateCompany(this.companyId, { ...this.form.getRawValue(), logo: this.logoPath() }).subscribe({
       next: () => {
         this.successMessage.set('Les données de l\'entreprise ont été mises à jour.');
       },
@@ -135,16 +135,16 @@ export class Profile implements OnInit {
 
   uploadLogo(): void {
     const file = this.selectedLogoFile();
-    if (!file || this.idEntreprise === null) {
+    if (!file || this.companyId === null) {
       return;
     }
 
     this.uploadingLogo.set(true);
     this.logoErrorMessage.set(null);
 
-    this.entrepriseService.uploadLogo(this.idEntreprise, file).subscribe({
-      next: entreprise => {
-        this.logoPath.set(entreprise.logo);
+    this.companyService.uploadLogo(this.companyId, file).subscribe({
+      next: company => {
+        this.logoPath.set(company.logo);
         this.selectedLogoFile.set(null);
         this.uploadingLogo.set(false);
         this.successMessage.set('Le logo a été mis à jour.');

@@ -50,7 +50,7 @@ export class UserListComponent implements OnInit {
 
   private deleteUser(user: User): void {
     this.userPendingDelete = user;
-    this.confirmMessage.set(`Supprimer l'utilisateur ${user.prenom} ${user.nom} ?`);
+    this.confirmMessage.set(`Supprimer l'utilisateur ${user.first_name} ${user.last_name} ?`);
     this.confirmVisible.set(true);
   }
 
