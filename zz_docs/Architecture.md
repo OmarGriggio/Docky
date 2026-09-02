@@ -1,17 +1,17 @@
 # 2 - Architecture
 
-## 2.1 - Architecture général & décision 
+## 2.1 - General architecture & decisions
 
-| Décision          | Choix                    | Justification                                                                     |
-| ----------------- | ------------------------ | --------------------------------------------------------------------------------- |
-| Frontend          | Angular                  | Familiarité avec le framework et architecture adaptée aux applications métier     |
-| Backend           | Node.js + Express        | API REST légère et largement utilisée                                             |
-| Base de données   | PostgreSQL               | Robuste, relationnelle, adaptée aux données métier                                |
-| Accès aux données | SQL natif via Repository | Maîtrise de SQL, contrôle total sur les requêtes, simplicité de la pile technique |
-| Authentification  | JWT                      | Standard pour une API REST                                                        |
-| Déploiement       | Docker Compose           | Reproductibilité de l'environnement                                               |
+| Decision          | Choice                    | Justification                                                                    |
+| ----------------- | ------------------------- | ---------------------------------------------------------------------------------|
+| Frontend          | Angular                   | Familiarity with the framework and an architecture suited to business apps       |
+| Backend           | Node.js + Express         | Lightweight, widely-used REST API                                                |
+| Database          | PostgreSQL                | Robust, relational, suited to business data                                      |
+| Data access       | Native SQL via Repository | Mastery of SQL, full control over queries, simplicity of the tech stack          |
+| Authentication    | JWT                       | Standard for a REST API                                                          |
+| Deployment        | Docker Compose            | Reproducible environment                                                         |
 
-## 2.2 - Architecture backend
+## 2.2 - Backend architecture
 
 controllers/
 services/
@@ -21,7 +21,7 @@ middlewares/
 validators/
 config/
 
-## 2.3 - Architecture frontend
+## 2.3 - Frontend architecture
 
 core/
 shared/
@@ -30,12 +30,12 @@ layout/
 
 ## 2.4 - Database
 
-Base de données
+Database
 Tables
 Relations
-Contraintes
+Constraints
 
-## 2.5 - Authentificaiton 
+## 2.5 - Authentication
 
 JWT
 Middleware

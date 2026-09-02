@@ -11,59 +11,59 @@ npm init :
   "description": "REST API for a SaaS dedicated to small construction companies."
 }
 
-La version du projet.
+The project's version.
 
-On utilise généralement le Semantic Versioning :
+Semantic Versioning is generally used:
 
 1.0.0
 
 MAJOR.MINOR.PATCH
 
-Exemples :
+Examples:
 
 1.0.0
 
-Première version stable.
+First stable version.
 
 1.1.0
 
-Nouvelle fonctionnalité.
+New feature.
 
 1.1.1
 
-Correction d'un bug.
+Bug fix.
 
 "main": "index.js",
 main
 
-Il indique quel est le fichier principal du projet.
+It indicates what the project's main file is.
 
-Pour une API TypeScript moderne, cette propriété est souvent ignorée, car tu lances directement un fichier comme src/server.ts avec un outil adapté (tsx, ts-node-dev, etc.).
+For a modern TypeScript API, this property is often ignored, since you launch a file like src/server.ts directly with a suitable tool (tsx, ts-node-dev, etc.).
 
-Tu pourras même la supprimer plus tard si elle ne sert pas.
+You can even remove it later if it's not used.
 
 "scripts": {
   "test": "echo \"Error: no test specified\" && exit 1"
 }
 scripts
 
-À mon avis, c'est la partie la plus utile du package.json.
+In my opinion, this is the most useful part of package.json.
 
-Les scripts permettent de créer des commandes personnalisées.
+Scripts let you create custom commands.
 
-Par exemple, aujourd'hui tu pourrais lancer ton serveur avec une commande compliquée.
+For example, today you might start your server with a complicated command.
 
-À la place, tu écris :
+Instead, you write:
 
 "scripts": {
     "dev": "tsx watch src/server.ts"
 }
 
-Et tu démarres simplement ton projet avec :
+And you simply start your project with:
 
 npm run dev
 
-Plus tard, tu auras probablement des scripts comme :
+Later, you'll probably have scripts like:
 
 "scripts": {
     "dev": "...",
@@ -73,55 +73,55 @@ Plus tard, tu auras probablement des scripts comme :
     "test": "..."
 }
 
-C'est beaucoup plus pratique que de retenir de longues commandes.
+Much more convenient than remembering long commands.
 
-Après avoir installé Express :
+After installing Express:
 
 npm install express
 
-Tu verras apparaître une nouvelle section :
+You'll see a new section appear:
 
 "dependencies": {
     "express": "^5.1.0"
 }
 
-Cette section liste les bibliothèques nécessaires au fonctionnement de ton application.
+This section lists the libraries your application needs to run.
 
-Si tu installes TypeScript uniquement pour développer :
+If you install TypeScript only for development:
 
 npm install -D typescript
 
-Tu verras une autre section :
+You'll see another section:
 
 "devDependencies": {
     "typescript": "^5.x.x"
 }
-Pourquoi deux sections ?
+Why two sections?
 
-C'est une distinction importante.
+This is an important distinction.
 
 dependencies
 
-Ce sont les bibliothèques nécessaires pour faire tourner ton application.
+These are the libraries needed to run your application.
 
-Exemples :
+Examples:
 
 Express
 PostgreSQL (pg)
 JWT
 bcrypt
 
-Sans elles, ton API ne fonctionne pas.
+Without them, your API doesn't work.
 
 devDependencies
 
-Elles servent uniquement pendant le développement.
+These are only used during development.
 
-Exemples :
+Examples:
 
 TypeScript
 ESLint
 Prettier
-outils de test
+test tools
 
-Quand ton application est déployée, ces outils ne sont plus nécessaires.
+Once your application is deployed, these tools are no longer needed.
