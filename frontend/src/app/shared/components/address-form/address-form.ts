@@ -4,33 +4,33 @@ import { InputText } from 'primeng/inputtext';
 import { FloatLabel } from 'primeng/floatlabel';
 import { Checkbox } from 'primeng/checkbox';
 import { Button } from 'primeng/button';
-import { AdresseService } from '../../../features/adresses/adresse.service';
+import { AddressService } from '../../../features/addresses/address.service';
 
 @Component({
-  selector: 'app-adresse-form',
+  selector: 'app-address-form',
   standalone: true,
   imports: [ReactiveFormsModule, InputText, FloatLabel, Checkbox, Button],
-  templateUrl: './adresse-form.html',
+  templateUrl: './address-form.html',
 })
-export class AdresseForm {
+export class AddressForm {
 
   private fb = inject(FormBuilder);
-  private adresseService = inject(AdresseService);
+  private addressService = inject(AddressService);
 
   // Exactly one of these two must be set by the parent — this form is used from
-  // both the client and the fournisseur detail page.
-  idClient = input<number | null>(null);
-  idFournisseur = input<number | null>(null);
+  // both the client and the supplier detail page.
+  clientId = input<number | null>(null);
+  supplierId = input<number | null>(null);
 
   saved = output<void>();
   cancelled = output<void>();
 
   form = this.fb.nonNullable.group({
-    rue: ['', Validators.required],
-    npa: ['', Validators.required],
-    ville: ['', Validators.required],
-    pays: ['', Validators.required],
-    principale: [false],
+    street: ['', Validators.required],
+    postal_code: ['', Validators.required],
+    city: ['', Validators.required],
+    country: ['', Validators.required],
+    is_primary: [false],
   });
 
   cancel(): void {
@@ -42,16 +42,16 @@ export class AdresseForm {
       return;
     }
 
-    this.adresseService.createAdresse({
+    this.addressService.createAddress({
       ...this.form.getRawValue(),
-      id_client: this.idClient(),
-      id_fournisseur: this.idFournisseur(),
+      client_id: this.clientId(),
+      supplier_id: this.supplierId(),
     }).subscribe({
       next: () => {
         this.saved.emit();
       },
       error: err => {
-        console.error('adresse-form : ' + err);
+        console.error('address-form : ' + err);
       }
     });
   }
