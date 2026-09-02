@@ -19,7 +19,6 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./zz_migrations/000_base.sql:/docker-entrypoint-initdb.d/000_base.sql
       - ./zz_migrations/001_data.sql:/docker-entrypoint-initdb.d/001_data.sql
-      - ./uploads:/app/uploads
 
 
   backend:

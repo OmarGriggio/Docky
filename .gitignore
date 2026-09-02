@@ -2,3 +2,7 @@ backend/node_modules/
 .env
 backend/.env
 .env
+
+# User-uploaded files (logos, etc.) — never belong in the repo
+uploads/
+backend/uploads/
