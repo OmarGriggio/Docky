@@ -6,16 +6,16 @@ import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { Card } from 'primeng/card';
 import { ClientService } from '../client.service';
-import { AdresseService } from '../../adresses/adresse.service';
-import { ClientWithAdresses } from '../../../shared/models/client';
-import { Adresse } from '../../../shared/models/adresse';
-import { AdresseForm } from '../../../shared/components/adresse-form/adresse-form';
+import { AddressService } from '../../addresses/address.service';
+import { ClientWithAddresses } from '../../../shared/models/client';
+import { Address } from '../../../shared/models/address';
+import { AddressForm } from '../../../shared/components/address-form/address-form';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 
 @Component({
   selector: 'app-client-detail',
   standalone: true,
-  imports: [TableModule, Tag, Button, Dialog, Card, AdresseForm, ConfirmDialogComponent],
+  imports: [TableModule, Tag, Button, Dialog, Card, AddressForm, ConfirmDialogComponent],
   templateUrl: './client-detail.html',
   styleUrl: './client-detail.css'
 })
@@ -23,15 +23,15 @@ export class ClientDetail implements OnInit {
 
   private route = inject(ActivatedRoute);
   private clientService = inject(ClientService);
-  private adresseService = inject(AdresseService);
+  private addressService = inject(AddressService);
 
-  client = signal<ClientWithAdresses | null>(null);
-  addAdresseDialogVisible = signal(false);
+  client = signal<ClientWithAddresses | null>(null);
+  addAddressDialogVisible = signal(false);
 
   confirmVisible = signal(false);
   confirmMessage = signal('');
 
-  private adressePendingDelete: Adresse | null = null;
+  private addressPendingDelete: Address | null = null;
 
   ngOnInit(): void {
     this.loadClient();
@@ -50,25 +50,25 @@ export class ClientDetail implements OnInit {
     });
   }
 
-  onAdresseSaved(): void {
-    this.addAdresseDialogVisible.set(false);
+  onAddressSaved(): void {
+    this.addAddressDialogVisible.set(false);
     this.loadClient();
   }
 
-  deleteAdresse(adresse: Adresse): void {
-    this.adressePendingDelete = adresse;
-    this.confirmMessage.set(`Supprimer l'adresse ${adresse.rue}, ${adresse.ville} ?`);
+  deleteAddress(address: Address): void {
+    this.addressPendingDelete = address;
+    this.confirmMessage.set(`Supprimer l'adresse ${address.street}, ${address.city} ?`);
     this.confirmVisible.set(true);
   }
 
   onDeleteConfirmed(): void {
-    const adresse = this.adressePendingDelete;
-    if (!adresse) {
+    const address = this.addressPendingDelete;
+    if (!address) {
       return;
     }
-    this.adressePendingDelete = null;
+    this.addressPendingDelete = null;
 
-    this.adresseService.deleteAdresse(adresse.id).subscribe({
+    this.addressService.deleteAddress(address.id).subscribe({
       next: () => {
         this.loadClient();
       },

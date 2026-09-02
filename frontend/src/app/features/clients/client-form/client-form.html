@@ -1,42 +1,42 @@
 <form [formGroup]="form" (ngSubmit)="submit()" class="ui-form">
   <div class="ui-form__full client-form-type">
     <p-selectbutton
-      formControlName="isProfessionnel"
-      [options]="actifOptions"
+      formControlName="isProfessional"
+      [options]="typeOptions"
       optionLabel="label"
       optionValue="value"
     />
   </div>
 
   <p-floatlabel variant="on">
-    <input pInputText id="nom" formControlName="nom" />
-    <label for="nom">Nom</label>
+    <input pInputText id="last_name" formControlName="last_name" />
+    <label for="last_name">Nom</label>
   </p-floatlabel>
 
   <p-floatlabel variant="on">
-    <input pInputText id="prenom" formControlName="prenom" />
-    <label for="prenom">Prénom</label>
+    <input pInputText id="first_name" formControlName="first_name" />
+    <label for="first_name">Prénom</label>
   </p-floatlabel>
 
   <p-floatlabel variant="on">
-    <input pInputText id="civilite" formControlName="civilite" />
-    <label for="civilite">Civilité</label>
+    <input pInputText id="title" formControlName="title" />
+    <label for="title">Civilité</label>
   </p-floatlabel>
 
   <p-floatlabel variant="on">
-    <input pInputText id="num_client" formControlName="num_client" />
-    <label for="num_client">N° client</label>
+    <input pInputText id="client_number" formControlName="client_number" />
+    <label for="client_number">N° client</label>
   </p-floatlabel>
 
-  @if (isProfessionnel) {
+  @if (isProfessional) {
     <p-floatlabel variant="on">
-      <input pInputText id="societe" formControlName="societe" />
-      <label for="societe">Société</label>
+      <input pInputText id="company_name" formControlName="company_name" />
+      <label for="company_name">Société</label>
     </p-floatlabel>
 
     <p-floatlabel variant="on">
-      <input pInputText id="tva" formControlName="tva" />
-      <label for="tva">TVA</label>
+      <input pInputText id="vat_number" formControlName="vat_number" />
+      <label for="vat_number">TVA</label>
     </p-floatlabel>
   }
 
@@ -46,13 +46,13 @@
   </p-floatlabel>
 
   <p-floatlabel variant="on">
-    <input pInputText id="telephone" formControlName="telephone" />
-    <label for="telephone">Téléphone</label>
+    <input pInputText id="phone" formControlName="phone" />
+    <label for="phone">Téléphone</label>
   </p-floatlabel>
 
   <p-floatlabel variant="on" class="ui-form__full">
-    <textarea pTextarea id="remarque" formControlName="remarque" rows="4"></textarea>
-    <label for="remarque">Remarque</label>
+    <textarea pTextarea id="note" formControlName="note" rows="4"></textarea>
+    <label for="note">Remarque</label>
   </p-floatlabel>
 
   <div class="ui-form__actions">

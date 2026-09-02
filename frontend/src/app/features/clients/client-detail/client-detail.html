@@ -1,25 +1,25 @@
 @if (client(); as c) {
-  <p-card [header]="c.societe || (c.prenom + ' ' + c.nom)" styleClass="ui-card--elevated">
+  <p-card [header]="c.company_name || (c.first_name + ' ' + c.last_name)" styleClass="ui-card--elevated">
     <table>
       <tbody>
-        <tr><th>N° client</th><td>{{ c.num_client }}</td></tr>
-        <tr><th>Civilité</th><td>{{ c.civilite }}</td></tr>
-        <tr><th>Nom</th><td>{{ c.prenom }} {{ c.nom }}</td></tr>
-        <tr><th>Société</th><td>{{ c.societe }}</td></tr>
-        <tr><th>TVA</th><td>{{ c.tva }}</td></tr>
+        <tr><th>N° client</th><td>{{ c.client_number }}</td></tr>
+        <tr><th>Civilité</th><td>{{ c.title }}</td></tr>
+        <tr><th>Nom</th><td>{{ c.first_name }} {{ c.last_name }}</td></tr>
+        <tr><th>Société</th><td>{{ c.company_name }}</td></tr>
+        <tr><th>TVA</th><td>{{ c.vat_number }}</td></tr>
         <tr><th>Email</th><td>{{ c.email }}</td></tr>
-        <tr><th>Téléphone</th><td>{{ c.telephone }}</td></tr>
-        <tr><th>Remarque</th><td>{{ c.remarque }}</td></tr>
+        <tr><th>Téléphone</th><td>{{ c.phone }}</td></tr>
+        <tr><th>Remarque</th><td>{{ c.note }}</td></tr>
       </tbody>
     </table>
   </p-card>
 
-  <div class="detail-adresses-header">
+  <div class="detail-addresses-header">
     <h2>Adresses</h2>
-    <p-button label="Ajouter une adresse" icon="pi pi-plus" (onClick)="addAdresseDialogVisible.set(true)" />
+    <p-button label="Ajouter une adresse" icon="pi pi-plus" (onClick)="addAddressDialogVisible.set(true)" />
   </div>
 
-  <p-table [value]="c.adresses" dataKey="id">
+  <p-table [value]="c.addresses" dataKey="id">
     <ng-template #header>
       <tr>
         <th>Rue</th>
@@ -30,32 +30,32 @@
         <th></th>
       </tr>
     </ng-template>
-    <ng-template #body let-adresse>
+    <ng-template #body let-address>
       <tr>
-        <td>{{ adresse.rue }}</td>
-        <td>{{ adresse.npa }}</td>
-        <td>{{ adresse.ville }}</td>
-        <td>{{ adresse.pays }}</td>
+        <td>{{ address.street }}</td>
+        <td>{{ address.postal_code }}</td>
+        <td>{{ address.city }}</td>
+        <td>{{ address.country }}</td>
         <td>
-          @if (adresse.principale) {
+          @if (address.is_primary) {
             <p-tag value="Principale" severity="success" />
           }
         </td>
         <td>
-          <p-button icon="pi pi-trash" severity="danger" [text]="true" (onClick)="deleteAdresse(adresse)" />
+          <p-button icon="pi pi-trash" severity="danger" [text]="true" (onClick)="deleteAddress(address)" />
         </td>
       </tr>
     </ng-template>
   </p-table>
 
   <p-dialog
-    [(visible)]="addAdresseDialogVisible"
+    [(visible)]="addAddressDialogVisible"
     header="Nouvelle adresse"
     [modal]="true"
     [style]="{ width: '28rem' }"
   >
-    @if (addAdresseDialogVisible()) {
-      <app-adresse-form [idClient]="c.id" (saved)="onAdresseSaved()" (cancelled)="addAdresseDialogVisible.set(false)" />
+    @if (addAddressDialogVisible()) {
+      <app-address-form [clientId]="c.id" (saved)="onAddressSaved()" (cancelled)="addAddressDialogVisible.set(false)" />
     }
   </p-dialog>
 

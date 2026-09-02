@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Client, ClientWithAdresses } from '../../shared/models/client';
+import { Client, ClientWithAddresses } from '../../shared/models/client';
 import { environment } from '../../../environments/environment';
 
 const API_BASE = environment.apiUrl;
@@ -19,10 +19,10 @@ export class ClientService {
   }
 
   getClient(id: number) {
-    return this.http.get<ClientWithAdresses>(`${API_BASE}/client/${id}`);
+    return this.http.get<ClientWithAddresses>(`${API_BASE}/client/${id}`);
   }
 
-  createClient(client: Omit<Client, 'id' | 'actif'>) {
+  createClient(client: Omit<Client, 'id' | 'is_active'>) {
     return this.http.post<Client>(`${API_BASE}/client`, client);
   }
 

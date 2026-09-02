@@ -11,6 +11,7 @@ import { Client } from '../../../shared/models/client';
 import { Button } from 'primeng/button';
 import { ClientForm } from '../client-form/client-form';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
+import { archiveActionLabel } from '../../../shared/utils/display';
 
 @Component({
   selector: 'app-client-list',
@@ -61,9 +62,10 @@ export class ClientListComponent implements OnInit {
 
   getActions(client: Client): MenuItem[] {
     return [
-      client.actif
-        ? { label: 'Archiver', command: () => this.archiveClient(client) }
-        : { label: 'Restaurer', command: () => this.unarchiveClient(client) },
+      {
+        label: archiveActionLabel(client.is_active),
+        command: () => client.is_active ? this.archiveClient(client) : this.unarchiveClient(client)
+      },
       {
         label: 'Modifier',
         command: () => console.log("Modifier")
@@ -77,7 +79,7 @@ export class ClientListComponent implements OnInit {
 
   private archiveClient(client: Client): void {
     this.clientPendingArchive = client;
-    this.confirmMessage.set(`Archiver le client ${client.num_client} ?`);
+    this.confirmMessage.set(`Archiver le client ${client.client_number} ?`);
     this.confirmVisible.set(true);
   }
 

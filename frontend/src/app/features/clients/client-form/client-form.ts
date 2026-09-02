@@ -23,33 +23,33 @@ export class ClientForm {
   cancelled = output<void>();
 
   form = this.fb.nonNullable.group({
-    num_client: ['', Validators.required],
-    isProfessionnel: [false],
-    civilite: [''],
-    nom: [''],
-    prenom: [''],
-    societe: [''],
-    tva: [''],
+    client_number: ['', Validators.required],
+    isProfessional: [false],
+    title: [''],
+    last_name: [''],
+    first_name: [''],
+    company_name: [''],
+    vat_number: [''],
     email: ['', Validators.required],
-    telephone: [''],
-    remarque: [''],
+    phone: [''],
+    note: [''],
   });
 
-  actifOptions = [
+  typeOptions = [
     { label: 'Particulier', value: false },
     { label: 'Professionnel', value: true }
   ];
 
   constructor() {
-    this.form.controls.isProfessionnel.valueChanges.subscribe(isProfessionnel => {
-      if (!isProfessionnel) {
-        this.form.patchValue({ societe: '', tva: '' });
+    this.form.controls.isProfessional.valueChanges.subscribe(isProfessional => {
+      if (!isProfessional) {
+        this.form.patchValue({ company_name: '', vat_number: '' });
       }
     });
   }
 
-  get isProfessionnel(): boolean {
-    return this.form.controls.isProfessionnel.value;
+  get isProfessional(): boolean {
+    return this.form.controls.isProfessional.value;
   }
 
   cancel(): void {
@@ -61,11 +61,11 @@ export class ClientForm {
       return;
     }
 
-    const { isProfessionnel, ...client } = this.form.getRawValue();
+    const { isProfessional, ...client } = this.form.getRawValue();
 
     this.clientService.createClient({
       ...client,
-      type: isProfessionnel ? 'PROFESSIONNEL' : 'PARTICULIER',
+      type: isProfessional ? 'PROFESSIONAL' : 'INDIVIDUAL',
     }).subscribe({
       next: () => {
         this.saved.emit();
