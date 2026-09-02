@@ -1,0 +1,38 @@
+GET http://localhost:3000/company
+
+###
+
+GET http://localhost:3000/company/1
+
+###
+
+POST http://localhost:3000/company
+Content-Type: application/json
+
+{
+  "name": "DEDONNOSTYLE",
+  "email": "dedonnostyle@gmail.com",
+  "phone": "+41799549936",
+  "street": "Rue de boujean 37",
+  "postal_code": "2502",
+  "city": "Biel/Bienne",
+  "country": "Suisse",
+  "logo": "CheminDuLogo"
+}
+
+###
+
+PUT http://localhost:3000/company/1
+Content-Type: application/json
+
+{
+  "name": "DE DONNO STYLE SARL",
+  "email": "dedonnostyle@gmail.com",
+  "phone": "+41799549936",
+  "iban": "CH8500790016247615012",
+  "street": "Rue de boujean 37",
+  "postal_code": "2502",
+  "city": "Biel/Bienne",
+  "country": "Suisse",
+  "logo": "CheminDuLogo"
+}

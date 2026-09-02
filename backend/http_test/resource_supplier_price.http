@@ -1,0 +1,9 @@
+@token = PASTE_FRESH_TOKEN_FROM_AUTH.HTTP_HERE
+
+GET http://localhost:3000/resource-supplier-price
+Authorization: Bearer {{token}}
+
+###
+
+GET http://localhost:3000/resource-supplier-price?resource_id=1
+Authorization: Bearer {{token}}

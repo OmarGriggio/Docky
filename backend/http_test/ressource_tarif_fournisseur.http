@@ -1,9 +1,0 @@
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoib21hckB0ZXN0My5jaCIsInJvbGUiOiJBRE1JTiIsImlkX2VudHJlcHJpc2UiOjEsImlhdCI6MTc4Mzk1NzU0MywiZXhwIjoxNzgzOTc1NTQzfQ.cIR62mHMPIm0w-IH6q3CVAQDpOgGDN34IvE3EOEfE7c
-
-GET http://localhost:3000/ressource-tarif-fournisseur
-Authorization: Bearer {{token}}
-
-###
-
-GET http://localhost:3000/ressource-tarif-fournisseur?id_ressource=1
-Authorization: Bearer {{token}}

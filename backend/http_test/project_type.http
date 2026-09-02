@@ -1,0 +1,14 @@
+GET http://localhost:3000/project-type
+
+###
+
+POST http://localhost:3000/project-type
+Content-Type: application/json
+
+{
+  "label": "Toiture"
+}
+
+###
+
+DELETE http://localhost:3000/project-type/1

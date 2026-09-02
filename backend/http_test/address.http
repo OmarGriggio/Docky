@@ -1,0 +1,18 @@
+@token = PASTE_FRESH_TOKEN_FROM_AUTH.HTTP_HERE
+
+GET http://localhost:3000/address
+Authorization: Bearer {{token}}
+
+###
+
+POST http://localhost:3000/address
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "client_id": 1,
+  "street": "Rue de la Gare 1",
+  "postal_code": "2000",
+  "city": "Neuchâtel",
+  "country": "Suisse"
+}
