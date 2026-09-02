@@ -1,4 +1,4 @@
-<div class="fournisseur-list-header">
+<div class="supplier-list-header">
   <h1>Fournisseurs</h1>
   <label>
     <p-checkbox [binary]="true" [ngModel]="showArchived()" (ngModelChange)="onShowArchivedChange($event)" />
@@ -14,11 +14,11 @@
   [style]="{ width: '32rem' }"
 >
   @if (createDialogVisible()) {
-    <app-fournisseur-form (saved)="onFournisseurSaved()" (cancelled)="createDialogVisible.set(false)" />
+    <app-supplier-form (saved)="onSupplierSaved()" (cancelled)="createDialogVisible.set(false)" />
   }
 </p-dialog>
 
-<p-table [value]="fournisseurs()" dataKey="id">
+<p-table [value]="suppliers()" dataKey="id">
   <ng-template #header>
     <tr>
       <th>Code</th>
@@ -28,13 +28,13 @@
     </tr>
   </ng-template>
 
-  <ng-template #body let-fournisseur>
+  <ng-template #body let-supplier>
     <tr>
-      <td>{{ fournisseur.code_fournisseur }}</td>
-      <td>{{ fournisseur.societe }}</td>
-      <td>{{ fournisseur.categorie }}</td>
+      <td>{{ supplier.supplier_code }}</td>
+      <td>{{ supplier.name }}</td>
+      <td>{{ supplier.category }}</td>
       <td>
-        <p-menu #menu [popup]="true" [model]="getActions(fournisseur)" />
+        <p-menu #menu [popup]="true" [model]="getActions(supplier)" />
         <button type="button" class="pi pi-ellipsis-v" (click)="menu.toggle($event)"></button>
       </td>
     </tr>
