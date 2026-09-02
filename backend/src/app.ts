@@ -2,18 +2,18 @@ import express, { NextFunction, Request, Response } from "express";
 import path from "path";
 import { AppError } from "./shared/types/errors";
 import clientRoutes from "./modules/clients/client.routes";
-import adresseRoutes from "./modules/clients/adresse.routes";
-import userRoutes from "./modules/utilisateurs/user.routes";
+import addressRoutes from "./modules/clients/address.routes";
+import userRoutes from "./modules/users/user.routes";
 import authRoutes from "./modules/auth/auth.routes";
-import fournisseurRoutes from "./modules/fournisseurs/fournisseur.routes";
-import ressourceRoutes from "./modules/catalogue/ressource.routes";
-import ressourceTarifFournisseurRoutes from "./modules/catalogue/ressource_tarif_fournisseur.routes";
+import supplierRoutes from "./modules/suppliers/supplier.routes";
+import resourceRoutes from "./modules/catalog/resource.routes";
+import resourceSupplierPriceRoutes from "./modules/catalog/resource_supplier_price.routes";
 import documentRoutes from "./modules/documents/document.routes";
 import documentCompleteRoutes from "./modules/documents/document_complete.routes";
-import documentLigneRoutes from "./modules/documents/document_ligne.routes";
-import entrepriseRoutes from "./modules/entreprises/entreprise.routes";
-import chantierRoutes from "./modules/chantiers/chantier.routes";
-import typeChantierRoutes from "./modules/chantiers/type_chantier.routes";
+import documentLineRoutes from "./modules/documents/document_line.routes";
+import companyRoutes from "./modules/companies/company.routes";
+import projectRoutes from "./modules/projects/project.routes";
+import projectTypeRoutes from "./modules/projects/project_type.routes";
 import pdfRoutes from "./pdf/pdf.routes";
 import cors from 'cors';
 
@@ -33,27 +33,27 @@ app.use("/auth/login", authRoutes);
 
 app.use("/client", clientRoutes);
 
-app.use("/adresse", adresseRoutes);
+app.use("/address", addressRoutes);
 
-app.use("/fournisseur", fournisseurRoutes);
+app.use("/supplier", supplierRoutes);
 
-app.use("/ressource", ressourceRoutes);
+app.use("/resource", resourceRoutes);
 
-app.use("/ressource-tarif-fournisseur", ressourceTarifFournisseurRoutes);
+app.use("/resource-supplier-price", resourceSupplierPriceRoutes);
 
 app.use("/document", documentRoutes);
 
 app.use("/document-complete", documentCompleteRoutes);
 
-app.use("/document-ligne", documentLigneRoutes);
+app.use("/document-line", documentLineRoutes);
 
-app.use("/entreprise", entrepriseRoutes);
+app.use("/company", companyRoutes);
 
 app.use("/user", userRoutes);
 
-app.use("/chantier", chantierRoutes);
+app.use("/project", projectRoutes);
 
-app.use("/type-chantier", typeChantierRoutes);
+app.use("/project-type", projectTypeRoutes);
 
 app.use("/pdf", pdfRoutes);
 
