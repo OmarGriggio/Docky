@@ -1,24 +1,24 @@
-.chantier-form-type {
+.project-form-type {
   display: flex;
   align-items: flex-end;
   gap: 0.5rem;
 }
 
-.chantier-form-type-select {
+.project-form-type-select {
   flex: 1;
 }
 
-.chantier-form-new-type {
+.project-form-new-type {
   display: flex;
   align-items: flex-end;
   gap: 0.5rem;
 }
 
-.chantier-form-new-type-input {
+.project-form-new-type-input {
   flex: 1;
 }
 
-.chantier-form-adresse-toggle {
+.project-form-address-toggle {
   display: flex;
   justify-content: center;
   margin-bottom: 0.5rem;

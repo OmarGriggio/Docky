@@ -1,0 +1,83 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="ui-form">
+  <p-floatlabel variant="on">
+    <p-select
+      inputId="client_id"
+      formControlName="client_id"
+      [options]="clientOptions()"
+      optionLabel="label"
+      optionValue="value"
+    />
+    <label for="client_id">Client</label>
+  </p-floatlabel>
+
+  <p-floatlabel variant="on" class="ui-form__full">
+    <input pInputText id="name" formControlName="name" />
+    <label for="name">Nom du chantier</label>
+  </p-floatlabel>
+
+  <div class="ui-form__full project-form-type">
+    <p-floatlabel variant="on" class="project-form-type-select">
+      <p-select
+        inputId="project_type_id"
+        formControlName="project_type_id"
+        [options]="typeOptions()"
+        optionLabel="label"
+        optionValue="value"
+      />
+      <label for="project_type_id">Type de chantier</label>
+    </p-floatlabel>
+
+    <p-button type="button" icon="pi pi-plus" label="Nouveau type" severity="secondary" (onClick)="toggleNewType()" />
+  </div>
+
+  @if (newTypeVisible()) {
+    <div class="ui-form__full project-form-new-type">
+      <p-floatlabel variant="on" class="project-form-new-type-input">
+        <input pInputText id="newTypeLabel" #newTypeInput (keyup.enter)="addProjectType(newTypeInput.value); newTypeInput.value = ''" />
+        <label for="newTypeLabel">Libellé du nouveau type</label>
+      </p-floatlabel>
+      <p-button type="button" label="Ajouter" (onClick)="addProjectType(newTypeInput.value); newTypeInput.value = ''" />
+    </div>
+  }
+
+  <div class="ui-form__full project-form-address-toggle">
+    <p-selectbutton
+      formControlName="same_address_as_client"
+      [options]="addressOptions"
+      optionLabel="label"
+      optionValue="value"
+    />
+  </div>
+
+  @if (!sameAddressAsClient) {
+    <p-floatlabel variant="on">
+      <input pInputText id="street" formControlName="street" />
+      <label for="street">Rue</label>
+    </p-floatlabel>
+
+    <p-floatlabel variant="on">
+      <input pInputText id="postal_code" formControlName="postal_code" />
+      <label for="postal_code">NPA</label>
+    </p-floatlabel>
+
+    <p-floatlabel variant="on">
+      <input pInputText id="city" formControlName="city" />
+      <label for="city">Ville</label>
+    </p-floatlabel>
+
+    <p-floatlabel variant="on">
+      <input pInputText id="country" formControlName="country" />
+      <label for="country">Pays</label>
+    </p-floatlabel>
+  }
+
+  <p-floatlabel variant="on" class="ui-form__full">
+    <textarea pTextarea id="note" formControlName="note" rows="4"></textarea>
+    <label for="note">Remarque</label>
+  </p-floatlabel>
+
+  <div class="ui-form__actions">
+    <p-button type="button" label="Annuler" severity="secondary" (onClick)="cancel()" />
+    <p-button type="submit" label="Créer" />
+  </div>
+</form>

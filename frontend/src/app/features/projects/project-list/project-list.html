@@ -1,4 +1,4 @@
-<div class="chantier-list-header">
+<div class="project-list-header">
   <h1>Chantiers</h1>
   <label>
     <p-checkbox [binary]="true" [ngModel]="showArchived()" (ngModelChange)="onShowArchivedChange($event)" />
@@ -14,29 +14,29 @@
   [style]="{ width: '32rem' }"
 >
   @if (createDialogVisible()) {
-    <app-chantier-form (saved)="onChantierSaved()" (cancelled)="createDialogVisible.set(false)" />
+    <app-project-form (saved)="onProjectSaved()" (cancelled)="createDialogVisible.set(false)" />
   }
 </p-dialog>
 
-<p-table [value]="chantiers()" dataKey="id" showGridlines [tableStyle]="{ 'min-width': '50rem' }">
+<p-table [value]="projects()" dataKey="id" showGridlines [tableStyle]="{ 'min-width': '50rem' }">
   <ng-template #header>
     <tr>
       <th>Nom</th>
       <th>Client</th>
-      <th pSortableColumn="type_chantier"><div>Type</div></th>
+      <th pSortableColumn="project_type"><div>Type</div></th>
       <th>Ville</th>
       <th></th>
     </tr>
   </ng-template>
 
-  <ng-template #body let-chantier>
+  <ng-template #body let-project>
     <tr>
-      <td>{{ chantier.nom }}</td>
-      <td>{{ clientName(chantier) }}</td>
-      <td><p-tag [value]="chantier.type_chantier" severity="secondary" /></td>
-      <td>{{ chantier.ville }}</td>
+      <td>{{ project.name }}</td>
+      <td>{{ clientName(project) }}</td>
+      <td><p-tag [value]="project.project_type" severity="secondary" /></td>
+      <td>{{ project.city }}</td>
       <td>
-        <p-menu #menu [popup]="true" [model]="getActions(chantier)" appendTo="body"></p-menu>
+        <p-menu #menu [popup]="true" [model]="getActions(project)" appendTo="body"></p-menu>
         <p-button icon="pi pi-ellipsis-v" (click)="menu.toggle($event)"></p-button>
       </td>
     </tr>
