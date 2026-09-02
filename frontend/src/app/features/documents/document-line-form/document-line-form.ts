@@ -5,26 +5,26 @@ import { InputNumber } from 'primeng/inputnumber';
 import { FloatLabel } from 'primeng/floatlabel';
 import { Select } from 'primeng/select';
 import { Button } from 'primeng/button';
-import { DocumentLigneService } from '../document-ligne.service';
-import { DocumentLigneType } from '../../../shared/models/document-ligne';
+import { DocumentLineService } from '../document-line.service';
+import { DocumentLineType } from '../../../shared/models/document-line';
 
-const TYPE_OPTIONS: { label: string; value: DocumentLigneType }[] = [
-  { label: 'Matériel', value: 'MATERIEL' },
+const TYPE_OPTIONS: { label: string; value: DocumentLineType }[] = [
+  { label: 'Matériel', value: 'MATERIAL' },
   { label: 'Service', value: 'SERVICE' },
 ];
 
 @Component({
-  selector: 'app-document-ligne-form',
+  selector: 'app-document-line-form',
   standalone: true,
   imports: [ReactiveFormsModule, InputText, InputNumber, FloatLabel, Select, Button],
-  templateUrl: './document-ligne-form.html',
+  templateUrl: './document-line-form.html',
 })
-export class DocumentLigneForm {
+export class DocumentLineForm {
 
   private fb = inject(FormBuilder);
-  private documentLigneService = inject(DocumentLigneService);
+  private documentLineService = inject(DocumentLineService);
 
-  idDocument = input.required<number>();
+  documentId = input.required<number>();
 
   saved = output<void>();
   cancelled = output<void>();
@@ -32,12 +32,12 @@ export class DocumentLigneForm {
   typeOptions = TYPE_OPTIONS;
 
   form = this.fb.nonNullable.group({
-    type: ['MATERIEL' as DocumentLigneType, Validators.required],
-    libelle: ['', Validators.required],
-    quantite: [1, Validators.required],
-    unite: [''],
-    prix_unitaire: [0, Validators.required],
-    rabais: [0],
+    type: ['MATERIAL' as DocumentLineType, Validators.required],
+    label: ['', Validators.required],
+    quantity: [1, Validators.required],
+    unit: [''],
+    unit_price: [0, Validators.required],
+    discount: [0],
   });
 
   cancel(): void {
@@ -49,15 +49,15 @@ export class DocumentLigneForm {
       return;
     }
 
-    this.documentLigneService.createLigne({
+    this.documentLineService.createLine({
       ...this.form.getRawValue(),
-      id_document: this.idDocument(),
+      document_id: this.documentId(),
     }).subscribe({
       next: () => {
         this.saved.emit();
       },
       error: err => {
-        console.error('document-ligne-form : ' + err);
+        console.error('document-line-form : ' + err);
       }
     });
   }

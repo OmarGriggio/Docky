@@ -9,23 +9,23 @@ import { DatePicker } from 'primeng/datepicker';
 import { Button } from 'primeng/button';
 import { DocumentService } from '../document.service';
 import { ClientService } from '../../clients/client.service';
-import { ChantierService } from '../../chantiers/chantier.service';
+import { ProjectService } from '../../projects/project.service';
 import { Client } from '../../../shared/models/client';
-import { Chantier } from '../../../shared/models/chantier';
-import { DocumentStatut, DocumentType } from '../../../shared/models/document';
+import { Project } from '../../../shared/models/project';
+import { DocumentStatus, DocumentType } from '../../../shared/models/document';
 
 const TYPE_OPTIONS: { label: string; value: DocumentType }[] = [
-  { label: 'Offre', value: 'OFFRE' },
-  { label: 'Facture', value: 'FACTURE' },
+  { label: 'Offre', value: 'QUOTE' },
+  { label: 'Facture', value: 'INVOICE' },
 ];
 
-const STATUT_OPTIONS: { label: string; value: DocumentStatut }[] = [
-  { label: 'Brouillon', value: 'BROUILLON' },
-  { label: 'Envoyé', value: 'ENVOYE' },
-  { label: 'Accepté', value: 'ACCEPTE' },
-  { label: 'Refusé', value: 'REFUSE' },
-  { label: 'Payé', value: 'PAYE' },
-  { label: 'Annulé', value: 'ANNULE' },
+const STATUS_OPTIONS: { label: string; value: DocumentStatus }[] = [
+  { label: 'Brouillon', value: 'DRAFT' },
+  { label: 'Envoyé', value: 'SENT' },
+  { label: 'Accepté', value: 'ACCEPTED' },
+  { label: 'Refusé', value: 'REJECTED' },
+  { label: 'Payé', value: 'PAID' },
+  { label: 'Annulé', value: 'CANCELLED' },
 ];
 
 @Component({
@@ -39,37 +39,37 @@ export class DocumentForm implements OnInit {
   private fb = inject(FormBuilder);
   private documentService = inject(DocumentService);
   private clientService = inject(ClientService);
-  private chantierService = inject(ChantierService);
+  private projectService = inject(ProjectService);
 
   saved = output<void>();
   cancelled = output<void>();
 
   clients = signal<Client[]>([]);
-  chantiers = signal<Chantier[]>([]);
+  projects = signal<Project[]>([]);
   errorMessage = signal<string | null>(null);
 
   typeOptions = TYPE_OPTIONS;
-  statutOptions = STATUT_OPTIONS;
+  statusOptions = STATUS_OPTIONS;
 
   clientOptions = computed(() =>
     this.clients().map(client => ({
-      label: client.societe || `${client.prenom ?? ''} ${client.nom ?? ''}`.trim(),
+      label: client.company_name || `${client.first_name ?? ''} ${client.last_name ?? ''}`.trim(),
       value: client.id
     }))
   );
 
-  chantierOptions = computed(() =>
-    this.chantiers().map(chantier => ({ label: chantier.nom, value: chantier.id }))
+  projectOptions = computed(() =>
+    this.projects().map(project => ({ label: project.name, value: project.id }))
   );
 
   form = this.fb.nonNullable.group({
-    type: ['OFFRE' as DocumentType, Validators.required],
-    numero: ['', Validators.required],
+    type: ['QUOTE' as DocumentType, Validators.required],
+    number: ['', Validators.required],
     date: [new Date(), Validators.required],
-    id_client: [null as number | null, Validators.required],
-    id_chantier: [null as number | null],
-    rabais: [0],
-    statut: ['BROUILLON' as DocumentStatut, Validators.required],
+    client_id: [null as number | null, Validators.required],
+    project_id: [null as number | null],
+    discount: [0],
+    status: ['DRAFT' as DocumentStatus, Validators.required],
     introduction: [''],
     conclusion: [''],
   });
@@ -80,8 +80,8 @@ export class DocumentForm implements OnInit {
       error: err => console.error('document-form : ' + err)
     });
 
-    this.chantierService.getChantiers().subscribe({
-      next: data => this.chantiers.set(data),
+    this.projectService.getProjects().subscribe({
+      next: data => this.projects.set(data),
       error: err => console.error('document-form : ' + err)
     });
   }
@@ -97,13 +97,13 @@ export class DocumentForm implements OnInit {
 
     this.errorMessage.set(null);
 
-    const { id_client, date, ...rest } = this.form.getRawValue();
+    const { client_id, date, ...rest } = this.form.getRawValue();
 
     this.documentService.createDocument({
       ...rest,
-      id_client: id_client!,
+      client_id: client_id!,
       date: date.toISOString(),
-      id_document_parent: null,
+      parent_document_id: null,
     }).subscribe({
       next: () => {
         this.saved.emit();
