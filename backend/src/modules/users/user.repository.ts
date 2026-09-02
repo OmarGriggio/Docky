@@ -1,28 +1,28 @@
 import { pool } from "../../shared/config/database";
 import { CreateUserData, User } from "./user.types";
 
-export const getUsersFromDB = async (id_entreprise: number) => {
-    const result = await pool.query("SELECT * FROM utilisateurs WHERE id_entreprise = $1", [id_entreprise]);
+export const getUsersFromDB = async (company_id: number) => {
+    const result = await pool.query("SELECT * FROM users WHERE company_id = $1", [company_id]);
     return result.rows;
 };
 
 export const getUserByEmail = async (email: string) => {
-    const result = await pool.query("SELECT * FROM utilisateurs where email = $1", [email]);
+    const result = await pool.query("SELECT * FROM users where email = $1", [email]);
     return result.rows[0];
 };
 
-export const getUserByIdForEntreprise = async (id: Number, id_entreprise: number) => {
+export const getUserByIdForCompany = async (id: Number, company_id: number) => {
     const result = await pool.query(
-        "SELECT * FROM utilisateurs WHERE id = $1 AND id_entreprise = $2",
-        [id, id_entreprise]
+        "SELECT * FROM users WHERE id = $1 AND company_id = $2",
+        [id, company_id]
     );
     return result.rows[0] ?? null;
 };
 
-export const deleteUserDB = async (id: Number, id_entreprise: number) => {
+export const deleteUserDB = async (id: Number, company_id: number) => {
     const result = await pool.query(
-        "DELETE FROM utilisateurs WHERE id = $1 AND id_entreprise = $2 RETURNING *",
-        [id, id_entreprise]
+        "DELETE FROM users WHERE id = $1 AND company_id = $2 RETURNING *",
+        [id, company_id]
     );
     return result.rows[0];
 };
@@ -31,20 +31,20 @@ export const createUserDB = async (
     userData: CreateUserData
 ): Promise<User> => {
     const query = `
-    INSERT INTO utilisateurs (
-      id_entreprise,
+    INSERT INTO users (
+      company_id,
       role,
-      nom,
-      prenom,
+      last_name,
+      first_name,
       email,
-      motdepasse_hash
+      password_hash
     )
     VALUES ($1, $2, $3, $4, $5, $6)
     RETURNING *;
   `;
 
     const values = [
-      userData.id_entreprise,
+      userData.company_id,
       userData.role,
       userData.firstname,
       userData.lastname,

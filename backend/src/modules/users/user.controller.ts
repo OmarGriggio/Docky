@@ -5,13 +5,13 @@ import { verifyToken } from "../../shared/middlewares/jwt.service";
 import { UnauthorizedError } from "../../shared/types/errors";
 
 export const getAllUsersController = async (req: Request, res: Response) => {
-    const users = await getAllUsers(req.user.id_entreprise);
+    const users = await getAllUsers(req.user.company_id);
     res.json(users);
 }
 
 export const deleteUserController = async (req: Request, res: Response) => {
     const id = Number(req.params.id);
-    const userDeleted = await deleteUserService(id, req.user.id_entreprise);
+    const userDeleted = await deleteUserService(id, req.user.company_id);
     res.json(userDeleted);
 };
 
