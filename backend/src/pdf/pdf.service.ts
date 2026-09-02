@@ -1,11 +1,11 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { PdfWriter } from "./core/pdf-writer";
-import { FactureTemplate } from "./templates/facture.template";
+import { InvoiceTemplate } from "./templates/invoice.template";
 import { getDocumentCompleteServ } from "../modules/documents/document_complete.service";
 import { getClientByIdServ } from "../modules/clients/client.service";
-import { createFactureDto } from "./templates/dto/facture.dto";
-import { getEntrepriseByIdServ } from "../modules/entreprises/entreprise.service";
+import { createInvoiceDto } from "./templates/dto/invoice.dto";
+import { getCompanyByIdServ } from "../modules/companies/company.service";
 import { createSwissQrBillDto } from "./templates/dto/swiss-qr-bill.dto";
 import { SwissQrBillTemplate } from "./templates/swiss-qr-bill.template";
 import { generateSwissQrBillImage } from "./swiss-qr-bill/swiss-qr-bill.generator";
@@ -22,18 +22,18 @@ const readLogoBytes = async (logo: string | null): Promise<Buffer | null> => {
     }
 };
 
-export const generateFacturePdfServ = async (documentId: number, id_entreprise: number): Promise<Uint8Array> => {
-    const document = await getDocumentCompleteServ(documentId, id_entreprise);
-    const client = await getClientByIdServ(document.id_client, id_entreprise);
-    const entreprise = await getEntrepriseByIdServ(client.id_entreprise);
+export const generateInvoicePdfServ = async (documentId: number, company_id: number): Promise<Uint8Array> => {
+    const document = await getDocumentCompleteServ(documentId, company_id);
+    const client = await getClientByIdServ(document.client_id, company_id);
+    const company = await getCompanyByIdServ(client.company_id);
 
-    const facture = createFactureDto(document, client, entreprise);
-    const qrBill = createSwissQrBillDto(document, client, entreprise);
+    const invoice = createInvoiceDto(document, client, company);
+    const qrBill = createSwissQrBillDto(document, client, company);
     const qrImageBytes = await generateSwissQrBillImage(qrBill);
-    const logoBytes = await readLogoBytes(entreprise.logo);
+    const logoBytes = await readLogoBytes(company.logo);
 
     const pdf = await PdfWriter.create();
-    await FactureTemplate.render(pdf, facture, logoBytes);
+    await InvoiceTemplate.render(pdf, invoice, logoBytes);
 
     pdf.newPage();
     await SwissQrBillTemplate.render(pdf, qrBill, qrImageBytes);

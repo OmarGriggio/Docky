@@ -22,7 +22,7 @@ export function validateDebtor(debtor: QrBillDebtor | null): ValidationError[] {
 function checkLength(field: string, value: string, max: number): ValidationError[] {
     const data = normalize(value);
     if (data.length > max) {
-        return [{ code: `${field}_LENGTH`, message: `Une ligne du débiteur dépasse ${max} caractères` }];
+        return [{ code: `${field}_LENGTH`, message: `A debtor line exceeds ${max} characters` }];
     }
     return [];
 }
@@ -30,7 +30,7 @@ function checkLength(field: string, value: string, max: number): ValidationError
 function checkCountry(value: string): ValidationError[] {
     const data = normalize(value);
     if (data.length > 0 && data.length !== 2) {
-        return [{ code: "COUNTRY_FORMAT", message: "Le pays du débiteur doit être un code ISO à 2 lettres" }];
+        return [{ code: "COUNTRY_FORMAT", message: "Debtor country must be a 2-letter ISO code" }];
     }
     return [];
 }

@@ -2,54 +2,54 @@ import { blob } from "stream/consumers";
 import { PDFImage } from "pdf-lib";
 import { PdfWriter } from "../core/pdf-writer";
 import { PdfTable } from "../core/pdf-writer.types";
-import { FactureDto } from "./facture.types";
+import { InvoiceDto } from "./invoice.types";
 
 const LOGO_MAX_WIDTH = 120;
 const LOGO_MAX_HEIGHT = 60;
 
-export class FactureTemplate {
+export class InvoiceTemplate {
 
-    static async render(pdf: PdfWriter, facture: FactureDto, logoBytes: Buffer | null) {
-        const date = new Date(facture.date).toLocaleDateString("fr-CH", {
+    static async render(pdf: PdfWriter, invoice: InvoiceDto, logoBytes: Buffer | null) {
+        const date = new Date(invoice.date).toLocaleDateString("fr-CH", {
             day: "numeric",
             month: "long",
             year: "numeric",
         });
-        const table = this.createLignesTable(facture);
+        const table = this.createLinesTable(invoice);
 
         if (logoBytes) {
             await this.drawLogo(pdf, logoBytes);
         }
 
-        pdf.title(`Facture ${facture.numero}`);
+        pdf.title(`Facture ${invoice.number}`);
 
-        pdf.text(facture.entreprise.nom, {bold: true});
-        pdf.text(facture.entreprise.rue);
-        pdf.text(facture.entreprise.npaVille, {marginBottom: 30});
+        pdf.text(invoice.company.name, {bold: true});
+        pdf.text(invoice.company.street);
+        pdf.text(invoice.company.postalCodeCity, {marginBottom: 30});
 
-        pdf.text(facture.client.nom, { bold: true, indent:250 });
-        pdf.text(facture.client.rue, {indent:250});
-        pdf.text(facture.client.npaVille, {indent:250, marginBottom: 15});
+        pdf.text(invoice.client.name, { bold: true, indent:250 });
+        pdf.text(invoice.client.street, {indent:250});
+        pdf.text(invoice.client.postalCodeCity, {indent:250, marginBottom: 15});
 
-        pdf.text(facture.entreprise.ville + ", le " + date, {marginBottom: 10, indent:250});
+        pdf.text(invoice.company.city + ", le " + date, {marginBottom: 10, indent:250});
 
-        pdf.text(facture.client.civilite, {marginBottom: 5});
+        pdf.text(invoice.client.title, {marginBottom: 5});
 
-        //TODO :Ajouter a la table document
-        pdf.text(facture.introduction);
+        //TODO: add to the document table
+        pdf.text(invoice.introduction);
 
         pdf.table(table);
         pdf.line();
 
-        pdf.text(`Total HT : ${facture.montantHt.toFixed(2)} CHF`, { bold: true, marginTop: 15 });
-        pdf.text(`Total TTC : ${facture.montantTtc.toFixed(2)} CHF`, { bold: true, marginBottom: 20 });
+        pdf.text(`Total HT : ${invoice.amountExclVat.toFixed(2)} CHF`, { bold: true, marginTop: 15 });
+        pdf.text(`Total TTC : ${invoice.amountInclVat.toFixed(2)} CHF`, { bold: true, marginBottom: 20 });
 
-        pdf.text(facture.conclusion);
+        pdf.text(invoice.conclusion);
 
-        pdf.text(facture.entreprise.nom, {indent: 250, marginTop: 20})
+        pdf.text(invoice.company.name, {indent: 250, marginTop: 20})
     };
 
-    private static createLignesTable(facture: FactureDto): PdfTable {
+    private static createLinesTable(invoice: InvoiceDto): PdfTable {
         return{
             columns: [
                 {
@@ -58,12 +58,12 @@ export class FactureTemplate {
                     width: 260,
                 },
                 {
-                    key: "quantite",
+                    key: "quantity",
                     title: "Qté",
                     width: 60,
                 },
                 {
-                    key: "prix",
+                    key: "price",
                     title: "Prix",
                     width: 80,
                 },
@@ -73,11 +73,11 @@ export class FactureTemplate {
                     width: 80,
                 },
             ],
-            rows: facture.lignes.map(ligne => ({
-                description: ligne.libelle,
-                quantite: ligne.unite ? `${ligne.quantite} ${ligne.unite}` : `${ligne.quantite}`,
-                prix: `${ligne.prixUnitaire.toFixed(2)} CHF`,
-                total: `${(ligne.quantite * ligne.prixUnitaire).toFixed(2)} CHF`,
+            rows: invoice.lines.map(line => ({
+                description: line.label,
+                quantity: line.unit ? `${line.quantity} ${line.unit}` : `${line.quantity}`,
+                price: `${line.unitPrice.toFixed(2)} CHF`,
+                total: `${(line.quantity * line.unitPrice).toFixed(2)} CHF`,
             })),
         };
     }

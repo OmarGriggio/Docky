@@ -1,7 +1,7 @@
 /**
  * Domain model for a Swiss QR-bill (payment slip), independent of PDF rendering.
  * Addresses use the "combined" format (2 free-text lines) rather than the
- * "structured" one, since neither the entreprise nor the client/adresse tables
+ * "structured" one, since neither the companies nor the clients/addresses tables
  * split street name from building number.
  */
 
