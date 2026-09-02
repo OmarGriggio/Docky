@@ -30,13 +30,13 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
-    path: 'fournisseurs',
-    loadComponent: () => import('./features/fournisseurs/fournisseur-list/fournisseur-list').then(m => m.FournisseurListComponent),
+    path: 'suppliers',
+    loadComponent: () => import('./features/suppliers/supplier-list/supplier-list').then(m => m.SupplierListComponent),
     canActivate: [authGuard]
   },
   {
-    path: 'fournisseurs/:id',
-    loadComponent: () => import('./features/fournisseurs/fournisseur-detail/fournisseur-detail').then(m => m.FournisseurDetail),
+    path: 'suppliers/:id',
+    loadComponent: () => import('./features/suppliers/supplier-detail/supplier-detail').then(m => m.SupplierDetail),
     canActivate: [authGuard]
   },
   {
@@ -50,13 +50,13 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
-    path: 'ressources',
-    loadComponent: () => import('./features/ressources/ressource-list/ressource-list').then(m => m.RessourceListComponent),
+    path: 'resources',
+    loadComponent: () => import('./features/resources/resource-list/resource-list').then(m => m.ResourceListComponent),
     canActivate: [authGuard]
   },
   {
-    path: 'chantiers',
-    loadComponent: () => import('./features/chantiers/chantier-list/chantier-list').then(m => m.ChantierListComponent),
+    path: 'projects',
+    loadComponent: () => import('./features/projects/project-list/project-list').then(m => m.ProjectListComponent),
     canActivate: [authGuard]
   },
   {
