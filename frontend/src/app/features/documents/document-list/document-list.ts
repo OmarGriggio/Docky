@@ -13,8 +13,8 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
 import { DocumentForm } from '../document-form/document-form';
 
 const TYPE_LABELS: Record<DocumentType, string> = {
-  'OFFRE': 'Offres',
-  'FACTURE': 'Factures',
+  'QUOTE': 'Offres',
+  'INVOICE': 'Factures',
 };
 
 @Component({
@@ -73,7 +73,7 @@ export class DocumentListComponent implements OnInit {
 
   getActions(document: Document): MenuItem[] {
     return [
-      document.actif
+      document.is_active
         ? { label: 'Archiver', command: () => this.archiveDocument(document) }
         : { label: 'Restaurer', command: () => this.unarchiveDocument(document) },
       {
@@ -85,7 +85,7 @@ export class DocumentListComponent implements OnInit {
 
   private archiveDocument(document: Document): void {
     this.documentPendingArchive = document;
-    this.confirmMessage.set(`Archiver le document ${document.numero} ?`);
+    this.confirmMessage.set(`Archiver le document ${document.number} ?`);
     this.confirmVisible.set(true);
   }
 
@@ -117,8 +117,8 @@ export class DocumentListComponent implements OnInit {
     });
   }
 
-  openFacturePdf(document: Document): void {
-    this.documentService.getFacturePdf(document.id).subscribe({
+  openInvoicePdf(document: Document): void {
+    this.documentService.getInvoicePdf(document.id).subscribe({
       next: blob => {
         const url = window.URL.createObjectURL(blob);
         window.open(url, '_blank');

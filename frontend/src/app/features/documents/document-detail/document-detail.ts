@@ -10,20 +10,20 @@ import { Checkbox } from 'primeng/checkbox';
 import { Menu } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
 import { DocumentService } from '../document.service';
-import { DocumentLigneService } from '../document-ligne.service';
+import { DocumentLineService } from '../document-line.service';
 import { ClientService } from '../../clients/client.service';
-import { ChantierService } from '../../chantiers/chantier.service';
+import { ProjectService } from '../../projects/project.service';
 import { Document } from '../../../shared/models/document';
-import { DocumentLigne } from '../../../shared/models/document-ligne';
+import { DocumentLine } from '../../../shared/models/document-line';
 import { Client } from '../../../shared/models/client';
-import { Chantier } from '../../../shared/models/chantier';
-import { DocumentLigneForm } from '../document-ligne-form/document-ligne-form';
+import { Project } from '../../../shared/models/project';
+import { DocumentLineForm } from '../document-line-form/document-line-form';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 
 @Component({
   selector: 'app-document-detail',
   standalone: true,
-  imports: [TableModule, DecimalPipe, Button, Dialog, Card, Checkbox, FormsModule, Menu, DocumentLigneForm, ConfirmDialogComponent],
+  imports: [TableModule, DecimalPipe, Button, Dialog, Card, Checkbox, FormsModule, Menu, DocumentLineForm, ConfirmDialogComponent],
   templateUrl: './document-detail.html',
   styleUrl: './document-detail.css'
 })
@@ -31,50 +31,50 @@ export class DocumentDetail implements OnInit {
 
   private route = inject(ActivatedRoute);
   private documentService = inject(DocumentService);
-  private documentLigneService = inject(DocumentLigneService);
+  private documentLineService = inject(DocumentLineService);
   private clientService = inject(ClientService);
-  private chantierService = inject(ChantierService);
+  private projectService = inject(ProjectService);
 
   document = signal<Document | null>(null);
-  lignes = signal<DocumentLigne[]>([]);
+  lines = signal<DocumentLine[]>([]);
   clients = signal<Client[]>([]);
-  chantiers = signal<Chantier[]>([]);
+  projects = signal<Project[]>([]);
 
-  showArchivedLignes = signal(false);
-  addLigneDialogVisible = signal(false);
+  showArchivedLines = signal(false);
+  addLineDialogVisible = signal(false);
 
   confirmVisible = signal(false);
   confirmMessage = signal('');
 
-  private lignePendingArchive: DocumentLigne | null = null;
+  private linePendingArchive: DocumentLine | null = null;
 
   private clientNames = computed(() => {
     const names = new Map<number, string>();
     for (const client of this.clients()) {
-      names.set(client.id, client.societe || `${client.prenom ?? ''} ${client.nom ?? ''}`.trim());
+      names.set(client.id, client.company_name || `${client.first_name ?? ''} ${client.last_name ?? ''}`.trim());
     }
     return names;
   });
 
-  private chantierNames = computed(() => {
+  private projectNames = computed(() => {
     const names = new Map<number, string>();
-    for (const chantier of this.chantiers()) {
-      names.set(chantier.id, chantier.nom);
+    for (const project of this.projects()) {
+      names.set(project.id, project.name);
     }
     return names;
   });
 
   clientName = computed(() => {
     const doc = this.document();
-    return doc ? (this.clientNames().get(doc.id_client) ?? '—') : '—';
+    return doc ? (this.clientNames().get(doc.client_id) ?? '—') : '—';
   });
 
-  chantierName = computed(() => {
+  projectName = computed(() => {
     const doc = this.document();
-    if (!doc || doc.id_chantier === null) {
+    if (!doc || doc.project_id === null) {
       return null;
     }
-    return this.chantierNames().get(doc.id_chantier) ?? '—';
+    return this.projectNames().get(doc.project_id) ?? '—';
   });
 
   private id!: number;
@@ -92,17 +92,17 @@ export class DocumentDetail implements OnInit {
       error: err => console.error('document-detail : ' + err)
     });
 
-    this.chantierService.getChantiers(true).subscribe({
-      next: data => this.chantiers.set(data),
+    this.projectService.getProjects(true).subscribe({
+      next: data => this.projects.set(data),
       error: err => console.error('document-detail : ' + err)
     });
 
-    this.loadLignes();
+    this.loadLines();
   }
 
-  private loadLignes(): void {
-    this.documentLigneService.getLignes(this.id, this.showArchivedLignes()).subscribe({
-      next: data => this.lignes.set(data),
+  private loadLines(): void {
+    this.documentLineService.getLines(this.id, this.showArchivedLines()).subscribe({
+      next: data => this.lines.set(data),
       error: err => console.error('document-detail : ' + err)
     });
   }
@@ -114,55 +114,55 @@ export class DocumentDetail implements OnInit {
     });
   }
 
-  onShowArchivedLignesChange(value: boolean): void {
-    this.showArchivedLignes.set(value);
-    this.loadLignes();
+  onShowArchivedLinesChange(value: boolean): void {
+    this.showArchivedLines.set(value);
+    this.loadLines();
   }
 
-  ligneTotal(ligne: DocumentLigne): number {
-    return ligne.quantite * ligne.prix_unitaire * (1 - ligne.rabais / 100);
+  lineTotal(line: DocumentLine): number {
+    return line.quantity * line.unit_price * (1 - line.discount / 100);
   }
 
-  onLigneSaved(): void {
-    this.addLigneDialogVisible.set(false);
-    this.loadLignes();
+  onLineSaved(): void {
+    this.addLineDialogVisible.set(false);
+    this.loadLines();
     this.reloadDocument();
   }
 
-  getLigneActions(ligne: DocumentLigne): MenuItem[] {
+  getLineActions(line: DocumentLine): MenuItem[] {
     return [
-      ligne.actif
-        ? { label: 'Archiver', command: () => this.archiveLigne(ligne) }
-        : { label: 'Restaurer', command: () => this.unarchiveLigne(ligne) }
+      line.is_active
+        ? { label: 'Archiver', command: () => this.archiveLine(line) }
+        : { label: 'Restaurer', command: () => this.unarchiveLine(line) }
     ];
   }
 
-  private archiveLigne(ligne: DocumentLigne): void {
-    this.lignePendingArchive = ligne;
-    this.confirmMessage.set(`Archiver la ligne "${ligne.libelle}" ?`);
+  private archiveLine(line: DocumentLine): void {
+    this.linePendingArchive = line;
+    this.confirmMessage.set(`Archiver la ligne "${line.label}" ?`);
     this.confirmVisible.set(true);
   }
 
   onArchiveConfirmed(): void {
-    const ligne = this.lignePendingArchive;
-    if (!ligne) {
+    const line = this.linePendingArchive;
+    if (!line) {
       return;
     }
-    this.lignePendingArchive = null;
+    this.linePendingArchive = null;
 
-    this.documentLigneService.archiveLigne(ligne.id).subscribe({
+    this.documentLineService.archiveLine(line.id).subscribe({
       next: () => {
-        this.loadLignes();
+        this.loadLines();
         this.reloadDocument();
       },
       error: err => console.error('document-detail : ' + err)
     });
   }
 
-  private unarchiveLigne(ligne: DocumentLigne): void {
-    this.documentLigneService.unarchiveLigne(ligne.id).subscribe({
+  private unarchiveLine(line: DocumentLine): void {
+    this.documentLineService.unarchiveLine(line.id).subscribe({
       next: () => {
-        this.loadLignes();
+        this.loadLines();
         this.reloadDocument();
       },
       error: err => console.error('document-detail : ' + err)

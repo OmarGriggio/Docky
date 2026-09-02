@@ -1,17 +1,17 @@
 @if (document(); as d) {
-  <p-card [header]="d.numero" styleClass="ui-card--elevated">
+  <p-card [header]="d.number" styleClass="ui-card--elevated">
     <table>
       <tbody>
         <tr><th>Type</th><td>{{ d.type }}</td></tr>
         <tr><th>Date</th><td>{{ d.date }}</td></tr>
         <tr><th>Client</th><td>{{ clientName() }}</td></tr>
-        @if (chantierName()) {
-          <tr><th>Chantier</th><td>{{ chantierName() }}</td></tr>
+        @if (projectName()) {
+          <tr><th>Chantier</th><td>{{ projectName() }}</td></tr>
         }
-        <tr><th>Statut</th><td>{{ d.statut }}</td></tr>
-        <tr><th>Montant HT</th><td>{{ d.montant_ht }}</td></tr>
-        <tr><th>Montant TTC</th><td>{{ d.montant_ttc }}</td></tr>
-        <tr><th>Rabais</th><td>{{ d.rabais }} %</td></tr>
+        <tr><th>Statut</th><td>{{ d.status }}</td></tr>
+        <tr><th>Montant HT</th><td>{{ d.amount_excl_vat }}</td></tr>
+        <tr><th>Montant TTC</th><td>{{ d.amount_incl_vat }}</td></tr>
+        <tr><th>Rabais</th><td>{{ d.discount }} %</td></tr>
         @if (d.introduction) {
           <tr><th>Introduction</th><td>{{ d.introduction }}</td></tr>
         }
@@ -22,16 +22,16 @@
     </table>
   </p-card>
 
-  <div class="detail-lignes-header">
+  <div class="detail-lines-header">
     <h2>Lignes</h2>
     <label>
-      <p-checkbox [binary]="true" [ngModel]="showArchivedLignes()" (ngModelChange)="onShowArchivedLignesChange($event)" />
+      <p-checkbox [binary]="true" [ngModel]="showArchivedLines()" (ngModelChange)="onShowArchivedLinesChange($event)" />
       Afficher les archivées
     </label>
-    <p-button label="Ajouter une ligne" icon="pi pi-plus" (onClick)="addLigneDialogVisible.set(true)" />
+    <p-button label="Ajouter une ligne" icon="pi pi-plus" (onClick)="addLineDialogVisible.set(true)" />
   </div>
 
-  <p-table [value]="lignes()" dataKey="id">
+  <p-table [value]="lines()" dataKey="id">
     <ng-template #header>
       <tr>
         <th>Type</th>
@@ -44,17 +44,17 @@
         <th></th>
       </tr>
     </ng-template>
-    <ng-template #body let-ligne>
+    <ng-template #body let-line>
       <tr>
-        <td>{{ ligne.type }}</td>
-        <td>{{ ligne.libelle }}</td>
-        <td>{{ ligne.quantite }}</td>
-        <td>{{ ligne.unite }}</td>
-        <td>{{ ligne.prix_unitaire }}</td>
-        <td>{{ ligne.rabais }} %</td>
-        <td>{{ ligneTotal(ligne) | number:'1.2-2' }}</td>
+        <td>{{ line.type }}</td>
+        <td>{{ line.label }}</td>
+        <td>{{ line.quantity }}</td>
+        <td>{{ line.unit }}</td>
+        <td>{{ line.unit_price }}</td>
+        <td>{{ line.discount }} %</td>
+        <td>{{ lineTotal(line) | number:'1.2-2' }}</td>
         <td>
-          <p-menu #menu [popup]="true" [model]="getLigneActions(ligne)" appendTo="body"></p-menu>
+          <p-menu #menu [popup]="true" [model]="getLineActions(line)" appendTo="body"></p-menu>
           <p-button icon="pi pi-ellipsis-v" (click)="menu.toggle($event)"></p-button>
         </td>
       </tr>
@@ -62,13 +62,13 @@
   </p-table>
 
   <p-dialog
-    [(visible)]="addLigneDialogVisible"
+    [(visible)]="addLineDialogVisible"
     header="Nouvelle ligne"
     [modal]="true"
     [style]="{ width: '32rem' }"
   >
-    @if (addLigneDialogVisible()) {
-      <app-document-ligne-form [idDocument]="d.id" (saved)="onLigneSaved()" (cancelled)="addLigneDialogVisible.set(false)" />
+    @if (addLineDialogVisible()) {
+      <app-document-line-form [documentId]="d.id" (saved)="onLineSaved()" (cancelled)="addLineDialogVisible.set(false)" />
     }
   </p-dialog>
 

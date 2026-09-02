@@ -25,7 +25,7 @@ export class DocumentService {
     return this.http.get<Document>(`${API_BASE}/document/${id}`);
   }
 
-  createDocument(document: Omit<Document, 'id' | 'id_entreprise' | 'actif' | 'montant_ht' | 'montant_ttc'>) {
+  createDocument(document: Omit<Document, 'id' | 'company_id' | 'is_active' | 'amount_excl_vat' | 'amount_incl_vat'>) {
     return this.http.post<Document>(`${API_BASE}/document`, document);
   }
 
@@ -37,7 +37,7 @@ export class DocumentService {
     return this.http.patch<Document>(`${API_BASE}/document/${id}/unarchive`, {});
   }
 
-  getFacturePdf(id: number) {
-    return this.http.get(`${API_BASE}/pdf/facture/${id}`, { responseType: 'blob' });
+  getInvoicePdf(id: number) {
+    return this.http.get(`${API_BASE}/pdf/invoice/${id}`, { responseType: 'blob' });
   }
 }

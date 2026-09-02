@@ -11,8 +11,8 @@
   </p-floatlabel>
 
   <p-floatlabel variant="on">
-    <input pInputText id="numero" formControlName="numero" />
-    <label for="numero">Numéro</label>
+    <input pInputText id="number" formControlName="number" />
+    <label for="number">Numéro</label>
   </p-floatlabel>
 
   <p-floatlabel variant="on">
@@ -22,41 +22,41 @@
 
   <p-floatlabel variant="on">
     <p-select
-      inputId="id_client"
-      formControlName="id_client"
+      inputId="client_id"
+      formControlName="client_id"
       [options]="clientOptions()"
       optionLabel="label"
       optionValue="value"
     />
-    <label for="id_client">Client</label>
+    <label for="client_id">Client</label>
   </p-floatlabel>
 
   <p-floatlabel variant="on">
     <p-select
-      inputId="id_chantier"
-      formControlName="id_chantier"
-      [options]="chantierOptions()"
+      inputId="project_id"
+      formControlName="project_id"
+      [options]="projectOptions()"
       optionLabel="label"
       optionValue="value"
       [showClear]="true"
     />
-    <label for="id_chantier">Chantier (optionnel)</label>
+    <label for="project_id">Chantier (optionnel)</label>
   </p-floatlabel>
 
   <p-floatlabel variant="on">
     <p-select
-      inputId="statut"
-      formControlName="statut"
-      [options]="statutOptions"
+      inputId="status"
+      formControlName="status"
+      [options]="statusOptions"
       optionLabel="label"
       optionValue="value"
     />
-    <label for="statut">Statut</label>
+    <label for="status">Statut</label>
   </p-floatlabel>
 
   <p-floatlabel variant="on">
-    <p-inputnumber inputId="rabais" formControlName="rabais" mode="decimal" [minFractionDigits]="2" suffix=" %" />
-    <label for="rabais">Rabais</label>
+    <p-inputnumber inputId="discount" formControlName="discount" mode="decimal" [minFractionDigits]="2" suffix=" %" />
+    <label for="discount">Rabais</label>
   </p-floatlabel>
 
   <p-floatlabel variant="on" class="ui-form__full">

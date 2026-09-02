@@ -35,16 +35,16 @@
 
   <ng-template #body let-document>
     <tr>
-      <td>{{ document.numero }}</td>
+      <td>{{ document.number }}</td>
       <td>{{ document.type }}</td>
       <td>{{ document.date }}</td>
-      <td>{{ document.montant_ht }}</td>
-      <td>{{ document.montant_ttc }}</td>
-      <td>{{ document.rabais }}</td>
-      <td>{{ document.statut }}</td>
+      <td>{{ document.amount_excl_vat }}</td>
+      <td>{{ document.amount_incl_vat }}</td>
+      <td>{{ document.discount }}</td>
+      <td>{{ document.status }}</td>
       <td>
-        @if (document.type === 'FACTURE') {
-          <p-button label="Voir la facture" icon="pi pi-file-pdf" (click)="openFacturePdf(document)" />
+        @if (document.type === 'INVOICE') {
+          <p-button label="Voir la facture" icon="pi pi-file-pdf" (click)="openInvoicePdf(document)" />
         }
       </td>
       <td>
