@@ -33,12 +33,12 @@
 
   <ng-template #body let-client>
     <tr>
-      <td>{{ client.num_client }}</td>
+      <td>{{ client.client_number }}</td>
       <td>{{ client.type }}</td>
-      <td>{{ client.societe }}</td>
-      <td>{{ client.prenom }} {{ client.nom }}</td>
+      <td>{{ client.company_name }}</td>
+      <td>{{ client.first_name }} {{ client.last_name }}</td>
       <td>{{ client.email }}</td>
-      <td>{{ client.telephone }}</td>
+      <td>{{ client.phone }}</td>
       <td>
         <p-menu #menu [popup]="true" [model]="getActions(client)" appendTo="body"></p-menu>
         <p-button icon="pi pi-ellipsis-v" (click)="menu.toggle($event)"></p-button>
