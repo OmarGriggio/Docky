@@ -17,4 +17,6 @@ export interface DocumentLigne {
   prix_unitaire: number;
 
   rabais: number;
+
+  actif: boolean;
 }

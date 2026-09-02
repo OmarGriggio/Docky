@@ -30,6 +30,22 @@ export const getDocumentByNumeroFromDB = async (numero: string) => {
   return result.rows[0] ?? null;
 };
 
+export const updateDocumentTotalsInDB = async (
+  id: number,
+  id_entreprise: number,
+  montant_ht: number,
+  montant_ttc: number
+): Promise<Document> => {
+  const query = `
+    UPDATE documents SET montant_ht = $1, montant_ttc = $2
+      WHERE id = $3 AND id_entreprise = $4
+    RETURNING *;
+  `;
+
+  const result = await pool.query(query, [montant_ht, montant_ttc, id, id_entreprise]);
+  return result.rows[0];
+};
+
 export const archiveDocumentInDB = async (id: number, id_entreprise: number): Promise<Document> => {
   const query = `
     UPDATE documents SET actif = false
@@ -59,6 +75,7 @@ export const createDocumentInDB = async (
     INSERT INTO documents (
       id_entreprise,
       id_client,
+      id_chantier,
       id_document_parent,
       type,
       numero,
@@ -68,15 +85,16 @@ export const createDocumentInDB = async (
       rabais,
       statut,
       introduction,
-      conclusion,
+      conclusion
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
     RETURNING *;
   `;
 
   const values = [
     document.id_entreprise,
     document.id_client,
+    document.id_chantier,
     document.id_document_parent,
     document.type,
     document.numero,

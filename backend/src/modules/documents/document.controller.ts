@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { addDocumentServ, archiveDocumentServ, unarchiveDocumentServ, getAllDocumentsServ, getDocumentsByTypeServ } from "./document.service";
+import { addDocumentServ, archiveDocumentServ, unarchiveDocumentServ, getAllDocumentsServ, getDocumentsByTypeServ, getDocumentByIdServ } from "./document.service";
 import { Document } from "./document.types";
 
 export const getDocuments = async (req: Request, res: Response) => {
@@ -10,6 +10,11 @@ export const getDocuments = async (req: Request, res: Response) => {
     ? await getDocumentsByTypeServ(type, id_entreprise, includeArchived)
     : await getAllDocumentsServ(id_entreprise, includeArchived);
   res.json(documents);
+};
+
+export const getDocument = async (req: Request, res: Response) => {
+  const document = await getDocumentByIdServ(Number(req.params.id), req.user.id_entreprise);
+  res.json(document);
 };
 
 export const createDocument = async (req: Request, res: Response) => {

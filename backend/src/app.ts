@@ -10,6 +10,7 @@ import ressourceRoutes from "./modules/catalogue/ressource.routes";
 import ressourceTarifFournisseurRoutes from "./modules/catalogue/ressource_tarif_fournisseur.routes";
 import documentRoutes from "./modules/documents/document.routes";
 import documentCompleteRoutes from "./modules/documents/document_complete.routes";
+import documentLigneRoutes from "./modules/documents/document_ligne.routes";
 import entrepriseRoutes from "./modules/entreprises/entreprise.routes";
 import chantierRoutes from "./modules/chantiers/chantier.routes";
 import typeChantierRoutes from "./modules/chantiers/type_chantier.routes";
@@ -43,6 +44,8 @@ app.use("/ressource-tarif-fournisseur", ressourceTarifFournisseurRoutes);
 app.use("/document", documentRoutes);
 
 app.use("/document-complete", documentCompleteRoutes);
+
+app.use("/document-ligne", documentLigneRoutes);
 
 app.use("/entreprise", entrepriseRoutes);
 
