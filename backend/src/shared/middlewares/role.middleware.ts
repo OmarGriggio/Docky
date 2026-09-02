@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { Role } from "../../modules/utilisateurs/user.types";
+import { Role } from "../../modules/users/user.types";
 import { ForbiddenError } from "../types/errors";
 
 // Use after `authenticate`. Rejects unless req.user.role is one of `roles`.

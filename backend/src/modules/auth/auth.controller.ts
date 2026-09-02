@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { authUserService } from "./auth.service";
-import { LoginUserData } from "../utilisateurs/user.types";
+import { LoginUserData } from "../users/user.types";
 
 export const authUserController = async (req: Request, res: Response) => {
     const loginData: LoginUserData = req.body
