@@ -1,4 +1,4 @@
-export type UserRole = 'ADMIN' | 'UTILISATEUR';
+export type UserRole = 'ADMIN' | 'USER';
 
 export interface AuthResponse {
   token: string;

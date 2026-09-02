@@ -2,16 +2,16 @@ import { UserRole } from './auth';
 
 export interface User {
   id: number;
-  id_entreprise: number;
+  company_id: number;
   role: UserRole;
-  nom: string;
-  prenom: string;
+  last_name: string;
+  first_name: string;
   email: string;
-  date_creat: string;
+  created_at: string;
 }
 
 export interface CreateUserPayload {
-  id_entreprise: number;
+  company_id: number;
   role: UserRole;
   firstname: string;
   lastname: string;
