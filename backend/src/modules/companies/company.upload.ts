@@ -11,7 +11,7 @@ const EXTENSION_BY_MIME: Record<string, string> = {
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        const dir = path.join(UPLOADS_ROOT, "entreprises", String(req.params.id));
+        const dir = path.join(UPLOADS_ROOT, "companies", String(req.params.id));
         fs.mkdirSync(dir, { recursive: true });
 
         // Remove any previous logo so a format change (e.g. jpg -> png) doesn't leave an orphaned file behind.
