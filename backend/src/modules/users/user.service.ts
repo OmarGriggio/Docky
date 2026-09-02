@@ -1,35 +1,34 @@
-import { createEntrepriseInDB } from "../entreprises/entreprise.repository";
-import { createUserDB, getUserByEmail, getUserByIdForEntreprise, getUsersFromDB, deleteUserDB } from "./user.repository";
+import { createUserDB, getUserByEmail, getUserByIdForCompany, getUsersFromDB, deleteUserDB } from "./user.repository";
 import { CreateUserData } from "./user.types";
 import { NotFoundError, ConflictError, ForbiddenError } from "../../shared/types/errors";
 import { TokenPayload } from "../../shared/middlewares/jwt.service";
 import bcrypt from "bcrypt";
 
-export const getAllUsers = async (id_entreprise: number) => {
-  return await getUsersFromDB(id_entreprise);
+export const getAllUsers = async (company_id: number) => {
+  return await getUsersFromDB(company_id);
 };
 
-export const deleteUserService = async (id: Number, id_entreprise: number) => {
-  const user = await getUserByIdForEntreprise(id, id_entreprise);
+export const deleteUserService = async (id: Number, company_id: number) => {
+  const user = await getUserByIdForCompany(id, company_id);
   if (!user) {
     throw new NotFoundError("User not found");
   }
-  return await deleteUserDB(id, id_entreprise);
+  return await deleteUserDB(id, company_id);
 };
 
 // POST /user serves two different flows on purpose:
 // - actor === null: unauthenticated self-registration — only allowed to create the
-//   first ADMIN of a brand-new company (id_entreprise must have zero existing users).
+//   first ADMIN of a brand-new company (company_id must have zero existing users).
 // - actor set: an authenticated ADMIN adding an employee to their OWN company —
-//   id_entreprise is forced from the token, never trusted from the request body.
+//   company_id is forced from the token, never trusted from the request body.
 export const createUserService = async (userData: CreateUserData, actor: TokenPayload | null) => {
   if (actor) {
     if (actor.role !== "ADMIN") {
       throw new ForbiddenError();
     }
-    userData.id_entreprise = actor.id_entreprise;
+    userData.company_id = actor.company_id;
   } else {
-    const existingUsers = await getUsersFromDB(userData.id_entreprise);
+    const existingUsers = await getUsersFromDB(userData.company_id);
     if (existingUsers.length > 0) {
       throw new ForbiddenError("This company already has members — log in as an admin to add users");
     }
@@ -38,7 +37,6 @@ export const createUserService = async (userData: CreateUserData, actor: TokenPa
 
   const user = await getUserByEmail(userData.email);
   if (!user) {
-    //TODO : créer une entreprise vide et ajouter le id au user
     userData.passwordHash = await bcrypt.hash(userData.passwordHash, 10);
     return await createUserDB(userData);
   } else {
