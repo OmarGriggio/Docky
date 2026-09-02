@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
-import { getUserByEmail } from "../utilisateurs/user.repository";
-import { LoginUserData, User } from "../utilisateurs/user.types";
+import { getUserByEmail } from "../users/user.repository";
+import { LoginUserData, User } from "../users/user.types";
 import { UnauthorizedError } from "../../shared/types/errors";
 import { generateAccessToken } from "../../shared/middlewares/jwt.service";
 
@@ -13,7 +13,7 @@ export const authUserService = async (loginData: LoginUserData) => {
 
   const isPasswordValid = await bcrypt.compare(
     loginData.passwordHash,
-    user.motdepasse_hash
+    user.password_hash
   );
 
   if (!isPasswordValid) {
@@ -24,7 +24,7 @@ export const authUserService = async (loginData: LoginUserData) => {
     userId: user.id,
     email: user.email,
     role: user.role,
-    id_entreprise: user.id_entreprise
+    company_id: user.company_id
   });
 
   //TODO : add generateRefreshToken() (need to see how to stock refresh in front)
