@@ -14,10 +14,10 @@ export function validateCreditor(creditor: QrBillCreditor): ValidationError[] {
 function checkName(value: string): ValidationError[] {
     const data = normalize(value);
     if (data.length === 0) {
-        return [{ code: "NAME_EMPTY", message: "Le nom du créancier est vide" }];
+        return [{ code: "NAME_EMPTY", message: "Creditor name is empty" }];
     }
     if (data.length > 70) {
-        return [{ code: "NAME_LENGTH", message: "Le nom du créancier dépasse 70 caractères" }];
+        return [{ code: "NAME_LENGTH", message: "Creditor name exceeds 70 characters" }];
     }
     return [];
 }
@@ -26,11 +26,11 @@ function checkAddressLine(field: "ADDR1" | "ADDR2", value: string, options: { re
     const data = normalize(value);
     if (data.length === 0) {
         return options.required
-            ? [{ code: `${field}_EMPTY`, message: "L'adresse du créancier est incomplète" }]
+            ? [{ code: `${field}_EMPTY`, message: "Creditor address is incomplete" }]
             : [];
     }
     if (data.length > 70) {
-        return [{ code: `${field}_LENGTH`, message: "Une ligne d'adresse du créancier dépasse 70 caractères" }];
+        return [{ code: `${field}_LENGTH`, message: "A creditor address line exceeds 70 characters" }];
     }
     return [];
 }
@@ -38,23 +38,23 @@ function checkAddressLine(field: "ADDR1" | "ADDR2", value: string, options: { re
 function checkCountry(value: string): ValidationError[] {
     const data = normalize(value);
     if (data.length === 0) {
-        return [{ code: "COUNTRY_EMPTY", message: "Le pays du créancier est vide" }];
+        return [{ code: "COUNTRY_EMPTY", message: "Creditor country is empty" }];
     }
     if (data.length !== 2) {
-        return [{ code: "COUNTRY_FORMAT", message: "Le pays du créancier doit être un code ISO à 2 lettres" }];
+        return [{ code: "COUNTRY_FORMAT", message: "Creditor country must be a 2-letter ISO code" }];
     }
     return [];
 }
 
 function checkIban(value: string): ValidationError[] {
     if (value.length === 0) {
-        return [{ code: "IBAN_EMPTY", message: "L'IBAN du créancier est vide" }];
+        return [{ code: "IBAN_EMPTY", message: "Creditor IBAN is empty" }];
     }
     if (value.length !== 21) {
-        return [{ code: "IBAN_LENGTH", message: "L'IBAN doit contenir 21 caractères" }];
+        return [{ code: "IBAN_LENGTH", message: "IBAN must contain 21 characters" }];
     }
     if (value.slice(0, 2) !== "CH" && value.slice(0, 2) !== "LI") {
-        return [{ code: "IBAN_COUNTRY", message: "L'IBAN doit commencer par CH ou LI" }];
+        return [{ code: "IBAN_COUNTRY", message: "IBAN must start with CH or LI" }];
     }
     return [];
 }
