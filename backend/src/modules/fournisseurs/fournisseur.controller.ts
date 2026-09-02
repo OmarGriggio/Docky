@@ -1,11 +1,16 @@
 import { Request, Response } from "express";
-import { addFournisseurServ, archiveFournisseurServ, unarchiveFournisseurServ, getAllFournisseursServ } from "./fournisseur.service";
+import { addFournisseurServ, archiveFournisseurServ, unarchiveFournisseurServ, getAllFournisseursServ, getFournisseurByIdServ } from "./fournisseur.service";
 import { Fournisseur } from "./fournisseur.types";
 
 export const getFournisseur = async (req: Request, res: Response) => {
   const includeArchived = req.query.includeArchived === "true";
   const fournisseurs = await getAllFournisseursServ(req.user.id_entreprise, includeArchived);
   res.json(fournisseurs);
+};
+
+export const getFournisseurById = async (req: Request, res: Response) => {
+  const fournisseur = await getFournisseurByIdServ(Number(req.params.id), req.user.id_entreprise);
+  res.json(fournisseur);
 };
 
 export const createFournisseur = async (req: Request, res: Response) => {

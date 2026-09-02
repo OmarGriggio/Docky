@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createFournisseur, archiveFournisseur, unarchiveFournisseur, getFournisseur } from "./fournisseur.controller";
+import { createFournisseur, archiveFournisseur, unarchiveFournisseur, getFournisseur, getFournisseurById } from "./fournisseur.controller";
 import { authenticate } from "../../shared/middlewares/auth.middleware";
 
 const router = Router();
@@ -7,6 +7,8 @@ const router = Router();
 router.use(authenticate);
 
 router.get("/", getFournisseur);
+
+router.get("/:id", getFournisseurById);
 
 router.post("/", createFournisseur);
 

@@ -58,10 +58,9 @@ export const createFournisseurInDB = async (
       id_entreprise,
       code_fournisseur,
       societe,
-      adresse,
       categorie
     )
-    VALUES ($1, $2, $3, $4, $5)
+    VALUES ($1, $2, $3, $4)
     RETURNING *;
   `;
 
@@ -69,7 +68,6 @@ export const createFournisseurInDB = async (
     fournisseur.id_entreprise,
     fournisseur.code_fournisseur,
     fournisseur.societe,
-    fournisseur.adresse,
     fournisseur.categorie
   ];
 

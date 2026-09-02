@@ -66,23 +66,6 @@ CREATE TABLE clients (
 );
 
 -- ==========================================
--- ADRESSE
--- ==========================================
-
-CREATE TABLE adresses (
-    id SERIAL PRIMARY KEY,
-    id_entreprise INTEGER NOT NULL,
-    id_client INTEGER,
-    rue VARCHAR(100),
-    npa VARCHAR(20),
-    ville VARCHAR(100),
-    pays VARCHAR(100),
-
-    FOREIGN KEY (id_entreprise)
-        REFERENCES entreprises(id)
-);
-
--- ==========================================
 -- CHANTIER
 -- ==========================================
 
@@ -121,13 +104,43 @@ CREATE TABLE fournisseurs (
     id_entreprise INTEGER NOT NULL,
     code_fournisseur VARCHAR(50) UNIQUE,
     societe VARCHAR(255),
-    adresse TEXT,
     categorie VARCHAR(100),
     actif BOOLEAN DEFAULT TRUE,
 
     FOREIGN KEY (id_entreprise)
         REFERENCES entreprises(id)
 );
+
+-- ==========================================
+-- ADRESSE
+-- ==========================================
+
+-- Belongs to exactly one of client / fournisseur, never both, never neither.
+CREATE TABLE adresses (
+    id SERIAL PRIMARY KEY,
+    id_entreprise INTEGER NOT NULL,
+    id_client INTEGER,
+    id_fournisseur INTEGER,
+    principale BOOLEAN NOT NULL DEFAULT FALSE,
+    rue VARCHAR(100),
+    npa VARCHAR(20),
+    ville VARCHAR(100),
+    pays VARCHAR(100),
+
+    FOREIGN KEY (id_entreprise)
+        REFERENCES entreprises(id),
+    FOREIGN KEY (id_client)
+        REFERENCES clients(id),
+    FOREIGN KEY (id_fournisseur)
+        REFERENCES fournisseurs(id),
+    CHECK ((id_client IS NOT NULL) <> (id_fournisseur IS NOT NULL))
+);
+
+-- At most one "principale" address per client, and per fournisseur.
+CREATE UNIQUE INDEX adresses_one_principale_par_client
+    ON adresses (id_client) WHERE principale = TRUE AND id_client IS NOT NULL;
+CREATE UNIQUE INDEX adresses_one_principale_par_fournisseur
+    ON adresses (id_fournisseur) WHERE principale = TRUE AND id_fournisseur IS NOT NULL;
 
 -- ==========================================
 -- RESSOURCES
@@ -182,6 +195,7 @@ CREATE TABLE documents (
     id SERIAL PRIMARY KEY,
     id_entreprise INTEGER NOT NULL,
     id_client INTEGER NOT NULL,
+    id_chantier INTEGER,
     id_document_parent INTEGER,
     type VARCHAR(20) NOT NULL
         CHECK (type IN ('OFFRE', 'FACTURE')),
@@ -190,13 +204,16 @@ CREATE TABLE documents (
     montant_ht NUMERIC(12,2) DEFAULT 0,
     montant_ttc NUMERIC(12,2) DEFAULT 0,
     rabais NUMERIC(5,2) DEFAULT 0,
-    statut VARCHAR(50),
+    statut VARCHAR(50)
+        CHECK (statut IN ('BROUILLON', 'ENVOYE', 'ACCEPTE', 'REFUSE', 'PAYE', 'ANNULE')),
     introduction TEXT,
     conclusion TEXT,
     actif BOOLEAN DEFAULT TRUE,
 
     FOREIGN KEY (id_client)
         REFERENCES clients(id),
+    FOREIGN KEY (id_chantier)
+        REFERENCES chantiers(id),
     FOREIGN KEY (id_document_parent)
         REFERENCES documents(id),
     FOREIGN KEY (id_entreprise)
@@ -219,6 +236,7 @@ CREATE TABLE document_lignes (
     unite VARCHAR(50),
     prix_unitaire NUMERIC(10,2) NOT NULL,
     rabais NUMERIC(5,2) DEFAULT 0,
+    actif BOOLEAN DEFAULT TRUE,
 
     FOREIGN KEY (id_document)
         REFERENCES documents(id)
