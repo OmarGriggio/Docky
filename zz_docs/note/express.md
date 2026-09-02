@@ -1,12 +1,12 @@
-Pourquoi Express existe-t-il ?
+Why does Express exist?
 
-Pour comprendre Express, il faut d'abord comprendre Node.js.
+To understand Express, you first need to understand Node.js.
 
-Node.js te permet d'exécuter du JavaScript en dehors du navigateur.
+Node.js lets you run JavaScript outside the browser.
 
-Par exemple, tu peux créer un serveur HTTP sans aucune bibliothèque.
+For example, you can create an HTTP server without any library.
 
-Avec uniquement Node.js :
+With just Node.js:
 
 const http = require('http');
 
@@ -16,37 +16,37 @@ const server = http.createServer((req, res) => {
 
 server.listen(3000);
 
-Ça fonctionne.
+That works.
 
-Mais imagine que tu veuilles :
+But imagine you want to:
 
-gérer 50 routes ;
-parser du JSON ;
-gérer les erreurs ;
-utiliser des middlewares ;
-organiser ton code.
+handle 50 routes;
+parse JSON;
+handle errors;
+use middlewares;
+organize your code.
 
-Ça devient vite compliqué.
+It quickly gets complicated.
 
-Quel problème Express résout-il ?
+What problem does Express solve?
 
-Express est un framework qui simplifie la création d'un serveur web et d'une API REST.
+Express is a framework that simplifies building a web server and a REST API.
 
-Avec Express, la même chose devient :
+With Express, the same thing becomes:
 
 app.get('/', (req, res) => {
     res.send('Hello');
 });
 
-Beaucoup plus lisible.
+Much more readable.
 
-Express t'apporte notamment :
+Express gives you, among other things:
 
-un système de routes ;
-des middlewares ;
-la gestion des requêtes/réponses ;
-une architecture simple.
+a routing system;
+middlewares;
+request/response handling;
+a simple architecture.
 
-En résumé :
+In short:
 
-Node.js fournit le moteur, Express fournit les outils pour construire facilement une API.
+Node.js provides the engine, Express provides the tools to easily build an API.
