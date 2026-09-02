@@ -40,29 +40,29 @@ export class NavBar {
     {
       label: 'Fournisseurs',
       links: [
-        { label: 'Liste', path: '/fournisseurs' }
+        { label: 'Liste', path: '/suppliers' }
       ]
     },
     {
       label: 'Documents',
       links: [
-        { label: 'Offres', path: '/documents', queryParams: { type: 'OFFRE' } },
-        { label: 'Factures', path: '/documents', queryParams: { type: 'FACTURE' } }
+        { label: 'Offres', path: '/documents', queryParams: { type: 'QUOTE' } },
+        { label: 'Factures', path: '/documents', queryParams: { type: 'INVOICE' } }
       ]
     },
     {
       label: 'Ressources',
       links: [
-        { label: 'Matériel', path: '/ressources', queryParams: { type: 'MATERIEL' } },
-        { label: "Main d'oeuvre", path: '/ressources', queryParams: { type: 'MAIN-OEUVRE' } },
-        { label: 'Sous-traitance', path: '/ressources', queryParams: { type: 'SOUS-TRAITANCE' } },
-        { label: 'Divers', path: '/ressources', queryParams: { type: 'DIVERS' } }
+        { label: 'Matériel', path: '/resources', queryParams: { type: 'MATERIAL' } },
+        { label: "Main d'oeuvre", path: '/resources', queryParams: { type: 'LABOR' } },
+        { label: 'Sous-traitance', path: '/resources', queryParams: { type: 'SUBCONTRACTING' } },
+        { label: 'Divers', path: '/resources', queryParams: { type: 'OTHER' } }
       ]
     },
     {
       label: 'Chantiers',
       links: [
-        { label: 'Liste', path: '/chantiers' }
+        { label: 'Liste', path: '/projects' }
       ]
     },
     {
