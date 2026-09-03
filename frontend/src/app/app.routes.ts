@@ -12,6 +12,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/register/register').then(m => m.Register)
   },
   {
+    path: 'dashboard',
+    loadComponent: () => import('./features/dashboard/dashboard').then(m => m.Dashboard),
+    canActivate: [authGuard]
+  },
+  {
     path: 'uitest',
     loadComponent: () => import('./features/uitest/uitest').then(m => m.UiTest),
     canActivate: [authGuard, roleGuard],
@@ -82,7 +87,7 @@ export const routes: Routes = [
   },
   {
     path: '',
-    redirectTo: 'clients',
+    redirectTo: 'dashboard',
     pathMatch: 'full'
   }
 ];
