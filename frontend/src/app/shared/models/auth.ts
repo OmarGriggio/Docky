@@ -2,6 +2,7 @@ export type UserRole = 'ADMIN' | 'USER';
 
 export interface AuthResponse {
   token: string;
+  refreshToken: string;
 }
 
 export interface LoginPayload {
