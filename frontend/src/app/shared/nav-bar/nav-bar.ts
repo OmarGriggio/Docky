@@ -32,6 +32,12 @@ export class NavBar {
 
   navItems: NavItem[] = [
     {
+      label: 'Dashboard',
+      links: [
+        { label: 'Dashboard', path: '/dashboard' }
+      ]
+    },
+    {
       label: 'Clients',
       links: [
         { label: 'Liste', path: '/clients' }
