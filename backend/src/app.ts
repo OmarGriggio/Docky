@@ -29,7 +29,7 @@ app.use(express.json(), cors());
 
 app.use("/uploads", express.static(path.resolve(process.cwd(), "uploads")));
 
-app.use("/auth/login", authRoutes);
+app.use("/auth", authRoutes);
 
 app.use("/client", clientRoutes);
 
