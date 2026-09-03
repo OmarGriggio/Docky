@@ -45,17 +45,39 @@
         </p-floatlabel>
 
         <div class="ui-form__full profile-logo">
-          @if (logoPreviewUrl()) {
-            <img [src]="logoPreviewUrl()" alt="Logo de l'entreprise" class="profile-logo__preview" />
+          <div
+            class="profile-logo__dropzone"
+            [class.profile-logo__dropzone--dragging]="isDraggingOver()"
+            [class.profile-logo__dropzone--disabled]="!isAdmin()"
+            (click)="onDropzoneClick(logoInput)"
+            (dragover)="onDragOver($event)"
+            (dragleave)="onDragLeave($event)"
+            (drop)="onDrop($event)"
+          >
+            @if (displayedLogoUrl()) {
+              <img [src]="displayedLogoUrl()" alt="Logo de l'entreprise" class="profile-logo__preview" />
+            } @else {
+              <i class="pi pi-image profile-logo__placeholder"></i>
+            }
+
+            @if (isAdmin()) {
+              <p class="profile-logo__hint">Glissez-déposez une image ici, ou cliquez pour parcourir</p>
+            }
+
+            <input
+              #logoInput
+              type="file"
+              accept="image/jpeg,image/png"
+              class="profile-logo__input"
+              [disabled]="!isAdmin()"
+              (change)="onFileInputChange($event)"
+            />
+          </div>
+
+          @if (isAdmin() && selectedLogoFile()) {
+            <p-button type="button" label="Uploader le logo" [loading]="uploadingLogo()" (onClick)="uploadLogo()" />
           }
-          @if (isAdmin()) {
-            <div class="profile-logo__actions">
-              <input type="file" accept="image/jpeg,image/png" (change)="onLogoSelected($event)" />
-              @if (selectedLogoFile()) {
-                <p-button type="button" label="Uploader le logo" [loading]="uploadingLogo()" (onClick)="uploadLogo()" />
-              }
-            </div>
-          }
+
           @if (logoErrorMessage()) {
             <p class="profile-error">{{ logoErrorMessage() }}</p>
           }
