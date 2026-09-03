@@ -34,12 +34,20 @@ describe("computeDocumentTotals", () => {
     expect(result).toEqual({ amount_excl_vat: 1102.5, amount_incl_vat: 1102.5 });
   });
 
-  it("amount_incl_vat always equals amount_excl_vat (no VAT rate modelled yet)", () => {
+  it("amount_incl_vat equals amount_excl_vat when no VAT rate is given (defaults to 0)", () => {
     const lines = [{ quantity: 3, unit_price: 10, discount: 0 }];
 
     const result = computeDocumentTotals(lines, 0);
 
     expect(result.amount_incl_vat).toBe(result.amount_excl_vat);
+  });
+
+  it("applies the document's vat_rate on top of amount_excl_vat", () => {
+    const lines = [{ quantity: 10, unit_price: 100, discount: 0 }]; // 1000.-
+
+    const result = computeDocumentTotals(lines, 0, 8.1);
+
+    expect(result).toEqual({ amount_excl_vat: 1000, amount_incl_vat: 1081 });
   });
 
   it("rounds to 2 decimals", () => {
@@ -49,6 +57,20 @@ describe("computeDocumentTotals", () => {
     const result = computeDocumentTotals(lines, 0);
 
     expect(result.amount_excl_vat).toBe(20.1);
+  });
+
+  it("skips SECTION/NOTE lines (no quantity/unit_price) when summing", () => {
+    // A section title and a free-text note carry no amount of their own -
+    // only the priced line between them counts.
+    const lines = [
+      { quantity: null, unit_price: null, discount: null },
+      { quantity: 2, unit_price: 50, discount: 0 },
+      { quantity: null, unit_price: null, discount: null },
+    ];
+
+    const result = computeDocumentTotals(lines, 0);
+
+    expect(result).toEqual({ amount_excl_vat: 100, amount_incl_vat: 100 });
   });
 
 });

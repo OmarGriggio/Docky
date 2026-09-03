@@ -25,9 +25,20 @@ export const getDocumentByIdFromDB = async (id: number, company_id: number) => {
   return result.rows[0] ?? null;
 };
 
-export const getDocumentByNumberFromDB = async (number: string) => {
-  const result = await pool.query("SELECT * FROM documents WHERE number = $1", [number]);
-  return result.rows[0] ?? null;
+// Used by generateDocumentNumber (document.service.ts) to find the next
+// sequence number for a given company/type/year. numberPrefix already
+// includes the trailing "-" (e.g. "FAC-2026-"), and since the sequence is a
+// fixed-width, zero-padded suffix, ORDER BY number DESC correctly returns the
+// highest one lexicographically.
+export const getLastDocumentNumberFromDB = async (company_id: number, numberPrefix: string): Promise<string | null> => {
+  const result = await pool.query(
+    `SELECT number FROM documents
+     WHERE company_id = $1 AND number LIKE $2
+     ORDER BY number DESC
+     LIMIT 1`,
+    [company_id, `${numberPrefix}%`]
+  );
+  return result.rows[0]?.number ?? null;
 };
 
 export const updateDocumentTotalsInDB = async (
@@ -83,11 +94,14 @@ export const createDocumentInDB = async (
       amount_excl_vat,
       amount_incl_vat,
       discount,
+      vat_rate,
       status,
       introduction,
-      conclusion
+      conclusion,
+      payment_terms,
+      due_date
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
     RETURNING *;
   `;
 
@@ -102,9 +116,12 @@ export const createDocumentInDB = async (
     document.amount_excl_vat,
     document.amount_incl_vat,
     document.discount,
+    document.vat_rate,
     document.status,
     document.introduction,
-    document.conclusion
+    document.conclusion,
+    document.payment_terms,
+    document.due_date
   ];
 
   const result = await pool.query(query, values);

@@ -30,7 +30,17 @@ export const addLineServ = async (
   }
 
   const position = await getNextPositionForDocumentFromDB(document_id);
-  const line = await createLineInDB({ ...lineData, document_id, company_id, position, is_active: true });
+
+  // SECTION/NOTE lines are presentation-only - force quantity/unit_price to
+  // null regardless of what the request sent, same spirit as amounts being
+  // forced to 0 on document creation: the server, not the caller, decides
+  // what a structural line is worth (nothing).
+  const isPricedLine = lineData.type === "MATERIAL" || lineData.type === "SERVICE";
+  const normalizedLineData = isPricedLine
+    ? lineData
+    : { ...lineData, quantity: null, unit_price: null };
+
+  const line = await createLineInDB({ ...normalizedLineData, document_id, company_id, position, is_active: true });
 
   await recomputeDocumentTotalsServ(document_id, company_id);
 

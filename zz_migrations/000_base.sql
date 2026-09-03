@@ -42,6 +42,26 @@ CREATE TABLE users
 );
 
 -- ==========================================
+-- REFRESH TOKENS
+-- ==========================================
+
+-- token_hash stores a SHA-256 hash of the refresh token, never the raw value,
+-- so a database leak alone doesn't hand out valid tokens. revoked_at is set on
+-- logout; expires_at is enforced on top of the JWT's own expiry so a revoked
+-- or stale row is rejected even if the token's signature still checks out.
+CREATE TABLE refresh_tokens (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    token_hash TEXT NOT NULL UNIQUE,
+    expires_at TIMESTAMP NOT NULL,
+    revoked_at TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (user_id)
+        REFERENCES users(id)
+);
+
+-- ==========================================
 -- CLIENTS
 -- ==========================================
 
@@ -199,16 +219,25 @@ CREATE TABLE documents (
     parent_document_id INTEGER,
     type VARCHAR(20) NOT NULL
         CHECK (type IN ('QUOTE', 'INVOICE')),
-    number VARCHAR(50) UNIQUE NOT NULL,
+    -- Not UNIQUE on its own: two different companies can both have a
+    -- number "INVOICE-2026-0001". Uniqueness is scoped per company below.
+    -- The actual FAC_YYYY_00001/INV_YYYY_00001 generation happens in the
+    -- service layer, not here - this column just has to be able to hold it.
+    number VARCHAR(50) NOT NULL,
     date DATE NOT NULL,
     amount_excl_vat NUMERIC(12,2) DEFAULT 0,
     amount_incl_vat NUMERIC(12,2) DEFAULT 0,
     discount NUMERIC(5,2) DEFAULT 0,
+    vat_rate NUMERIC(5,2) DEFAULT 0,
     status VARCHAR(50)
         CHECK (status IN ('DRAFT', 'SENT', 'ACCEPTED', 'REJECTED', 'PAID', 'CANCELLED')),
     introduction TEXT,
     conclusion TEXT,
+    payment_terms TEXT,
+    due_date DATE,
     is_active BOOLEAN DEFAULT TRUE,
+
+    UNIQUE (company_id, number),
 
     FOREIGN KEY (client_id)
         REFERENCES clients(id),
@@ -229,12 +258,17 @@ CREATE TABLE document_lines (
     id SERIAL PRIMARY KEY,
     company_id INTEGER NOT NULL,
     document_id INTEGER NOT NULL,
+    -- 'MATERIAL' | 'SERVICE' are priced lines. 'SECTION' (a grouping title)
+    -- and 'NOTE' (free text) are presentation-only: quantity/unit_price stay
+    -- NULL for them, and they're skipped by computeDocumentTotals. There's
+    -- no section_id/hierarchy - a SECTION line just visually groups every
+    -- line after it (in `position` order) up to the next SECTION line.
     type VARCHAR(20) NOT NULL,
     position INTEGER NOT NULL,
     label VARCHAR(255) NOT NULL,
-    quantity NUMERIC(10,2) NOT NULL,
+    quantity NUMERIC(10,2),
     unit VARCHAR(50),
-    unit_price NUMERIC(10,2) NOT NULL,
+    unit_price NUMERIC(10,2),
     discount NUMERIC(5,2) DEFAULT 0,
     is_active BOOLEAN DEFAULT TRUE,
 
