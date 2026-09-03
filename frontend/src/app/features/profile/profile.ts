@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { InputText } from 'primeng/inputtext';
 import { FloatLabel } from 'primeng/floatlabel';
@@ -8,6 +8,8 @@ import { CompanyService } from './company.service';
 import { UserService } from '../admin/user.service';
 import { AuthService } from '../auth/auth.service';
 
+const ALLOWED_LOGO_TYPES = ['image/jpeg', 'image/png'];
+
 @Component({
   selector: 'app-profile',
   standalone: true,
@@ -15,7 +17,7 @@ import { AuthService } from '../auth/auth.service';
   templateUrl: './profile.html',
   styleUrl: './profile.css',
 })
-export class Profile implements OnInit {
+export class Profile implements OnInit, OnDestroy {
 
   private fb = inject(FormBuilder);
   private companyService = inject(CompanyService);
@@ -40,6 +42,12 @@ export class Profile implements OnInit {
   logoPath = signal<string | null>(null);
   logoPreviewUrl = computed(() => this.companyService.getLogoUrl(this.logoPath()));
   selectedLogoFile = signal<File | null>(null);
+  // Local preview of a just-dropped/selected file, before it's actually
+  // uploaded - takes priority over the currently-saved logo so the admin
+  // sees what they're about to upload, not the old one.
+  private selectedLogoPreviewUrl = signal<string | null>(null);
+  displayedLogoUrl = computed(() => this.selectedLogoPreviewUrl() ?? this.logoPreviewUrl());
+  isDraggingOver = signal(false);
   uploadingLogo = signal(false);
   logoErrorMessage = signal<string | null>(null);
 
@@ -49,6 +57,10 @@ export class Profile implements OnInit {
 
   ngOnInit(): void {
     this.loadCompany();
+  }
+
+  ngOnDestroy(): void {
+    this.clearSelectedLogoPreview();
   }
 
   private loadCompany(): void {
@@ -118,19 +130,70 @@ export class Profile implements OnInit {
     });
   }
 
-  onLogoSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0] ?? null;
+  onDropzoneClick(fileInput: HTMLInputElement): void {
+    if (!this.isAdmin()) {
+      return;
+    }
+    fileInput.click();
+  }
 
-    if (file && !['image/jpeg', 'image/png'].includes(file.type)) {
+  onDragOver(event: DragEvent): void {
+    if (!this.isAdmin()) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDraggingOver.set(true);
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDraggingOver.set(false);
+  }
+
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDraggingOver.set(false);
+
+    if (!this.isAdmin()) {
+      return;
+    }
+
+    this.handleSelectedFile(event.dataTransfer?.files?.[0] ?? null);
+  }
+
+  onFileInputChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.handleSelectedFile(input.files?.[0] ?? null);
+    // Reset so selecting the exact same file again still fires a change event.
+    input.value = '';
+  }
+
+  private handleSelectedFile(file: File | null): void {
+    if (!file) {
+      return;
+    }
+
+    if (!ALLOWED_LOGO_TYPES.includes(file.type)) {
       this.logoErrorMessage.set('Le logo doit être un fichier JPG ou PNG.');
-      this.selectedLogoFile.set(null);
-      input.value = '';
       return;
     }
 
     this.logoErrorMessage.set(null);
     this.selectedLogoFile.set(file);
+
+    this.clearSelectedLogoPreview();
+    this.selectedLogoPreviewUrl.set(URL.createObjectURL(file));
+  }
+
+  private clearSelectedLogoPreview(): void {
+    const current = this.selectedLogoPreviewUrl();
+    if (current) {
+      URL.revokeObjectURL(current);
+    }
+    this.selectedLogoPreviewUrl.set(null);
   }
 
   uploadLogo(): void {
@@ -146,6 +209,7 @@ export class Profile implements OnInit {
       next: company => {
         this.logoPath.set(company.logo);
         this.selectedLogoFile.set(null);
+        this.clearSelectedLogoPreview();
         this.uploadingLogo.set(false);
         this.successMessage.set('Le logo a été mis à jour.');
       },
