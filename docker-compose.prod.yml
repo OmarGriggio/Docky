@@ -1,0 +1,65 @@
+services:
+
+  postgres:
+    image: postgres:${POSTGRES_VERSION}
+
+    container_name: ${POSTGRES_CONTAINER_NAME}
+
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    # No port published to the host here, unlike docker-compose.yml (dev) -
+    # only other containers on this compose's network can reach Postgres.
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./zz_migrations/000_base.sql:/docker-entrypoint-initdb.d/000_base.sql
+      - ./zz_migrations/001_data.sql:/docker-entrypoint-initdb.d/001_data.sql
+
+
+  backend:
+    container_name: ${BACKEND_CONTAINER_NAME}
+
+    build:
+      context: ./backend
+      target: prod
+
+    restart: unless-stopped
+
+    env_file:
+      - ./backend/.env
+
+    # Named volume (not the dev bind mount) so uploaded logos survive a
+    # container restart/redeploy - see the file-uploads TODO in CLAUDE.md.
+    volumes:
+      - backend_uploads:/app/uploads
+
+    depends_on:
+      - postgres
+
+    # No port published either - only nginx (below) is reachable from
+    # outside the host.
+
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: docky-nginx
+
+    restart: unless-stopped
+
+    ports:
+      - "80:80"
+
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+
+    depends_on:
+      - backend
+
+
+volumes:
+  postgres_data:
+  backend_uploads:
