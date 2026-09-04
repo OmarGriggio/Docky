@@ -67,6 +67,20 @@ Solo learning project (SaaS for small construction companies). See [README.md](R
 - `backend/Dockerfile` is multi-stage (`dev` / `build` / `prod`). `docker-compose.yml` pins `target: dev` — that's the one actually used locally, don't remove it or compose would build the last stage (`prod`) by default. The `prod` stage (`node:22-slim`, compiled `dist/`, non-root) is what CI/CD should build for deployment; it hasn't been wired into a pipeline yet.
 - **After adding a new backend dependency**, `docker compose up --build` alone can still start the container with a stale `node_modules` — the anonymous volume (`- /app/node_modules` in `docker-compose.yml`, there to stop the `./backend:/app` bind mount from shadowing the image's installed deps) persists across rebuilds and doesn't automatically pick up the new package. Run `docker compose down -v` first (this also wipes the local `postgres_data` volume — harmless for dev data, migrations rerun on next `up`).
 
+## Deployment
+
+- **Server**: an Infomaniak VPS Lite (Ubuntu 22.04), IP `179.237.86.113`, no domain pointed at it yet. SSH as `ubuntu` (key-based only, passwordless `sudo`) — see [zz_docs/Decisions.md](zz_docs/Decisions.md) for why Infomaniak/a real VM over a PaaS, and why Nginx over Caddy.
+- **Two firewalls, both needed**: `ufw` on the OS (22/80/443 only, default-deny incoming) *and* Infomaniak's own Cloud panel firewall (off by default beyond SSH — 80/443 had to be opened there too, `ufw` alone wasn't enough to reach the server from outside).
+- **The repo is cloned on the server** at `~/docky`, updated via `git pull` — auth uses a dedicated, read-only **deploy key** (`~/.ssh/docky_deploy_key` on the server, added under the GitHub repo's Settings → Deploy keys, "Allow write access" left unchecked), not Omar's personal key.
+- **`docker-compose.prod.yml`** (not `docker-compose.yml`, which stays dev-only) is what actually runs in prod: backend built on the `prod` Dockerfile stage instead of `dev`, and — unlike dev — neither Postgres' nor the backend's port is published to the host; only `nginx` (also in this stack, reverse-proxying `/` to `backend:3000`) is reachable from outside, on port 80. Uploaded files (logos) go to a named volume (`backend_uploads`) instead of the dev bind mount, so they survive a redeploy.
+- **Real prod secrets** live in `.env`/`backend/.env` *on the server only* (generated with `openssl rand`, never committed — same `.gitignore` rule as dev) — different `JWT_SECRET`/`JWT_REFRESH_SECRET`/Postgres password than local dev.
+- **To redeploy after pushing to `main`**: SSH in, then
+  ```bash
+  cd ~/docky && git pull && docker compose -f docker-compose.prod.yml up --build -d
+  ```
+  Not automated yet — no CI/CD pipeline wired up, this is a manual step for now.
+- **Known gaps, not yet addressed**: no domain/HTTPS yet (`nginx/nginx.conf` has no `server_name` or TLS block — plain HTTP only until a domain is pointed here, then it needs a certbot pass); the frontend isn't deployed or even containerized yet (still `ng serve`-only, see the Frontend section above); no CI/CD (deploys are the manual command above).
+
 ## Docs
 
 - [zz_docs/Project Definition.md](zz_docs/Project%20Definition.md) — problem statement, user types, user journeys.
