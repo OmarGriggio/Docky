@@ -2,6 +2,26 @@
 
 This file tracks technical choices that had more than one reasonable option, along with the why — not just "what was done" (already in `CLAUDE.md` and the git history), but **what was turned down and why**. Useful so a decision doesn't get reopened without reading this page first, and to remember the reasoning later.
 
+## Hosting: a real VM (Infomaniak) over a PaaS, Nginx over Caddy
+
+**Context**: needed somewhere to run the backend + Postgres in "prod", free-or-cheap, that doesn't sleep/pause on inactivity (ruling out Supabase-style free tiers that suspend a project after ~7 days idle, and Render's free web service which sleeps after 15 min), reachable with auto-deploy from a CI/CD pipeline eventually, and — since this is explicitly a learning project — chosen partly for what it teaches, not just what's easiest.
+
+**Options compared**:
+- **Google Cloud Run** (serverless containers, true free tier) — genuinely free forever and reliable to provision, but stateless: Postgres would need a separate managed service (Neon/Supabase), and it teaches very little (no SSH, no OS, no reverse proxy — the platform hides all of it).
+- **Railway** — the easiest possible DX (understands `docker-compose.yml` natively, zero-config auto-deploy), but no longer has a real free tier (trial credit then ~$5/month), and same "hides everything" trade-off as Cloud Run.
+- **Oracle Cloud "Always Free" VM** — the most generous free specs (up to 4 OCPU/24GB RAM, forever), but a well-documented flaky signup/provisioning experience (`Out of capacity` errors, occasional account holds) — real friction, not just theoretical.
+- **Google Cloud `e2-micro` (Always Free)** — genuinely free forever and reliable to provision, but only 1GB RAM shared across the OS + Docker + Postgres + a build — real risk of an OOM kill during a rebuild.
+- **Hetzner** — not free (~4.5€/month) but cheap, reliable, no weird resource limits.
+- **Infomaniak** (chosen): also not free (~7€/month for the VPS Lite tier used here), comparable cost/specs to Hetzner, **but Swiss-hosted** — a real differentiator for a SaaS explicitly aimed at Swiss construction companies (data sovereignty as an actual talking point, not just infra trivia), Swiss/French support, invoiced in CHF. The deciding factor over Hetzner given the two are otherwise similar.
+
+**A real VM over any PaaS, deliberately**: chosen even though it's more work (SSH hardening, installing Docker by hand, a firewall, a hand-rolled reverse proxy, no automatic HTTPS, a manual redeploy step) — that work *is* the point. A PaaS would have been faster but would have taught close to nothing about how a server or a deploy pipeline actually works; a solo learning project optimizing for the CV/interview story is better served by doing it the "hard" way once, deliberately.
+
+**Nginx over Caddy** for the reverse proxy: Caddy is genuinely simpler (automatic HTTPS via Let's Encrypt from a one-line Caddyfile, nothing to configure by hand), but Nginx is the far more recognized/expected skill on a CV and in interviews, and its manual certbot step for HTTPS (once a domain exists) is itself a useful thing to have actually done once. Chosen for the résumé value, not because it's technically better for this project's size.
+
+**Two firewalls, found the hard way**: `ufw` on the VM alone wasn't enough — Infomaniak's Cloud panel has its own network-level firewall, open to SSH only by default, that silently swallowed all port 80/443 traffic even with `ufw` correctly configured and Nginx correctly listening. Not documented anywhere obvious; discovered by the port timing out from outside while working fine from `localhost` on the server itself. Worth checking first (before debugging `ufw`/Nginx/Docker networking) on any cloud VM that's unreachable despite everything on the OS looking right.
+
+**Not done in this pass** (see the Deployment section of `CLAUDE.md` for the up-to-date state): no domain/HTTPS yet — the server has no domain pointed at it, so `nginx.conf` is plain HTTP with no `server_name`; the frontend isn't deployed or containerized at all yet; deploys are a manual SSH + `git pull` + `docker compose up --build -d`, no CI/CD pipeline wired up.
+
 ## Invoicing schema gaps: numbering uniqueness, VAT/payment terms, flexible document lines
 
 **Context**: comparing Docky against Odoo's invoicing app (see the invoice form's header/client/lines/footer breakdown) surfaced four gaps, worked through one at a time — schema first, then the matching backend logic (service/repository/types) in the same session once the schema was verified.
