@@ -44,6 +44,18 @@ services:
     # outside the host.
 
 
+  frontend:
+    container_name: docky-frontend
+
+    build:
+      context: ./frontend
+      target: prod
+
+    restart: unless-stopped
+
+    # No port published - only nginx (below) is reachable from outside.
+
+
   nginx:
     image: nginx:1.27-alpine
     container_name: docky-nginx
@@ -58,6 +70,7 @@ services:
 
     depends_on:
       - backend
+      - frontend
 
 
 volumes:
