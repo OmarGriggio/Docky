@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getResources, archiveResource, unarchiveResource } from "./resource.controller";
+import { getResources, createResource, archiveResource, unarchiveResource } from "./resource.controller";
 import { authenticate } from "../../shared/middlewares/auth.middleware";
 
 const router = Router();
@@ -7,6 +7,8 @@ const router = Router();
 router.use(authenticate);
 
 router.get("/", getResources);
+
+router.post("/", createResource);
 
 router.patch("/:id/archive", archiveResource);
 

@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
-import { getAllResourcesServ, getResourcesByTypeServ, archiveResourceServ, unarchiveResourceServ } from "./resource.service";
+import { getAllResourcesServ, getResourcesByTypeServ, addResourceServ, archiveResourceServ, unarchiveResourceServ } from "./resource.service";
+import { Resource } from "./resource.types";
 
 export const getResources = async (req: Request, res: Response) => {
   const type = req.query.type as string | undefined;
@@ -9,6 +10,13 @@ export const getResources = async (req: Request, res: Response) => {
     ? await getResourcesByTypeServ(type, company_id, includeArchived)
     : await getAllResourcesServ(company_id, includeArchived);
   res.json(resources);
+};
+
+export const createResource = async (req: Request, res: Response) => {
+  const resourceData: Omit<Resource, "id" | "company_id" | "is_active"> = req.body;
+
+  const resourceCreated = await addResourceServ(resourceData, req.user.company_id);
+  res.json(resourceCreated);
 };
 
 export const archiveResource = async (req: Request, res: Response) => {
