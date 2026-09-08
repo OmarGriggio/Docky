@@ -1,0 +1,197 @@
+<div class="document-form-page">
+  <p-card styleClass="ui-card--elevated document-preview">
+
+    <div class="document-preview__header">
+      <div class="document-preview__issuer">
+        @if (companyLogoUrl()) {
+          <img [src]="companyLogoUrl()" alt="Logo" class="document-preview__logo" />
+        }
+        <div class="document-preview__issuer-name">{{ company()?.name }}</div>
+        <div>{{ company()?.street }}</div>
+        <div>{{ company()?.postal_code }} {{ company()?.city }}</div>
+      </div>
+
+      <div class="document-preview__meta">
+        <p-floatlabel variant="on">
+          <p-datepicker inputId="date" [(ngModel)]="date" dateFormat="dd.mm.yy" />
+          <label for="date">Date</label>
+        </p-floatlabel>
+
+        <p class="document-preview__number-hint">N° : généré automatiquement à la création</p>
+      </div>
+    </div>
+
+    <div class="document-preview__parties">
+      <div class="document-preview__recipient">
+        <p-floatlabel variant="on">
+          <p-select
+            inputId="client_id"
+            [options]="clientOptions()"
+            optionLabel="label"
+            optionValue="value"
+            [ngModel]="selectedClientId"
+            (ngModelChange)="onClientChange($event)"
+          />
+          <label for="client_id">Client</label>
+        </p-floatlabel>
+
+        @if (selectedClientAddress(); as address) {
+          <div class="document-preview__address">
+            @if (address.attention) {
+              {{ address.attention }}<br />
+            }
+            {{ address.street }}<br />
+            {{ address.postal_code }} {{ address.city }}<br />
+            {{ address.country }}
+          </div>
+        }
+      </div>
+    </div>
+
+    <p-floatlabel variant="on" class="document-preview__introduction">
+      <textarea pTextarea id="introduction" [(ngModel)]="introduction" rows="3"></textarea>
+      <label for="introduction">Introduction</label>
+    </p-floatlabel>
+
+    <div class="document-preview__body">
+      <div class="document-preview__sections-header">
+        <h2>Détails</h2>
+        <p-button type="button" label="Ajouter une section" icon="pi pi-plus" severity="secondary" (onClick)="addSection()" />
+      </div>
+
+      @if (sections().length === 0) {
+        <p class="document-preview__body-hint">Aucune section pour l'instant - clique sur "Ajouter une section" pour commencer (ex. "Gros oeuvre", "Électricité"...).</p>
+      }
+
+      @for (section of sections(); track section.id) {
+        <div class="document-section">
+          <div class="document-section__header">
+            <input
+              pInputText
+              class="document-section__title"
+              placeholder="Titre de la section (ex. Gros oeuvre)"
+              [ngModel]="section.title"
+              (ngModelChange)="updateSectionTitle(section.id, $event)"
+            />
+            <p-button type="button" icon="pi pi-trash" severity="danger" [text]="true" (onClick)="removeSection(section.id)" />
+          </div>
+
+          <table class="document-section__table">
+            <thead>
+              <tr>
+                <th>Type</th>
+                <th>Référence</th>
+                <th>Désignation</th>
+                <th>Qté / Temps</th>
+                <th>Unité</th>
+                <th>Prix</th>
+                <th>Rabais</th>
+                <th>Total</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (line of section.lines; track line.id) {
+                <tr>
+                  <td>{{ line.type === 'MATERIAL' ? 'Matériel' : 'Service' }}</td>
+                  <td>{{ line.reference }}</td>
+                  <td>{{ line.label }}</td>
+                  <td>{{ line.type === 'MATERIAL' ? line.quantity : line.time }}</td>
+                  <td>{{ line.unit }}</td>
+                  <td>{{ line.unitPrice | number:'1.2-2' }}</td>
+                  <td>{{ line.discount }} %</td>
+                  <td>{{ lineTotal(line) | number:'1.2-2' }}</td>
+                  <td>
+                    <p-button type="button" icon="pi pi-trash" severity="danger" [text]="true" (onClick)="removeLine(section.id, line.id)" />
+                  </td>
+                </tr>
+              }
+
+              <!-- Inline "add a line" row -->
+              <tr class="document-section__new-line">
+                @let draft = newLineFor(section.id);
+                <td>
+                  <p-select
+                    [options]="lineTypeOptions"
+                    optionLabel="label"
+                    optionValue="value"
+                    [ngModel]="draft.type"
+                    (ngModelChange)="draft.type = $event"
+                  />
+                </td>
+                <td><input pInputText [(ngModel)]="draft.reference" placeholder="Réf." /></td>
+                <td><input pInputText [(ngModel)]="draft.label" placeholder="Désignation" /></td>
+                <td>
+                  @if (draft.type === 'MATERIAL') {
+                    <p-inputnumber [(ngModel)]="draft.quantity" mode="decimal" [minFractionDigits]="2" />
+                  } @else {
+                    <p-inputnumber [(ngModel)]="draft.time" mode="decimal" [minFractionDigits]="2" />
+                  }
+                </td>
+                <td>
+                  @if (draft.type === 'MATERIAL') {
+                    <input pInputText [(ngModel)]="draft.unit" placeholder="Unité" />
+                  }
+                </td>
+                <td><p-inputnumber [(ngModel)]="draft.unitPrice" mode="decimal" [minFractionDigits]="2" /></td>
+                <td><p-inputnumber [(ngModel)]="draft.discount" mode="decimal" [minFractionDigits]="2" suffix=" %" /></td>
+                <td></td>
+                <td>
+                  <p-button type="button" icon="pi pi-plus" [text]="true" (onClick)="addLine(section.id)" />
+                </td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="7">Sous-total section</td>
+                <td>{{ sectionTotal(section) | number:'1.2-2' }}</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      }
+    </div>
+
+    <div class="document-preview__footer ui-form">
+      <p-floatlabel variant="on">
+        <p-inputnumber inputId="discount" [(ngModel)]="discount" mode="decimal" [minFractionDigits]="2" suffix=" %" />
+        <label for="discount">Rabais document</label>
+      </p-floatlabel>
+
+      <p-floatlabel variant="on">
+        <p-inputnumber inputId="vat_rate" [(ngModel)]="vatRate" mode="decimal" [minFractionDigits]="2" suffix=" %" />
+        <label for="vat_rate">TVA</label>
+      </p-floatlabel>
+
+      <p-floatlabel variant="on" class="ui-form__full">
+        <input pInputText id="payment_terms" [(ngModel)]="paymentTerms" />
+        <label for="payment_terms">Conditions de paiement</label>
+      </p-floatlabel>
+
+      <p-floatlabel variant="on" class="ui-form__full">
+        <textarea pTextarea id="conclusion" [(ngModel)]="conclusion" rows="3"></textarea>
+        <label for="conclusion">Conclusion</label>
+      </p-floatlabel>
+    </div>
+
+    <div class="document-preview__totals">
+      <div><span>Sous-total</span><span>{{ documentSubtotal() | number:'1.2-2' }} CHF</span></div>
+      <div><span>Total HT (après rabais)</span><span>{{ documentTotalAfterDiscount() | number:'1.2-2' }} CHF</span></div>
+      <div class="document-preview__totals-ttc"><span>Total TTC</span><span>{{ documentTotalInclVat() | number:'1.2-2' }} CHF</span></div>
+    </div>
+
+    <div class="ui-form__actions">
+      <p-button type="button" label="Annuler" severity="secondary" (onClick)="cancel()" />
+      <p-button type="button" label="Valider" (onClick)="submit()" />
+    </div>
+
+    @if (showJsonPreview()) {
+      <div class="document-preview__json">
+        <h3>Structure de données obtenue (rien n'est envoyé au serveur)</h3>
+        <pre>{{ previewJson() }}</pre>
+      </div>
+    }
+
+  </p-card>
+</div>
