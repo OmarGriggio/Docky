@@ -17,6 +17,7 @@
   <p-table [value]="s.addresses" dataKey="id">
     <ng-template #header>
       <tr>
+        <th>Attention</th>
         <th>Rue</th>
         <th>NPA</th>
         <th>Ville</th>
@@ -27,6 +28,7 @@
     </ng-template>
     <ng-template #body let-address>
       <tr>
+        <td>{{ address.attention }}</td>
         <td>{{ address.street }}</td>
         <td>{{ address.postal_code }}</td>
         <td>{{ address.city }}</td>

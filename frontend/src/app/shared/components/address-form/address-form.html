@@ -1,4 +1,9 @@
 <form [formGroup]="form" (ngSubmit)="submit()" class="ui-form">
+  <p-floatlabel variant="on" class="ui-form__full">
+    <input pInputText id="attention" formControlName="attention" />
+    <label for="attention">Attention (optionnel)</label>
+  </p-floatlabel>
+
   <p-floatlabel variant="on">
     <input pInputText id="street" formControlName="street" />
     <label for="street">Rue</label>

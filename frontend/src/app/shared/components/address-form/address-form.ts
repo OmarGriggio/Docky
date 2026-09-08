@@ -26,6 +26,7 @@ export class AddressForm {
   cancelled = output<void>();
 
   form = this.fb.nonNullable.group({
+    attention: [''],
     street: ['', Validators.required],
     postal_code: ['', Validators.required],
     city: ['', Validators.required],

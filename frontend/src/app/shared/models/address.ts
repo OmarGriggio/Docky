@@ -3,6 +3,7 @@ export interface Address {
   client_id: number | null;
   supplier_id: number | null;
   is_primary: boolean;
+  attention: string | null;
   street: string;
   postal_code: string;
   city: string;
