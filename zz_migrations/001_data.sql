@@ -90,13 +90,13 @@ VALUES
 (1, NULL, 'MATERIAL', 'MAT003', 'Tube PVC Ø100', 'm', 22.00, 15.00),
 (1, NULL, 'MATERIAL', 'MAT004', 'Peinture blanche 10L', 'Pot', 95.00, 70.00),
 
-(1, NULL, 'LABOR', 'MO001', 'Maçon qualifié', 'Heure', 95.00, NULL),
-(1, NULL, 'LABOR', 'MO002', 'Apprenti', 'Heure', 55.00, NULL),
+(1, NULL, 'SERVICE', 'MO001', 'Maçon qualifié', 'Heure', 95.00, NULL),
+(1, NULL, 'SERVICE', 'MO002', 'Apprenti', 'Heure', 55.00, NULL),
 
-(1, NULL, 'SUBCONTRACTING', 'ST001', 'Electricien externe', 'Heure', 120.00, 90.00),
+(1, NULL, 'SERVICE', 'ST001', 'Electricien externe', 'Heure', 120.00, 90.00),
 
-(1, NULL, 'OTHER', 'DIV001', 'Déplacement', 'Forfait', 60.00, NULL),
-(1, NULL, 'OTHER', 'DIV002', 'Location nacelle', 'Jour', 250.00, 180.00);
+(1, NULL, 'SERVICE', 'DIV001', 'Déplacement', 'Forfait', 60.00, NULL),
+(1, NULL, 'SERVICE', 'DIV002', 'Location nacelle', 'Jour', 250.00, 180.00);
 
 -- ==========================================
 -- RESOURCE SUPPLIER PRICES
@@ -142,14 +142,14 @@ VALUES
 
 -- Quote 1 (775.00)
 (1, 1, 'MATERIAL', 1, 'Sac ciment 25kg', 20, 'Sac', 15, 0),
-(1, 1, 'LABOR', 2, 'Maçon qualifié', 5, 'Heure', 95, 0),
+(1, 1, 'SERVICE', 2, 'Maçon qualifié', 5, 'Heure', 95, 0),
 
 -- Quote 2 (1980 - 5% = 1881.00)
 (1, 2, 'MATERIAL', 1, 'Parpaing 20 cm', 300, 'Pièce', 4.50, 0),
-(1, 2, 'LABOR', 2, 'Maçon qualifié', 6, 'Heure', 95, 0),
-(1, 2, 'OTHER', 3, 'Déplacement', 1, 'Forfait', 60, 0),
+(1, 2, 'SERVICE', 2, 'Maçon qualifié', 6, 'Heure', 95, 0),
+(1, 2, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 60, 0),
 
 -- Invoice issued from quote 2 (same lines, same total)
 (1, 3, 'MATERIAL', 1, 'Parpaing 20 cm', 300, 'Pièce', 4.50, 0),
-(1, 3, 'LABOR', 2, 'Maçon qualifié', 6, 'Heure', 95, 0),
-(1, 3, 'OTHER', 3, 'Déplacement', 1, 'Forfait', 60, 0);
+(1, 3, 'SERVICE', 2, 'Maçon qualifié', 6, 'Heure', 95, 0),
+(1, 3, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 60, 0);

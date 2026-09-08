@@ -14,6 +14,7 @@ import documentLineRoutes from "./modules/documents/document_line.routes";
 import companyRoutes from "./modules/companies/company.routes";
 import projectRoutes from "./modules/projects/project.routes";
 import projectTypeRoutes from "./modules/projects/project_type.routes";
+import projectResourceRoutes from "./modules/projects/project_resource.routes";
 import pdfRoutes from "./pdf/pdf.routes";
 import cors from 'cors';
 
@@ -54,6 +55,8 @@ app.use("/user", userRoutes);
 app.use("/project", projectRoutes);
 
 app.use("/project-type", projectTypeRoutes);
+
+app.use("/project-resource", projectResourceRoutes);
 
 app.use("/pdf", pdfRoutes);
 

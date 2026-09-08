@@ -172,7 +172,7 @@ CREATE TABLE resources (
     company_id INTEGER NOT NULL,
     parent_resource_id INTEGER, -- for composite resources
     type VARCHAR(20) NOT NULL
-        CHECK (type IN ('MATERIAL', 'LABOR', 'SUBCONTRACTING', 'OTHER')),
+        CHECK (type IN ('MATERIAL', 'SERVICE')),
     code VARCHAR(50) UNIQUE,
     name VARCHAR(255) NOT NULL,
     unit VARCHAR(50) NOT NULL,
@@ -180,6 +180,30 @@ CREATE TABLE resources (
     purchase_price  NUMERIC(10,2),
     is_active BOOLEAN DEFAULT TRUE,
 
+    FOREIGN KEY (company_id)
+        REFERENCES companies(id)
+);
+
+-- ==========================================
+-- PROJECT RESOURCES
+-- ==========================================
+
+-- Links a project ("chantier") to the resources (materials/services) it
+-- uses - a plain many-to-many join, no quantity/price of its own yet. The
+-- point: picking a project when creating a document can pre-fill its lines
+-- from this association (not implemented yet - see the TODO in CLAUDE.md).
+CREATE TABLE project_resources (
+    id SERIAL PRIMARY KEY,
+    company_id INTEGER NOT NULL,
+    project_id INTEGER NOT NULL,
+    resource_id INTEGER NOT NULL,
+
+    UNIQUE (project_id, resource_id),
+
+    FOREIGN KEY (project_id)
+        REFERENCES projects(id),
+    FOREIGN KEY (resource_id)
+        REFERENCES resources(id),
     FOREIGN KEY (company_id)
         REFERENCES companies(id)
 );
