@@ -1,11 +1,15 @@
-<div class="supplier-list-header">
-  <h1>Fournisseurs</h1>
-  <label>
-    <p-checkbox [binary]="true" [ngModel]="showArchived()" (ngModelChange)="onShowArchivedChange($event)" />
-    Afficher les archivés
-  </label>
-  <p-button label="Ajouter" icon="pi pi-plus" (onClick)="createDialogVisible.set(true)" />
-</div>
+<p-toolbar>
+  <ng-template #start>
+    <h1>Fournisseurs</h1>
+  </ng-template>
+  <ng-template #end>
+    <label class="ui-toolbar__archived">
+      <p-checkbox [binary]="true" [ngModel]="showArchived()" (ngModelChange)="onShowArchivedChange($event)" />
+      Afficher les archivés
+    </label>
+    <p-button label="" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+  </ng-template>
+</p-toolbar>
 
 <p-dialog
   [(visible)]="createDialogVisible"
@@ -14,11 +18,11 @@
   [style]="{ width: '32rem' }"
 >
   @if (createDialogVisible()) {
-    <app-supplier-form (saved)="onSupplierSaved()" (cancelled)="createDialogVisible.set(false)" />
+    <app-supplier-form [duplicateFrom]="duplicateSource()" (saved)="onSupplierSaved()" (cancelled)="closeCreateDialog()" />
   }
 </p-dialog>
 
-<p-table [value]="suppliers()" dataKey="id">
+<p-table [value]="suppliers()" dataKey="id" showGridlines>
   <ng-template #header>
     <tr>
       <th>Code</th>
