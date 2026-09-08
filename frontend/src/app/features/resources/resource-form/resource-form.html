@@ -1,0 +1,40 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="ui-form">
+  <div class="ui-form__full">
+    <p-selectbutton
+      formControlName="type"
+      [options]="typeOptions"
+      optionLabel="label"
+      optionValue="value"
+    />
+  </div>
+
+  <p-floatlabel variant="on">
+    <input pInputText id="code" formControlName="code" />
+    <label for="code">Code</label>
+  </p-floatlabel>
+
+  <p-floatlabel variant="on">
+    <input pInputText id="name" formControlName="name" />
+    <label for="name">Désignation</label>
+  </p-floatlabel>
+
+  <p-floatlabel variant="on">
+    <input pInputText id="unit" formControlName="unit" />
+    <label for="unit">Unité</label>
+  </p-floatlabel>
+
+  <p-floatlabel variant="on">
+    <p-inputnumber inputId="selling_price" formControlName="selling_price" mode="decimal" [minFractionDigits]="2" />
+    <label for="selling_price">Prix de vente</label>
+  </p-floatlabel>
+
+  <p-floatlabel variant="on">
+    <p-inputnumber inputId="purchase_price" formControlName="purchase_price" mode="decimal" [minFractionDigits]="2" />
+    <label for="purchase_price">Prix d'achat</label>
+  </p-floatlabel>
+
+  <div class="ui-form__actions">
+    <p-button type="button" label="Annuler" severity="secondary" (onClick)="cancel()" />
+    <p-button type="submit" label="Créer" />
+  </div>
+</form>

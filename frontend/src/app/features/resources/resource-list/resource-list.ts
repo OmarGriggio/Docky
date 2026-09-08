@@ -2,25 +2,26 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
+import { Toolbar } from 'primeng/toolbar';
 import { Menu } from 'primeng/menu';
 import { Button } from 'primeng/button';
+import { Dialog } from 'primeng/dialog';
 import { Checkbox } from 'primeng/checkbox';
 import { MenuItem } from 'primeng/api';
 import { ResourceService } from '../resource.service';
 import { Resource, ResourceType } from '../../../shared/models/resource';
+import { ResourceForm } from '../resource-form/resource-form';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 
 const TYPE_LABELS: Record<ResourceType, string> = {
   'MATERIAL': 'Matériel',
-  'LABOR': "Main d'oeuvre",
-  'SUBCONTRACTING': 'Sous-traitance',
-  'OTHER': 'Divers',
+  'SERVICE': 'Service',
 };
 
 @Component({
   selector: 'app-resource-list',
   standalone: true,
-  imports: [TableModule, Menu, Button, Checkbox, FormsModule, ConfirmDialogComponent],
+  imports: [TableModule, Toolbar, Menu, Button, Dialog, Checkbox, FormsModule, ResourceForm, ConfirmDialogComponent],
   templateUrl: './resource-list.html'
 })
 export class ResourceListComponent implements OnInit {
@@ -32,6 +33,11 @@ export class ResourceListComponent implements OnInit {
   currentTypeLabel = signal<string | null>(null);
   currentType: ResourceType | null = null;
   showArchived = signal(false);
+
+  createDialogVisible = signal(false);
+  // Set when "Dupliquer" is used - passed to <app-resource-form> so it can
+  // pre-fill itself. null means the dialog opened fresh via "Ajouter".
+  duplicateSource = signal<Resource | null>(null);
 
   confirmVisible = signal(false);
   confirmMessage = signal('');
@@ -63,11 +69,35 @@ export class ResourceListComponent implements OnInit {
     this.loadResources();
   }
 
+  openCreateDialog(): void {
+    this.duplicateSource.set(null);
+    this.createDialogVisible.set(true);
+  }
+
+  duplicateResource(resource: Resource): void {
+    this.duplicateSource.set(resource);
+    this.createDialogVisible.set(true);
+  }
+
+  closeCreateDialog(): void {
+    this.createDialogVisible.set(false);
+    this.duplicateSource.set(null);
+  }
+
+  onResourceSaved(): void {
+    this.closeCreateDialog();
+    this.loadResources();
+  }
+
   getActions(resource: Resource): MenuItem[] {
     return [
       resource.is_active
         ? { label: 'Archiver', command: () => this.archiveResource(resource) }
-        : { label: 'Restaurer', command: () => this.unarchiveResource(resource) }
+        : { label: 'Restaurer', command: () => this.unarchiveResource(resource) },
+      {
+        label: 'Dupliquer',
+        command: () => this.duplicateResource(resource)
+      }
     ];
   }
 

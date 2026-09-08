@@ -1,12 +1,28 @@
-<div class="resource-list-header">
-  <h1>Ressources @if (currentTypeLabel()) { — {{ currentTypeLabel() }} }</h1>
-  <label>
-    <p-checkbox [binary]="true" [ngModel]="showArchived()" (ngModelChange)="onShowArchivedChange($event)" />
-    Afficher les archivés
-  </label>
-</div>
+<p-toolbar>
+  <ng-template #start>
+    <h1>Ressources @if (currentTypeLabel()) { — {{ currentTypeLabel() }} }</h1>
+  </ng-template>
+  <ng-template #end>
+    <label class="ui-toolbar__archived">
+      <p-checkbox [binary]="true" [ngModel]="showArchived()" (ngModelChange)="onShowArchivedChange($event)" />
+      Afficher les archivés
+    </label>
+    <p-button label="" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+  </ng-template>
+</p-toolbar>
 
-<p-table [value]="resources()" dataKey="id">
+<p-dialog
+  [(visible)]="createDialogVisible"
+  header="Nouvelle ressource"
+  [modal]="true"
+  [style]="{ width: '32rem' }"
+>
+  @if (createDialogVisible()) {
+    <app-resource-form [duplicateFrom]="duplicateSource()" (saved)="onResourceSaved()" (cancelled)="closeCreateDialog()" />
+  }
+</p-dialog>
+
+<p-table [value]="resources()" dataKey="id" showGridlines>
   <ng-template #header>
     <tr>
       <th>Code</th>

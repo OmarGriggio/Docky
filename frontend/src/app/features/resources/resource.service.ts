@@ -21,6 +21,10 @@ export class ResourceService {
     });
   }
 
+  createResource(resource: Omit<Resource, 'id' | 'is_active'>) {
+    return this.http.post<Resource>(`${API_BASE}/resource`, resource);
+  }
+
   archiveResource(id: number) {
     return this.http.patch<Resource>(`${API_BASE}/resource/${id}/archive`, {});
   }
