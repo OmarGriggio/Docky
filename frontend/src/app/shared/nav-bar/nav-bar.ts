@@ -60,9 +60,7 @@ export class NavBar {
       label: 'Ressources',
       links: [
         { label: 'Matériel', path: '/resources', queryParams: { type: 'MATERIAL' } },
-        { label: "Main d'oeuvre", path: '/resources', queryParams: { type: 'LABOR' } },
-        { label: 'Sous-traitance', path: '/resources', queryParams: { type: 'SUBCONTRACTING' } },
-        { label: 'Divers', path: '/resources', queryParams: { type: 'OTHER' } }
+        { label: 'Service', path: '/resources', queryParams: { type: 'SERVICE' } }
       ]
     },
     {

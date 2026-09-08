@@ -1,4 +1,4 @@
-export type ResourceType = 'MATERIAL' | 'LABOR' | 'SUBCONTRACTING' | 'OTHER';
+export type ResourceType = 'MATERIAL' | 'SERVICE';
 
 export interface Resource {
   id: number;
