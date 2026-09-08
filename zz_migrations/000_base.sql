@@ -142,6 +142,7 @@ CREATE TABLE addresses (
     client_id INTEGER,
     supplier_id INTEGER,
     is_primary BOOLEAN NOT NULL DEFAULT FALSE,
+    Attention VARCHAR(100),
     street VARCHAR(100),
     postal_code VARCHAR(20),
     city VARCHAR(100),

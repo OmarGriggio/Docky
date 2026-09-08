@@ -58,12 +58,13 @@ export const createAddressInDB = async (
       client_id,
       supplier_id,
       is_primary,
+      attention,
       street,
       postal_code,
       city,
       country
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
     RETURNING *;
   `;
 
@@ -72,6 +73,7 @@ export const createAddressInDB = async (
     address.client_id,
     address.supplier_id,
     address.is_primary,
+    address.attention,
     address.street,
     address.postal_code,
     address.city,
