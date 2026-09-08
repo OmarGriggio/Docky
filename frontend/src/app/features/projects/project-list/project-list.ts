@@ -2,6 +2,7 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
+import { Toolbar } from 'primeng/toolbar';
 import { Menu } from 'primeng/menu';
 import { Dialog } from 'primeng/dialog';
 import { Checkbox } from 'primeng/checkbox';
@@ -17,9 +18,8 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
 @Component({
   selector: 'app-project-list',
   standalone: true,
-  imports: [TableModule, TagModule, Menu, Button, Dialog, Checkbox, FormsModule, ProjectForm, ConfirmDialogComponent],
-  templateUrl: './project-list.html',
-  styleUrl: './project-list.css'
+  imports: [TableModule, TagModule, Toolbar, Menu, Button, Dialog, Checkbox, FormsModule, ProjectForm, ConfirmDialogComponent],
+  templateUrl: './project-list.html'
 })
 export class ProjectListComponent implements OnInit {
 
@@ -31,6 +31,9 @@ export class ProjectListComponent implements OnInit {
   showArchived = signal(false);
 
   createDialogVisible = signal(false);
+  // Set when "Dupliquer" is used - passed to <app-project-form> so it can
+  // pre-fill itself. null means the dialog opened fresh via "Ajouter".
+  duplicateSource = signal<Project | null>(null);
 
   confirmVisible = signal(false);
   confirmMessage = signal('');
@@ -78,8 +81,23 @@ export class ProjectListComponent implements OnInit {
     return this.clientNames().get(project.client_id) ?? '—';
   }
 
-  onProjectSaved(): void {
+  openCreateDialog(): void {
+    this.duplicateSource.set(null);
+    this.createDialogVisible.set(true);
+  }
+
+  duplicateProject(project: Project): void {
+    this.duplicateSource.set(project);
+    this.createDialogVisible.set(true);
+  }
+
+  closeCreateDialog(): void {
     this.createDialogVisible.set(false);
+    this.duplicateSource.set(null);
+  }
+
+  onProjectSaved(): void {
+    this.closeCreateDialog();
     this.loadProjects();
   }
 
@@ -87,7 +105,11 @@ export class ProjectListComponent implements OnInit {
     return [
       project.is_active
         ? { label: 'Archiver', command: () => this.archiveProject(project) }
-        : { label: 'Restaurer', command: () => this.unarchiveProject(project) }
+        : { label: 'Restaurer', command: () => this.unarchiveProject(project) },
+      {
+        label: 'Dupliquer',
+        command: () => this.duplicateProject(project)
+      }
     ];
   }
 

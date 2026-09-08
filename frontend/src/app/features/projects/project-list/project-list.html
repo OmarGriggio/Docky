@@ -1,11 +1,15 @@
-<div class="project-list-header">
-  <h1>Chantiers</h1>
-  <label>
-    <p-checkbox [binary]="true" [ngModel]="showArchived()" (ngModelChange)="onShowArchivedChange($event)" />
-    Afficher les archivés
-  </label>
-  <p-button label="Ajouter" icon="pi pi-plus" (onClick)="createDialogVisible.set(true)" />
-</div>
+<p-toolbar>
+  <ng-template #start>
+    <h1>Chantiers</h1>
+  </ng-template>
+  <ng-template #end>
+    <label class="ui-toolbar__archived">
+      <p-checkbox [binary]="true" [ngModel]="showArchived()" (ngModelChange)="onShowArchivedChange($event)" />
+      Afficher les archivés
+    </label>
+    <p-button label="" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+  </ng-template>
+</p-toolbar>
 
 <p-dialog
   [(visible)]="createDialogVisible"
@@ -14,7 +18,7 @@
   [style]="{ width: '32rem' }"
 >
   @if (createDialogVisible()) {
-    <app-project-form (saved)="onProjectSaved()" (cancelled)="createDialogVisible.set(false)" />
+    <app-project-form [duplicateFrom]="duplicateSource()" (saved)="onProjectSaved()" (cancelled)="closeCreateDialog()" />
   }
 </p-dialog>
 
