@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
+import { Toolbar } from 'primeng/toolbar';
 import { Menu } from 'primeng/menu';
 import { Dialog } from 'primeng/dialog';
 import { Checkbox } from 'primeng/checkbox';
@@ -16,9 +17,8 @@ import { archiveActionLabel } from '../../../shared/utils/display';
 @Component({
   selector: 'app-client-list',
   standalone: true,
-  imports: [TableModule, Menu, Button, Dialog, Checkbox, FormsModule, ClientForm, ConfirmDialogComponent],
-  templateUrl: './client-list.html',
-  styleUrl: './client-list.css'
+  imports: [TableModule, Toolbar, Menu, Button, Dialog, Checkbox, FormsModule, ClientForm, ConfirmDialogComponent],
+  templateUrl: './client-list.html'
 })
 export class ClientListComponent implements OnInit {
 
@@ -29,6 +29,9 @@ export class ClientListComponent implements OnInit {
   showArchived = signal(false);
 
   createDialogVisible = signal(false);
+  // Set when "Dupliquer" is used - passed to <app-client-form> so it can
+  // pre-fill itself. null means the dialog opened fresh via "Ajouter".
+  duplicateSource = signal<Client | null>(null);
 
   confirmVisible = signal(false);
   confirmMessage = signal('');
@@ -55,8 +58,23 @@ export class ClientListComponent implements OnInit {
     this.loadClients();
   }
 
-  onClientSaved(): void {
+  openCreateDialog(): void {
+    this.duplicateSource.set(null);
+    this.createDialogVisible.set(true);
+  }
+
+  duplicateClient(client: Client): void {
+    this.duplicateSource.set(client);
+    this.createDialogVisible.set(true);
+  }
+
+  closeCreateDialog(): void {
     this.createDialogVisible.set(false);
+    this.duplicateSource.set(null);
+  }
+
+  onClientSaved(): void {
+    this.closeCreateDialog();
     this.loadClients();
   }
 
@@ -65,6 +83,10 @@ export class ClientListComponent implements OnInit {
       {
         label: archiveActionLabel(client.is_active),
         command: () => client.is_active ? this.archiveClient(client) : this.unarchiveClient(client)
+      },
+      {
+        label: 'Dupliquer',
+        command: () => this.duplicateClient(client)
       },
       {
         label: 'Modifier',

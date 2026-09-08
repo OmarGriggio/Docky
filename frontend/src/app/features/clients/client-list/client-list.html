@@ -1,11 +1,15 @@
-<div class="client-list-header">
-  <h1>Clients</h1>
-  <label>
-    <p-checkbox [binary]="true" [ngModel]="showArchived()" (ngModelChange)="onShowArchivedChange($event)" />
-    Afficher les archivés
-  </label>
-  <p-button label="Ajouter" icon="pi pi-plus" (onClick)="createDialogVisible.set(true)" />
-</div>
+<p-toolbar>
+  <ng-template #start>
+    <h1>Clients</h1>
+  </ng-template>
+  <ng-template #end>
+    <label class="ui-toolbar__archived">
+      <p-checkbox [binary]="true" [ngModel]="showArchived()" (ngModelChange)="onShowArchivedChange($event)" />
+      Afficher les archivés
+    </label>
+    <p-button label="" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+  </ng-template>
+</p-toolbar>
 
 <p-dialog
   [(visible)]="createDialogVisible"
@@ -14,11 +18,11 @@
   [style]="{ width: '32rem' }"
 >
   @if (createDialogVisible()) {
-    <app-client-form (saved)="onClientSaved()" (cancelled)="createDialogVisible.set(false)" />
+    <app-client-form [duplicateFrom]="duplicateSource()" (saved)="onClientSaved()" (cancelled)="closeCreateDialog()" />
   }
 </p-dialog>
 
-<p-table [value]="clients()" dataKey="id">
+<p-table [value]="clients()" dataKey="id" showGridlines>
   <ng-template #header>
     <tr>
       <th>N° client</th>
