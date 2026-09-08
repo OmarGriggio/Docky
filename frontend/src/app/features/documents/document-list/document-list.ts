@@ -1,16 +1,15 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
+import { Toolbar } from 'primeng/toolbar';
 import { Button } from 'primeng/button';
-import { Dialog } from 'primeng/dialog';
 import { Menu } from 'primeng/menu';
 import { Checkbox } from 'primeng/checkbox';
 import { MenuItem } from 'primeng/api';
 import { DocumentService } from '../document.service';
 import { Document, DocumentType } from '../../../shared/models/document';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
-import { DocumentForm } from '../document-form/document-form';
 
 const TYPE_LABELS: Record<DocumentType, string> = {
   'QUOTE': 'Offres',
@@ -20,7 +19,7 @@ const TYPE_LABELS: Record<DocumentType, string> = {
 @Component({
   selector: 'app-document-list',
   standalone: true,
-  imports: [TableModule, Button, Dialog, Menu, Checkbox, FormsModule, ConfirmDialogComponent, DocumentForm],
+  imports: [TableModule, Toolbar, Button, Menu, Checkbox, FormsModule, RouterLink, ConfirmDialogComponent],
   templateUrl: './document-list.html'
 })
 export class DocumentListComponent implements OnInit {
@@ -33,8 +32,6 @@ export class DocumentListComponent implements OnInit {
   currentTypeLabel = signal<string | null>(null);
   currentType: DocumentType | null = null;
   showArchived = signal(false);
-
-  createDialogVisible = signal(false);
 
   confirmVisible = signal(false);
   confirmMessage = signal('');
@@ -50,9 +47,8 @@ export class DocumentListComponent implements OnInit {
     });
   }
 
-  onDocumentSaved(): void {
-    this.createDialogVisible.set(false);
-    this.loadDocuments();
+  createDocument(): void {
+    this.router.navigate(['/documents/new']);
   }
 
   private loadDocuments(): void {

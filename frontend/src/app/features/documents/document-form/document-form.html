@@ -1,82 +1,117 @@
-<form [formGroup]="form" (ngSubmit)="submit()" class="ui-form">
-  <p-floatlabel variant="on">
-    <p-select
-      inputId="type"
-      formControlName="type"
-      [options]="typeOptions"
-      optionLabel="label"
-      optionValue="value"
-    />
-    <label for="type">Type</label>
-  </p-floatlabel>
+<div class="document-form-page">
+  <p-card styleClass="ui-card--elevated document-preview">
+    <form [formGroup]="form" (ngSubmit)="submit()">
 
-  <p-floatlabel variant="on">
-    <input pInputText id="number" formControlName="number" />
-    <label for="number">Numéro</label>
-  </p-floatlabel>
+      <div class="document-preview__header">
+        <div class="document-preview__issuer">
+          @if (companyLogoUrl()) {
+            <img [src]="companyLogoUrl()" alt="Logo" class="document-preview__logo" />
+          }
+          <div class="document-preview__issuer-name">{{ company()?.name }}</div>
+          <div>{{ company()?.street }}</div>
+          <div>{{ company()?.postal_code }} {{ company()?.city }}</div>
+        </div>
 
-  <p-floatlabel variant="on">
-    <p-datepicker inputId="date" formControlName="date" dateFormat="dd.mm.yy" />
-    <label for="date">Date</label>
-  </p-floatlabel>
+        <div class="document-preview__meta">
+          <p-selectbutton
+            formControlName="type"
+            [options]="typeOptions"
+            optionLabel="label"
+            optionValue="value"
+          />
 
-  <p-floatlabel variant="on">
-    <p-select
-      inputId="client_id"
-      formControlName="client_id"
-      [options]="clientOptions()"
-      optionLabel="label"
-      optionValue="value"
-    />
-    <label for="client_id">Client</label>
-  </p-floatlabel>
+          <p-floatlabel variant="on">
+            <p-datepicker inputId="date" formControlName="date" dateFormat="dd.mm.yy" />
+            <label for="date">Date</label>
+          </p-floatlabel>
 
-  <p-floatlabel variant="on">
-    <p-select
-      inputId="project_id"
-      formControlName="project_id"
-      [options]="projectOptions()"
-      optionLabel="label"
-      optionValue="value"
-      [showClear]="true"
-    />
-    <label for="project_id">Chantier (optionnel)</label>
-  </p-floatlabel>
+          <p class="document-preview__number-hint">N° : généré automatiquement à la création</p>
+        </div>
+      </div>
 
-  <p-floatlabel variant="on">
-    <p-select
-      inputId="status"
-      formControlName="status"
-      [options]="statusOptions"
-      optionLabel="label"
-      optionValue="value"
-    />
-    <label for="status">Statut</label>
-  </p-floatlabel>
+      <div class="document-preview__parties">
+        <div class="document-preview__recipient">
+          <p-floatlabel variant="on">
+            <p-select
+              inputId="client_id"
+              formControlName="client_id"
+              [options]="clientOptions()"
+              optionLabel="label"
+              optionValue="value"
+            />
+            <label for="client_id">Client</label>
+          </p-floatlabel>
 
-  <p-floatlabel variant="on">
-    <p-inputnumber inputId="discount" formControlName="discount" mode="decimal" [minFractionDigits]="2" suffix=" %" />
-    <label for="discount">Rabais</label>
-  </p-floatlabel>
+          @if (selectedClientAddress(); as address) {
+            <div class="document-preview__address">
+              @if (address.attention) {
+                {{ address.attention }}<br />
+              }
+              {{ address.street }}<br />
+              {{ address.postal_code }} {{ address.city }}<br />
+              {{ address.country }}
+            </div>
+          }
 
-  <p-floatlabel variant="on" class="ui-form__full">
-    <textarea pTextarea id="introduction" formControlName="introduction" rows="3"></textarea>
-    <label for="introduction">Introduction</label>
-  </p-floatlabel>
+          <p-floatlabel variant="on">
+            <p-select
+              inputId="project_id"
+              formControlName="project_id"
+              [options]="projectOptions()"
+              optionLabel="label"
+              optionValue="value"
+              [showClear]="true"
+              [disabled]="selectedClientId() === null"
+            />
+            <label for="project_id">Chantier (optionnel)</label>
+          </p-floatlabel>
+        </div>
+      </div>
 
-  <p-floatlabel variant="on" class="ui-form__full">
-    <textarea pTextarea id="conclusion" formControlName="conclusion" rows="3"></textarea>
-    <label for="conclusion">Conclusion</label>
-  </p-floatlabel>
+      <div class="document-preview__body">
+        <p class="document-preview__body-hint">Les lignes (matériel, services, sections) s'ajoutent une fois le document créé.</p>
+      </div>
 
-  <p class="ui-form__full">Les montants HT/TTC se calculent à partir des lignes ajoutées ensuite, depuis la page détail du document.</p>
+      <div class="document-preview__footer ui-form">
+        <p-floatlabel variant="on">
+          <p-inputnumber inputId="discount" formControlName="discount" mode="decimal" [minFractionDigits]="2" suffix=" %" />
+          <label for="discount">Rabais</label>
+        </p-floatlabel>
 
-  @if (errorMessage()) {
-    <p class="ui-form__full">{{ errorMessage() }}</p>
-  }
+        <p-floatlabel variant="on">
+          <p-inputnumber inputId="vat_rate" formControlName="vat_rate" mode="decimal" [minFractionDigits]="2" suffix=" %" />
+          <label for="vat_rate">TVA</label>
+        </p-floatlabel>
 
-  <div class="ui-form__actions">
-    <p-button type="button" label="Annuler" severity="secondary" (onClick)="cancel()" />
-    <p-button type="submit" label="Créer" />
-  </div>
-</form>
+        <p-floatlabel variant="on">
+          <p-datepicker inputId="due_date" formControlName="due_date" dateFormat="dd.mm.yy" [showClear]="true" />
+          <label for="due_date">Date d'échéance</label>
+        </p-floatlabel>
+
+        <p-floatlabel variant="on" class="ui-form__full">
+          <input pInputText id="payment_terms" formControlName="payment_terms" />
+          <label for="payment_terms">Conditions de paiement</label>
+        </p-floatlabel>
+
+        <p-floatlabel variant="on" class="ui-form__full">
+          <textarea pTextarea id="introduction" formControlName="introduction" rows="3"></textarea>
+          <label for="introduction">Introduction</label>
+        </p-floatlabel>
+
+        <p-floatlabel variant="on" class="ui-form__full">
+          <textarea pTextarea id="conclusion" formControlName="conclusion" rows="3"></textarea>
+          <label for="conclusion">Conclusion</label>
+        </p-floatlabel>
+      </div>
+
+      @if (errorMessage()) {
+        <p class="document-preview__error">{{ errorMessage() }}</p>
+      }
+
+      <div class="ui-form__actions">
+        <p-button type="button" label="Annuler" severity="secondary" (onClick)="cancel()" />
+        <p-button type="submit" label="Valider" [loading]="submitting()" />
+      </div>
+    </form>
+  </p-card>
+</div>

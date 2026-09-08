@@ -14,8 +14,11 @@ export interface Document {
   amount_excl_vat: number;
   amount_incl_vat: number;
   discount: number;
+  vat_rate: number;
   status: DocumentStatus;
   introduction: string | null;
   conclusion: string | null;
+  payment_terms: string | null;
+  due_date: string | null;
   is_active: boolean;
 }

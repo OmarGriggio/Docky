@@ -25,7 +25,7 @@ export class DocumentService {
     return this.http.get<Document>(`${API_BASE}/document/${id}`);
   }
 
-  createDocument(document: Omit<Document, 'id' | 'company_id' | 'is_active' | 'amount_excl_vat' | 'amount_incl_vat'>) {
+  createDocument(document: Omit<Document, 'id' | 'company_id' | 'is_active' | 'amount_excl_vat' | 'amount_incl_vat' | 'number'>) {
     return this.http.post<Document>(`${API_BASE}/document`, document);
   }
 

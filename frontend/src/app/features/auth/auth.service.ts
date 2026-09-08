@@ -14,6 +14,7 @@ interface TokenPayload {
   userId: number;
   email: string;
   role: UserRole;
+  company_id: number;
 }
 
 function decodeToken(token: string): TokenPayload | null {

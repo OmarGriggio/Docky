@@ -1,24 +1,18 @@
-<div class="document-list-header">
-  <h1>Documents @if (currentTypeLabel()) { — {{ currentTypeLabel() }} }</h1>
-  <label>
-    <p-checkbox [binary]="true" [ngModel]="showArchived()" (ngModelChange)="onShowArchivedChange($event)" />
-    Afficher les archivés
-  </label>
-  <p-button label="Ajouter" icon="pi pi-plus" (onClick)="createDialogVisible.set(true)" />
-</div>
+<p-toolbar>
+  <ng-template #start>
+    <h1>Documents @if (currentTypeLabel()) { — {{ currentTypeLabel() }} }</h1>
+  </ng-template>
+  <ng-template #end>
+    <a routerLink="/documents/new-v2" style="font-size: 0.85rem; color: #888; text-decoration: underline dashed;">Prototype v2 (sections)</a>
+    <label class="ui-toolbar__archived">
+      <p-checkbox [binary]="true" [ngModel]="showArchived()" (ngModelChange)="onShowArchivedChange($event)" />
+      Afficher les archivés
+    </label>
+    <p-button label="" icon="pi pi-plus" (onClick)="createDocument()" />
+  </ng-template>
+</p-toolbar>
 
-<p-dialog
-  [(visible)]="createDialogVisible"
-  header="Nouveau document"
-  [modal]="true"
-  [style]="{ width: '40rem' }"
->
-  @if (createDialogVisible()) {
-    <app-document-form (saved)="onDocumentSaved()" (cancelled)="createDialogVisible.set(false)" />
-  }
-</p-dialog>
-
-<p-table [value]="documents()" dataKey="id">
+<p-table [value]="documents()" dataKey="id" showGridlines>
   <ng-template #header>
     <tr>
       <th>Numéro</th>
@@ -44,7 +38,7 @@
       <td>{{ document.status }}</td>
       <td>
         @if (document.type === 'INVOICE') {
-          <p-button label="Voir la facture" icon="pi pi-file-pdf" (click)="openInvoicePdf(document)" />
+          <p-button label="" icon="pi pi-file-pdf" (click)="openInvoicePdf(document)" />
         }
       </td>
       <td>

@@ -50,6 +50,19 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    // Must come before documents/:id, or ":id" would greedily match "new".
+    path: 'documents/new',
+    loadComponent: () => import('./features/documents/document-form/document-form').then(m => m.DocumentForm),
+    canActivate: [authGuard]
+  },
+  {
+    // Exploratory prototype (sections + typed lines), not wired to the
+    // backend - see the comment at the top of document-form-v2.ts.
+    path: 'documents/new-v2',
+    loadComponent: () => import('./features/documents/document-form-v2/document-form-v2').then(m => m.DocumentFormV2),
+    canActivate: [authGuard]
+  },
+  {
     path: 'documents/:id',
     loadComponent: () => import('./features/documents/document-detail/document-detail').then(m => m.DocumentDetail),
     canActivate: [authGuard]
