@@ -12,6 +12,14 @@
       </div>
 
       <div class="document-preview__meta">
+        <p-selectbutton
+          [options]="typeOptions"
+          optionLabel="label"
+          optionValue="value"
+          [ngModel]="type"
+          (ngModelChange)="onTypeChange($event)"
+        />
+
         <p-floatlabel variant="on">
           <p-datepicker inputId="date" [(ngModel)]="date" dateFormat="dd.mm.yy" />
           <label for="date">Date</label>
@@ -29,7 +37,7 @@
             [options]="clientOptions()"
             optionLabel="label"
             optionValue="value"
-            [ngModel]="selectedClientId"
+            [ngModel]="selectedClientId()"
             (ngModelChange)="onClientChange($event)"
           />
           <label for="client_id">Client</label>
@@ -56,7 +64,21 @@
     <div class="document-preview__body">
       <div class="document-preview__sections-header">
         <h2>Détails</h2>
-        <p-button type="button" label="Ajouter une section" icon="pi pi-plus" severity="secondary" (onClick)="addSection()" />
+        <div class="document-preview__sections-actions">
+          <p-select
+            inputId="project_id"
+            [options]="projectOptions()"
+            optionLabel="label"
+            optionValue="value"
+            [ngModel]="selectedProjectId"
+            (ngModelChange)="onProjectChange($event)"
+            placeholder="Chantier"
+            [showClear]="true"
+            [disabled]="selectedClientId() === null"
+          />
+          <p-button type="button" label="Charger chantier" icon="pi pi-truck" severity="secondary" [disabled]="selectedProjectId === null" (onClick)="loadProjectResources()" />
+          <p-button type="button" label="Ajouter une section" icon="pi pi-plus" severity="secondary" (onClick)="addSection()" />
+        </div>
       </div>
 
       @if (sections().length === 0) {
@@ -76,79 +98,90 @@
             <p-button type="button" icon="pi pi-trash" severity="danger" [text]="true" (onClick)="removeSection(section.id)" />
           </div>
 
-          <table class="document-section__table">
-            <thead>
-              <tr>
-                <th>Type</th>
-                <th>Référence</th>
-                <th>Désignation</th>
-                <th>Qté / Temps</th>
-                <th>Unité</th>
-                <th>Prix</th>
-                <th>Rabais</th>
-                <th>Total</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (line of section.lines; track line.id) {
+          <div class="document-section__table-wrap">
+            <table class="document-section__table">
+              <colgroup>
+                <col style="width: 8%">
+                <col style="width: 30%">
+                <col style="width: 12%">
+                <col style="width: 10%">
+                <col style="width: 11%">
+                <col style="width: 9%">
+                <col style="width: 12%">
+                <col style="width: 8%">
+              </colgroup>
+              <thead>
                 <tr>
-                  <td>{{ line.type === 'MATERIAL' ? 'Matériel' : 'Service' }}</td>
-                  <td>{{ line.reference }}</td>
-                  <td>{{ line.label }}</td>
-                  <td>{{ line.type === 'MATERIAL' ? line.quantity : line.time }}</td>
-                  <td>{{ line.unit }}</td>
-                  <td>{{ line.unitPrice | number:'1.2-2' }}</td>
-                  <td>{{ line.discount }} %</td>
-                  <td>{{ lineTotal(line) | number:'1.2-2' }}</td>
+                  <th>Type</th>
+                  <th>Désignation</th>
+                  <th>Qté / Temps</th>
+                  <th>Unité</th>
+                  <th>Prix</th>
+                  <th>Rabais</th>
+                  <th>Total</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (line of section.lines; track line.id) {
+                  <tr>
+                    <td>{{ line.type === 'MATERIAL' ? 'Matériel' : 'Service' }}</td>
+                    <td>{{ line.label }}</td>
+                    <td>{{ line.quantity }}</td>
+                    <td>{{ line.unit }}</td>
+                    <td>{{ line.unit_price | number:'1.2-2' }}</td>
+                    <td>{{ line.discount }} %</td>
+                    <td>{{ lineTotal(line) | number:'1.2-2' }}</td>
+                    <td>
+                      <p-button type="button" icon="pi pi-trash" severity="danger" [text]="true" (onClick)="removeLine(section.id, line.id)" />
+                    </td>
+                  </tr>
+                }
+
+                <!-- Inline "add a line" row -->
+                <tr class="document-section__new-line">
+                  @let draft = newLineFor(section.id);
                   <td>
-                    <p-button type="button" icon="pi pi-trash" severity="danger" [text]="true" (onClick)="removeLine(section.id, line.id)" />
+                    <p-select
+                      [options]="lineTypeOptions"
+                      optionLabel="label"
+                      optionValue="value"
+                      [ngModel]="draft.type"
+                      (ngModelChange)="draft.type = $event"
+                    />
+                  </td>
+                  <td><input pInputText [(ngModel)]="draft.label" placeholder="Désignation" /></td>
+                  <td><p-inputnumber [(ngModel)]="draft.quantity" mode="decimal" [minFractionDigits]="2" [placeholder]="lineQuantityLabel(draft.type)" /></td>
+                  <td><input pInputText [(ngModel)]="draft.unit" placeholder="Unité" /></td>
+                  <td><p-inputnumber [(ngModel)]="draft.unit_price" mode="decimal" [minFractionDigits]="2" /></td>
+                  <td><p-inputnumber [(ngModel)]="draft.discount" mode="decimal" [minFractionDigits]="2" suffix=" %" /></td>
+                  <td></td>
+                  <td>
+                    <p-button type="button" icon="pi pi-plus" [text]="true" (onClick)="addLine(section.id)" />
                   </td>
                 </tr>
-              }
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="6">Sous-total section</td>
+                  <td>{{ sectionTotal(section) | number:'1.2-2' }}</td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
 
-              <!-- Inline "add a line" row -->
-              <tr class="document-section__new-line">
-                @let draft = newLineFor(section.id);
-                <td>
-                  <p-select
-                    [options]="lineTypeOptions"
-                    optionLabel="label"
-                    optionValue="value"
-                    [ngModel]="draft.type"
-                    (ngModelChange)="draft.type = $event"
-                  />
-                </td>
-                <td><input pInputText [(ngModel)]="draft.reference" placeholder="Réf." /></td>
-                <td><input pInputText [(ngModel)]="draft.label" placeholder="Désignation" /></td>
-                <td>
-                  @if (draft.type === 'MATERIAL') {
-                    <p-inputnumber [(ngModel)]="draft.quantity" mode="decimal" [minFractionDigits]="2" />
-                  } @else {
-                    <p-inputnumber [(ngModel)]="draft.time" mode="decimal" [minFractionDigits]="2" />
-                  }
-                </td>
-                <td>
-                  @if (draft.type === 'MATERIAL') {
-                    <input pInputText [(ngModel)]="draft.unit" placeholder="Unité" />
-                  }
-                </td>
-                <td><p-inputnumber [(ngModel)]="draft.unitPrice" mode="decimal" [minFractionDigits]="2" /></td>
-                <td><p-inputnumber [(ngModel)]="draft.discount" mode="decimal" [minFractionDigits]="2" suffix=" %" /></td>
-                <td></td>
-                <td>
-                  <p-button type="button" icon="pi pi-plus" [text]="true" (onClick)="addLine(section.id)" />
-                </td>
-              </tr>
-            </tbody>
-            <tfoot>
-              <tr>
-                <td colspan="7">Sous-total section</td>
-                <td>{{ sectionTotal(section) | number:'1.2-2' }}</td>
-                <td></td>
-              </tr>
-            </tfoot>
-          </table>
+          <div class="document-section__resource-picker">
+            <p-select
+              [options]="availableProjectResourceOptions()"
+              optionLabel="label"
+              optionValue="value"
+              [ngModel]="null"
+              (ngModelChange)="addResourceLine(section.id, $event)"
+              placeholder="Ajouter une ressource du chantier"
+              [disabled]="selectedProjectId === null"
+            />
+          </div>
         </div>
       }
     </div>
@@ -181,17 +214,14 @@
       <div class="document-preview__totals-ttc"><span>Total TTC</span><span>{{ documentTotalInclVat() | number:'1.2-2' }} CHF</span></div>
     </div>
 
+    @if (errorMessage()) {
+      <p class="document-preview__error">{{ errorMessage() }}</p>
+    }
+
     <div class="ui-form__actions">
       <p-button type="button" label="Annuler" severity="secondary" (onClick)="cancel()" />
-      <p-button type="button" label="Valider" (onClick)="submit()" />
+      <p-button type="button" label="Valider" [loading]="submitting()" (onClick)="submit()" />
     </div>
-
-    @if (showJsonPreview()) {
-      <div class="document-preview__json">
-        <h3>Structure de données obtenue (rien n'est envoyé au serveur)</h3>
-        <pre>{{ previewJson() }}</pre>
-      </div>
-    }
 
   </p-card>
 </div>
