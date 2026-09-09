@@ -23,20 +23,15 @@ export const createInvoiceDto = (document: DocumentComplete, client: ClientWithA
             postalCodeCity: `${address.postal_code ?? ""} ${address.city ?? ""}`,
             title: client.title ?? "",
         },
-        // TODO: SECTION/NOTE lines (no quantity/unit_price) aren't rendered in the
-        // PDF yet - only priced MATERIAL/SERVICE lines make it onto the invoice
-        // for now. Proper section headers/notes in the PDF layout is future work,
-        // tied to the "flexible document presentation" feature.
-        lines: document.lines
-            .filter((line): line is typeof line & { quantity: number; unit_price: number } =>
-                line.quantity !== null && line.unit_price !== null
-            )
-            .map(line => ({
-                label: line.label,
-                quantity: line.quantity,
-                unit: line.unit,
-                unitPrice: line.unit_price,
-            })),
+        // TODO: rendered as one flat list, ignoring which document_section each
+        // line belongs to - actual section headers in the PDF layout, grouping
+        // lines under their section, is future work.
+        lines: document.lines.map(line => ({
+            label: line.label,
+            quantity: line.quantity,
+            unit: line.unit,
+            unitPrice: line.unit_price,
+        })),
         amountExclVat: document.amount_excl_vat,
         amountInclVat: document.amount_incl_vat,
         introduction: document.introduction ?? "",

@@ -133,23 +133,36 @@ VALUES
 	Avec nos meilleures salutations.');
 
 -- ==========================================
+-- DOCUMENT SECTIONS
+-- ==========================================
+
+-- One section per document for now (ids 1/2/3, in insertion order below) -
+-- document_lines references these by id further down.
+INSERT INTO document_sections
+(company_id, document_id, position, title)
+VALUES
+(1, 1, 1, 'Travaux'),
+(1, 2, 1, 'Travaux'),
+(1, 3, 1, 'Travaux');
+
+-- ==========================================
 -- DOCUMENT LINES
 -- ==========================================
 
 INSERT INTO document_lines
-(company_id, document_id, type, position, label, quantity, unit, unit_price, discount)
+(company_id, document_id, section_id, type, position, label, quantity, unit, unit_price, discount)
 VALUES
 
--- Quote 1 (775.00)
-(1, 1, 'MATERIAL', 1, 'Sac ciment 25kg', 20, 'Sac', 15, 0),
-(1, 1, 'SERVICE', 2, 'Maçon qualifié', 5, 'Heure', 95, 0),
+-- Quote 1 (775.00) - section "Travaux" (id 1)
+(1, 1, 1, 'MATERIAL', 1, 'Sac ciment 25kg', 20, 'Sac', 15, 0),
+(1, 1, 1, 'SERVICE', 2, 'Maçon qualifié', 5, 'Heure', 95, 0),
 
--- Quote 2 (1980 - 5% = 1881.00)
-(1, 2, 'MATERIAL', 1, 'Parpaing 20 cm', 300, 'Pièce', 4.50, 0),
-(1, 2, 'SERVICE', 2, 'Maçon qualifié', 6, 'Heure', 95, 0),
-(1, 2, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 60, 0),
+-- Quote 2 (1980 - 5% = 1881.00) - section "Travaux" (id 2)
+(1, 2, 2, 'MATERIAL', 1, 'Parpaing 20 cm', 300, 'Pièce', 4.50, 0),
+(1, 2, 2, 'SERVICE', 2, 'Maçon qualifié', 6, 'Heure', 95, 0),
+(1, 2, 2, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 60, 0),
 
--- Invoice issued from quote 2 (same lines, same total)
-(1, 3, 'MATERIAL', 1, 'Parpaing 20 cm', 300, 'Pièce', 4.50, 0),
-(1, 3, 'SERVICE', 2, 'Maçon qualifié', 6, 'Heure', 95, 0),
-(1, 3, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 60, 0);
+-- Invoice issued from quote 2 (same lines, same total) - section "Travaux" (id 3)
+(1, 3, 3, 'MATERIAL', 1, 'Parpaing 20 cm', 300, 'Pièce', 4.50, 0),
+(1, 3, 3, 'SERVICE', 2, 'Maçon qualifié', 6, 'Heure', 95, 0),
+(1, 3, 3, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 60, 0);

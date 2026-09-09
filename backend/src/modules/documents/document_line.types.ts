@@ -1,26 +1,27 @@
-// MATERIAL/SERVICE are priced lines. SECTION (a grouping title) and NOTE
-// (free text) are presentation-only — see document_lines in
-// zz_migrations/000_base.sql: quantity/unit_price stay null for them, and
-// they're skipped by computeDocumentTotals. There's no section_id/hierarchy -
-// a SECTION line just visually groups every line after it (in `position`
-// order) up to the next SECTION line.
-export type DocumentLineType = "MATERIAL" | "SERVICE" | "SECTION" | "NOTE";
+// Both are priced - MATERIAL uses quantity+unit for a physical amount (e.g.
+// "20 Sac"), SERVICE uses quantity+unit for time (e.g. "5 Heure"). Grouping
+// (formerly a SECTION marker line) is now a real document_sections row -
+// see the "Flexible document lines" entry in zz_docs/Decisions.md.
+export type DocumentLineType = "MATERIAL" | "SERVICE";
 
 export interface DocumentLine {
   id: number;
 
   company_id: number;
   document_id: number;
+  section_id: number;
 
+  // Position within its section, not the whole document - section ordering
+  // itself is document_sections.position.
   position: number;
   type: DocumentLineType;
 
   label: string;
 
-  quantity: number | null;
+  quantity: number;
   unit: string | null;
 
-  unit_price: number | null;
+  unit_price: number;
 
   discount: number;
 

@@ -59,14 +59,8 @@ describe("computeDocumentTotals", () => {
     expect(result.amount_excl_vat).toBe(20.1);
   });
 
-  it("skips SECTION/NOTE lines (no quantity/unit_price) when summing", () => {
-    // A section title and a free-text note carry no amount of their own -
-    // only the priced line between them counts.
-    const lines = [
-      { quantity: null, unit_price: null, discount: null },
-      { quantity: 2, unit_price: 50, discount: 0 },
-      { quantity: null, unit_price: null, discount: null },
-    ];
+  it("treats a missing line discount (null) as 0", () => {
+    const lines = [{ quantity: 2, unit_price: 50, discount: null }];
 
     const result = computeDocumentTotals(lines, 0);
 

@@ -2,12 +2,13 @@ import { DocumentLine } from "./document_line.types";
 import {
   getLinesByDocumentIdFromDB,
   getLineByIdFromDB,
-  getNextPositionForDocumentFromDB,
+  getNextPositionForSectionFromDB,
   createLineInDB,
   archiveLineInDB,
   unarchiveLineInDB
 } from "./document_line.repository";
 import { getDocumentByIdFromDB } from "./document.repository";
+import { getSectionByIdFromDB } from "./document_section.repository";
 import { recomputeDocumentTotalsServ } from "./document.service";
 import { NotFoundError } from "../../shared/types/errors";
 
@@ -29,18 +30,16 @@ export const addLineServ = async (
     throw new NotFoundError("Document not found");
   }
 
-  const position = await getNextPositionForDocumentFromDB(document_id);
+  // The section has to actually belong to this document (and company) -
+  // otherwise a line could be attached to another document's section.
+  const section = await getSectionByIdFromDB(lineData.section_id, company_id);
+  if (!section || section.document_id !== document_id) {
+    throw new NotFoundError("Section not found");
+  }
 
-  // SECTION/NOTE lines are presentation-only - force quantity/unit_price to
-  // null regardless of what the request sent, same spirit as amounts being
-  // forced to 0 on document creation: the server, not the caller, decides
-  // what a structural line is worth (nothing).
-  const isPricedLine = lineData.type === "MATERIAL" || lineData.type === "SERVICE";
-  const normalizedLineData = isPricedLine
-    ? lineData
-    : { ...lineData, quantity: null, unit_price: null };
+  const position = await getNextPositionForSectionFromDB(lineData.section_id);
 
-  const line = await createLineInDB({ ...normalizedLineData, document_id, company_id, position, is_active: true });
+  const line = await createLineInDB({ ...lineData, document_id, company_id, position, is_active: true });
 
   await recomputeDocumentTotalsServ(document_id, company_id);
 

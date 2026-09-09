@@ -11,6 +11,8 @@ import resourceSupplierPriceRoutes from "./modules/catalog/resource_supplier_pri
 import documentRoutes from "./modules/documents/document.routes";
 import documentCompleteRoutes from "./modules/documents/document_complete.routes";
 import documentLineRoutes from "./modules/documents/document_line.routes";
+import documentSectionRoutes from "./modules/documents/document_section.routes";
+import documentTemplateRoutes from "./modules/documents/document_template.routes";
 import companyRoutes from "./modules/companies/company.routes";
 import projectRoutes from "./modules/projects/project.routes";
 import projectTypeRoutes from "./modules/projects/project_type.routes";
@@ -47,6 +49,10 @@ app.use("/document", documentRoutes);
 app.use("/document-complete", documentCompleteRoutes);
 
 app.use("/document-line", documentLineRoutes);
+
+app.use("/document-section", documentSectionRoutes);
+
+app.use("/document-template", documentTemplateRoutes);
 
 app.use("/company", companyRoutes);
 

@@ -276,6 +276,31 @@ CREATE TABLE documents (
 
 
 -- ==========================================
+-- DOCUMENT SECTIONS
+-- ==========================================
+
+-- A grouping title within a document (e.g. "Gros oeuvre", "Finitions") -
+-- every document_lines row belongs to exactly one of these. Replaces the
+-- earlier flat-list-with-a-SECTION-marker-line approach (see the "Flexible
+-- document lines" entry in zz_docs/Decisions.md for that original decision
+-- and why it was revisited).
+CREATE TABLE document_sections (
+    id SERIAL PRIMARY KEY,
+    company_id INTEGER NOT NULL,
+    document_id INTEGER NOT NULL,
+    position INTEGER NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+
+    FOREIGN KEY (document_id)
+        REFERENCES documents(id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (company_id)
+        REFERENCES companies(id)
+);
+
+-- ==========================================
 -- DOCUMENT LINES
 -- ==========================================
 
@@ -283,23 +308,51 @@ CREATE TABLE document_lines (
     id SERIAL PRIMARY KEY,
     company_id INTEGER NOT NULL,
     document_id INTEGER NOT NULL,
-    -- 'MATERIAL' | 'SERVICE' are priced lines. 'SECTION' (a grouping title)
-    -- and 'NOTE' (free text) are presentation-only: quantity/unit_price stay
-    -- NULL for them, and they're skipped by computeDocumentTotals. There's
-    -- no section_id/hierarchy - a SECTION line just visually groups every
-    -- line after it (in `position` order) up to the next SECTION line.
+    section_id INTEGER NOT NULL,
+    -- Both priced: MATERIAL uses quantity+unit for a physical amount (e.g.
+    -- "20 Sac"), SERVICE uses quantity+unit for time (e.g. "5 Heure") - same
+    -- two columns for both, no separate "hours" field.
     type VARCHAR(20) NOT NULL,
+    -- Position within its section (not the whole document) - section
+    -- ordering itself is document_sections.position.
     position INTEGER NOT NULL,
     label VARCHAR(255) NOT NULL,
-    quantity NUMERIC(10,2),
+    quantity NUMERIC(10,2) NOT NULL,
     unit VARCHAR(50),
-    unit_price NUMERIC(10,2),
+    unit_price NUMERIC(10,2) NOT NULL,
     discount NUMERIC(5,2) DEFAULT 0,
     is_active BOOLEAN DEFAULT TRUE,
 
     FOREIGN KEY (document_id)
         REFERENCES documents(id)
         ON DELETE CASCADE,
+
+    FOREIGN KEY (section_id)
+        REFERENCES document_sections(id)
+        ON DELETE CASCADE,
+
+    FOREIGN KEY (company_id)
+        REFERENCES companies(id)
+);
+
+-- ==========================================
+-- DOCUMENT TEMPLATES
+-- ==========================================
+
+-- Default introduction/conclusion text per document type (e.g. a standard
+-- "Vous trouverez ci-dessous la facture..." for INVOICE) - at most one row
+-- per (company_id, type), applied client-side when that type is picked on a
+-- new document (see document-form.ts/document-form-v2.ts), never touched
+-- server-side otherwise.
+CREATE TABLE document_templates (
+    id SERIAL PRIMARY KEY,
+    company_id INTEGER NOT NULL,
+    type VARCHAR(20) NOT NULL
+        CHECK (type IN ('QUOTE', 'INVOICE')),
+    introduction TEXT,
+    conclusion TEXT,
+
+    UNIQUE (company_id, type),
 
     FOREIGN KEY (company_id)
         REFERENCES companies(id)

@@ -22,10 +22,11 @@ export const getLineByIdFromDB = async (id: number, company_id: number) => {
   return result.rows[0] ?? null;
 };
 
-export const getNextPositionForDocumentFromDB = async (document_id: number): Promise<number> => {
+// Position is scoped within a section now, not the whole document.
+export const getNextPositionForSectionFromDB = async (section_id: number): Promise<number> => {
   const result = await pool.query(
-    "SELECT COALESCE(MAX(position), 0) + 1 AS next_position FROM document_lines WHERE document_id = $1",
-    [document_id]
+    "SELECT COALESCE(MAX(position), 0) + 1 AS next_position FROM document_lines WHERE section_id = $1",
+    [section_id]
   );
   return Number(result.rows[0].next_position);
 };
@@ -37,6 +38,7 @@ export const createLineInDB = async (
     INSERT INTO document_lines (
       company_id,
       document_id,
+      section_id,
       position,
       type,
       label,
@@ -46,13 +48,14 @@ export const createLineInDB = async (
       discount,
       is_active
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
     RETURNING *;
   `;
 
   const values = [
     line.company_id,
     line.document_id,
+    line.section_id,
     line.position,
     line.type,
     line.label,
