@@ -1,3 +1,4 @@
+/* Temporarily disabled while auditing the frontend for PrimeNG-only styling (uncomment to restore).
 .project-form-type {
   display: flex;
   align-items: flex-end;
@@ -23,3 +24,4 @@
   justify-content: center;
   margin-bottom: 0.5rem;
 }
+*/

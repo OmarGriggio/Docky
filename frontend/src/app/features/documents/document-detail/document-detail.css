@@ -1,3 +1,4 @@
+/* Temporarily disabled while auditing the frontend for PrimeNG-only styling (uncomment to restore).
 .document-detail__grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -28,3 +29,4 @@
   gap: 1rem;
   margin: 1.5rem 0 1rem;
 }
+*/

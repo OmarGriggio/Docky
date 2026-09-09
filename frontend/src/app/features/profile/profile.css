@@ -1,3 +1,4 @@
+/* Temporarily disabled while auditing the frontend for PrimeNG-only styling (uncomment to restore).
 .profile-page {
   display: flex;
   flex-direction: column;
@@ -83,3 +84,4 @@
 .profile-logo__input {
   display: none;
 }
+*/

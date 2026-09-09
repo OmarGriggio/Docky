@@ -1,3 +1,4 @@
+/* Temporarily disabled while auditing the frontend for PrimeNG-only styling (uncomment to restore).
 .auth-page {
   display: flex;
   justify-content: center;
@@ -18,3 +19,4 @@
   justify-content: space-between;
   align-items: center;
 }
+*/

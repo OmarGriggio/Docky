@@ -1,3 +1,4 @@
+/* Temporarily disabled while auditing the frontend for PrimeNG-only styling (uncomment to restore).
 .user-form-page {
   display: flex;
   justify-content: center;
@@ -13,3 +14,4 @@
   color: #d32f2f;
   margin: 0;
 }
+*/

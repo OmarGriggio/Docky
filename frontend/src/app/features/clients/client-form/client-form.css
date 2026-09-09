@@ -1,5 +1,7 @@
+/* Temporarily disabled while auditing the frontend for PrimeNG-only styling (uncomment to restore).
 .client-form-type {
   display: flex;
   justify-content: center;
   margin-bottom: 0.5rem;
 }
+*/
