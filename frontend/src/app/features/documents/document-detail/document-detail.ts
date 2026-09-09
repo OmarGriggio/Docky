@@ -47,9 +47,9 @@ export class DocumentDetail implements OnInit {
 
   // Every line needs a section_id now (see document_sections in
   // zz_migrations/000_base.sql) - this page doesn't have real multi-section
-  // editing yet (that's what document-form-v2 explores), so it silently
-  // reuses (or creates, once) a single "Détails" section for every line
-  // added here.
+  // editing yet (that's what document-form's own section editor does at
+  // creation time), so it silently reuses (or creates, once) a single
+  // "Détails" section for every line added here.
   defaultSectionId = signal<number | null>(null);
 
   confirmVisible = signal(false);

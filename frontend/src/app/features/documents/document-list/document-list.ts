@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { Toolbar } from 'primeng/toolbar';
@@ -19,7 +19,7 @@ const TYPE_LABELS: Record<DocumentType, string> = {
 @Component({
   selector: 'app-document-list',
   standalone: true,
-  imports: [TableModule, Toolbar, Button, Menu, Checkbox, FormsModule, RouterLink, ConfirmDialogComponent],
+  imports: [TableModule, Toolbar, Button, Menu, Checkbox, FormsModule, ConfirmDialogComponent],
   templateUrl: './document-list.html'
 })
 export class DocumentListComponent implements OnInit {

@@ -40,8 +40,8 @@ export class Profile implements OnInit, OnDestroy {
   });
 
   // Default introduction/conclusion text applied when that type is picked
-  // on a new document (see document-form.ts/document-form-v2.ts) - one
-  // document_templates row per (company, type), edited together here.
+  // on a new document (see document-form.ts) - one document_templates row
+  // per (company, type), edited together here.
   templatesForm = this.fb.nonNullable.group({
     quote_introduction: [''],
     quote_conclusion: [''],

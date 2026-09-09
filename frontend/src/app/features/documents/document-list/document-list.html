@@ -3,7 +3,6 @@
     <h1>Documents @if (currentTypeLabel()) { — {{ currentTypeLabel() }} }</h1>
   </ng-template>
   <ng-template #end>
-    <a routerLink="/documents/new-v2" style="font-size: 0.85rem; color: #888; text-decoration: underline dashed;">Prototype v2 (sections)</a>
     <label class="ui-toolbar__archived">
       <p-checkbox [binary]="true" [ngModel]="showArchived()" (ngModelChange)="onShowArchivedChange($event)" />
       Afficher les archivés

@@ -56,13 +56,6 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
-    // Exploratory prototype (sections + typed lines), not wired to the
-    // backend - see the comment at the top of document-form-v2.ts.
-    path: 'documents/new-v2',
-    loadComponent: () => import('./features/documents/document-form-v2/document-form-v2').then(m => m.DocumentFormV2),
-    canActivate: [authGuard]
-  },
-  {
     path: 'documents/:id',
     loadComponent: () => import('./features/documents/document-detail/document-detail').then(m => m.DocumentDetail),
     canActivate: [authGuard]
