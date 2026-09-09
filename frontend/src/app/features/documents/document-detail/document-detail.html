@@ -28,7 +28,7 @@
       <p-checkbox [binary]="true" [ngModel]="showArchivedLines()" (ngModelChange)="onShowArchivedLinesChange($event)" />
       Afficher les archivées
     </label>
-    <p-button label="Ajouter une ligne" icon="pi pi-plus" (onClick)="addLineDialogVisible.set(true)" />
+    <p-button label="Ajouter une ligne" icon="pi pi-plus" (onClick)="openAddLineDialog()" />
   </div>
 
   <p-table [value]="lines()" dataKey="id">
@@ -67,8 +67,8 @@
     [modal]="true"
     [style]="{ width: '32rem' }"
   >
-    @if (addLineDialogVisible()) {
-      <app-document-line-form [documentId]="d.id" (saved)="onLineSaved()" (cancelled)="addLineDialogVisible.set(false)" />
+    @if (addLineDialogVisible() && defaultSectionId(); as sectionId) {
+      <app-document-line-form [documentId]="d.id" [sectionId]="sectionId" (saved)="onLineSaved()" (cancelled)="addLineDialogVisible.set(false)" />
     }
   </p-dialog>
 

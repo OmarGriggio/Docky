@@ -11,6 +11,7 @@ import { Menu } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
 import { DocumentService } from '../document.service';
 import { DocumentLineService } from '../document-line.service';
+import { DocumentSectionService } from '../document-section.service';
 import { ClientService } from '../../clients/client.service';
 import { ProjectService } from '../../projects/project.service';
 import { Document } from '../../../shared/models/document';
@@ -32,6 +33,7 @@ export class DocumentDetail implements OnInit {
   private route = inject(ActivatedRoute);
   private documentService = inject(DocumentService);
   private documentLineService = inject(DocumentLineService);
+  private documentSectionService = inject(DocumentSectionService);
   private clientService = inject(ClientService);
   private projectService = inject(ProjectService);
 
@@ -42,6 +44,13 @@ export class DocumentDetail implements OnInit {
 
   showArchivedLines = signal(false);
   addLineDialogVisible = signal(false);
+
+  // Every line needs a section_id now (see document_sections in
+  // zz_migrations/000_base.sql) - this page doesn't have real multi-section
+  // editing yet (that's what document-form-v2 explores), so it silently
+  // reuses (or creates, once) a single "Détails" section for every line
+  // added here.
+  defaultSectionId = signal<number | null>(null);
 
   confirmVisible = signal(false);
   confirmMessage = signal('');
@@ -98,11 +107,34 @@ export class DocumentDetail implements OnInit {
     });
 
     this.loadLines();
+    this.loadSections();
   }
 
   private loadLines(): void {
     this.documentLineService.getLines(this.id, this.showArchivedLines()).subscribe({
       next: data => this.lines.set(data),
+      error: err => console.error('document-detail : ' + err)
+    });
+  }
+
+  private loadSections(): void {
+    this.documentSectionService.getSections(this.id).subscribe({
+      next: sections => this.defaultSectionId.set(sections[0]?.id ?? null),
+      error: err => console.error('document-detail : ' + err)
+    });
+  }
+
+  openAddLineDialog(): void {
+    if (this.defaultSectionId() !== null) {
+      this.addLineDialogVisible.set(true);
+      return;
+    }
+
+    this.documentSectionService.createSection({ document_id: this.id, title: 'Détails' }).subscribe({
+      next: section => {
+        this.defaultSectionId.set(section.id);
+        this.addLineDialogVisible.set(true);
+      },
       error: err => console.error('document-detail : ' + err)
     });
   }

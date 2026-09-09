@@ -25,6 +25,7 @@ export class DocumentLineForm {
   private documentLineService = inject(DocumentLineService);
 
   documentId = input.required<number>();
+  sectionId = input.required<number>();
 
   saved = output<void>();
   cancelled = output<void>();
@@ -52,6 +53,7 @@ export class DocumentLineForm {
     this.documentLineService.createLine({
       ...this.form.getRawValue(),
       document_id: this.documentId(),
+      section_id: this.sectionId(),
     }).subscribe({
       next: () => {
         this.saved.emit();

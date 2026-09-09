@@ -4,6 +4,8 @@ export interface DocumentLine {
   id: number;
   company_id: number;
   document_id: number;
+  section_id: number;
+  // Position within its section, not the whole document.
   position: number;
   type: DocumentLineType;
   label: string;
