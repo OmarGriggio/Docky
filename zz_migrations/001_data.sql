@@ -166,3 +166,20 @@ VALUES
 (1, 3, 3, 'MATERIAL', 1, 'Parpaing 20 cm', 300, 'Pièce', 4.50, 0),
 (1, 3, 3, 'SERVICE', 2, 'Maçon qualifié', 6, 'Heure', 95, 0),
 (1, 3, 3, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 60, 0);
+
+-- ==========================================
+-- DOCUMENT TEMPLATES
+-- ==========================================
+
+-- Only INVOICE seeded for now - QUOTE has none yet (both editable from the
+-- Profile page, see profile.ts).
+INSERT INTO document_templates
+(company_id, type, introduction, conclusion)
+VALUES
+(1, 'INVOICE',
+	'Madame, Monsieur,
+
+	C''est avec plaisir que nous vous transmettons la facture ci-dessous, établie conformément à nos accords. Nous restons à votre entière disposition pour toute question.',
+	'Nous vous remercions pour votre confiance et vous souhaitons, Madame, Monsieur, nos salutations les meilleures.
+
+                                                                                                          Nom de l''entreprise');
