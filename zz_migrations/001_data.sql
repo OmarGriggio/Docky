@@ -99,6 +99,37 @@ VALUES
 (1, NULL, 'SERVICE', 'DIV002', 'Location nacelle', 'Jour', 250.00, 180.00);
 
 -- ==========================================
+-- PROJECT RESOURCES
+-- ==========================================
+
+-- Links each project to a handful of the resources above (both MATERIAL and
+-- SERVICE where it makes sense) - lets document-form.ts's "Charger chantier"
+-- and "Ajouter une ressource du chantier" be tried out against real data
+-- without having to create links by hand first (no frontend UI for that yet).
+INSERT INTO project_resources
+(company_id, project_id, resource_id)
+VALUES
+
+-- Réparation de porte de cave: ciment, maçon, déplacement
+(1, 1, 1),
+(1, 1, 5),
+(1, 1, 8),
+
+-- Création de cuisine sur mesure: parpaing, peinture, maçon, apprenti
+(1, 2, 2),
+(1, 2, 4),
+(1, 2, 5),
+(1, 2, 6),
+
+-- Réparation de meuble de salle de bain: tube PVC, maçon
+(1, 3, 3),
+(1, 3, 5),
+
+-- Posage de l'isolation: apprenti, location nacelle
+(1, 4, 6),
+(1, 4, 9);
+
+-- ==========================================
 -- RESOURCE SUPPLIER PRICES
 -- ==========================================
 
