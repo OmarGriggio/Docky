@@ -205,6 +205,18 @@
   margin-bottom: 1rem;
 }
 
+.document-preview__template-save {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: -0.5rem;
+}
+
+.document-preview__template-save-message {
+  font-size: 0.85rem;
+  color: #666;
+}
+
 .document-preview__totals {
   display: flex;
   flex-direction: column;

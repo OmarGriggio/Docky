@@ -182,6 +182,9 @@ export class DocumentForm implements OnInit {
   errorMessage = signal<string | null>(null);
   submitting = signal(false);
 
+  savingTemplate = signal(false);
+  templateSaveMessage = signal<string | null>(null);
+
   documentSubtotal = computed(() =>
     round2(this.sections().reduce((sum, section) => sum + this.sectionTotal(section), 0))
   );
@@ -242,6 +245,30 @@ export class DocumentForm implements OnInit {
         this.conclusion = template?.conclusion ?? '';
       },
       error: err => console.error('document-form : ' + err)
+    });
+  }
+
+  // Promotes this document's current introduction/conclusion to be the
+  // saved default for its type (QUOTE/INVOICE) - the same PUT the Profile
+  // page's "Modèles de documents" card uses, just triggered inline while
+  // writing a document instead of from a separate settings page.
+  saveAsDefaultTemplate(): void {
+    this.savingTemplate.set(true);
+    this.templateSaveMessage.set(null);
+
+    this.documentTemplateService.upsertTemplate(this.type, {
+      introduction: this.introduction,
+      conclusion: this.conclusion,
+    }).subscribe({
+      next: () => {
+        this.savingTemplate.set(false);
+        this.templateSaveMessage.set(`Modèle ${this.typeLabel} par défaut mis à jour.`);
+      },
+      error: err => {
+        console.error('document-form : ' + err);
+        this.savingTemplate.set(false);
+        this.templateSaveMessage.set('Impossible d\'enregistrer le modèle.');
+      }
     });
   }
 

@@ -198,6 +198,21 @@
       <p-panel header="Conclusion" [toggleable]="true" [collapsed]="true" styleClass="ui-form__full document-preview__collapsible">
         <textarea pTextarea [(ngModel)]="conclusion" rows="3" class="ui-form__full"></textarea>
       </p-panel>
+
+      <div class="ui-form__full document-preview__template-save">
+        <p-button
+          type="button"
+          label="Enregistrer comme modèle {{ typeLabel }} par défaut"
+          icon="pi pi-save"
+          severity="secondary"
+          [text]="true"
+          [loading]="savingTemplate()"
+          (onClick)="saveAsDefaultTemplate()"
+        />
+        @if (templateSaveMessage()) {
+          <span class="document-preview__template-save-message">{{ templateSaveMessage() }}</span>
+        }
+      </div>
     </div>
 
     <div class="document-preview__totals">
