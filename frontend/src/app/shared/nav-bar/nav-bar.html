@@ -15,6 +15,10 @@
 
     <div class="nav-bar__auth">
       <span class="nav-bar__user">{{ currentUser()?.email }}</span>
+      <a routerLink="/profile">Profil</a>
+      @for (link of visibleAdminLinks(); track link.path) {
+        <a [routerLink]="link.path">{{ link.label }}</a>
+      }
       <button type="button" (click)="logout()">Déconnexion</button>
     </div>
   </nav>

@@ -68,29 +68,21 @@ export class NavBar {
       links: [
         { label: 'Liste', path: '/projects' }
       ]
-    },
-    {
-      label: 'Profil',
-      links: [
-        { label: 'Mon entreprise', path: '/profile' }
-      ]
-    },
-    {
-      label: 'UI Kit',
-      links: [
-        { label: 'Exemples', path: '/uitest' }
-      ],
-      roles: ['ADMIN']
-    },
-    {
-      label: 'Admin',
-      links: [
-        { label: 'Utilisateurs', path: '/admin/users' },
-        { label: 'Nouvel utilisateur', path: '/admin/users/new' }
-      ],
-      roles: ['ADMIN']
     }
   ];
+
+  // Not business navigation - account/admin utilities, shown in
+  // .nav-bar__auth alongside Profil/Déconnexion instead of the main list
+  // above, same reasoning as moving Profil there.
+  private readonly adminLinks: NavLink[] = [
+    { label: 'Utilisateurs', path: '/admin/users' },
+    { label: 'Nouvel utilisateur', path: '/admin/users/new' },
+    { label: 'UI Kit', path: '/uitest' }
+  ];
+
+  visibleAdminLinks = computed(() =>
+    this.currentUser()?.role === 'ADMIN' ? this.adminLinks : []
+  );
 
   visibleNavItems = computed(() => {
     const role = this.currentUser()?.role;
