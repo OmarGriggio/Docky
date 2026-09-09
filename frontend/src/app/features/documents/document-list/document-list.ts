@@ -10,6 +10,7 @@ import { MenuItem } from 'primeng/api';
 import { DocumentService } from '../document.service';
 import { Document, DocumentType } from '../../../shared/models/document';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
+import { AppDatePipe } from '../../../shared/pipes/app-date.pipe';
 
 const TYPE_LABELS: Record<DocumentType, string> = {
   'QUOTE': 'Offres',
@@ -19,7 +20,7 @@ const TYPE_LABELS: Record<DocumentType, string> = {
 @Component({
   selector: 'app-document-list',
   standalone: true,
-  imports: [TableModule, Toolbar, Button, Menu, Checkbox, FormsModule, ConfirmDialogComponent],
+  imports: [TableModule, Toolbar, Button, Menu, Checkbox, FormsModule, AppDatePipe, ConfirmDialogComponent],
   templateUrl: './document-list.html'
 })
 export class DocumentListComponent implements OnInit {

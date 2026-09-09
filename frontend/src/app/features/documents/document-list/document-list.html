@@ -30,7 +30,7 @@
     <tr>
       <td>{{ document.number }}</td>
       <td>{{ document.type }}</td>
-      <td>{{ document.date }}</td>
+      <td>{{ document.date | appDate }}</td>
       <td>{{ document.amount_excl_vat }}</td>
       <td>{{ document.amount_incl_vat }}</td>
       <td>{{ document.discount }}</td>
