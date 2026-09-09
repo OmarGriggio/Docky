@@ -7,11 +7,21 @@ VALUES
 -- USERS
 -- ==========================================
 
--- Dev seed login: admin@dedonnostyle.ch / password123
+-- One user per role, all with the same dev password (password123) - bcrypt
+-- salts each hash differently even for an identical plaintext, so this
+-- doesn't collide with password_hash's UNIQUE constraint.
+-- Dev seed logins:
+--   admin@dedonnostyle.ch          / password123  (ADMIN)
+--   user@dedonnostyle.ch           / password123  (USER)
+--   platform-admin@docky.ch        / password123  (PLATFORM_ADMIN - see the
+--     "Roles" bullet in CLAUDE.md: no self-service way to create one, this
+--     is the "inserted by hand" path, just done here instead of via psql)
 INSERT INTO users
 (company_id, role, last_name, first_name, email, password_hash)
 VALUES
-(1, 'ADMIN', 'Griggio', 'Omar', 'admin@dedonnostyle.ch', '$2b$10$iajz9XismG1lmi4UqoUE/eWKmkUbcCP0atCdq69lLJeyzLUYgxzEK');
+(1, 'ADMIN', 'Griggio', 'Omar', 'admin@dedonnostyle.ch', '$2b$10$iajz9XismG1lmi4UqoUE/eWKmkUbcCP0atCdq69lLJeyzLUYgxzEK'),
+(1, 'USER', 'Dupont', 'Jean', 'user@dedonnostyle.ch', '$2b$10$UD0BeQiB2zuK18XQ/xarOem0Gb.cm9rrrhy0EUkBaIFU4NmK4SIa.'),
+(1, 'PLATFORM_ADMIN', 'Martin', 'Alex', 'platform-admin@docky.ch', '$2b$10$5t99pOfvURFib9Z/YGDVleN//lXQGF/YR7o3t4decR/WXYvFukl92');
 
 -- ==========================================
 -- CLIENTS
