@@ -1,19 +1,22 @@
 import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { forkJoin } from 'rxjs';
 import { InputText } from 'primeng/inputtext';
+import { Textarea } from 'primeng/textarea';
 import { FloatLabel } from 'primeng/floatlabel';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { CompanyService } from './company.service';
 import { UserService } from '../admin/user.service';
 import { AuthService } from '../auth/auth.service';
+import { DocumentTemplateService } from '../documents/document-template.service';
 
 const ALLOWED_LOGO_TYPES = ['image/jpeg', 'image/png'];
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [ReactiveFormsModule, InputText, FloatLabel, Button, Card],
+  imports: [ReactiveFormsModule, InputText, Textarea, FloatLabel, Button, Card],
   templateUrl: './profile.html',
   styleUrl: './profile.css',
 })
@@ -23,6 +26,7 @@ export class Profile implements OnInit, OnDestroy {
   private companyService = inject(CompanyService);
   private userService = inject(UserService);
   private authService = inject(AuthService);
+  private documentTemplateService = inject(DocumentTemplateService);
 
   form = this.fb.nonNullable.group({
     name: ['', Validators.required],
@@ -34,6 +38,20 @@ export class Profile implements OnInit, OnDestroy {
     city: [''],
     country: [''],
   });
+
+  // Default introduction/conclusion text applied when that type is picked
+  // on a new document (see document-form.ts/document-form-v2.ts) - one
+  // document_templates row per (company, type), edited together here.
+  templatesForm = this.fb.nonNullable.group({
+    quote_introduction: [''],
+    quote_conclusion: [''],
+    invoice_introduction: [''],
+    invoice_conclusion: [''],
+  });
+
+  templatesLoading = signal(true);
+  templatesSuccessMessage = signal<string | null>(null);
+  templatesErrorMessage = signal<string | null>(null);
 
   loading = signal(true);
   successMessage = signal<string | null>(null);
@@ -57,6 +75,7 @@ export class Profile implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadCompany();
+    this.loadTemplates();
   }
 
   ngOnDestroy(): void {
@@ -126,6 +145,54 @@ export class Profile implements OnInit, OnDestroy {
       error: err => {
         console.error('profile : ' + err);
         this.errorMessage.set('Impossible de mettre à jour les données de l\'entreprise.');
+      }
+    });
+  }
+
+  private loadTemplates(): void {
+    this.templatesLoading.set(true);
+
+    forkJoin({
+      quote: this.documentTemplateService.getTemplate('QUOTE'),
+      invoice: this.documentTemplateService.getTemplate('INVOICE'),
+    }).subscribe({
+      next: ({ quote, invoice }) => {
+        this.templatesForm.patchValue({
+          quote_introduction: quote?.introduction ?? '',
+          quote_conclusion: quote?.conclusion ?? '',
+          invoice_introduction: invoice?.introduction ?? '',
+          invoice_conclusion: invoice?.conclusion ?? '',
+        });
+        this.templatesLoading.set(false);
+
+        if (!this.isAdmin()) {
+          this.templatesForm.disable();
+        }
+      },
+      error: err => {
+        console.error('profile : ' + err);
+        this.templatesErrorMessage.set('Impossible de charger les modèles de documents.');
+        this.templatesLoading.set(false);
+      }
+    });
+  }
+
+  submitTemplates(): void {
+    this.templatesSuccessMessage.set(null);
+    this.templatesErrorMessage.set(null);
+
+    const { quote_introduction, quote_conclusion, invoice_introduction, invoice_conclusion } = this.templatesForm.getRawValue();
+
+    forkJoin({
+      quote: this.documentTemplateService.upsertTemplate('QUOTE', { introduction: quote_introduction, conclusion: quote_conclusion }),
+      invoice: this.documentTemplateService.upsertTemplate('INVOICE', { introduction: invoice_introduction, conclusion: invoice_conclusion }),
+    }).subscribe({
+      next: () => {
+        this.templatesSuccessMessage.set('Les modèles de documents ont été mis à jour.');
+      },
+      error: err => {
+        console.error('profile : ' + err);
+        this.templatesErrorMessage.set('Impossible de mettre à jour les modèles de documents.');
       }
     });
   }

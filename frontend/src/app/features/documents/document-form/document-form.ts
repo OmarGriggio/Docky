@@ -11,6 +11,7 @@ import { DatePicker } from 'primeng/datepicker';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { DocumentService } from '../document.service';
+import { DocumentTemplateService } from '../document-template.service';
 import { ClientService } from '../../clients/client.service';
 import { ProjectService } from '../../projects/project.service';
 import { CompanyService } from '../../profile/company.service';
@@ -49,6 +50,7 @@ export class DocumentForm implements OnInit {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private documentService = inject(DocumentService);
+  private documentTemplateService = inject(DocumentTemplateService);
   private clientService = inject(ClientService);
   private projectService = inject(ProjectService);
   private companyService = inject(CompanyService);
@@ -107,9 +109,15 @@ export class DocumentForm implements OnInit {
       this.form.patchValue({ project_id: null });
       this.loadClientAddress(clientId);
     });
+
+    this.form.controls.type.valueChanges.subscribe(type => this.loadTemplate(type));
   }
 
   ngOnInit(): void {
+    // valueChanges above only fires on a *change* - load the default type's
+    // template too, since nothing has actually changed yet at this point.
+    this.loadTemplate(this.form.controls.type.value);
+
     this.clientService.getClients().subscribe({
       next: data => this.clients.set(data),
       error: err => console.error('document-form : ' + err)
@@ -127,6 +135,21 @@ export class DocumentForm implements OnInit {
         error: err => console.error('document-form : ' + err)
       });
     }
+  }
+
+  // Only meant for a fresh document, where introduction/conclusion are still
+  // empty either way - so this always applies the template outright, no
+  // "only if empty" check needed.
+  private loadTemplate(type: DocumentType): void {
+    this.documentTemplateService.getTemplate(type).subscribe({
+      next: template => {
+        this.form.patchValue({
+          introduction: template?.introduction ?? '',
+          conclusion: template?.conclusion ?? '',
+        });
+      },
+      error: err => console.error('document-form : ' + err)
+    });
   }
 
   private loadClientAddress(clientId: number | null): void {
