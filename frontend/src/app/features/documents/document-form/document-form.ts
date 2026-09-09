@@ -11,6 +11,7 @@ import { Select } from 'primeng/select';
 import { DatePicker } from 'primeng/datepicker';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
+import { Panel } from 'primeng/panel';
 import { DocumentService } from '../document.service';
 import { DocumentSectionService } from '../document-section.service';
 import { DocumentLineService } from '../document-line.service';
@@ -76,7 +77,7 @@ let nextId = 1;
 @Component({
   selector: 'app-document-form',
   standalone: true,
-  imports: [FormsModule, DecimalPipe, InputText, InputNumber, Textarea, FloatLabel, Select, DatePicker, Button, Card],
+  imports: [FormsModule, DecimalPipe, InputText, InputNumber, Textarea, FloatLabel, Select, DatePicker, Button, Card, Panel],
   templateUrl: './document-form.html',
   styleUrl: './document-form.css',
 })

@@ -76,14 +76,14 @@
   padding: 0 0.75rem;
 }
 
-.document-preview__introduction {
+.document-preview__collapsible {
   display: block;
-  width: 100%;
   margin-bottom: 1.5rem;
 }
 
-.document-preview__introduction textarea {
+.document-preview__collapsible textarea {
   width: 100%;
+  box-sizing: border-box;
 }
 
 .document-preview__body {

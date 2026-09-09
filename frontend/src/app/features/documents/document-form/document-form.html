@@ -50,10 +50,9 @@
       </div>
     </div>
 
-    <p-floatlabel variant="on" class="document-preview__introduction">
-      <textarea pTextarea id="introduction" [(ngModel)]="introduction" rows="3"></textarea>
-      <label for="introduction">Introduction</label>
-    </p-floatlabel>
+    <p-panel header="Introduction" [toggleable]="true" [collapsed]="true" styleClass="document-preview__collapsible">
+      <textarea pTextarea [(ngModel)]="introduction" rows="3" class="ui-form__full"></textarea>
+    </p-panel>
 
     <div class="document-preview__body">
       <div class="document-preview__sections-header">
@@ -196,10 +195,9 @@
         <label for="payment_terms">Conditions de paiement</label>
       </p-floatlabel>
 
-      <p-floatlabel variant="on" class="ui-form__full">
-        <textarea pTextarea id="conclusion" [(ngModel)]="conclusion" rows="3"></textarea>
-        <label for="conclusion">Conclusion</label>
-      </p-floatlabel>
+      <p-panel header="Conclusion" [toggleable]="true" [collapsed]="true" styleClass="ui-form__full document-preview__collapsible">
+        <textarea pTextarea [(ngModel)]="conclusion" rows="3" class="ui-form__full"></textarea>
+      </p-panel>
     </div>
 
     <div class="document-preview__totals">
