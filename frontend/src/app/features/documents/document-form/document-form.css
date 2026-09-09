@@ -6,11 +6,9 @@
 
 .document-preview {
   width: 100%;
-  max-width: 800px;
+  max-width: 1000px;
 }
 
-/* Issuer (top-left) / meta (top-right) - same layout convention as the
-   actual invoice PDF (pdf/templates/invoice.template.ts). */
 .document-preview__header {
   display: flex;
   justify-content: space-between;
@@ -47,6 +45,10 @@
   min-width: 220px;
 }
 
+.document-preview__type-heading {
+  margin: 0;
+}
+
 .document-preview__number-hint {
   margin: 0;
   font-size: 0.8rem;
@@ -54,7 +56,6 @@
   font-style: italic;
 }
 
-/* Recipient (right-aligned) - also matches the PDF's layout. */
 .document-preview__parties {
   display: flex;
   justify-content: flex-end;
@@ -75,6 +76,16 @@
   padding: 0 0.75rem;
 }
 
+.document-preview__introduction {
+  display: block;
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.document-preview__introduction textarea {
+  width: 100%;
+}
+
 .document-preview__body {
   border-top: 1px dashed #ddd;
   border-bottom: 1px dashed #ddd;
@@ -82,15 +93,139 @@
   margin-bottom: 1.5rem;
 }
 
+.document-preview__sections-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.document-preview__sections-header h2 {
+  margin: 0;
+}
+
+.document-preview__sections-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .document-preview__body-hint {
   margin: 0;
   color: #888;
   font-style: italic;
-  text-align: center;
+}
+
+.document-section {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.document-section__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.document-section__title {
+  flex: 1;
+  font-weight: 600;
+}
+
+/* The scroll wrapper (not the table itself) handles horizontal overflow on
+   narrow screens - thead/tbody/tfoot must stay one single table (never
+   display: table each on their own), or table-layout: fixed computes each
+   one's column widths independently from its own row content alone, and
+   header/body columns drift out of alignment with each other. */
+.document-section__table-wrap {
+  overflow-x: auto;
+}
+
+.document-section__table {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.document-section__table th {
+  text-align: left;
+  font-size: 0.8rem;
+  color: #777;
+  padding: 0.4rem;
+  border-bottom: 1px solid #eee;
+}
+
+.document-section__table td {
+  padding: 0.3rem 0.4rem;
+  vertical-align: middle;
+}
+
+/* p-select/p-inputnumber are custom elements (default display: inline), and
+   the class that carries PrimeNG's own width/layout rules (.p-select,
+   .p-inputnumber) sits on this same host tag, not a nested child - so
+   `display: block` has to be set here too, or `width: 100%` is a no-op and
+   the widget spills into neighboring cells at its own intrinsic width. */
+.document-section__table input,
+.document-section__table p-select,
+.document-section__table p-inputnumber {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.document-section__new-line {
+  background: #fafafa;
+}
+
+.document-section__table tfoot td {
+  font-weight: 600;
+  border-top: 1px solid #eee;
+  padding-top: 0.5rem;
+}
+
+.document-section__resource-picker {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.75rem;
+}
+
+.document-section__resource-picker p-select {
+  display: block;
+  width: 260px;
+  max-width: 100%;
 }
 
 .document-preview__footer {
   margin-bottom: 1rem;
+}
+
+.document-preview__totals {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+}
+
+.document-preview__totals > div {
+  display: flex;
+  gap: 1.5rem;
+  min-width: 260px;
+  justify-content: space-between;
+}
+
+.document-preview__totals-ttc {
+  font-weight: 700;
+  font-size: 1.1rem;
+  border-top: 1px solid #ddd;
+  padding-top: 0.35rem;
 }
 
 .document-preview__error {

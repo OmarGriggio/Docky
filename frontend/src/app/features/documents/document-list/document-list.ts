@@ -47,8 +47,12 @@ export class DocumentListComponent implements OnInit {
     });
   }
 
+  // Which type gets created is decided by which filtered list you're on
+  // (Offres or Factures) - there's no type picker in the form itself
+  // anymore. Falls back to the form's own default (QUOTE) if this list
+  // somehow isn't type-filtered.
   createDocument(): void {
-    this.router.navigate(['/documents/new']);
+    this.router.navigate(['/documents/new'], this.currentType ? { queryParams: { type: this.currentType } } : {});
   }
 
   private loadDocuments(): void {
