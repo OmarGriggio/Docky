@@ -1,3 +1,26 @@
+.document-detail__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem 1.5rem;
+}
+
+.document-detail__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.document-detail__label {
+  font-size: 0.75rem;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.document-detail__value {
+  font-weight: 500;
+}
+
 .detail-lines-header {
   display: flex;
   align-items: center;

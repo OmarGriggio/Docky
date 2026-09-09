@@ -20,11 +20,12 @@ import { Client } from '../../../shared/models/client';
 import { Project } from '../../../shared/models/project';
 import { DocumentLineForm } from '../document-line-form/document-line-form';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
+import { AppDatePipe } from '../../../shared/pipes/app-date.pipe';
 
 @Component({
   selector: 'app-document-detail',
   standalone: true,
-  imports: [TableModule, DecimalPipe, Button, Dialog, Card, Checkbox, FormsModule, Menu, DocumentLineForm, ConfirmDialogComponent],
+  imports: [TableModule, DecimalPipe, AppDatePipe, Button, Dialog, Card, Checkbox, FormsModule, Menu, DocumentLineForm, ConfirmDialogComponent],
   templateUrl: './document-detail.html',
   styleUrl: './document-detail.css'
 })
