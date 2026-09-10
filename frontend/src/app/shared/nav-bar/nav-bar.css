@@ -7,16 +7,16 @@ nav {
   flex-shrink: 0;
   padding: 1rem 0.5rem;
   border-right: 1px solid #ddd;
-  /* Full viewport height, pinned in place while the page scrolls - an
-     explicit height here wins over .layout's align-items: stretch (which
-     only applies when the cross-size is auto), so this holds regardless of
-     how tall .content ends up. No overflow-y here on purpose: this is a
-     short icon rail (never taller than the viewport), and it would force
-     overflow-x too (per the CSS overflow spec), clipping the tooltips/
-     flyouts below that need to escape nav's 64px width. */
   height: 100vh;
   position: sticky;
   top: 0;
+  /* Without an explicit z-index here, nav's own stacking context has
+     z-index:auto - it then competes against .content purely by DOM order,
+     and any positioned element inside .content (a table, a card...) can
+     paint over all of nav regardless of how high a descendant tooltip's own
+     z-index is set. That descendant z-index only matters once nav itself
+     is in the running. */
+  z-index: 1;
 }
 
 .nav-bar__icon-link {
@@ -38,10 +38,6 @@ nav {
   background-color: #f0f0f0;
 }
 
-/* Custom tooltip - shows the page name to the right of the icon on hover,
-   plain CSS only (no PrimeNG p-tooltip: that directive was never used
-   anywhere else, pulling it into nav-bar - eagerly loaded, unlike the rest
-   of the app - added ~99kB to the initial bundle on its own). */
 .nav-bar__tooltip {
   position: absolute;
   left: calc(100% + 0.5rem);
@@ -57,7 +53,7 @@ nav {
   visibility: hidden;
   pointer-events: none;
   transition: opacity 0.15s ease;
-  z-index: 9999;
+  z-index: 1;
 }
 
 .nav-bar__icon-link:hover .nav-bar__tooltip {
@@ -65,9 +61,6 @@ nav {
   visibility: visible;
 }
 
-/* Grouped items (Documents, Ressources) - a native <details> flyout instead
-   of PrimeNG's p-menu (same bundle-size reasoning as the tooltip above).
-   Click-to-toggle and click-outside-to-close come for free from <details>. */
 .nav-bar__group {
   position: relative;
 }
@@ -90,7 +83,7 @@ nav {
   border-radius: 6px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
   padding: 0.25rem;
-  z-index: 9999;
+  z-index: 1;
 }
 
 .nav-bar__flyout-link {
@@ -108,8 +101,6 @@ nav {
 }
 
 .nav-bar__auth {
-  /* Pushes this block to the bottom of nav (now 100vh tall) instead of
-     sitting right after the last nav item with empty space below it. */
   margin-top: auto;
   padding-top: 0.75rem;
   border-top: 1px solid #ddd;
