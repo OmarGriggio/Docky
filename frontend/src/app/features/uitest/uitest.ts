@@ -12,6 +12,7 @@ import { Tag } from 'primeng/tag';
 import { Textarea } from 'primeng/textarea';
 import { ToggleButton } from 'primeng/togglebutton';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog';
+import { HelpButton } from '../../shared/components/help-button/help-button';
 import { SelectButton } from 'primeng/selectbutton';
 
 @Component({
@@ -30,7 +31,8 @@ import { SelectButton } from 'primeng/selectbutton';
     Select,
     Textarea,
     ToggleButton,
-    ConfirmDialogComponent
+    ConfirmDialogComponent,
+    HelpButton
   ],
   templateUrl: './uitest.html',
   styleUrl: './uitest.css'

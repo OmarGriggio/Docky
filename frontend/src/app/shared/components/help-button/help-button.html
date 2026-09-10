@@ -1,0 +1,14 @@
+<p-button
+  type="button"
+  icon="pi pi-question-circle"
+  [text]="true"
+  [rounded]="true"
+  severity="secondary"
+  ariaLabel="Aide"
+  (onClick)="popover.toggle($event)"
+/>
+<p-popover #popover>
+  <div class="max-w-xs text-sm leading-relaxed">
+    <ng-content></ng-content>
+  </div>
+</p-popover>
