@@ -1,0 +1,11 @@
+/* p-select's dropdown panel is a separate internal PrimeNG component (not
+   reachable by a page's own scoped CSS), and pSize="small" only shrinks the
+   closed trigger - the option list itself has no built-in small variant. */
+.p-select-option {
+  padding: 0.35rem 0.6rem;
+  font-size: 0.875rem;
+}
+
+.p-select-header {
+  padding: 0.35rem 0.6rem;
+}
