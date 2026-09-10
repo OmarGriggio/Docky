@@ -7,6 +7,14 @@ nav {
   flex-shrink: 0;
   padding: 1rem 0.5rem;
   border-right: 1px solid #ddd;
+  /* Full viewport height, pinned in place while the page scrolls - an
+     explicit height here wins over .layout's align-items: stretch (which
+     only applies when the cross-size is auto), so this holds regardless of
+     how tall .content ends up. */
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
 }
 
 nav > a,
@@ -24,12 +32,14 @@ details > a {
 .nav-bar__auth {
   display: flex;
   flex-direction: column;
-  margin-top: 0.75rem;
+  /* Pushes this block to the bottom of nav (now 100vh tall) instead of
+     sitting right after the last nav item with empty space below it. */
+  margin-top: auto;
   padding-top: 0.75rem;
   border-top: 1px solid #ddd;
 }
 
-.nav-bar__auth button {
+.nav-bar__auth a {
   all: unset;
   cursor: pointer;
   display: block;
@@ -48,6 +58,8 @@ details > a {
     flex-wrap: wrap;
     align-items: center;
     width: 100%;
+    height: auto;
+    position: static;
     border-right: none;
     border-bottom: 1px solid #ddd;
   }
