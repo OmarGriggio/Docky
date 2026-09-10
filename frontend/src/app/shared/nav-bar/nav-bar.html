@@ -2,20 +2,34 @@
   <nav>
     @for (item of visibleNavItems(); track item.label) {
       @if (item.links.length > 1) {
-        <details>
-          <summary>{{ item.label }}</summary>
-          @for (link of item.links; track link.label) {
-            <a [routerLink]="link.path" [queryParams]="link.queryParams">{{ link.label }}</a>
-          }
+        <details #group class="nav-bar__group">
+          <summary class="nav-bar__icon-link">
+            <i [class]="item.icon"></i>
+            <span class="nav-bar__tooltip">{{ item.label }}</span>
+          </summary>
+          <div class="nav-bar__flyout">
+            @for (link of item.links; track link.label) {
+              <a [routerLink]="link.path" [queryParams]="link.queryParams" class="nav-bar__flyout-link" (click)="group.open = false">{{ link.label }}</a>
+            }
+          </div>
         </details>
       } @else {
-        <a [routerLink]="item.links[0].path" [queryParams]="item.links[0].queryParams">{{ item.label }}</a>
+        <a
+          [routerLink]="item.links[0].path"
+          [queryParams]="item.links[0].queryParams"
+          class="nav-bar__icon-link"
+        >
+          <i [class]="item.icon"></i>
+          <span class="nav-bar__tooltip">{{ item.label }}</span>
+        </a>
       }
     }
 
     <div class="nav-bar__auth">
-      <span class="nav-bar__user">{{ currentUser()?.email }}</span>
-      <a routerLink="/profile">Profil</a>
+      <a routerLink="/profile" class="nav-bar__icon-link">
+        <i class="pi pi-user"></i>
+        <span class="nav-bar__tooltip">{{ currentUser()?.email ?? 'Profil' }}</span>
+      </a>
     </div>
   </nav>
 }

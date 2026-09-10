@@ -1,37 +1,113 @@
 nav {
   display: flex;
   flex-direction: column;
-  align-items: stretch;
+  align-items: center;
   gap: 0.25rem;
-  width: 200px;
+  width: 64px;
   flex-shrink: 0;
   padding: 1rem 0.5rem;
   border-right: 1px solid #ddd;
   /* Full viewport height, pinned in place while the page scrolls - an
      explicit height here wins over .layout's align-items: stretch (which
      only applies when the cross-size is auto), so this holds regardless of
-     how tall .content ends up. */
+     how tall .content ends up. No overflow-y here on purpose: this is a
+     short icon rail (never taller than the viewport), and it would force
+     overflow-x too (per the CSS overflow spec), clipping the tooltips/
+     flyouts below that need to escape nav's 64px width. */
   height: 100vh;
   position: sticky;
   top: 0;
-  overflow-y: auto;
 }
 
-nav > a,
-nav > details > summary {
+.nav-bar__icon-link {
+  all: unset;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  color: #555;
+  transition: background-color 0.15s ease;
+}
+
+.nav-bar__icon-link:hover {
+  background-color: #f0f0f0;
+}
+
+/* Custom tooltip - shows the page name to the right of the icon on hover,
+   plain CSS only (no PrimeNG p-tooltip: that directive was never used
+   anywhere else, pulling it into nav-bar - eagerly loaded, unlike the rest
+   of the app - added ~99kB to the initial bundle on its own). */
+.nav-bar__tooltip {
+  position: absolute;
+  left: calc(100% + 0.5rem);
+  top: 50%;
+  transform: translateY(-50%);
+  background: #333;
+  color: #fff;
+  font-size: 0.8rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 9999;
+}
+
+.nav-bar__icon-link:hover .nav-bar__tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Grouped items (Documents, Ressources) - a native <details> flyout instead
+   of PrimeNG's p-menu (same bundle-size reasoning as the tooltip above).
+   Click-to-toggle and click-outside-to-close come for free from <details>. */
+.nav-bar__group {
+  position: relative;
+}
+
+.nav-bar__group > summary {
+  list-style: none;
+}
+
+.nav-bar__group > summary::-webkit-details-marker {
+  display: none;
+}
+
+.nav-bar__flyout {
+  position: absolute;
+  left: calc(100% + 0.5rem);
+  top: 0;
+  min-width: 140px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  padding: 0.25rem;
+  z-index: 9999;
+}
+
+.nav-bar__flyout-link {
   display: block;
   padding: 0.5rem 0.75rem;
-  cursor: pointer;
+  border-radius: 4px;
+  color: #333;
+  text-decoration: none;
+  font-size: 0.9rem;
+  white-space: nowrap;
 }
 
-details > a {
-  display: block;
-  padding: 0.4rem 0.75rem 0.4rem 1.5rem;
+.nav-bar__flyout-link:hover {
+  background-color: #f0f0f0;
 }
 
 .nav-bar__auth {
-  display: flex;
-  flex-direction: column;
   /* Pushes this block to the bottom of nav (now 100vh tall) instead of
      sitting right after the last nav item with empty space below it. */
   margin-top: auto;
@@ -39,24 +115,10 @@ details > a {
   border-top: 1px solid #ddd;
 }
 
-.nav-bar__auth a {
-  all: unset;
-  cursor: pointer;
-  display: block;
-  padding: 0.5rem 0.75rem;
-}
-
-.nav-bar__user {
-  padding: 0.5rem 0.75rem;
-  font-size: 0.85rem;
-  color: #666;
-}
-
 @media (max-width: 768px) {
   nav {
     flex-direction: row;
     flex-wrap: wrap;
-    align-items: center;
     width: 100%;
     height: auto;
     position: static;
@@ -65,8 +127,6 @@ details > a {
   }
 
   .nav-bar__auth {
-    flex-direction: row;
-    align-items: center;
     margin-top: 0;
     margin-left: auto;
     padding-top: 0;

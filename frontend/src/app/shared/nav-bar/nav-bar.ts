@@ -11,6 +11,7 @@ interface NavLink {
 
 interface NavItem {
   label: string;
+  icon: string;
   links: NavLink[];
   roles?: UserRole[];
 }
@@ -32,24 +33,28 @@ export class NavBar {
   navItems: NavItem[] = [
     {
       label: 'Dashboard',
+      icon: 'pi pi-home',
       links: [
         { label: 'Dashboard', path: '/dashboard' }
       ]
     },
     {
       label: 'Clients',
+      icon: 'pi pi-address-book',
       links: [
         { label: 'Liste', path: '/clients' }
       ]
     },
     {
       label: 'Fournisseurs',
+      icon: 'pi pi-truck',
       links: [
         { label: 'Liste', path: '/suppliers' }
       ]
     },
     {
       label: 'Documents',
+      icon: 'pi pi-receipt',
       links: [
         { label: 'Offres', path: '/documents', queryParams: { type: 'QUOTE' } },
         { label: 'Factures', path: '/documents', queryParams: { type: 'INVOICE' } }
@@ -57,6 +62,7 @@ export class NavBar {
     },
     {
       label: 'Ressources',
+      icon: 'pi pi-box',
       links: [
         { label: 'Matériel', path: '/resources', queryParams: { type: 'MATERIAL' } },
         { label: 'Service', path: '/resources', queryParams: { type: 'SERVICE' } }
@@ -64,6 +70,7 @@ export class NavBar {
     },
     {
       label: 'Chantiers',
+      icon: 'pi pi-hammer',
       links: [
         { label: 'Liste', path: '/projects' }
       ]
