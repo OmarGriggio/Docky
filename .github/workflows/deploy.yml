@@ -1,0 +1,62 @@
+name: Deploy
+
+# Runs on every push to main (the only branch this repo uses - see the
+# Workflow section in CLAUDE.md). Tests and builds gate the deploy: the
+# ssh step only runs if both jobs below succeed.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm test
+
+  test-frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit -p tsconfig.app.json
+      - run: npm test
+      - run: npm run build
+
+  deploy:
+    needs: [test-backend, test-frontend]
+    runs-on: ubuntu-latest
+    steps:
+      # Builds happen on the VPS itself (docker compose ... --build), same
+      # as the documented manual redeploy in CLAUDE.md - this workflow just
+      # automates those exact steps instead of building/pushing images to a
+      # registry. Revisit if the VPS ever struggles with the build load.
+      - name: SSH and redeploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cd ~/docky
+            git pull
+            docker compose -f docker-compose.prod.yml up -d --build
