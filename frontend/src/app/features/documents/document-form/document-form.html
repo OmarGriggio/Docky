@@ -26,7 +26,7 @@
     <div class="flex justify-start sm:justify-end mb-6">
       <div class="flex flex-col gap-3 w-full max-w-70">
         <p-floatlabel variant="on" class="w-full">
-          <p-select
+          <p-select pSize="small"
             inputId="client_id"
             [options]="clientOptions()"
             optionLabel="label"
@@ -52,14 +52,14 @@
     </div>
 
     <p-panel header="Introduction" [toggleable]="true" [collapsed]="true" styleClass="block mb-6">
-      <textarea pTextarea [(ngModel)]="introduction" rows="3" class="w-full"></textarea>
+      <textarea pTextarea pSize="small" [(ngModel)]="introduction" rows="3" class="w-full"></textarea>
     </p-panel>
 
     <div class="border-t border-b border-dashed border-[#ddd] py-6 mb-6">
       <div class="flex items-center justify-between mb-4">
         <h2 class="m-0">Détails</h2>
         <div class="flex items-center gap-2 flex-wrap">
-          <p-select
+          <p-select pSize="small"
             inputId="project_id"
             [options]="projectOptions()"
             optionLabel="label"
@@ -70,8 +70,8 @@
             [showClear]="true"
             [disabled]="selectedClientId() === null"
           />
-          <p-button type="button" label="Charger chantier" icon="pi pi-truck" severity="secondary" [disabled]="selectedProjectId === null" (onClick)="loadProjectResources()" />
-          <p-button type="button" label="Ajouter une section" icon="pi pi-plus" severity="secondary" (onClick)="addSection()" />
+          <p-button size="small" type="button" label="Charger chantier" icon="pi pi-truck" severity="secondary" [disabled]="selectedProjectId === null" (onClick)="loadProjectResources()" />
+          <p-button size="small" type="button" label="Ajouter une section" icon="pi pi-plus" severity="secondary" (onClick)="addSection()" />
         </div>
       </div>
 
@@ -83,13 +83,13 @@
         <div class="border border-[#e0e0e0] rounded-lg p-4 mb-5">
           <div class="flex items-center gap-2 mb-3">
             <input
-              pInputText
+              pInputText pSize="small"
               class="flex-1 font-semibold"
               placeholder="Titre de la section (ex. Gros oeuvre)"
               [ngModel]="section.title"
               (ngModelChange)="updateSectionTitle(section.id, $event)"
             />
-            <p-button type="button" icon="pi pi-trash" severity="danger" [text]="true" (onClick)="removeSection(section.id)" />
+            <p-button size="small" type="button" icon="pi pi-trash" severity="danger" [text]="true" (onClick)="removeSection(section.id)" />
           </div>
 
           <div class="overflow-x-auto">
@@ -127,7 +127,7 @@
                     <td class="py-[0.3rem] px-[0.2rem] align-middle">{{ line.discount }} %</td>
                     <td class="py-[0.3rem] px-[0.2rem] align-middle">{{ lineTotal(line) | number:'1.2-2' }}</td>
                     <td class="py-[0.3rem] px-[0.2rem] align-middle">
-                      <p-button type="button" icon="pi pi-trash" severity="danger" [text]="true" (onClick)="removeLine(section.id, line.id)" />
+                      <p-button size="small" type="button" icon="pi pi-trash" severity="danger" [text]="true" (onClick)="removeLine(section.id, line.id)" />
                     </td>
                   </tr>
                 }
@@ -136,7 +136,7 @@
                 <tr class="bg-[#fafafa]">
                   @let draft = newLineFor(section.id);
                   <td class="py-[0.3rem] px-[0.2rem] align-middle">
-                    <p-select
+                    <p-select pSize="small"
                       [fluid]="true"
                       [options]="lineTypeOptions"
                       optionLabel="label"
@@ -145,14 +145,14 @@
                       (ngModelChange)="draft.type = $event"
                     />
                   </td>
-                  <td class="py-[0.3rem] px-[0.2rem] align-middle"><input pInputText [fluid]="true" class="block" [(ngModel)]="draft.label" placeholder="Désignation" /></td>
-                  <td class="py-[0.3rem] px-[0.2rem] align-middle"><p-inputnumber [fluid]="true" [(ngModel)]="draft.quantity" mode="decimal" [minFractionDigits]="2" [placeholder]="lineQuantityLabel(draft.type)" /></td>
-                  <td class="py-[0.3rem] px-[0.2rem] align-middle"><input pInputText [fluid]="true" class="block" [(ngModel)]="draft.unit" placeholder="Unité" /></td>
-                  <td class="py-[0.3rem] px-[0.2rem] align-middle"><p-inputnumber [fluid]="true" [(ngModel)]="draft.unit_price" mode="decimal" [minFractionDigits]="2" /></td>
-                  <td class="py-[0.3rem] px-[0.2rem] align-middle"><p-inputnumber [fluid]="true" [(ngModel)]="draft.discount" mode="decimal" [minFractionDigits]="2" suffix=" %" /></td>
+                  <td class="py-[0.3rem] px-[0.2rem] align-middle"><input pInputText pSize="small" [fluid]="true" class="block" [(ngModel)]="draft.label" placeholder="Désignation" /></td>
+                  <td class="py-[0.3rem] px-[0.2rem] align-middle"><p-inputnumber pSize="small" [fluid]="true" [(ngModel)]="draft.quantity" mode="decimal" [minFractionDigits]="2" [placeholder]="lineQuantityLabel(draft.type)" /></td>
+                  <td class="py-[0.3rem] px-[0.2rem] align-middle"><input pInputText pSize="small" [fluid]="true" class="block" [(ngModel)]="draft.unit" placeholder="Unité" /></td>
+                  <td class="py-[0.3rem] px-[0.2rem] align-middle"><p-inputnumber pSize="small" [fluid]="true" [(ngModel)]="draft.unit_price" mode="decimal" [minFractionDigits]="2" /></td>
+                  <td class="py-[0.3rem] px-[0.2rem] align-middle"><p-inputnumber pSize="small" [fluid]="true" [(ngModel)]="draft.discount" mode="decimal" [minFractionDigits]="2" suffix=" %" /></td>
                   <td class="py-[0.3rem] px-[0.2rem] align-middle"></td>
                   <td class="py-[0.3rem] px-[0.2rem] align-middle">
-                    <p-button type="button" icon="pi pi-plus" [text]="true" (onClick)="addLine(section.id)" />
+                    <p-button size="small" type="button" icon="pi pi-plus" [text]="true" (onClick)="addLine(section.id)" />
                   </td>
                 </tr>
               </tbody>
@@ -167,7 +167,7 @@
           </div>
 
           <div class="flex justify-end mt-3">
-            <p-select
+            <p-select pSize="small"
               class="block w-65 max-w-full"
               [options]="availableProjectResourceOptions()"
               optionLabel="label"
@@ -184,26 +184,26 @@
 
     <div class="ui-form mb-4">
       <p-floatlabel variant="on">
-        <p-inputnumber inputId="discount" [(ngModel)]="discount" mode="decimal" [minFractionDigits]="2" suffix=" %" />
+        <p-inputnumber pSize="small" inputId="discount" [(ngModel)]="discount" mode="decimal" [minFractionDigits]="2" suffix=" %" />
         <label for="discount">Rabais document</label>
       </p-floatlabel>
 
       <p-floatlabel variant="on">
-        <p-inputnumber inputId="vat_rate" [(ngModel)]="vatRate" mode="decimal" [minFractionDigits]="2" suffix=" %" />
+        <p-inputnumber pSize="small" inputId="vat_rate" [(ngModel)]="vatRate" mode="decimal" [minFractionDigits]="2" suffix=" %" />
         <label for="vat_rate">TVA</label>
       </p-floatlabel>
 
       <p-floatlabel variant="on" class="ui-form__full">
-        <input pInputText id="payment_terms" [(ngModel)]="paymentTerms" />
+        <input pInputText pSize="small" id="payment_terms" [(ngModel)]="paymentTerms" />
         <label for="payment_terms">Conditions de paiement</label>
       </p-floatlabel>
 
       <p-panel header="Conclusion" [toggleable]="true" [collapsed]="true" styleClass="ui-form__full block mb-6">
-        <textarea pTextarea [(ngModel)]="conclusion" rows="3" class="ui-form__full"></textarea>
+        <textarea pTextarea pSize="small" [(ngModel)]="conclusion" rows="3" class="ui-form__full"></textarea>
       </p-panel>
 
       <div class="ui-form__full flex items-center gap-3 -mt-2">
-        <p-button
+        <p-button size="small"
           type="button"
           label="Enregistrer comme modèle {{ typeLabel }} par défaut"
           icon="pi pi-save"
@@ -229,8 +229,8 @@
     }
 
     <div class="ui-form__actions">
-      <p-button type="button" label="Annuler" severity="secondary" (onClick)="cancel()" />
-      <p-button type="button" label="Valider" [loading]="submitting()" (onClick)="submit()" />
+      <p-button size="small" type="button" label="Annuler" severity="secondary" (onClick)="cancel()" />
+      <p-button size="small" type="button" label="Valider" [loading]="submitting()" (onClick)="submit()" />
     </div>
 
   </p-card>
