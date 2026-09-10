@@ -1,5 +1,5 @@
-<div class="auth-page">
-  <p-card header="Connexion" styleClass="ui-card--elevated auth-card">
+<div class="flex justify-center py-8 px-4">
+  <p-card header="Connexion" styleClass="ui-card--elevated w-full max-w-105">
     <form [formGroup]="form" (ngSubmit)="submit()" class="ui-form ui-form--1col">
       <p-floatlabel variant="on">
         <input pInputText id="email" type="email" formControlName="email" />
@@ -12,10 +12,10 @@
       </p-floatlabel>
 
       @if (errorMessage()) {
-        <p class="auth-error">{{ errorMessage() }}</p>
+        <p class="text-red-600 m-0">{{ errorMessage() }}</p>
       }
 
-      <div class="ui-form__actions auth-form-actions">
+      <div class="col-span-full flex justify-between items-center gap-2">
         <a routerLink="/register">Créer un compte</a>
         <p-button type="submit" label="Se connecter" />
       </div>
