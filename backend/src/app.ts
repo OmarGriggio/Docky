@@ -19,6 +19,7 @@ import projectTypeRoutes from "./modules/projects/project_type.routes";
 import projectResourceRoutes from "./modules/projects/project_resource.routes";
 import pdfRoutes from "./pdf/pdf.routes";
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 
 const app = express();
 
@@ -28,7 +29,7 @@ const app = express();
 // limiting (everyone shares one counter) once this is actually deployed.
 app.set("trust proxy", 1);
 
-app.use(express.json(), cors());
+app.use(express.json(), cors(), cookieParser());
 
 app.use("/uploads", express.static(path.resolve(process.cwd(), "uploads")));
 
