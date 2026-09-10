@@ -1,44 +1,44 @@
 @if (document(); as d) {
   <p-card [header]="d.number" styleClass="ui-card--elevated">
-    <div class="document-detail__grid">
-      <div class="document-detail__field">
-        <span class="document-detail__label">Type</span>
-        <span class="document-detail__value">{{ d.type }}</span>
+    <div class="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-y-4 gap-x-6">
+      <div class="flex flex-col gap-1">
+        <span class="text-xs text-gray-500 uppercase tracking-wide">Type</span>
+        <span class="font-medium">{{ d.type }}</span>
       </div>
-      <div class="document-detail__field">
-        <span class="document-detail__label">Date</span>
-        <span class="document-detail__value">{{ d.date | appDate }}</span>
+      <div class="flex flex-col gap-1">
+        <span class="text-xs text-gray-500 uppercase tracking-wide">Date</span>
+        <span class="font-medium">{{ d.date | appDate }}</span>
       </div>
-      <div class="document-detail__field">
-        <span class="document-detail__label">Statut</span>
-        <span class="document-detail__value">{{ d.status }}</span>
+      <div class="flex flex-col gap-1">
+        <span class="text-xs text-gray-500 uppercase tracking-wide">Statut</span>
+        <span class="font-medium">{{ d.status }}</span>
       </div>
-      <div class="document-detail__field">
-        <span class="document-detail__label">Client</span>
-        <span class="document-detail__value">{{ clientName() }}</span>
+      <div class="flex flex-col gap-1">
+        <span class="text-xs text-gray-500 uppercase tracking-wide">Client</span>
+        <span class="font-medium">{{ clientName() }}</span>
       </div>
       @if (projectName()) {
-        <div class="document-detail__field">
-          <span class="document-detail__label">Chantier</span>
-          <span class="document-detail__value">{{ projectName() }}</span>
+        <div class="flex flex-col gap-1">
+          <span class="text-xs text-gray-500 uppercase tracking-wide">Chantier</span>
+          <span class="font-medium">{{ projectName() }}</span>
         </div>
       }
-      <div class="document-detail__field">
-        <span class="document-detail__label">Montant HT</span>
-        <span class="document-detail__value">{{ d.amount_excl_vat }}</span>
+      <div class="flex flex-col gap-1">
+        <span class="text-xs text-gray-500 uppercase tracking-wide">Montant HT</span>
+        <span class="font-medium">{{ d.amount_excl_vat }}</span>
       </div>
-      <div class="document-detail__field">
-        <span class="document-detail__label">Montant TTC</span>
-        <span class="document-detail__value">{{ d.amount_incl_vat }}</span>
+      <div class="flex flex-col gap-1">
+        <span class="text-xs text-gray-500 uppercase tracking-wide">Montant TTC</span>
+        <span class="font-medium">{{ d.amount_incl_vat }}</span>
       </div>
-      <div class="document-detail__field">
-        <span class="document-detail__label">Rabais</span>
-        <span class="document-detail__value">{{ d.discount }} %</span>
+      <div class="flex flex-col gap-1">
+        <span class="text-xs text-gray-500 uppercase tracking-wide">Rabais</span>
+        <span class="font-medium">{{ d.discount }} %</span>
       </div>
     </div>
   </p-card>
 
-  <div class="detail-lines-header">
+  <div class="flex items-center justify-between gap-4 mt-6 mb-4">
     <h2>Lignes</h2>
     <label>
       <p-checkbox [binary]="true" [ngModel]="showArchivedLines()" (ngModelChange)="onShowArchivedLinesChange($event)" />
@@ -47,7 +47,7 @@
     <p-button label="Ajouter une ligne" icon="pi pi-plus" (onClick)="openAddLineDialog()" />
   </div>
 
-  <p-table [value]="lines()" dataKey="id">
+  <p-table [value]="lines()" dataKey="id" showGridlines>
     <ng-template #header>
       <tr>
         <th>Type</th>
