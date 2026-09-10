@@ -8,7 +8,6 @@ import { environment } from '../../../environments/environment';
 
 const API_BASE = environment.apiUrl;
 const TOKEN_KEY = 'docky_token';
-const REFRESH_TOKEN_KEY = 'docky_refresh_token';
 
 interface TokenPayload {
   userId: number;
@@ -35,7 +34,6 @@ export class AuthService {
   private http = inject(HttpClient);
 
   private token = signal<string | null>(localStorage.getItem(TOKEN_KEY));
-  private refreshToken = signal<string | null>(localStorage.getItem(REFRESH_TOKEN_KEY));
 
   // Several API calls can 401 around the same moment (e.g. a page firing off
   // several list requests at once) - they all await this same in-flight
@@ -61,11 +59,14 @@ export class AuthService {
   }
 
   login(payload: LoginPayload) {
+    // withCredentials so the browser stores the httpOnly refresh-token cookie
+    // the backend sets on this response - the refresh token itself never
+    // appears in the JSON body or touches frontend JS.
     return this.http.post<AuthResponse>(`${API_BASE}/auth/login`, {
       email: payload.email,
       passwordHash: payload.password,
-    }).pipe(
-      tap(response => this.setTokens(response.token, response.refreshToken))
+    }, { withCredentials: true }).pipe(
+      tap(response => this.setToken(response.token))
     );
   }
 
@@ -95,17 +96,15 @@ export class AuthService {
     );
   }
 
-  // Exchanges the stored refresh token for a new access token. The refresh
-  // token itself is never re-issued here - it stays the same until it
-  // naturally expires (7 days) or logout() revokes it, see backend/CLAUDE.md.
+  // Exchanges the refresh token for a new access token. The refresh token
+  // itself lives only in the httpOnly cookie the browser sends automatically
+  // (withCredentials) - there's no way (and no need) to check for it in JS
+  // first, the backend 401s if it's missing/invalid/expired. It's never
+  // re-issued here either way - it stays the same until it naturally expires
+  // (7 days) or logout() revokes it, see backend/CLAUDE.md.
   refreshAccessToken(): Observable<string> {
-    const refreshToken = this.refreshToken();
-    if (!refreshToken) {
-      return throwError(() => new Error('No refresh token available'));
-    }
-
     if (!this.refreshInProgress) {
-      this.refreshInProgress = this.http.post<{ token: string }>(`${API_BASE}/auth/refresh`, { refreshToken }).pipe(
+      this.refreshInProgress = this.http.post<{ token: string }>(`${API_BASE}/auth/refresh`, {}, { withCredentials: true }).pipe(
         tap(response => this.setToken(response.token)),
         map(response => response.token),
         catchError(error => {
@@ -121,24 +120,13 @@ export class AuthService {
   }
 
   logout(): void {
-    const refreshToken = this.refreshToken();
-    if (refreshToken) {
-      // Best-effort: the tokens are cleared locally regardless of whether
-      // this call reaches the backend or succeeds.
-      this.http.post(`${API_BASE}/auth/logout`, { refreshToken }).subscribe({ error: () => {} });
-    }
+    // Best-effort: the token is cleared locally regardless of whether this
+    // call reaches the backend or succeeds. withCredentials so the browser
+    // sends the refresh-token cookie for the backend to revoke and clear.
+    this.http.post(`${API_BASE}/auth/logout`, {}, { withCredentials: true }).subscribe({ error: () => {} });
 
     localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
     this.token.set(null);
-    this.refreshToken.set(null);
-  }
-
-  private setTokens(token: string, refreshToken: string): void {
-    localStorage.setItem(TOKEN_KEY, token);
-    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
-    this.token.set(token);
-    this.refreshToken.set(refreshToken);
   }
 
   private setToken(token: string): void {
