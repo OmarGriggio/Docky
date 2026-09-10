@@ -64,9 +64,14 @@ services:
 
     ports:
       - "80:80"
+      - "443:443"
 
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      # Host paths (not repo-relative) - certbot on the host writes here
+      # directly, nginx just needs read access to the same files.
+      - /var/www/certbot:/var/www/certbot:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
 
     depends_on:
       - backend
