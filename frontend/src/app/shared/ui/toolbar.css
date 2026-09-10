@@ -1,8 +1,3 @@
-/* p-toolbar's #end template usually holds the "afficher les archivés"
-   checkbox next to the action buttons - shared spacing/alignment for that
-   pairing, used across every list page (clients, suppliers, projects,
-   resources, documents). */
-
 p-toolbar .ui-toolbar__archived {
   display: flex;
   align-items: center;

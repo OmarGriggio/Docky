@@ -1,5 +1,3 @@
-/* Generic form grid, matching the pattern used in client-form.css. */
-
 .ui-form {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

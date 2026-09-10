@@ -1,5 +1,3 @@
-/* Layout grids for arranging cards, form sections, or any block content. */
-
 .ui-grid {
   display: grid;
   gap: 1rem;

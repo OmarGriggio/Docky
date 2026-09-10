@@ -1,5 +1,3 @@
-/* Modifiers for p-card, applied via [styleClass]="'ui-card--flat'" etc. */
-
 .p-card.ui-card--flat {
   box-shadow: none;
   border: 1px solid #ddd;

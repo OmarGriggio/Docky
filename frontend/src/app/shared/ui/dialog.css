@@ -1,5 +1,3 @@
-/* Footer/action alignment for p-dialog content. */
-
 .ui-dialog-actions {
   display: flex;
   justify-content: flex-end;

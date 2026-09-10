@@ -1,5 +1,3 @@
-/* Layout helpers for grouping p-button elements into rows/toolbars. */
-
 .ui-btn-row {
   display: flex;
   align-items: center;
