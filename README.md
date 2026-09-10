@@ -41,6 +41,7 @@ Three types of users are planned: **employees** (day-to-day usage), **company ad
 - [x] PostgreSQL access via raw SQL (no ORM, by design — see [zz_docs/Architecture.md](zz_docs/Architecture.md))
 - [x] Role/permission enforcement (`ADMIN` vs `USER` vs `PLATFORM_ADMIN` — see [zz_docs/Decisions.md](zz_docs/Decisions.md))
 - [x] Multi-tenant data isolation between companies, and archive (soft-delete) instead of hard delete for business records
+- [x] Refresh token stored in an httpOnly cookie (not readable by frontend JS, mitigates XSS token theft)
 - [ ] Automated tests (Vitest is wired up and passing on both sides, but only covers a couple of pure functions so far — not real coverage yet)
 - [ ] Database migrations (schema is currently created manually)
 
@@ -48,12 +49,13 @@ Three types of users are planned: **employees** (day-to-day usage), **company ad
 - [x] Angular app skeleton with routing (every route lazy-loaded)
 - [x] Client, supplier, project, document and resource list/form features wired to the API, with archive/restore
 - [x] Authentication flow / login and registration screens
-- [ ] Invoice and quote creation screens (listing exists, creation doesn't yet)
-- [ ] Dashboard
+- [x] Invoice and quote creation, with per-project resource prefill and default intro/conclusion templates
+- [ ] Dashboard (placeholder page only)
 
 **Ops**
-- [x] Docker Compose setup for local dev; a separate, leaner production image (multi-stage `Dockerfile`, compiled, non-root) exists but isn't wired into a CI/CD pipeline yet
-- [ ] Deployment
+- [x] Docker Compose for local dev; separate multi-stage production images (compiled, non-root), deployed behind an Nginx gateway
+- [x] Deployed — HTTPS via a free [sslip.io](https://sslip.io) hostname + Let's Encrypt (no domain purchased yet)
+- [x] CI/CD: GitHub Actions runs backend/frontend tests and builds on every push to `main`, then auto-deploys over SSH if they pass
 
 ## Tech stack
 
@@ -64,7 +66,7 @@ Three types of users are planned: **employees** (day-to-day usage), **company ad
 | Database         | PostgreSQL                    | Robust, relational, fits business/invoicing data well            |
 | Data access      | Raw SQL via a repository layer | Full control over queries, keeps the stack simple              |
 | Authentication   | JWT                           | Standard, stateless auth for a REST API                         |
-| Deployment       | Docker Compose (dev) / multi-stage `Dockerfile` (prod image) | Reproducible environment; CI/CD pipeline still to come |
+| Deployment       | Docker Compose (dev + prod), Nginx gateway, GitHub Actions CI/CD | Reproducible environment; push to `main` tests, builds and deploys automatically |
 
 ## Project structure
 
@@ -183,9 +185,10 @@ cp backend/.env.example backend/.env
 | `DB_USER`     | PostgreSQL user                                                  |
 | `DB_PASSWORD` | PostgreSQL password                                              |
 | `DB_NAME`     | PostgreSQL database name                                         |
-| `JWT_SECRET`  | Secret used to sign/verify JWTs                                  |
+| `JWT_SECRET`  | Secret used to sign/verify access tokens                        |
+| `JWT_REFRESH_SECRET` | Secret used to sign/verify refresh tokens (separate from `JWT_SECRET`) |
 
-> The database schema is bootstrapped automatically the first time the Postgres container starts, from the SQL files in [zz_migrations/](zz_migrations/) (mounted into `/docker-entrypoint-initdb.d`). To re-run them, drop the `postgres_data` volume and start the containers again. This also seeds a full sample dataset (a company, clients, projects, suppliers, a resource catalog, quotes/invoices...) so there's always something to explore right away — log in with **`admin@dedonnostyle.ch` / `password123`**.
+> The database schema is bootstrapped automatically the first time the Postgres container starts, from the SQL files in [zz_migrations/](zz_migrations/) (mounted into `/docker-entrypoint-initdb.d`). To re-run them, drop the `postgres_data` volume and start the containers again. This also seeds a full sample dataset (a company, clients, projects, suppliers, a resource catalog, quotes/invoices...) so there's always something to explore right away — one login per role, all on `password123`: **`admin@dedonnostyle.ch`** (`ADMIN`), **`user@dedonnostyle.ch`** (`USER`), **`platform-admin@docky.ch`** (`PLATFORM_ADMIN`).
 
 ## Documentation
 

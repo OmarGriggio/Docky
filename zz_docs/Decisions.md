@@ -14,7 +14,9 @@ This file tracks technical choices that had more than one reasonable option, alo
 
 **Two firewalls, found the hard way**: `ufw` alone wasn't enough — Infomaniak's Cloud panel has its own network firewall (SSH-only by default) that silently swallowed 80/443 even with `ufw`/Nginx correctly configured. Worth checking first on any cloud VM that's unreachable despite the OS looking right.
 
-**Not done yet**: no domain/HTTPS (plain HTTP, no `server_name`); no CI/CD (deploy is manual SSH + `git pull` + `docker compose up --build -d`).
+**HTTPS without buying a domain**: Let's Encrypt won't certify a bare IP. **Chosen**: [sslip.io](https://sslip.io) — a free service that resolves `<ip-with-dashes>.sslip.io` to that IP automatically, no signup, no DNS to manage — good enough for Let's Encrypt to treat as a real hostname and issue a trusted cert against. **Turned down**: buying a real domain (the actual "right" answer eventually, just deferred — costs money and this is a learning/portfolio project first); a self-signed cert (free, but browsers show a hard warning, worse than plain HTTP for a first impression).
+
+**CI/CD build strategy**: GitHub Actions gates deploy on tests passing, then SSHes in and runs the same `docker compose ... --build` the manual redeploy always used — builds happen on the VPS itself. **Turned down (for now)**: building images in CI and pushing to a registry (ghcr.io) so the VPS only pulls — lighter load on a "Lite" VPS plan, but real added setup (registry auth, compose pointing at image tags instead of build contexts). Revisit if the VPS ever struggles with the build load; not worth the complexity pre-emptively.
 
 ## Invoicing schema gaps
 
@@ -32,9 +34,9 @@ Surfaced by comparing Docky against Odoo's invoicing app; worked through schema-
 
 **Verified**: fresh-Postgres migration, `tsc`/tests green, live end-to-end (auto-numbering, forced-null section line, VAT math, PDF still renders).
 
-## Refresh tokens: localStorage + DB-tracked, no rotation, reactive interceptor
+## Refresh tokens: httpOnly cookie + DB-tracked, no rotation, reactive interceptor
 
-**1. Where the token lives** — `localStorage` (chosen): trivial, consistent with the access token, no CORS change. **Turned down**: `httpOnly` cookie (safer against XSS, but needs `cors({credentials:true})` + CSRF work, touching the deliberately-deferred CORS gap); in-memory-only (safest, but logs the user out on every refresh without also adding a cookie for silent refresh).
+**1. Where the token lives** — `httpOnly` cookie (current, `SameSite=Lax`, `Path=/`): frontend JS can never read it, mitigating XSS token theft. **Revised from an earlier choice**: `localStorage` (trivial, consistent with the access token, no CORS change) was picked first specifically to avoid `cors({credentials:true})` + CSRF work while the CORS gap was still deferred — revisited once XSS mitigation mattered more than that convenience; back/front turned out to already be same-site in every real deployment shape (`ng serve`'s proxy in dev, nginx in prod), so the CSRF surface this opens is small and `SameSite=Lax` covers it as a first pass. **Turned down**: in-memory-only (safest, but logs the user out on every refresh without also adding a cookie for silent refresh).
 
 **2. Can the backend revoke it early** — DB-tracked, no rotation (chosen): a `refresh_tokens` table (`user_id`, `token_hash`, `expires_at`, `revoked_at`, only the hash stored) lets `/auth/logout` actually invalidate server-side. **Turned down**: fully stateless (zero new table, but a stolen/logged-out token stays valid its full 7 days); rotation (most secure, detects reuse as a compromise signal, but real added complexity for a solo project with no real client data yet — natural next step if this needs hardening).
 
