@@ -1,5 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '../../features/auth/auth.service';
 import { UserRole } from '../models/auth';
 
@@ -25,7 +25,6 @@ interface NavItem {
 export class NavBar {
 
   private authService = inject(AuthService);
-  private router = inject(Router);
 
   isAuthenticated = this.authService.isAuthenticated;
   currentUser = this.authService.currentUser;
@@ -71,27 +70,9 @@ export class NavBar {
     }
   ];
 
-  // Not business navigation - account/admin utilities, shown in
-  // .nav-bar__auth alongside Profil/Déconnexion instead of the main list
-  // above, same reasoning as moving Profil there.
-  private readonly adminLinks: NavLink[] = [
-    { label: 'Utilisateurs', path: '/admin/users' },
-    { label: 'Nouvel utilisateur', path: '/admin/users/new' },
-    { label: 'UI Kit', path: '/uitest' }
-  ];
-
-  visibleAdminLinks = computed(() =>
-    this.currentUser()?.role === 'ADMIN' ? this.adminLinks : []
-  );
-
   visibleNavItems = computed(() => {
     const role = this.currentUser()?.role;
     return this.navItems.filter(item => !item.roles || (role && item.roles.includes(role)));
   });
-
-  logout(): void {
-    this.authService.logout();
-    this.router.navigate(['/login']);
-  }
 
 }
