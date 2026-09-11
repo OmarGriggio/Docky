@@ -1,4 +1,10 @@
 @if (document(); as d) {
+  @if (d.type === 'INVOICE') {
+    <div class="flex justify-end mb-2">
+      <p-button label="PDF" icon="pi pi-file-pdf" severity="secondary" (onClick)="openInvoicePdf()" />
+    </div>
+  }
+
   <p-card [header]="d.number" styleClass="ui-card--elevated">
     <div class="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-y-4 gap-x-6">
       <div class="flex flex-col gap-1">

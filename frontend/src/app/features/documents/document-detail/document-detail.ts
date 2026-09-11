@@ -156,6 +156,16 @@ export class DocumentDetail implements OnInit {
     return line.quantity * line.unit_price * (1 - line.discount / 100);
   }
 
+  openInvoicePdf(): void {
+    this.documentService.getInvoicePdf(this.id).subscribe({
+      next: blob => {
+        const url = window.URL.createObjectURL(blob);
+        window.open(url, '_blank');
+      },
+      error: err => console.error('document-detail : ' + err)
+    });
+  }
+
   onLineSaved(): void {
     this.addLineDialogVisible.set(false);
     this.loadLines();
