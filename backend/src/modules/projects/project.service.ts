@@ -3,7 +3,8 @@ import {
   getProjectByIdFromDB,
   createProjectInDB,
   archiveProjectInDB,
-  unarchiveProjectInDB
+  unarchiveProjectInDB,
+  completeProjectInDB
 } from "./project.repository";
 import { CreateProjectData } from "./project.types";
 import { NotFoundError } from "../../shared/types/errors";
@@ -38,4 +39,12 @@ export const unarchiveProjectServ = async (id: number, company_id: number) => {
     throw new NotFoundError("Project not found");
   }
   return await unarchiveProjectInDB(id, company_id);
+};
+
+export const completeProjectServ = async (id: number, company_id: number) => {
+  const project = await getProjectByIdFromDB(id, company_id);
+  if (!project) {
+    throw new NotFoundError("Project not found");
+  }
+  return await completeProjectInDB(id, company_id);
 };

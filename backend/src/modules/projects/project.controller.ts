@@ -4,7 +4,8 @@ import {
   getProjectByIdServ,
   addProjectServ,
   archiveProjectServ,
-  unarchiveProjectServ
+  unarchiveProjectServ,
+  completeProjectServ
 } from "./project.service";
 import { CreateProjectData } from "./project.types";
 
@@ -34,4 +35,9 @@ export const archiveProject = async (req: Request, res: Response) => {
 export const unarchiveProject = async (req: Request, res: Response) => {
   const projectUnarchived = await unarchiveProjectServ(Number(req.params.id), req.user.company_id);
   res.json(projectUnarchived);
+};
+
+export const completeProject = async (req: Request, res: Response) => {
+  const projectCompleted = await completeProjectServ(Number(req.params.id), req.user.company_id);
+  res.json(projectCompleted);
 };

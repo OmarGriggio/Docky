@@ -90,3 +90,21 @@ export const unarchiveProjectInDB = async (
   const result = await pool.query(query, [id, company_id]);
   return result.rows[0];
 };
+
+// Locks in the project's status as done - see the migration's comment on
+// projects.status for why this gates invoicing. One-way for now: no
+// "reopen" (would need deciding what happens to an invoice already created
+// from it in the meantime).
+export const completeProjectInDB = async (
+  id: number,
+  company_id: number
+): Promise<Project> => {
+  const query = `
+    UPDATE projects SET status = 'COMPLETED'
+      WHERE id = $1 AND company_id = $2
+    RETURNING *;
+  `;
+
+  const result = await pool.query(query, [id, company_id]);
+  return result.rows[0];
+};

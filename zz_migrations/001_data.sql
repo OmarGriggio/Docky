@@ -63,12 +63,17 @@ VALUES
 ('Isolation'),
 ('Autre');
 
-INSERT INTO projects (company_id, client_id, project_type_id, name, same_address_as_client, street, postal_code, city, country)
+-- Projects 1 and 2 are COMPLETED: they exist because quotes OFF-2026-0001/
+-- 0002 (below) were accepted, which is what actually creates a project now
+-- (see document.service.ts's acceptQuoteServ) - a QUOTE itself can never
+-- pick an existing project. Projects 3 and 4 are still IN_PROGRESS, created
+-- by hand (project-form.ts), no quote yet.
+INSERT INTO projects (company_id, client_id, project_type_id, name, same_address_as_client, street, postal_code, city, country, status)
 VALUES
-(1, 1, 1, 'Réparation de porte de cave', FALSE, 'Rue de la gare 2', '2500', 'Lausanne', 'Suisse'),
-(1, 1, 2, 'Création de cuisine sur mesure', FALSE, 'Rue de Génève 2', '3300', 'Geneve', 'Suisse'),
-(1, 2, 3, 'Réparation de meuble de salle de bain', TRUE, NULL, NULL, NULL, NULL),
-(1, 2, 4, 'Posage de l''isolation', TRUE, NULL, NULL, NULL, NULL);
+(1, 1, 1, 'Réparation de porte de cave', FALSE, 'Rue de la gare 2', '2500', 'Lausanne', 'Suisse', 'COMPLETED'),
+(1, 1, 2, 'Création de cuisine sur mesure', FALSE, 'Rue de Génève 2', '3300', 'Geneve', 'Suisse', 'COMPLETED'),
+(1, 2, 3, 'Réparation de meuble de salle de bain', TRUE, NULL, NULL, NULL, NULL, 'IN_PROGRESS'),
+(1, 2, 4, 'Posage de l''isolation', TRUE, NULL, NULL, NULL, NULL, 'IN_PROGRESS');
 
 -- ==========================================
 -- SUPPLIERS
@@ -112,32 +117,36 @@ VALUES
 -- PROJECT RESOURCES
 -- ==========================================
 
--- Links each project to a handful of the resources above (both MATERIAL and
--- SERVICE where it makes sense) - lets document-form.ts's "Charger chantier"
--- and "Ajouter une ressource du chantier" be tried out against real data
--- without having to create links by hand first (no frontend UI for that yet).
 INSERT INTO project_resources
-(company_id, project_id, resource_id)
+(company_id, project_id, resource_id, quantity, unit_price)
 VALUES
 
--- Réparation de porte de cave: ciment, maçon, déplacement
-(1, 1, 1),
-(1, 1, 5),
-(1, 1, 8),
+-- Réparation de porte de cave: quantities/prices auto-derived from quote
+-- OFF-2026-0001's own lines when it was accepted (see acceptQuoteServ) -
+-- ciment adjusted up by hand afterwards (22 used on site vs. 20 quoted, the
+-- "plus d'heures que prévu" case), maçon unchanged. Déplacement was added by
+-- hand mid-chantier, not part of the original quote at all.
+(1, 1, 1, 22, 15.00),
+(1, 1, 5, 5, 95.00),
+(1, 1, 8, 1, 60.00),
 
--- Création de cuisine sur mesure: parpaing, peinture, maçon, apprenti
-(1, 2, 2),
-(1, 2, 4),
-(1, 2, 5),
-(1, 2, 6),
+-- Création de cuisine sur mesure: matches quote OFF-2026-0002's lines
+-- exactly, no adjustment needed on this one - already invoiced as
+-- FAC-2026-0001.
+(1, 2, 2, 300, 4.50),
+(1, 2, 5, 6, 95.00),
+(1, 2, 8, 1, 60.00),
 
--- Réparation de meuble de salle de bain: tube PVC, maçon
-(1, 3, 3),
-(1, 3, 5),
+-- Réparation de meuble de salle de bain: still IN_PROGRESS, no quote behind
+-- it - linked by hand (tube PVC, maçon), nothing used on site yet (quantity
+-- 0, same default linkResourceToProjectServ itself uses), priced at the
+-- catalog's current price.
+(1, 3, 3, 0, 22.00),
+(1, 3, 5, 0, 95.00),
 
--- Posage de l'isolation: apprenti, location nacelle
-(1, 4, 6),
-(1, 4, 9);
+-- Posage de l'isolation: same idea (apprenti, location nacelle).
+(1, 4, 6, 0, 55.00),
+(1, 4, 9, 0, 250.00);
 
 -- ==========================================
 -- RESOURCE SUPPLIER PRICES
@@ -162,12 +171,21 @@ VALUES
 -- equals amount_excl_vat since no VAT rate is modelled anywhere yet. Kept in sync
 -- by hand here since this file bypasses the API — if you change a line below,
 -- update the matching document's amounts too.
+-- Quotes never carry a project_id at creation (see document.service.ts's
+-- addDocumentServ) - the two below already have one because they're
+-- ACCEPTED, which is what created projects 1/2 in the first place. Invoices
+-- FAC-2026-0001/0002 point to those same (now COMPLETED) projects.
 INSERT INTO documents
 (company_id, client_id, project_id, parent_document_id, type, number, date, amount_excl_vat, amount_incl_vat, discount, status, introduction, conclusion)
 VALUES
-(1, 1, 1, NULL, 'QUOTE', 'OFF-2026-0001', '2026-07-10', 775.00, 775.00, 0, 'SENT', NULL, NULL),
-(1, 3, NULL, NULL, 'QUOTE', 'OFF-2026-0002', '2026-07-11', 1881.00, 1881.00, 5, 'ACCEPTED', NULL, NULL),
-(1, 3, NULL, 2, 'INVOICE', 'FAC-2026-0001', '2026-07-15', 1881.00, 1881.00, 5, 'PAID',
+(1, 1, 1, NULL, 'QUOTE', 'OFF-2026-0001', '2026-07-10', 775.00, 775.00, 0, 'ACCEPTED', NULL, NULL),
+(1, 3, 2, NULL, 'QUOTE', 'OFF-2026-0002', '2026-07-11', 1881.00, 1881.00, 5, 'ACCEPTED', NULL, NULL),
+(1, 3, 2, 2, 'INVOICE', 'FAC-2026-0001', '2026-07-15', 1881.00, 1881.00, 5, 'PAID',
+	'Nous avons le plaisir de vous soumettre la facture suivante.',
+	'Nous vous remercions de votre confiance et restons à votre disposition pour toute information complémentaire.
+
+	Avec nos meilleures salutations.'),
+(1, 1, 1, 1, 'INVOICE', 'FAC-2026-0002', '2026-08-05', 865.00, 865.00, 0, 'SENT',
 	'Nous avons le plaisir de vous soumettre la facture suivante.',
 	'Nous vous remercions de votre confiance et restons à votre disposition pour toute information complémentaire.
 
@@ -177,36 +195,47 @@ VALUES
 -- DOCUMENT SECTIONS
 -- ==========================================
 
--- One section per document for now (ids 1/2/3, in insertion order below) -
+-- One section per document for now (ids 1/2/3/4, in insertion order below) -
 -- document_lines references these by id further down.
 INSERT INTO document_sections
 (company_id, document_id, position, title)
 VALUES
 (1, 1, 1, 'Travaux'),
 (1, 2, 1, 'Travaux'),
-(1, 3, 1, 'Travaux');
+(1, 3, 1, 'Travaux'),
+(1, 4, 1, 'Travaux');
 
 -- ==========================================
 -- DOCUMENT LINES
 -- ==========================================
 
+-- resource_id links each line to the catalog resource it was added from
+-- (see acceptQuoteServ) - matches resources' insertion order above (1 Sac
+-- ciment, 2 Parpaing, 5 Maçon qualifié, 8 Déplacement).
 INSERT INTO document_lines
-(company_id, document_id, section_id, type, position, label, quantity, unit, unit_price, discount)
+(company_id, document_id, section_id, type, position, label, quantity, unit, unit_price, discount, resource_id)
 VALUES
 
 -- Quote 1 (775.00) - section "Travaux" (id 1)
-(1, 1, 1, 'MATERIAL', 1, 'Sac ciment 25kg', 20, 'Sac', 15, 0),
-(1, 1, 1, 'SERVICE', 2, 'Maçon qualifié', 5, 'Heure', 95, 0),
+(1, 1, 1, 'MATERIAL', 1, 'Sac ciment 25kg', 20, 'Sac', 15, 0, 1),
+(1, 1, 1, 'SERVICE', 2, 'Maçon qualifié', 5, 'Heure', 95, 0, 5),
 
 -- Quote 2 (1980 - 5% = 1881.00) - section "Travaux" (id 2)
-(1, 2, 2, 'MATERIAL', 1, 'Parpaing 20 cm', 300, 'Pièce', 4.50, 0),
-(1, 2, 2, 'SERVICE', 2, 'Maçon qualifié', 6, 'Heure', 95, 0),
-(1, 2, 2, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 60, 0),
+(1, 2, 2, 'MATERIAL', 1, 'Parpaing 20 cm', 300, 'Pièce', 4.50, 0, 2),
+(1, 2, 2, 'SERVICE', 2, 'Maçon qualifié', 6, 'Heure', 95, 0, 5),
+(1, 2, 2, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 60, 0, 8),
 
--- Invoice issued from quote 2 (same lines, same total) - section "Travaux" (id 3)
-(1, 3, 3, 'MATERIAL', 1, 'Parpaing 20 cm', 300, 'Pièce', 4.50, 0),
-(1, 3, 3, 'SERVICE', 2, 'Maçon qualifié', 6, 'Heure', 95, 0),
-(1, 3, 3, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 60, 0);
+-- Invoice issued from quote 2 / project 2 (same lines, same total) - section "Travaux" (id 3)
+(1, 3, 3, 'MATERIAL', 1, 'Parpaing 20 cm', 300, 'Pièce', 4.50, 0, 2),
+(1, 3, 3, 'SERVICE', 2, 'Maçon qualifié', 6, 'Heure', 95, 0, 5),
+(1, 3, 3, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 60, 0, 8),
+
+-- Invoice issued from project 1 once completed (865.00) - section "Travaux"
+-- (id 4). Real quantities used on site (see project_resources), not the
+-- original quote's (20 sacs, no déplacement).
+(1, 4, 4, 'MATERIAL', 1, 'Sac ciment 25kg', 22, 'Sac', 15, 0, 1),
+(1, 4, 4, 'SERVICE', 2, 'Maçon qualifié', 5, 'Heure', 95, 0, 5),
+(1, 4, 4, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 60, 0, 8);
 
 -- ==========================================
 -- DOCUMENT TEMPLATES

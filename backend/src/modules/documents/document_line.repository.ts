@@ -46,9 +46,10 @@ export const createLineInDB = async (
       unit,
       unit_price,
       discount,
+      resource_id,
       is_active
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
     RETURNING *;
   `;
 
@@ -63,6 +64,7 @@ export const createLineInDB = async (
     line.unit,
     line.unit_price,
     line.discount,
+    line.resource_id,
     line.is_active
   ];
 

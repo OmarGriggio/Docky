@@ -25,5 +25,10 @@ export interface DocumentLine {
 
   discount: number;
 
+  // Which catalog resource this line was added from, if any (null for a
+  // hand-typed line) - kept so an accepted quote's lines can be turned into
+  // project_resources rows (see document.service.ts's acceptQuoteServ).
+  resource_id: number | null;
+
   is_active: boolean;
 }

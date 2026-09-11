@@ -79,6 +79,24 @@ export const unarchiveDocumentInDB = async (id: number, company_id: number): Pro
   return result.rows[0];
 };
 
+// Both set together, atomically - a quote can't end up ACCEPTED without its
+// new project actually being attached (see document.service.ts's
+// acceptQuoteServ, which creates that project first and passes its id here).
+export const acceptDocumentInDB = async (
+  id: number,
+  company_id: number,
+  project_id: number
+): Promise<Document> => {
+  const query = `
+    UPDATE documents SET status = 'ACCEPTED', project_id = $1
+      WHERE id = $2 AND company_id = $3
+    RETURNING *;
+  `;
+
+  const result = await pool.query(query, [project_id, id, company_id]);
+  return result.rows[0];
+};
+
 export const createDocumentInDB = async (
   document: Omit<Document, "id">
 ): Promise<Document> => {

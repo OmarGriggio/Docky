@@ -1,3 +1,7 @@
+// Lifecycle of the actual work, separate from is_active (archiving). See the
+// migration's comment on projects.status - COMPLETED unlocks invoicing.
+export type ProjectStatus = "IN_PROGRESS" | "COMPLETED";
+
 export interface Project {
   id: number;
   company_id: number;
@@ -10,6 +14,7 @@ export interface Project {
   postal_code: string | null;
   city: string | null;
   country: string | null;
+  status: ProjectStatus;
   created_at: Date;
   is_active: boolean;
 }

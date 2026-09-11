@@ -106,6 +106,14 @@ CREATE TABLE projects (
     postal_code VARCHAR(20),
     city VARCHAR(100),
     country VARCHAR(100),
+    -- Lifecycle of the actual work, separate from is_active (archiving).
+    -- Set to IN_PROGRESS when a project is created (by hand, or when an
+    -- accepted quote spawns one - see document.service.ts's acceptQuoteServ),
+    -- COMPLETED once closed by hand. An invoice can only be created from a
+    -- COMPLETED project (see document.service.ts's createDocumentServ) - the
+    -- real, adjusted quantities aren't final until then.
+    status VARCHAR(20) NOT NULL DEFAULT 'IN_PROGRESS'
+        CHECK (status IN ('IN_PROGRESS', 'COMPLETED')),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     is_active BOOLEAN DEFAULT TRUE,
 
@@ -197,6 +205,15 @@ CREATE TABLE project_resources (
     company_id INTEGER NOT NULL,
     project_id INTEGER NOT NULL,
     resource_id INTEGER NOT NULL,
+    -- The real, adjustable amount used on site - starts as a copy of the
+    -- accepted quote's line quantity (see document.service.ts's
+    -- acceptQuoteServ) and is corrected by hand as the project runs (e.g.
+    -- more hours than planned). unit_price is frozen at that same moment
+    -- (the price agreed in the quote), not re-read from resources.selling_price
+    -- later - a later catalog price change shouldn't retroactively change
+    -- what an ongoing project is billed at.
+    quantity NUMERIC(10,2) NOT NULL DEFAULT 0,
+    unit_price NUMERIC(10,2),
 
     UNIQUE (project_id, resource_id),
 
@@ -351,6 +368,13 @@ CREATE TABLE document_lines (
     unit VARCHAR(50),
     unit_price NUMERIC(10,2) NOT NULL,
     discount NUMERIC(5,2) DEFAULT 0,
+    -- Which catalog resource this line was added from, if any (null for a
+    -- hand-typed line) - kept (unlike before) so an accepted quote's lines
+    -- can be turned into project_resources rows (see document.service.ts's
+    -- acceptQuoteServ). Doesn't drive display: label/unit_price above stay
+    -- the source of truth for what was actually printed on this document,
+    -- even if the resource is later renamed/repriced/archived.
+    resource_id INTEGER,
     is_active BOOLEAN DEFAULT TRUE,
 
     FOREIGN KEY (document_id)
@@ -360,6 +384,9 @@ CREATE TABLE document_lines (
     FOREIGN KEY (section_id)
         REFERENCES document_sections(id)
         ON DELETE CASCADE,
+
+    FOREIGN KEY (resource_id)
+        REFERENCES resources(id),
 
     FOREIGN KEY (company_id)
         REFERENCES companies(id)

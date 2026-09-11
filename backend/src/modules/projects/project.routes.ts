@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createProject, archiveProject, unarchiveProject, getProjects, getProjectById } from "./project.controller";
+import { createProject, archiveProject, unarchiveProject, completeProject, getProjects, getProjectById } from "./project.controller";
 import { authenticate } from "../../shared/middlewares/auth.middleware";
 
 const router = Router();
@@ -15,5 +15,7 @@ router.post("/", createProject);
 router.patch("/:id/archive", archiveProject);
 
 router.patch("/:id/unarchive", unarchiveProject);
+
+router.patch("/:id/complete", completeProject);
 
 export default router;

@@ -29,14 +29,38 @@ export const createProjectResourceInDB = async (
   projectResource: Omit<ProjectResource, "id">
 ): Promise<ProjectResource> => {
   const query = `
-    INSERT INTO project_resources (company_id, project_id, resource_id)
-    VALUES ($1, $2, $3)
+    INSERT INTO project_resources (company_id, project_id, resource_id, quantity, unit_price)
+    VALUES ($1, $2, $3, $4, $5)
     RETURNING *;
   `;
 
-  const values = [projectResource.company_id, projectResource.project_id, projectResource.resource_id];
+  const values = [
+    projectResource.company_id,
+    projectResource.project_id,
+    projectResource.resource_id,
+    projectResource.quantity,
+    projectResource.unit_price
+  ];
 
   const result = await pool.query(query, values);
+  return result.rows[0];
+};
+
+// The only field meant to be corrected by hand as a project runs (e.g. more
+// hours than planned) - see the migration's comment on
+// project_resources.quantity.
+export const updateProjectResourceQuantityInDB = async (
+  id: number,
+  company_id: number,
+  quantity: number
+): Promise<ProjectResource> => {
+  const query = `
+    UPDATE project_resources SET quantity = $1
+      WHERE id = $2 AND company_id = $3
+    RETURNING *;
+  `;
+
+  const result = await pool.query(query, [quantity, id, company_id]);
   return result.rows[0];
 };
 

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createDocument, archiveDocument, unarchiveDocument, getDocuments, getDocument } from "./document.controller";
+import { createDocument, archiveDocument, unarchiveDocument, getDocuments, getDocument, acceptQuote } from "./document.controller";
 import { authenticate } from "../../shared/middlewares/auth.middleware";
 
 const router = Router();
@@ -15,5 +15,7 @@ router.post("/", createDocument);
 router.patch("/:id/archive", archiveDocument);
 
 router.patch("/:id/unarchive", unarchiveDocument);
+
+router.post("/:id/accept", acceptQuote);
 
 export default router;
