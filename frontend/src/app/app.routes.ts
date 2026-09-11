@@ -17,14 +17,6 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
-    path: 'uitest',
-    loadComponent: () => import('./features/uitest/uitest').then(m => m.UiTest),
-    canActivate: [authGuard, roleGuard],
-    data: {
-      roles: ['ADMIN']
-    }
-  },
-  {
     path: 'clients',
     loadComponent: () => import('./features/clients/client-list/client-list').then(m => m.ClientListComponent),
     canActivate: [authGuard]
@@ -71,30 +63,38 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    // Layout for the whole section (router-outlet + a persistent side menu,
+    // see profile.html) - every child below renders inside it, so the menu
+    // never disappears when navigating between them. '' redirects to
+    // 'company' so /profile itself lands on Entreprise directly.
     path: 'profile',
     loadComponent: () => import('./features/profile/profile').then(m => m.Profile),
-    canActivate: [authGuard]
-  },
-  {
-    path: 'profile/company',
-    loadComponent: () => import('./features/profile/company-profile/company-profile').then(m => m.CompanyProfile),
-    canActivate: [authGuard]
-  },
-  {
-    path: 'admin/users',
-    loadComponent: () => import('./features/admin/user-list/user-list').then(m => m.UserListComponent),
-    canActivate: [authGuard, roleGuard],
-    data: {
-      roles: ['ADMIN']
-    }
-  },
-  {
-    path: 'admin/users/new',
-    loadComponent: () => import('./features/admin/user-form/user-form').then(m => m.UserForm),
-    canActivate: [authGuard, roleGuard],
-    data: {
-      roles: ['ADMIN']
-    }
+    canActivate: [authGuard],
+    children: [
+      { path: '', redirectTo: 'company', pathMatch: 'full' },
+      {
+        path: 'company',
+        loadComponent: () => import('./features/profile/company-profile/company-profile').then(m => m.CompanyProfile)
+      },
+      {
+        path: 'users',
+        loadComponent: () => import('./features/admin/user-list/user-list').then(m => m.UserListComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN'] }
+      },
+      {
+        path: 'users/new',
+        loadComponent: () => import('./features/admin/user-form/user-form').then(m => m.UserForm),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN'] }
+      },
+      {
+        path: 'uitest',
+        loadComponent: () => import('./features/uitest/uitest').then(m => m.UiTest),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN'] }
+      },
+    ]
   },
   {
     path: '',

@@ -1,13 +1,17 @@
 import { Component, computed, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
 import { Menu } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
 import { AuthService } from '../auth/auth.service';
 
+// Layout for the whole /profile section, not just a landing page: this
+// component wraps every sub-page (company, users, uitest) via the child
+// routes in app.routes.ts, so the menu below stays visible across all of
+// them instead of being left behind after the first navigation.
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [Menu],
+  imports: [Menu, RouterOutlet],
   templateUrl: './profile.html',
 })
 export class Profile {
@@ -24,9 +28,9 @@ export class Profile {
 
     if (this.isAdmin()) {
       menu.push(
-        { label: 'Utilisateurs', icon: 'pi pi-users', routerLink: '/admin/users' },
-        { label: 'Nouvel utilisateur', icon: 'pi pi-user-plus', routerLink: '/admin/users/new' },
-        { label: 'UI Kit', icon: 'pi pi-palette', routerLink: '/uitest' },
+        { label: 'Utilisateurs', icon: 'pi pi-users', routerLink: '/profile/users' },
+        { label: 'Nouvel utilisateur', icon: 'pi pi-user-plus', routerLink: '/profile/users/new' },
+        { label: 'UI Kit', icon: 'pi pi-palette', routerLink: '/profile/uitest' },
       );
     }
 

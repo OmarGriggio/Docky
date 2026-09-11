@@ -54,7 +54,7 @@ export class UserForm implements OnInit {
   }
 
   cancel(): void {
-    this.router.navigate(['/admin/users']);
+    this.router.navigate(['/profile/users']);
   }
 
   submit(): void {
@@ -72,7 +72,7 @@ export class UserForm implements OnInit {
       passwordHash: password,
     }).subscribe({
       next: () => {
-        this.router.navigate(['/admin/users']);
+        this.router.navigate(['/profile/users']);
       },
       error: err => {
         console.error('user-form : ' + err);
