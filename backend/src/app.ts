@@ -1,5 +1,4 @@
 import express, { NextFunction, Request, Response } from "express";
-import path from "path";
 import { AppError } from "./shared/types/errors";
 import clientRoutes from "./modules/clients/client.routes";
 import addressRoutes from "./modules/clients/address.routes";
@@ -20,6 +19,7 @@ import projectResourceRoutes from "./modules/projects/project_resource.routes";
 import pdfRoutes from "./pdf/pdf.routes";
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import { getFileServ } from "./shared/storage/storage.service";
 
 const app = express();
 
@@ -31,7 +31,24 @@ app.set("trust proxy", 1);
 
 app.use(express.json(), cors(), cookieParser());
 
-app.use("/uploads", express.static(path.resolve(process.cwd(), "uploads")));
+// Streams from MinIO/S3 instead of local disk - companies/company.upload.ts
+// uploads there too now. Express 5 needs a named wildcard (*splat, not a
+// bare *); req.params.splat comes back as an array of path segments.
+app.get("/uploads/*splat", async (req, res) => {
+  const segments = req.params.splat;
+  const key = Array.isArray(segments) ? segments.join("/") : segments;
+
+  const file = await getFileServ(key);
+  if (!file) {
+    res.sendStatus(404);
+    return;
+  }
+
+  if (file.contentType) {
+    res.setHeader("Content-Type", file.contentType);
+  }
+  file.body.pipe(res);
+});
 
 app.use("/auth", authRoutes);
 

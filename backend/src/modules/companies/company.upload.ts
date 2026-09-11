@@ -1,35 +1,14 @@
-import fs from "fs";
-import path from "path";
 import multer from "multer";
 
-const UPLOADS_ROOT = path.resolve(process.cwd(), "uploads");
-
-const EXTENSION_BY_MIME: Record<string, string> = {
+export const EXTENSION_BY_MIME: Record<string, string> = {
     "image/jpeg": ".jpg",
     "image/png": ".png",
 };
 
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        const dir = path.join(UPLOADS_ROOT, "companies", String(req.params.id));
-        fs.mkdirSync(dir, { recursive: true });
-
-        // Remove any previous logo so a format change (e.g. jpg -> png) doesn't leave an orphaned file behind.
-        for (const existing of fs.readdirSync(dir)) {
-            if (existing.startsWith("logo.")) {
-                fs.unlinkSync(path.join(dir, existing));
-            }
-        }
-
-        cb(null, dir);
-    },
-    filename: (req, file, cb) => {
-        cb(null, `logo${EXTENSION_BY_MIME[file.mimetype]}`);
-    },
-});
-
+// Buffered in memory, not written to disk - company.controller.ts uploads
+// the buffer to MinIO/S3 (see shared/storage/storage.service.ts).
 export const uploadLogo = multer({
-    storage,
+    storage: multer.memoryStorage(),
     limits: { fileSize: 5 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
         if (file.mimetype in EXTENSION_BY_MIME) {
