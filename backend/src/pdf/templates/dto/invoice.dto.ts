@@ -1,7 +1,31 @@
 import { ClientWithAddresses } from "../../../modules/clients/client.types";
 import { DocumentComplete } from "../../../modules/documents/document_complete.types";
 import { Company } from "../../../modules/companies/company.types";
-import { InvoiceDto } from "../invoice.types";
+import { InvoiceDto, InvoiceSectionDto } from "../invoice.types";
+
+// document.sections/lines are already scoped to this document and active-only
+// (the repository queries default to is_active = true) - but neither comes
+// back ordered by `position` from the DB (lines have no ORDER BY at all), so
+// that has to happen here.
+const buildSections = (document: DocumentComplete): InvoiceSectionDto[] => {
+    return [...document.sections]
+        .sort((a, b) => a.position - b.position)
+        .map(section => ({
+            title: section.title,
+            lines: document.lines
+                .filter(line => line.section_id === section.id)
+                .sort((a, b) => a.position - b.position)
+                .map(line => ({
+                    label: line.label,
+                    quantity: line.quantity,
+                    unit: line.unit,
+                    unitPrice: line.unit_price,
+                })),
+        }))
+        // A section with every line archived (or none added yet) has
+        // nothing to print - skip it rather than showing a bare heading.
+        .filter(section => section.lines.length > 0);
+};
 
 export const createInvoiceDto = (document: DocumentComplete, client: ClientWithAddresses, company: Company): InvoiceDto => {
     const address = client.addresses[0];
@@ -23,15 +47,7 @@ export const createInvoiceDto = (document: DocumentComplete, client: ClientWithA
             postalCodeCity: `${address.postal_code ?? ""} ${address.city ?? ""}`,
             title: client.title ?? "",
         },
-        // TODO: rendered as one flat list, ignoring which document_section each
-        // line belongs to - actual section headers in the PDF layout, grouping
-        // lines under their section, is future work.
-        lines: document.lines.map(line => ({
-            label: line.label,
-            quantity: line.quantity,
-            unit: line.unit,
-            unitPrice: line.unit_price,
-        })),
+        sections: buildSections(document),
         amountExclVat: document.amount_excl_vat,
         amountInclVat: document.amount_incl_vat,
         introduction: document.introduction ?? "",

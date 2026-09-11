@@ -5,6 +5,11 @@ export interface InvoiceLineDto {
     unitPrice: number;
 }
 
+export interface InvoiceSectionDto {
+    title: string;
+    lines: InvoiceLineDto[];
+}
+
 export interface InvoiceDto {
     number: string;
     date: Date;
@@ -22,7 +27,7 @@ export interface InvoiceDto {
         postalCodeCity: string;
         title: string;
     };
-    lines: InvoiceLineDto[];
+    sections: InvoiceSectionDto[];
     amountExclVat: number;
     amountInclVat: number;
     introduction: string;

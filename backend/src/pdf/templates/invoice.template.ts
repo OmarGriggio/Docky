@@ -2,7 +2,7 @@ import { blob } from "stream/consumers";
 import { PDFImage } from "pdf-lib";
 import { PdfWriter } from "../core/pdf-writer";
 import { PdfTable } from "../core/pdf-writer.types";
-import { InvoiceDto } from "./invoice.types";
+import { InvoiceDto, InvoiceSectionDto } from "./invoice.types";
 
 const LOGO_MAX_WIDTH = 120;
 const LOGO_MAX_HEIGHT = 60;
@@ -15,8 +15,6 @@ export class InvoiceTemplate {
             month: "long",
             year: "numeric",
         });
-        const table = this.createLinesTable(invoice);
-
         if (logoBytes) {
             await this.drawLogo(pdf, logoBytes);
         }
@@ -36,9 +34,13 @@ export class InvoiceTemplate {
         pdf.text(invoice.client.title, {marginBottom: 5});
 
         //TODO: add to the document table
-        pdf.text(invoice.introduction);
+        pdf.text(invoice.introduction, { marginBottom: 15 });
 
-        pdf.table(table);
+        for (const section of invoice.sections) {
+            pdf.text(section.title, { bold: true, size: 12, marginTop: 10, marginBottom: 4 });
+            pdf.table(this.createSectionTable(section));
+        }
+
         pdf.line();
 
         pdf.text(`Total HT : ${invoice.amountExclVat.toFixed(2)} CHF`, { bold: true, marginTop: 15 });
@@ -49,8 +51,8 @@ export class InvoiceTemplate {
         pdf.text(invoice.company.name, {indent: 250, marginTop: 20})
     };
 
-    private static createLinesTable(invoice: InvoiceDto): PdfTable {
-        return{
+    private static createSectionTable(section: InvoiceSectionDto): PdfTable {
+        return {
             columns: [
                 {
                     key: "description",
@@ -73,7 +75,7 @@ export class InvoiceTemplate {
                     width: 80,
                 },
             ],
-            rows: invoice.lines.map(line => ({
+            rows: section.lines.map(line => ({
                 description: line.label,
                 quantity: line.unit ? `${line.quantity} ${line.unit}` : `${line.quantity}`,
                 price: `${line.unitPrice.toFixed(2)} CHF`,
