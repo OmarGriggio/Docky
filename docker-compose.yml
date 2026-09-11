@@ -35,8 +35,14 @@ services:
       - ./backend/.env
 
     depends_on:
-      - postgres
-      - minio
+      postgres:
+        condition: service_started
+      # Waits for MinIO to actually answer, not just for its container to
+      # start - server.ts's ensureBucketExistsServ() only runs once at
+      # startup, no retry, and used to lose that race against MinIO still
+      # initializing (ECONNREFUSED, bucket silently never created).
+      minio:
+        condition: service_healthy
 
     volumes:
       - ./backend:/app
@@ -55,6 +61,13 @@ services:
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
 
     ports:
       # 9000: S3 API (what the backend's SDK talks to). 9001: web console,
