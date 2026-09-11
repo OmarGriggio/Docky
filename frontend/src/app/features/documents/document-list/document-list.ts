@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
@@ -9,6 +9,8 @@ import { Checkbox } from 'primeng/checkbox';
 import { MenuItem } from 'primeng/api';
 import { DocumentService } from '../document.service';
 import { Document, DocumentType } from '../../../shared/models/document';
+import { ClientService } from '../../clients/client.service';
+import { Client } from '../../../shared/models/client';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { AppDatePipe } from '../../../shared/pipes/app-date.pipe';
 
@@ -28,11 +30,24 @@ export class DocumentListComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private documentService = inject(DocumentService);
+  private clientService = inject(ClientService);
 
   documents = signal<Document[]>([]);
+  clients = signal<Client[]>([]);
   currentTypeLabel = signal<string | null>(null);
   currentType: DocumentType | null = null;
   showArchived = signal(false);
+
+  // includeArchived on the clients fetch too - an archived client's name
+  // should still resolve for a document that references them, same as
+  // document-detail.ts's own clientNames.
+  private clientNames = computed(() => {
+    const names = new Map<number, string>();
+    for (const client of this.clients()) {
+      names.set(client.id, client.company_name || `${client.first_name ?? ''} ${client.last_name ?? ''}`.trim());
+    }
+    return names;
+  });
 
   confirmVisible = signal(false);
   confirmMessage = signal('');
@@ -46,6 +61,15 @@ export class DocumentListComponent implements OnInit {
       this.currentTypeLabel.set(type ? TYPE_LABELS[type] : null);
       this.loadDocuments();
     });
+
+    this.clientService.getClients(true).subscribe({
+      next: data => this.clients.set(data),
+      error: err => console.error('document-list : ' + err)
+    });
+  }
+
+  clientName(document: Document): string {
+    return this.clientNames().get(document.client_id) ?? '—';
   }
 
   // Which type gets created is decided by which filtered list you're on

@@ -15,6 +15,7 @@
   <ng-template #header>
     <tr>
       <th>Numéro</th>
+      <th>Client</th>
       <th>Type</th>
       <th>Date</th>
       <th>Montant HT</th>
@@ -29,6 +30,7 @@
   <ng-template #body let-document>
     <tr>
       <td>{{ document.number }}</td>
+      <td>{{ clientName(document) }}</td>
       <td>{{ document.type }}</td>
       <td>{{ document.date | appDate }}</td>
       <td>{{ document.amount_excl_vat }}</td>
