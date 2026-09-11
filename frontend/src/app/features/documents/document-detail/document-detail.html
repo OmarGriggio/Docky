@@ -61,7 +61,6 @@
         <th>Quantité</th>
         <th>Unité</th>
         <th>Prix unitaire</th>
-        <th>Rabais</th>
         <th>Total</th>
         <th></th>
       </tr>
@@ -73,7 +72,6 @@
         <td>{{ line.quantity }}</td>
         <td>{{ line.unit }}</td>
         <td>{{ line.unit_price }}</td>
-        <td>{{ line.discount }} %</td>
         <td>{{ lineTotal(line) | number:'1.2-2' }}</td>
         <td>
           <p-menu #menu [popup]="true" [model]="getLineActions(line)" appendTo="body"></p-menu>

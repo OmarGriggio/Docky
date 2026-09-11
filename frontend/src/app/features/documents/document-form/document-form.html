@@ -96,12 +96,11 @@
             <table class="w-full min-w-160 border-collapse table-fixed">
               <colgroup>
                 <col style="width: 8%">
-                <col style="width: 25%">
+                <col style="width: 28%">
                 <col style="width: 12%">
                 <col style="width: 10%">
-                <col style="width: 11%">
-                <col style="width: 9%">
-                <col style="width: 12%">
+                <col style="width: 13%">
+                <col style="width: 14%">
                 <col style="width: 8%">
               </colgroup>
               <thead>
@@ -111,7 +110,6 @@
                   <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">Qté / Temps</th>
                   <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">Unité</th>
                   <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">Prix</th>
-                  <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">Rabais</th>
                   <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">Total</th>
                   <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]"></th>
                 </tr>
@@ -124,7 +122,6 @@
                     <td class="py-[0.3rem] px-[0.2rem] align-middle">{{ line.quantity }}</td>
                     <td class="py-[0.3rem] px-[0.2rem] align-middle">{{ line.unit }}</td>
                     <td class="py-[0.3rem] px-[0.2rem] align-middle">{{ line.unit_price | number:'1.2-2' }}</td>
-                    <td class="py-[0.3rem] px-[0.2rem] align-middle">{{ line.discount }} %</td>
                     <td class="py-[0.3rem] px-[0.2rem] align-middle">{{ lineTotal(line) | number:'1.2-2' }}</td>
                     <td class="py-[0.3rem] px-[0.2rem] align-middle">
                       <p-button size="small" type="button" icon="pi pi-trash" severity="danger" [text]="true" (onClick)="removeLine(section.id, line.id)" />
@@ -149,7 +146,6 @@
                   <td class="py-[0.3rem] px-[0.2rem] align-middle"><p-inputnumber pSize="small" [fluid]="true" [(ngModel)]="draft.quantity" mode="decimal" [minFractionDigits]="2" [placeholder]="lineQuantityLabel(draft.type)" /></td>
                   <td class="py-[0.3rem] px-[0.2rem] align-middle"><input pInputText pSize="small" [fluid]="true" class="block" [(ngModel)]="draft.unit" placeholder="Unité" /></td>
                   <td class="py-[0.3rem] px-[0.2rem] align-middle"><p-inputnumber pSize="small" [fluid]="true" [(ngModel)]="draft.unit_price" mode="decimal" [minFractionDigits]="2" /></td>
-                  <td class="py-[0.3rem] px-[0.2rem] align-middle"><p-inputnumber pSize="small" [fluid]="true" [(ngModel)]="draft.discount" mode="decimal" [minFractionDigits]="2" suffix=" %" /></td>
                   <td class="py-[0.3rem] px-[0.2rem] align-middle"></td>
                   <td class="py-[0.3rem] px-[0.2rem] align-middle">
                     <p-button size="small" type="button" icon="pi pi-plus" [text]="true" (onClick)="addLine(section.id)" />
@@ -158,7 +154,7 @@
               </tbody>
               <tfoot>
                 <tr>
-                  <td colspan="6" class="font-semibold border-t border-[#eee] pt-2">Sous-total section</td>
+                  <td colspan="5" class="font-semibold border-t border-[#eee] pt-2">Sous-total section</td>
                   <td class="font-semibold border-t border-[#eee] pt-2">{{ sectionTotal(section) | number:'1.2-2' }}</td>
                   <td class="font-semibold border-t border-[#eee] pt-2"></td>
                 </tr>

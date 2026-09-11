@@ -30,11 +30,6 @@
     <label for="unit_price">Prix unitaire</label>
   </p-floatlabel>
 
-  <p-floatlabel variant="on">
-    <p-inputnumber inputId="discount" formControlName="discount" mode="decimal" [minFractionDigits]="2" suffix=" %" />
-    <label for="discount">Rabais</label>
-  </p-floatlabel>
-
   <div class="ui-form__actions">
     <p-button type="button" label="Annuler" severity="secondary" (onClick)="cancel()" />
     <p-button type="submit" label="Ajouter" />
