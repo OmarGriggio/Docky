@@ -209,6 +209,36 @@ CREATE TABLE project_resources (
 );
 
 -- ==========================================
+-- PROJECT ATTACHMENTS
+-- ==========================================
+
+-- Files attached to a project (plans, directives, ...), stored in
+-- MinIO/S3 (see shared/storage/storage.service.ts) - PDF only for now,
+-- docx/xlsx planned later. No storage_key column: the S3 key is always
+-- derived from company_id/project_id/id/filename (see
+-- project_attachment.controller.ts), so there's nothing to keep in sync.
+CREATE TABLE project_attachments (
+    id SERIAL PRIMARY KEY,
+    company_id INTEGER NOT NULL,
+    project_id INTEGER NOT NULL,
+    uploaded_by INTEGER,
+    filename VARCHAR(255) NOT NULL,
+    mime_type VARCHAR(100) NOT NULL,
+    size_bytes INTEGER NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT TRUE,
+
+    FOREIGN KEY (project_id)
+        REFERENCES projects(id)
+        ON DELETE CASCADE,
+    FOREIGN KEY (uploaded_by)
+        REFERENCES users(id)
+        ON DELETE SET NULL,
+    FOREIGN KEY (company_id)
+        REFERENCES companies(id)
+);
+
+-- ==========================================
 -- RESOURCE SUPPLIER PRICES
 -- ==========================================
 
