@@ -67,6 +67,10 @@ export class DocumentLineForm implements OnInit {
     this.documentLineService.createLine({
       ...this.form.getRawValue(),
       document_id: this.documentId(),
+      // This dialog only ever creates a hand-typed line, never from the
+      // catalog - see document-form.ts's own catalog/chantier pickers for
+      // that.
+      resource_id: null,
     }).subscribe({
       next: () => {
         this.saved.emit();

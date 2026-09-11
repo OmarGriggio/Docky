@@ -13,12 +13,14 @@ import { ClientService } from '../../clients/client.service';
 import { Project } from '../../../shared/models/project';
 import { Client } from '../../../shared/models/client';
 import { ProjectForm } from '../project-form/project-form';
+import { ProjectAttachments } from '../project-attachments/project-attachments';
+import { ProjectResources } from '../project-resources/project-resources';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 
 @Component({
   selector: 'app-project-list',
   standalone: true,
-  imports: [TableModule, TagModule, Toolbar, Menu, Button, Dialog, Checkbox, FormsModule, ProjectForm, ConfirmDialogComponent],
+  imports: [TableModule, TagModule, Toolbar, Menu, Button, Dialog, Checkbox, FormsModule, ProjectForm, ProjectAttachments, ProjectResources, ConfirmDialogComponent],
   templateUrl: './project-list.html'
 })
 export class ProjectListComponent implements OnInit {
@@ -39,6 +41,15 @@ export class ProjectListComponent implements OnInit {
   confirmMessage = signal('');
 
   private projectPendingArchive: Project | null = null;
+
+  attachmentsDialogVisible = signal(false);
+  attachmentsProject = signal<Project | null>(null);
+
+  resourcesDialogVisible = signal(false);
+  resourcesProject = signal<Project | null>(null);
+
+  completeConfirmVisible = signal(false);
+  private projectPendingComplete: Project | null = null;
 
   private clientNames = computed(() => {
     const names = new Map<number, string>();
@@ -81,6 +92,14 @@ export class ProjectListComponent implements OnInit {
     return this.clientNames().get(project.client_id) ?? '—';
   }
 
+  statusLabel(project: Project): string {
+    return project.status === 'COMPLETED' ? 'Terminé' : 'En cours';
+  }
+
+  statusSeverity(project: Project): 'success' | 'info' {
+    return project.status === 'COMPLETED' ? 'success' : 'info';
+  }
+
   openCreateDialog(): void {
     this.duplicateSource.set(null);
     this.createDialogVisible.set(true);
@@ -109,8 +128,47 @@ export class ProjectListComponent implements OnInit {
       {
         label: 'Dupliquer',
         command: () => this.duplicateProject(project)
-      }
+      },
+      {
+        label: 'Pièces jointes',
+        command: () => this.openAttachmentsDialog(project)
+      },
+      {
+        label: 'Ressources',
+        command: () => this.openResourcesDialog(project)
+      },
+      ...(project.status === 'IN_PROGRESS'
+        ? [{ label: 'Clôturer', command: () => this.completeProject(project) }]
+        : [])
     ];
+  }
+
+  openAttachmentsDialog(project: Project): void {
+    this.attachmentsProject.set(project);
+    this.attachmentsDialogVisible.set(true);
+  }
+
+  openResourcesDialog(project: Project): void {
+    this.resourcesProject.set(project);
+    this.resourcesDialogVisible.set(true);
+  }
+
+  private completeProject(project: Project): void {
+    this.projectPendingComplete = project;
+    this.completeConfirmVisible.set(true);
+  }
+
+  onCompleteConfirmed(): void {
+    const project = this.projectPendingComplete;
+    if (!project) {
+      return;
+    }
+    this.projectPendingComplete = null;
+
+    this.projectService.completeProject(project.id).subscribe({
+      next: () => this.loadProjects(),
+      error: err => console.error('project-list : ' + err)
+    });
   }
 
   private archiveProject(project: Project): void {

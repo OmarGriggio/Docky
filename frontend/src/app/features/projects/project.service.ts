@@ -30,6 +30,10 @@ export class ProjectService {
     return this.http.patch<Project>(`${API_BASE}/project/${id}/unarchive`, {});
   }
 
+  completeProject(id: number) {
+    return this.http.patch<Project>(`${API_BASE}/project/${id}/complete`, {});
+  }
+
   getProjectTypes() {
     return this.http.get<ProjectType[]>(`${API_BASE}/project-type`);
   }

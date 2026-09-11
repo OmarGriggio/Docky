@@ -13,5 +13,9 @@ export interface DocumentLine {
   unit: string | null;
   unit_price: number;
   discount: number;
+  // Which catalog resource this line was added from, if any (null for a
+  // hand-typed line) - lets an accepted quote feed its project (see
+  // document.service.ts on the backend).
+  resource_id: number | null;
   is_active: boolean;
 }

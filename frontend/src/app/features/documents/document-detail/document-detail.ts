@@ -60,6 +60,16 @@ export class DocumentDetail implements OnInit {
 
   private linePendingArchive: DocumentLine | null = null;
 
+  acceptConfirmVisible = signal(false);
+  acceptingQuote = signal(false);
+
+  // A quote becomes ACCEPTED (and gets its own project) exactly once - not
+  // offered again once it already is, or for a REJECTED/CANCELLED one.
+  canAcceptQuote = computed(() => {
+    const doc = this.document();
+    return doc !== null && doc.type === 'QUOTE' && (doc.status === 'DRAFT' || doc.status === 'SENT');
+  });
+
   private clientNames = computed(() => {
     const names = new Map<number, string>();
     for (const client of this.clients()) {
@@ -104,13 +114,16 @@ export class DocumentDetail implements OnInit {
       error: err => console.error('document-detail : ' + err)
     });
 
+    this.loadProjects();
+    this.loadLines();
+    this.loadSections();
+  }
+
+  private loadProjects(): void {
     this.projectService.getProjects(true).subscribe({
       next: data => this.projects.set(data),
       error: err => console.error('document-detail : ' + err)
     });
-
-    this.loadLines();
-    this.loadSections();
   }
 
   private loadLines(): void {
@@ -168,6 +181,29 @@ export class DocumentDetail implements OnInit {
         window.open(url, '_blank');
       },
       error: err => console.error('document-detail : ' + err)
+    });
+  }
+
+  openAcceptConfirm(): void {
+    this.acceptConfirmVisible.set(true);
+  }
+
+  onAcceptConfirmed(): void {
+    this.acceptingQuote.set(true);
+
+    this.documentService.acceptQuote(this.id).subscribe({
+      next: () => {
+        this.acceptingQuote.set(false);
+        this.reloadDocument();
+        // The chantier this just created doesn't exist yet in this.projects
+        // (loaded once in ngOnInit, before it existed) - projectName() would
+        // otherwise show "—" until a manual refresh.
+        this.loadProjects();
+      },
+      error: err => {
+        console.error('document-detail : ' + err);
+        this.acceptingQuote.set(false);
+      }
     });
   }
 

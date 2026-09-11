@@ -1,0 +1,62 @@
+<div class="flex flex-col gap-4">
+  @if (readonly()) {
+    <p class="text-sm text-surface-500">Chantier clôturé - les quantités ne sont plus modifiables.</p>
+  }
+
+  @if (loading()) {
+    <p class="text-sm text-surface-500">Chargement...</p>
+  } @else if (entries().length === 0) {
+    <p class="text-sm text-surface-500">Aucune ressource pour l'instant.</p>
+  } @else {
+    <ul class="flex flex-col gap-2">
+      @for (entry of entries(); track entry.link.id) {
+        <li class="flex items-center gap-2 rounded border border-surface-200 px-3 py-2">
+          <div class="flex-1 min-w-0">
+            <p class="text-sm truncate">{{ entry.resource.name }}</p>
+            <p class="text-xs text-surface-500">{{ (entry.link.unit_price ?? entry.resource.selling_price) | number:'1.2-2' }} CHF / {{ entry.resource.unit }}</p>
+          </div>
+          <p-inputnumber
+            [ngModel]="entry.link.quantity"
+            (ngModelChange)="updateQuantity(entry.link, $event)"
+            mode="decimal"
+            [minFractionDigits]="2"
+            size="small"
+            [style]="{ width: '7rem' }"
+            [disabled]="readonly()"
+          />
+          @if (!readonly()) {
+            <p-button type="button" icon="pi pi-trash" severity="danger" [text]="true" size="small" (onClick)="removeResource(entry.link)" />
+          }
+        </li>
+      }
+    </ul>
+  }
+
+  @if (!readonly()) {
+    <div class="flex items-end gap-2 pt-2 border-t border-surface-200">
+      <p-select
+        class="flex-1"
+        [options]="addableResourceOptions()"
+        optionLabel="label"
+        optionValue="value"
+        [(ngModel)]="newResourceId"
+        placeholder="Ajouter une ressource"
+        size="small"
+        [fluid]="true"
+      />
+      <p-inputnumber
+        [(ngModel)]="newResourceQuantity"
+        mode="decimal"
+        [minFractionDigits]="2"
+        placeholder="Qté"
+        size="small"
+        [style]="{ width: '6rem' }"
+      />
+      <p-button type="button" icon="pi pi-plus" [loading]="adding()" [disabled]="newResourceId === null" (onClick)="addResource()" />
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <p class="text-sm text-red-600">{{ errorMessage() }}</p>
+  }
+</div>

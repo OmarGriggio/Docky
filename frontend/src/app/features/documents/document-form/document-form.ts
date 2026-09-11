@@ -26,6 +26,7 @@ import { Client } from '../../../shared/models/client';
 import { Address } from '../../../shared/models/address';
 import { Project } from '../../../shared/models/project';
 import { Resource } from '../../../shared/models/resource';
+import { ProjectResource } from '../../../shared/models/project-resource';
 import { Company } from '../../../shared/models/company';
 import { DocumentType } from '../../../shared/models/document';
 import { clientDisplayName } from '../../../shared/utils/display';
@@ -49,10 +50,12 @@ interface DraftLine {
   unit: string | null;
   unit_price: number;
   discount: number;        // %
-  // Which resource this line came from, if any (null for a hand-typed
-  // line) - purely local bookkeeping, not sent to the backend (document_lines
-  // has no such column). Used to keep an already-used resource out of the
-  // "add a resource from this project" picker (see availableProjectResourceOptions).
+  // Which catalog resource this line came from, if any (null for a
+  // hand-typed line) - sent to the backend (document_lines.resource_id), so
+  // an accepted quote can turn it into a project_resources row (see
+  // document.service.ts's acceptQuoteServ). Also used locally to keep an
+  // already-used resource out of the "add a resource" pickers below (see
+  // availableCatalogResourceOptions/availableProjectResourceOptions).
   resource_id: number | null;
 }
 
@@ -105,16 +108,19 @@ export class DocumentForm implements OnInit {
   );
 
   projects = signal<Project[]>([]);
-  // Only the selected client's own projects make sense to attach the
-  // document to - filtered client-side since GET /project has no client_id
-  // filter of its own.
+  // Only the selected client's own COMPLETED projects make sense to invoice
+  // - an in-progress one's quantities aren't final yet (see
+  // document.service.ts's addDocumentServ, which rejects it server-side
+  // too). Only ever shown for an INVOICE - a QUOTE can never target a
+  // project at all (see zz_docs/Decisions.md: a project is born from an
+  // accepted quote, never the other way around).
   projectOptions = computed(() => {
     const clientId = this.selectedClientId();
     if (clientId === null) {
       return [];
     }
     return this.projects()
-      .filter(project => project.client_id === clientId)
+      .filter(project => project.client_id === clientId && project.status === 'COMPLETED')
       .map(project => ({ label: project.name, value: project.id }));
   });
 
@@ -122,20 +128,26 @@ export class DocumentForm implements OnInit {
   selectedClientAddress = signal<Address | null>(null);
   selectedProjectId: number | null = null;
 
+  // The company's full resource catalog - source for the "Ajouter depuis le
+  // catalogue" picker (QUOTE: this is how the need actually gets defined,
+  // see zz_docs/Decisions.md).
   resources = signal<Resource[]>([]);
-  // The selected project's own linked resources (project_resources), fetched
-  // as soon as a project is picked - feeds both "Charger chantier" (bulk
-  // import) and each section's own "Ajouter une ressource du chantier"
-  // picker, independently of whether "Charger chantier" was ever clicked.
-  projectResources = signal<Resource[]>([]);
+  // The selected project's own linked resources (project_resources) paired
+  // with their catalog resource, fetched as soon a project is picked - feeds
+  // both "Charger chantier" (bulk import) and each section's own "Ajouter
+  // une ressource du chantier" picker (INVOICE only). Each link's own
+  // quantity/unit_price (the project's real, adjusted amounts - see
+  // zz_migrations/000_base.sql) is what gets copied onto the line, not a
+  // fixed "1 at catalog price" default.
+  projectResources = signal<{ link: ProjectResource; resource: Resource }[]>([]);
   // Ids of sections that came from "Charger chantier" - tracked so a
   // re-selection (or clearing the project) replaces exactly these, never a
   // section the user built by hand.
   private importedSectionIds = new Set<number>();
 
   // A resource already used as a line anywhere in the document (however it
-  // got there - bulk import or the per-section picker) no longer makes sense
-  // to offer again.
+  // got there - catalog picker, bulk import, or the per-section chantier
+  // picker) no longer makes sense to offer again.
   private usedResourceIds = computed(() =>
     new Set(
       this.sections()
@@ -145,10 +157,16 @@ export class DocumentForm implements OnInit {
     )
   );
 
-  availableProjectResourceOptions = computed(() =>
-    this.projectResources()
+  availableCatalogResourceOptions = computed(() =>
+    this.resources()
       .filter(resource => !this.usedResourceIds().has(resource.id))
       .map(resource => ({ label: resource.name, value: resource.id }))
+  );
+
+  availableProjectResourceOptions = computed(() =>
+    this.projectResources()
+      .filter(({ resource }) => !this.usedResourceIds().has(resource.id))
+      .map(({ resource }) => ({ label: resource.name, value: resource.id }))
   );
 
   // Decided by which list (Offres/Factures) "Ajouter" was clicked from - see
@@ -302,6 +320,9 @@ export class DocumentForm implements OnInit {
   // resources right away though, so each section's "Ajouter une ressource du
   // chantier" picker (and "Charger chantier") has something to offer as soon
   // as a project is picked, with no extra step required.
+  // INVOICE only - fetches the picked project's own linked resources (with
+  // their real, adjusted quantity/price) so "Charger chantier" and the
+  // per-section picker have something to offer.
   onProjectChange(projectId: number | null): void {
     this.selectedProjectId = projectId;
     this.clearImportedSections();
@@ -316,8 +337,11 @@ export class DocumentForm implements OnInit {
         const resourceById = new Map(this.resources().map(r => [r.id, r]));
         this.projectResources.set(
           links
-            .map(link => resourceById.get(link.resource_id))
-            .filter((r): r is Resource => r !== undefined)
+            .map(link => {
+              const resource = resourceById.get(link.resource_id);
+              return resource ? { link, resource } : null;
+            })
+            .filter((entry): entry is { link: ProjectResource; resource: Resource } => entry !== null)
         );
       },
       error: err => console.error('document-form : ' + err)
@@ -339,16 +363,16 @@ export class DocumentForm implements OnInit {
     this.clearImportedSections();
 
     const usedIds = this.usedResourceIds();
-    const availableResources = this.projectResources().filter(r => !usedIds.has(r.id));
-    const materials = availableResources.filter(r => r.type === 'MATERIAL');
-    const services = availableResources.filter(r => r.type === 'SERVICE');
+    const available = this.projectResources().filter(({ resource }) => !usedIds.has(resource.id));
+    const materials = available.filter(({ resource }) => resource.type === 'MATERIAL');
+    const services = available.filter(({ resource }) => resource.type === 'SERVICE');
 
     const importedSections: DraftSection[] = [];
     if (materials.length > 0) {
-      importedSections.push(this.sectionFromResources('Matériel', materials));
+      importedSections.push(this.sectionFromProjectResources('Matériel', materials));
     }
     if (services.length > 0) {
-      importedSections.push(this.sectionFromResources('Service', services));
+      importedSections.push(this.sectionFromProjectResources('Service', services));
     }
 
     for (const section of importedSections) {
@@ -359,18 +383,38 @@ export class DocumentForm implements OnInit {
 
   // Adds a single resource from the selected project as a new line at the
   // end of the given section - the "Ajouter une ressource du chantier"
-  // picker inside each section.
+  // picker inside each section (INVOICE only).
   addResourceLine(sectionId: number, resourceId: number | null): void {
     if (resourceId === null) {
       return;
     }
 
-    const resource = this.projectResources().find(r => r.id === resourceId);
+    const entry = this.projectResources().find(({ resource }) => resource.id === resourceId);
+    if (!entry) {
+      return;
+    }
+
+    const line = this.lineFromResource(entry.resource, entry.link.quantity, entry.link.unit_price ?? entry.resource.selling_price);
+    this.sections.update(sections =>
+      sections.map(s => s.id === sectionId ? { ...s, lines: [...s.lines, line] } : s)
+    );
+  }
+
+  // Adds a single resource from the company's full catalog as a new line at
+  // the end of the given section - the "Ajouter depuis le catalogue" picker
+  // inside each section (QUOTE: the only way to add a priced line at all,
+  // since there's no project to pull from yet).
+  addCatalogResourceLine(sectionId: number, resourceId: number | null): void {
+    if (resourceId === null) {
+      return;
+    }
+
+    const resource = this.resources().find(r => r.id === resourceId);
     if (!resource) {
       return;
     }
 
-    const line = this.lineFromResource(resource);
+    const line = this.lineFromResource(resource, 1, resource.selling_price);
     this.sections.update(sections =>
       sections.map(s => s.id === sectionId ? { ...s, lines: [...s.lines, line] } : s)
     );
@@ -384,25 +428,22 @@ export class DocumentForm implements OnInit {
     this.importedSectionIds.clear();
   }
 
-  private sectionFromResources(title: string, resources: Resource[]): DraftSection {
+  private sectionFromProjectResources(title: string, items: { link: ProjectResource; resource: Resource }[]): DraftSection {
     return {
       id: nextId++,
       title,
-      lines: resources.map(resource => this.lineFromResource(resource)),
+      lines: items.map(({ link, resource }) => this.lineFromResource(resource, link.quantity, link.unit_price ?? resource.selling_price)),
     };
   }
 
-  private lineFromResource(resource: Resource): DraftLine {
+  private lineFromResource(resource: Resource, quantity: number, unit_price: number): DraftLine {
     return {
       id: nextId++,
       type: resource.type,
       label: resource.name,
-      // project_resources is a plain link with no quantity/price of its own
-      // (see zz_migrations/000_base.sql) - 1 is just a starting point,
-      // adjusted by hand afterwards.
-      quantity: 1,
+      quantity,
       unit: resource.unit,
-      unit_price: resource.selling_price,
+      unit_price,
       discount: 0,
       resource_id: resource.id,
     };
@@ -534,6 +575,7 @@ export class DocumentForm implements OnInit {
             unit: line.unit,
             unit_price: line.unit_price,
             discount: line.discount,
+            resource_id: line.resource_id,
           }));
         }
       }

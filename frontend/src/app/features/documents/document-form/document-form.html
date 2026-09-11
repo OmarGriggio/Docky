@@ -59,18 +59,20 @@
       <div class="flex items-center justify-between mb-4">
         <h2 class="m-0">Détails</h2>
         <div class="flex items-center gap-2 flex-wrap">
-          <p-select pSize="small"
-            inputId="project_id"
-            [options]="projectOptions()"
-            optionLabel="label"
-            optionValue="value"
-            [ngModel]="selectedProjectId"
-            (ngModelChange)="onProjectChange($event)"
-            placeholder="Chantier"
-            [showClear]="true"
-            [disabled]="selectedClientId() === null"
-          />
-          <p-button size="small" type="button" label="Charger chantier" icon="pi pi-truck" severity="secondary" [disabled]="selectedProjectId === null" (onClick)="loadProjectResources()" />
+          @if (type === 'INVOICE') {
+            <p-select pSize="small"
+              inputId="project_id"
+              [options]="projectOptions()"
+              optionLabel="label"
+              optionValue="value"
+              [ngModel]="selectedProjectId"
+              (ngModelChange)="onProjectChange($event)"
+              placeholder="Chantier"
+              [showClear]="true"
+              [disabled]="selectedClientId() === null"
+            />
+            <p-button size="small" type="button" label="Charger chantier" icon="pi pi-truck" severity="secondary" [disabled]="selectedProjectId === null" (onClick)="loadProjectResources()" />
+          }
           <p-button size="small" type="button" label="Ajouter une section" icon="pi pi-plus" severity="secondary" (onClick)="addSection()" />
         </div>
       </div>
@@ -163,16 +165,28 @@
           </div>
 
           <div class="flex justify-end mt-3">
-            <p-select pSize="small"
-              class="block w-65 max-w-full"
-              [options]="availableProjectResourceOptions()"
-              optionLabel="label"
-              optionValue="value"
-              [ngModel]="null"
-              (ngModelChange)="addResourceLine(section.id, $event)"
-              placeholder="Ajouter une ressource du chantier"
-              [disabled]="selectedProjectId === null"
-            />
+            @if (type === 'QUOTE') {
+              <p-select pSize="small"
+                class="block w-65 max-w-full"
+                [options]="availableCatalogResourceOptions()"
+                optionLabel="label"
+                optionValue="value"
+                [ngModel]="null"
+                (ngModelChange)="addCatalogResourceLine(section.id, $event)"
+                placeholder="Ajouter depuis le catalogue"
+              />
+            } @else {
+              <p-select pSize="small"
+                class="block w-65 max-w-full"
+                [options]="availableProjectResourceOptions()"
+                optionLabel="label"
+                optionValue="value"
+                [ngModel]="null"
+                (ngModelChange)="addResourceLine(section.id, $event)"
+                placeholder="Ajouter une ressource du chantier"
+                [disabled]="selectedProjectId === null"
+              />
+            }
           </div>
         </div>
       }

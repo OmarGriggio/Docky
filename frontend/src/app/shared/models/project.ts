@@ -3,6 +3,12 @@ export interface ProjectType {
   label: string;
 }
 
+// Lifecycle of the actual work, separate from is_active (archiving) - an
+// invoice can only be created from a COMPLETED project (see
+// document-form.ts) since its real, adjusted quantities aren't final until
+// then. One-way: no "reopen" once closed.
+export type ProjectStatus = 'IN_PROGRESS' | 'COMPLETED';
+
 export interface Project {
   id: number;
   client_id: number;
@@ -14,6 +20,7 @@ export interface Project {
   postal_code: string | null;
   city: string | null;
   country: string | null;
+  status: ProjectStatus;
   created_at: string;
   is_active: boolean;
 }

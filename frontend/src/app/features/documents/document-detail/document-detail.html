@@ -1,7 +1,12 @@
 @if (document(); as d) {
-  @if (d.type === 'INVOICE') {
-    <div class="flex justify-end mb-2">
-      <p-button label="PDF" icon="pi pi-file-pdf" severity="secondary" (onClick)="openInvoicePdf()" />
+  @if (d.type === 'INVOICE' || canAcceptQuote()) {
+    <div class="flex justify-end gap-2 mb-2">
+      @if (canAcceptQuote()) {
+        <p-button label="Valider l'offre" icon="pi pi-check" [loading]="acceptingQuote()" (onClick)="openAcceptConfirm()" />
+      }
+      @if (d.type === 'INVOICE') {
+        <p-button label="PDF" icon="pi pi-file-pdf" severity="secondary" (onClick)="openInvoicePdf()" />
+      }
     </div>
   }
 
@@ -97,5 +102,13 @@
     title="Archivage"
     [message]="confirmMessage()"
     (confirmed)="onArchiveConfirmed()"
+  />
+
+  <app-confirm-dialog
+    [(visible)]="acceptConfirmVisible"
+    title="Validation de l'offre"
+    message="Valider cette offre va créer un chantier et y reporter les ressources utilisées. Continuer ?"
+    confirmLabel="Valider"
+    (confirmed)="onAcceptConfirmed()"
   />
 }

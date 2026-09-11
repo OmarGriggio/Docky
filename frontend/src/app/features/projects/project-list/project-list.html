@@ -22,6 +22,28 @@
   }
 </p-dialog>
 
+<p-dialog
+  [(visible)]="attachmentsDialogVisible"
+  header="Pièces jointes"
+  [modal]="true"
+  [style]="{ width: '32rem' }"
+>
+  @if (attachmentsDialogVisible() && attachmentsProject()) {
+    <app-project-attachments [projectId]="attachmentsProject()!.id" />
+  }
+</p-dialog>
+
+<p-dialog
+  [(visible)]="resourcesDialogVisible"
+  header="Ressources du chantier"
+  [modal]="true"
+  [style]="{ width: '32rem' }"
+>
+  @if (resourcesDialogVisible() && resourcesProject()) {
+    <app-project-resources [project]="resourcesProject()!" />
+  }
+</p-dialog>
+
 <p-table [value]="projects()" dataKey="id" showGridlines [tableStyle]="{ 'min-width': '50rem' }">
   <ng-template #header>
     <tr>
@@ -29,6 +51,7 @@
       <th>Client</th>
       <th pSortableColumn="project_type"><div>Type</div></th>
       <th>Ville</th>
+      <th>Statut</th>
       <th></th>
     </tr>
   </ng-template>
@@ -39,6 +62,7 @@
       <td>{{ clientName(project) }}</td>
       <td><p-tag [value]="project.project_type" severity="secondary" /></td>
       <td>{{ project.city }}</td>
+      <td><p-tag [value]="statusLabel(project)" [severity]="statusSeverity(project)" /></td>
       <td>
         <p-menu #menu [popup]="true" [model]="getActions(project)" appendTo="body"></p-menu>
         <p-button icon="pi pi-ellipsis-v" (click)="menu.toggle($event)"></p-button>
@@ -52,4 +76,12 @@
   title="Archivage"
   [message]="confirmMessage()"
   (confirmed)="onArchiveConfirmed()"
+/>
+
+<app-confirm-dialog
+  [(visible)]="completeConfirmVisible"
+  title="Clôture du chantier"
+  message="Clôturer ce chantier verrouille ses quantités et permet de le facturer. Continuer ?"
+  confirmLabel="Clôturer"
+  (confirmed)="onCompleteConfirmed()"
 />

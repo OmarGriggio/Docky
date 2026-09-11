@@ -37,6 +37,12 @@ export class DocumentService {
     return this.http.patch<Document>(`${API_BASE}/document/${id}/unarchive`, {});
   }
 
+  // Turns an accepted quote into a chantier - see document.service.ts on
+  // the backend (acceptQuoteServ) for what this actually does server-side.
+  acceptQuote(id: number) {
+    return this.http.post<Document>(`${API_BASE}/document/${id}/accept`, {});
+  }
+
   getInvoicePdf(id: number) {
     return this.http.get(`${API_BASE}/pdf/invoice/${id}`, { responseType: 'blob' });
   }
