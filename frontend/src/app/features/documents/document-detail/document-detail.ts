@@ -16,6 +16,7 @@ import { ClientService } from '../../clients/client.service';
 import { ProjectService } from '../../projects/project.service';
 import { Document } from '../../../shared/models/document';
 import { DocumentLine } from '../../../shared/models/document-line';
+import { DocumentSection } from '../../../shared/models/document-section';
 import { Client } from '../../../shared/models/client';
 import { Project } from '../../../shared/models/project';
 import { DocumentLineForm } from '../document-line-form/document-line-form';
@@ -46,12 +47,13 @@ export class DocumentDetail implements OnInit {
   showArchivedLines = signal(false);
   addLineDialogVisible = signal(false);
 
-  // Every line needs a section_id now (see document_sections in
-  // zz_migrations/000_base.sql) - this page doesn't have real multi-section
-  // editing yet (that's what document-form's own section editor does at
-  // creation time), so it silently reuses (or creates, once) a single
-  // "Détails" section for every line added here.
-  defaultSectionId = signal<number | null>(null);
+  // Every line needs a section_id (see document_sections in
+  // zz_migrations/000_base.sql) - the "Ajouter une ligne" dialog lets the
+  // user pick which one explicitly (see document-line-form.ts) instead of
+  // silently reusing sections()[0], which used to misfile every new line
+  // (Matériel or Service) under whichever section happened to be created
+  // first (typically "Matériel" from "Charger chantier" in document-form).
+  sections = signal<DocumentSection[]>([]);
 
   confirmVisible = signal(false);
   confirmMessage = signal('');
@@ -120,20 +122,23 @@ export class DocumentDetail implements OnInit {
 
   private loadSections(): void {
     this.documentSectionService.getSections(this.id).subscribe({
-      next: sections => this.defaultSectionId.set(sections[0]?.id ?? null),
+      next: sections => this.sections.set(sections),
       error: err => console.error('document-detail : ' + err)
     });
   }
 
   openAddLineDialog(): void {
-    if (this.defaultSectionId() !== null) {
+    if (this.sections().length > 0) {
       this.addLineDialogVisible.set(true);
       return;
     }
 
+    // Brand new document with no section at all yet - create one so the
+    // dialog's section picker (see document-line-form.ts) has something to
+    // offer instead of showing up empty.
     this.documentSectionService.createSection({ document_id: this.id, title: 'Détails' }).subscribe({
       next: section => {
-        this.defaultSectionId.set(section.id);
+        this.sections.set([section]);
         this.addLineDialogVisible.set(true);
       },
       error: err => console.error('document-detail : ' + err)

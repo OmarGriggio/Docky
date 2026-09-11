@@ -87,8 +87,8 @@
     [modal]="true"
     [style]="{ width: '32rem' }"
   >
-    @if (addLineDialogVisible() && defaultSectionId(); as sectionId) {
-      <app-document-line-form [documentId]="d.id" [sectionId]="sectionId" (saved)="onLineSaved()" (cancelled)="addLineDialogVisible.set(false)" />
+    @if (addLineDialogVisible() && sections().length > 0) {
+      <app-document-line-form [documentId]="d.id" [sections]="sections()" (saved)="onLineSaved()" (cancelled)="addLineDialogVisible.set(false)" />
     }
   </p-dialog>
 

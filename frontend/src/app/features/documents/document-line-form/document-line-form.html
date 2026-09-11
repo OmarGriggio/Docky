@@ -1,4 +1,15 @@
 <form [formGroup]="form" (ngSubmit)="submit()" class="ui-form">
+  <p-floatlabel variant="on" class="ui-form__full">
+    <p-select
+      inputId="section_id"
+      formControlName="section_id"
+      [options]="sectionOptions()"
+      optionLabel="label"
+      optionValue="value"
+    />
+    <label for="section_id">Section</label>
+  </p-floatlabel>
+
   <p-floatlabel variant="on">
     <p-select
       inputId="type"
