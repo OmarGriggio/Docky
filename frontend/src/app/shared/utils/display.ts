@@ -20,3 +20,14 @@ export const clientDisplayName = (client: NameableClient): string => {
 export const archiveActionLabel = (is_active: boolean): 'Archiver' | 'Restaurer' => {
   return is_active ? 'Archiver' : 'Restaurer';
 };
+
+// Used for project attachments' size column - Ko/Mo, not KB/MB (French UI).
+export const formatFileSize = (bytes: number): string => {
+  if (bytes < 1024) {
+    return `${bytes} o`;
+  }
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(1)} Ko`;
+  }
+  return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
+};

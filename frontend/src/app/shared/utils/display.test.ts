@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { clientDisplayName, archiveActionLabel } from './display';
+import { clientDisplayName, archiveActionLabel, formatFileSize } from './display';
 
 describe('clientDisplayName', () => {
 
@@ -28,6 +28,22 @@ describe('archiveActionLabel', () => {
 
   it('returns Restaurer for an archived supplier', () => {
     expect(archiveActionLabel(false)).toBe('Restaurer');
+  });
+
+});
+
+describe('formatFileSize', () => {
+
+  it('shows bytes under 1 Ko', () => {
+    expect(formatFileSize(512)).toBe('512 o');
+  });
+
+  it('shows Ko between 1 Ko and 1 Mo', () => {
+    expect(formatFileSize(2048)).toBe('2.0 Ko');
+  });
+
+  it('shows Mo from 1 Mo up', () => {
+    expect(formatFileSize(3 * 1024 * 1024)).toBe('3.0 Mo');
   });
 
 });
