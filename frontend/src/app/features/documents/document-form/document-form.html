@@ -1,6 +1,5 @@
 <div class="flex justify-center py-8 px-4">
   <p-card styleClass="ui-card--elevated w-full max-w-250">
-
     <div class="flex justify-between gap-8 flex-wrap mb-6">
       <div class="flex flex-col gap-1 text-[#555] text-[0.9rem]">
         @if (companyLogoUrl()) {
@@ -12,21 +11,34 @@
       </div>
 
       <div class="flex flex-col items-start sm:items-end gap-3 min-w-55">
-        <h2 class="m-0">Nouvelle {{ typeLabel }}</h2>
+        <h2 class="m-0">{{ pageTitle }}</h2>
 
         <p-floatlabel variant="on">
           <p-datepicker inputId="date" [(ngModel)]="date" dateFormat="dd.mm.yy" />
           <label for="date">Date</label>
         </p-floatlabel>
 
-        <p class="m-0 text-[0.8rem] text-[#888] italic">N° : généré automatiquement à la création</p>
+        <p class="m-0 text-[0.8rem] text-[#888] italic">
+          @if (documentNumber()) {
+            N° : {{ documentNumber() }}
+          } @else {
+            N° : généré automatiquement à la création
+          }
+        </p>
       </div>
     </div>
+
+    @if (locked()) {
+      <p class="m-0 mb-6 text-[#d32f2f]">
+        Ce document ne peut plus être modifié (offre déjà répondue ou facture déjà finalisée).
+      </p>
+    }
 
     <div class="flex justify-start sm:justify-end mb-6">
       <div class="flex flex-col gap-3 w-full max-w-70">
         <p-floatlabel variant="on" class="w-full">
-          <p-select pSize="small"
+          <p-select
+            pSize="small"
             inputId="client_id"
             [options]="clientOptions()"
             optionLabel="label"
@@ -52,7 +64,13 @@
     </div>
 
     <p-panel header="Introduction" [toggleable]="true" [collapsed]="true" styleClass="block mb-6">
-      <textarea pTextarea pSize="small" [(ngModel)]="introduction" rows="3" class="w-full"></textarea>
+      <textarea
+        pTextarea
+        pSize="small"
+        [(ngModel)]="introduction"
+        rows="3"
+        class="w-full"
+      ></textarea>
     </p-panel>
 
     <div class="border-t border-b border-dashed border-[#ddd] py-6 mb-6">
@@ -60,7 +78,8 @@
         <h2 class="m-0">Détails</h2>
         <div class="flex items-center gap-2 flex-wrap">
           @if (type === 'INVOICE') {
-            <p-select pSize="small"
+            <p-select
+              pSize="small"
               inputId="project_id"
               [options]="projectOptions()"
               optionLabel="label"
@@ -71,62 +90,168 @@
               [showClear]="true"
               [disabled]="selectedClientId() === null"
             />
-            <p-button size="small" type="button" label="Charger chantier" icon="pi pi-truck" severity="secondary" [disabled]="selectedProjectId === null" (onClick)="loadProjectResources()" />
+            <p-button
+              size="small"
+              type="button"
+              label="Charger chantier"
+              icon="pi pi-truck"
+              severity="secondary"
+              [disabled]="selectedProjectId === null"
+              (onClick)="loadProjectResources()"
+            />
           }
-          <p-button size="small" type="button" label="Ajouter une section" icon="pi pi-plus" severity="secondary" (onClick)="addSection()" />
+          <p-button
+            size="small"
+            type="button"
+            label="Ajouter une section"
+            icon="pi pi-plus"
+            severity="secondary"
+            (onClick)="addSection()"
+          />
         </div>
       </div>
 
       @if (sections().length === 0) {
-        <p class="m-0 text-[#888] italic">Aucune section pour l'instant - clique sur "Ajouter une section" pour commencer (ex. "Gros oeuvre", "Électricité"...).</p>
+        <p class="m-0 text-[#888] italic">
+          Aucune section pour l'instant - clique sur "Ajouter une section" pour commencer (ex. "Gros
+          oeuvre", "Électricité"...).
+        </p>
       }
 
       @for (section of sections(); track section.id) {
         <div class="border border-[#e0e0e0] rounded-lg p-4 mb-5">
           <div class="flex items-center gap-2 mb-3">
             <input
-              pInputText pSize="small"
-              class="flex-1 font-semibold"
+              pInputText
+              pSize="small"
+              class="flex-1 font-semibold w-full md:w-18"
               placeholder="Titre de la section (ex. Gros oeuvre)"
               [ngModel]="section.title"
               (ngModelChange)="updateSectionTitle(section.id, $event)"
             />
-            <p-button size="small" type="button" icon="pi pi-trash" severity="danger" [text]="true" (onClick)="removeSection(section.id)" />
+            <p-button
+              size="small"
+              type="button"
+              icon="pi pi-trash"
+              severity="danger"
+              [text]="true"
+              (onClick)="removeSection(section.id)"
+            />
           </div>
+
+          <textarea
+            pTextarea
+            pSize="small"
+            class="w-full mb-3"
+            rows="2"
+            placeholder="Description de la section (optionnel)"
+            [ngModel]="section.description"
+            (ngModelChange)="updateSectionDescription(section.id, $event)"
+          ></textarea>
 
           <div class="overflow-x-auto">
             <table class="w-full min-w-160 border-collapse table-fixed">
               <colgroup>
-                <col style="width: 8%">
-                <col style="width: 28%">
-                <col style="width: 12%">
-                <col style="width: 10%">
-                <col style="width: 13%">
-                <col style="width: 14%">
-                <col style="width: 8%">
+                <col style="width: 8%" />
+                <col style="width: 28%" />
+                <col style="width: 12%" />
+                <col style="width: 10%" />
+                <col style="width: 13%" />
+                <col style="width: 14%" />
+                <col style="width: 8%" />
               </colgroup>
               <thead>
                 <tr>
-                  <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">Type</th>
-                  <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">Désignation</th>
-                  <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">Qté / Temps</th>
-                  <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">Unité</th>
-                  <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">Prix</th>
-                  <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">Total</th>
-                  <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]"></th>
+                  <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">
+                    Type
+                  </th>
+                  <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">
+                    Désignation
+                  </th>
+                  <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">
+                    Qté / Temps
+                  </th>
+                  <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">
+                    Unité
+                  </th>
+                  <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">
+                    Prix
+                  </th>
+                  <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">
+                    Total
+                  </th>
+                  <th
+                    class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]"
+                  ></th>
                 </tr>
               </thead>
               <tbody>
                 @for (line of section.lines; track line.id) {
                   <tr>
-                    <td class="py-[0.3rem] px-[0.2rem] align-middle">{{ line.type === 'MATERIAL' ? 'Matériel' : 'Service' }}</td>
-                    <td class="py-[0.3rem] px-[0.2rem] align-middle">{{ line.label }}</td>
-                    <td class="py-[0.3rem] px-[0.2rem] align-middle">{{ line.quantity }}</td>
-                    <td class="py-[0.3rem] px-[0.2rem] align-middle">{{ line.unit }}</td>
-                    <td class="py-[0.3rem] px-[0.2rem] align-middle">{{ line.unit_price | number:'1.2-2' }}</td>
-                    <td class="py-[0.3rem] px-[0.2rem] align-middle">{{ lineTotal(line) | number:'1.2-2' }}</td>
                     <td class="py-[0.3rem] px-[0.2rem] align-middle">
-                      <p-button size="small" type="button" icon="pi pi-trash" severity="danger" [text]="true" (onClick)="removeLine(section.id, line.id)" />
+                      <p-select
+                        size="small"
+                        [fluid]="true"
+                        [options]="lineTypeOptions"
+                        optionLabel="label"
+                        optionValue="value"
+                        [ngModel]="line.type"
+                        (ngModelChange)="updateLine(section.id, line.id, { type: $event })"
+                      />
+                    </td>
+                    <td class="py-[0.3rem] px-[0.2rem] align-middle">
+                      <input
+                        pInputText
+                        pSize="small"
+                        [fluid]="true"
+                        class="block"
+                        [ngModel]="line.label"
+                        (ngModelChange)="updateLine(section.id, line.id, { label: $event })"
+                      />
+                    </td>
+                    <td class="py-[0.3rem] px-[0.2rem] align-middle">
+                      <p-inputnumber
+                        size="small"
+                        [fluid]="true"
+                        [ngModel]="line.quantity"
+                        (ngModelChange)="updateLine(section.id, line.id, { quantity: $event })"
+                        mode="decimal"
+                        [minFractionDigits]="2"
+                        [placeholder]="lineQuantityLabel(line.type)"
+                      />
+                    </td>
+                    <td class="py-[0.3rem] px-[0.2rem] align-middle">
+                      <input
+                        pInputText
+                        pSize="small"
+                        [fluid]="true"
+                        class="block"
+                        [ngModel]="line.unit"
+                        (ngModelChange)="updateLine(section.id, line.id, { unit: $event })"
+                      />
+                    </td>
+                    <td class="py-[0.3rem] px-[0.2rem] align-middle">
+                      <p-inputnumber
+                        size="small"
+                        [fluid]="true"
+                        [ngModel]="line.unit_price"
+                        (ngModelChange)="updateLine(section.id, line.id, { unit_price: $event })"
+                        mode="decimal"
+                        [minFractionDigits]="2"
+                      />
+                    </td>
+                    <td class="py-[0.3rem] px-[0.2rem] align-middle">
+                      {{ lineTotal(line) | number: '1.2-2' }}
+                    </td>
+                    <td class="py-[0.3rem] px-[0.2rem] align-middle">
+                      <p-button
+                        size="small"
+                        type="button"
+                        icon="pi pi-trash"
+                        severity="danger"
+                        [text]="true"
+                        (onClick)="removeLine(section.id, line.id)"
+                      />
                     </td>
                   </tr>
                 }
@@ -135,7 +260,8 @@
                 <tr class="bg-[#fafafa]">
                   @let draft = newLineFor(section.id);
                   <td class="py-[0.3rem] px-[0.2rem] align-middle">
-                    <p-select pSize="small"
+                    <p-select
+                      size="small"
                       [fluid]="true"
                       [options]="lineTypeOptions"
                       optionLabel="label"
@@ -144,20 +270,65 @@
                       (ngModelChange)="draft.type = $event"
                     />
                   </td>
-                  <td class="py-[0.3rem] px-[0.2rem] align-middle"><input pInputText pSize="small" [fluid]="true" class="block" [(ngModel)]="draft.label" placeholder="Désignation" /></td>
-                  <td class="py-[0.3rem] px-[0.2rem] align-middle"><p-inputnumber pSize="small" [fluid]="true" [(ngModel)]="draft.quantity" mode="decimal" [minFractionDigits]="2" [placeholder]="lineQuantityLabel(draft.type)" /></td>
-                  <td class="py-[0.3rem] px-[0.2rem] align-middle"><input pInputText pSize="small" [fluid]="true" class="block" [(ngModel)]="draft.unit" placeholder="Unité" /></td>
-                  <td class="py-[0.3rem] px-[0.2rem] align-middle"><p-inputnumber pSize="small" [fluid]="true" [(ngModel)]="draft.unit_price" mode="decimal" [minFractionDigits]="2" /></td>
+                  <td class="py-[0.3rem] px-[0.2rem] align-middle">
+                    <input
+                      pInputText
+                      pSize="small"
+                      [fluid]="true"
+                      class="block"
+                      [(ngModel)]="draft.label"
+                      placeholder="Désignation"
+                    />
+                  </td>
+                  <td class="py-[0.3rem] px-[0.2rem] align-middle">
+                    <p-inputnumber
+                      size="small"
+                      [fluid]="true"
+                      [(ngModel)]="draft.quantity"
+                      mode="decimal"
+                      [minFractionDigits]="2"
+                      [placeholder]="lineQuantityLabel(draft.type)"
+                    />
+                  </td>
+                  <td class="py-[0.3rem] px-[0.2rem] align-middle">
+                    <input
+                      pInputText
+                      pSize="small"
+                      [fluid]="true"
+                      class="block"
+                      [(ngModel)]="draft.unit"
+                      placeholder="Unité"
+                    />
+                  </td>
+                  <td class="py-[0.3rem] px-[0.2rem] align-middle">
+                    <p-inputnumber
+                      size="small"
+                      [fluid]="true"
+                      [(ngModel)]="draft.unit_price"
+                      mode="decimal"
+                      [minFractionDigits]="2"
+                    />
+                  </td>
                   <td class="py-[0.3rem] px-[0.2rem] align-middle"></td>
                   <td class="py-[0.3rem] px-[0.2rem] align-middle">
-                    <p-button size="small" type="button" icon="pi pi-plus" [text]="true" (onClick)="addLine(section.id)" />
+                    <p-button
+                      size="small"
+                      type="button"
+                      icon="pi pi-plus"
+                      [text]="true"
+                      (onClick)="addLine(section.id)"
+                    />
                   </td>
                 </tr>
               </tbody>
               <tfoot>
                 <tr>
-                  <td colspan="5" class="font-semibold border-t border-[#eee] pt-2">Sous-total section</td>
-                  <td class="font-semibold border-t border-[#eee] pt-2">{{ sectionTotal(section) | number:'1.2-2' }}</td>
+                  <td colspan="5" class="font-semibold border-t border-[#eee] pt-2">
+                    Sous-total section
+                  </td>
+                  <td class="font-semibold border-t border-[#eee] pt-2">
+                    {{ sectionTotal(section) | number: '1.2-2' }}
+                  </td>
                   <td class="font-semibold border-t border-[#eee] pt-2"></td>
                 </tr>
               </tfoot>
@@ -166,7 +337,8 @@
 
           <div class="flex justify-end mt-3">
             @if (type === 'QUOTE') {
-              <p-select pSize="small"
+              <p-select
+                size="small"
                 class="block w-65 max-w-full"
                 [options]="availableCatalogResourceOptions()"
                 optionLabel="label"
@@ -176,7 +348,8 @@
                 placeholder="Ajouter depuis le catalogue"
               />
             } @else {
-              <p-select pSize="small"
+              <p-select
+                size="small"
                 class="block w-65 max-w-full"
                 [options]="availableProjectResourceOptions()"
                 optionLabel="label"
@@ -193,45 +366,69 @@
     </div>
 
     <div class="ui-form mb-4">
-      <p-floatlabel variant="on">
-        <p-inputnumber pSize="small" inputId="discount" [(ngModel)]="discount" mode="decimal" [minFractionDigits]="2" suffix=" %" />
-        <label for="discount">Rabais document</label>
-      </p-floatlabel>
+      @if (type === 'INVOICE') {
+        <p-floatlabel variant="on">
+          <p-inputnumber
+            pSize="small"
+            inputId="discount"
+            [(ngModel)]="discount"
+            mode="decimal"
+            [minFractionDigits]="2"
+            suffix=" %"
+          />
+          <label for="discount">Rabais document</label>
+        </p-floatlabel>
 
-      <p-floatlabel variant="on">
-        <p-inputnumber pSize="small" inputId="vat_rate" [(ngModel)]="vatRate" mode="decimal" [minFractionDigits]="2" suffix=" %" />
-        <label for="vat_rate">TVA</label>
-      </p-floatlabel>
-
-      <p-floatlabel variant="on" class="ui-form__full">
-        <input pInputText pSize="small" id="payment_terms" [(ngModel)]="paymentTerms" />
-        <label for="payment_terms">Conditions de paiement</label>
-      </p-floatlabel>
-
-      <p-panel header="Conclusion" [toggleable]="true" [collapsed]="true" styleClass="ui-form__full block mb-6">
-        <textarea pTextarea pSize="small" [(ngModel)]="conclusion" rows="3" class="ui-form__full"></textarea>
+        <p-floatlabel variant="on" class="ui-form__full">
+          <input pInputText pSize="small" id="payment_terms" [(ngModel)]="paymentTerms" />
+          <label for="payment_terms">Conditions de paiement</label>
+        </p-floatlabel>
+      }
+      <p-panel
+        header="Conclusion"
+        [toggleable]="true"
+        [collapsed]="true"
+        styleClass="ui-form__full block mb-6"
+      >
+        <div>
+          <div class="ui-form__full flex items-center gap-3 -mt-2">
+            <p-button
+              size="small"
+              type="button"
+              icon="pi pi-save"
+              severity="secondary"
+              [text]="true"
+              [loading]="savingTemplate()"
+              (onClick)="saveAsDefaultTemplate()"
+            />
+            @if (templateSaveMessage()) {
+              <span class="text-[0.85rem] text-[#666]">{{ templateSaveMessage() }}</span>
+            }
+          </div>
+          <textarea
+            pTextarea
+            pSize="small"
+            [(ngModel)]="conclusion"
+            rows="3"
+            class="ui-form__full"
+          ></textarea>
+        </div>
       </p-panel>
-
-      <div class="ui-form__full flex items-center gap-3 -mt-2">
-        <p-button size="small"
-          type="button"
-          label="Enregistrer comme modèle {{ typeLabel }} par défaut"
-          icon="pi pi-save"
-          severity="secondary"
-          [text]="true"
-          [loading]="savingTemplate()"
-          (onClick)="saveAsDefaultTemplate()"
-        />
-        @if (templateSaveMessage()) {
-          <span class="text-[0.85rem] text-[#666]">{{ templateSaveMessage() }}</span>
-        }
-      </div>
     </div>
 
     <div class="flex flex-col items-end gap-[0.35rem] mb-6 text-[0.95rem]">
-      <div class="flex gap-6 min-w-65 justify-between"><span>Sous-total</span><span>{{ documentSubtotal() | number:'1.2-2' }} CHF</span></div>
-      <div class="flex gap-6 min-w-65 justify-between"><span>Total HT (après rabais)</span><span>{{ documentTotalAfterDiscount() | number:'1.2-2' }} CHF</span></div>
-      <div class="flex gap-6 min-w-65 justify-between font-bold text-[1.1rem] border-t border-[#ddd] pt-[0.35rem]"><span>Total TTC</span><span>{{ documentTotalInclVat() | number:'1.2-2' }} CHF</span></div>
+      <div class="flex gap-6 min-w-65 justify-between">
+        <span>Sous-total</span><span>{{ documentSubtotal() | number: '1.2-2' }} CHF</span>
+      </div>
+      <div class="flex gap-6 min-w-65 justify-between">
+        <span>Total HT (après rabais)</span
+        ><span>{{ documentTotalAfterDiscount() | number: '1.2-2' }} CHF</span>
+      </div>
+      <div
+        class="flex gap-6 min-w-65 justify-between font-bold text-[1.1rem] border-t border-[#ddd] pt-[0.35rem]"
+      >
+        <span>Total TTC</span><span>{{ documentTotalInclVat() | number: '1.2-2' }} CHF</span>
+      </div>
     </div>
 
     @if (errorMessage()) {
@@ -239,9 +436,21 @@
     }
 
     <div class="ui-form__actions">
-      <p-button size="small" type="button" label="Annuler" severity="secondary" (onClick)="cancel()" />
-      <p-button size="small" type="button" label="Valider" [loading]="submitting()" (onClick)="submit()" />
+      <p-button
+        size="small"
+        type="button"
+        label="Annuler"
+        severity="secondary"
+        (onClick)="cancel()"
+      />
+      <p-button
+        size="small"
+        type="button"
+        label="Enregistrer"
+        [loading]="submitting()"
+        [disabled]="locked()"
+        (onClick)="submit()"
+      />
     </div>
-
   </p-card>
 </div>

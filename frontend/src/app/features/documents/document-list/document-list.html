@@ -16,7 +16,6 @@
     <tr>
       <th>Numéro</th>
       <th>Client</th>
-      <th>Type</th>
       <th>Date</th>
       <th>Montant HT</th>
       <th>Montant TTC</th>
@@ -31,16 +30,13 @@
     <tr>
       <td>{{ document.number }}</td>
       <td>{{ clientName(document) }}</td>
-      <td>{{ document.type }}</td>
       <td>{{ document.date | appDate }}</td>
       <td>{{ document.amount_excl_vat }}</td>
       <td>{{ document.amount_incl_vat }}</td>
       <td>{{ document.discount }}</td>
       <td>{{ document.status }}</td>
       <td>
-        @if (document.type === 'INVOICE') {
-          <p-button label="" icon="pi pi-file-pdf" (click)="openInvoicePdf(document)" />
-        }
+        <p-button label="" icon="pi pi-file-pdf" (click)="openPdf(document)" />
       </td>
       <td>
         <p-menu #menu [popup]="true" [model]="getActions(document)" appendTo="body"></p-menu>
@@ -55,4 +51,12 @@
   title="Archivage"
   [message]="confirmMessage()"
   (confirmed)="onArchiveConfirmed()"
+/>
+
+<app-confirm-dialog
+  [(visible)]="acceptConfirmVisible"
+  title="Validation de l'offre"
+  message="Valider cette offre va créer un chantier et y reporter les ressources utilisées. Continuer ?"
+  confirmLabel="Valider"
+  (confirmed)="onAcceptConfirmed()"
 />

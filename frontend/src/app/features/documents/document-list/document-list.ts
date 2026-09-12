@@ -54,6 +54,9 @@ export class DocumentListComponent implements OnInit {
 
   private documentPendingArchive: Document | null = null;
 
+  acceptConfirmVisible = signal(false);
+  private documentPendingAccept: Document | null = null;
+
   ngOnInit(): void {
     this.route.queryParamMap.subscribe(params => {
       const type = params.get('type') as DocumentType | null;
@@ -96,16 +99,54 @@ export class DocumentListComponent implements OnInit {
     this.loadDocuments();
   }
 
+  // A document past DRAFT/SENT is a frozen record (see
+  // zz_docs/Project Definition.md's lifecycle) - matches document-form.ts's
+  // own EDITABLE_STATUSES/document.service.ts's on the backend.
+  private isEditable(document: Document): boolean {
+    return document.status === 'DRAFT' || document.status === 'SENT';
+  }
+
   getActions(document: Document): MenuItem[] {
     return [
       document.is_active
         ? { label: 'Archiver', command: () => this.archiveDocument(document) }
         : { label: 'Restaurer', command: () => this.unarchiveDocument(document) },
       {
-        label: 'Détail',
+        label: 'Modifier',
         command: () => this.router.navigate(['/documents', document.id])
-      }
+      },
+      // Only an offer can be duplicated - a chantier is what would need
+      // duplicating on an invoice, and a chantier only ever comes from an
+      // accepted quote (see zz_docs/Decisions.md), never a copy of another.
+      ...(document.type === 'QUOTE'
+        ? [{ label: 'Dupliquer', command: () => this.duplicateDocument(document) }]
+        : []),
+      ...(document.type === 'QUOTE' && this.isEditable(document)
+        ? [{ label: "Valider l'offre", command: () => this.confirmAcceptQuote(document) }]
+        : [])
     ];
+  }
+
+  private duplicateDocument(document: Document): void {
+    this.router.navigate(['/documents/new'], { queryParams: { type: 'QUOTE', duplicateFrom: document.id } });
+  }
+
+  private confirmAcceptQuote(document: Document): void {
+    this.documentPendingAccept = document;
+    this.acceptConfirmVisible.set(true);
+  }
+
+  onAcceptConfirmed(): void {
+    const document = this.documentPendingAccept;
+    if (!document) {
+      return;
+    }
+    this.documentPendingAccept = null;
+
+    this.documentService.acceptQuote(document.id).subscribe({
+      next: () => this.loadDocuments(),
+      error: err => console.error('document-list : ' + err)
+    });
   }
 
   private archiveDocument(document: Document): void {
@@ -142,8 +183,10 @@ export class DocumentListComponent implements OnInit {
     });
   }
 
-  openInvoicePdf(document: Document): void {
-    this.documentService.getInvoicePdf(document.id).subscribe({
+  openPdf(document: Document): void {
+    const pdf$ = document.type === 'INVOICE' ? this.documentService.getInvoicePdf(document.id) : this.documentService.getQuotePdf(document.id);
+
+    pdf$.subscribe({
       next: blob => {
         const url = window.URL.createObjectURL(blob);
         window.open(url, '_blank');

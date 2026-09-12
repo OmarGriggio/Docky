@@ -29,6 +29,13 @@ export class DocumentService {
     return this.http.post<Document>(`${API_BASE}/document`, document);
   }
 
+  // type/number/project_id/status/parent_document_id aren't editable this
+  // way - each has its own dedicated flow (see document.types.ts's
+  // UpdateDocumentData on the backend).
+  updateDocument(id: number, document: Pick<Document, 'client_id' | 'date' | 'discount' | 'vat_rate' | 'introduction' | 'conclusion' | 'payment_terms' | 'due_date'>) {
+    return this.http.put<Document>(`${API_BASE}/document/${id}`, document);
+  }
+
   archiveDocument(id: number) {
     return this.http.patch<Document>(`${API_BASE}/document/${id}/archive`, {});
   }
@@ -45,5 +52,9 @@ export class DocumentService {
 
   getInvoicePdf(id: number) {
     return this.http.get(`${API_BASE}/pdf/invoice/${id}`, { responseType: 'blob' });
+  }
+
+  getQuotePdf(id: number) {
+    return this.http.get(`${API_BASE}/pdf/quote/${id}`, { responseType: 'blob' });
   }
 }

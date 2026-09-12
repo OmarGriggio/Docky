@@ -4,5 +4,6 @@ export interface DocumentSection {
   document_id: number;
   position: number;
   title: string;
+  description: string | null;
   is_active: boolean;
 }

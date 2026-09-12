@@ -48,8 +48,10 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    // No more read-only detail page - editing IS the detail page now (see
+    // document-form.ts's loadForEdit).
     path: 'documents/:id',
-    loadComponent: () => import('./features/documents/document-detail/document-detail').then(m => m.DocumentDetail),
+    loadComponent: () => import('./features/documents/document-form/document-form').then(m => m.DocumentForm),
     canActivate: [authGuard]
   },
   {
