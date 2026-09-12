@@ -1,4 +1,5 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
@@ -14,17 +15,17 @@ import { Project } from '../../../shared/models/project';
 import { Client } from '../../../shared/models/client';
 import { ProjectForm } from '../project-form/project-form';
 import { ProjectAttachments } from '../project-attachments/project-attachments';
-import { ProjectResources } from '../project-resources/project-resources';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 
 @Component({
   selector: 'app-project-list',
   standalone: true,
-  imports: [TableModule, TagModule, Toolbar, Menu, Button, Dialog, Checkbox, FormsModule, ProjectForm, ProjectAttachments, ProjectResources, ConfirmDialogComponent],
+  imports: [TableModule, TagModule, Toolbar, Menu, Button, Dialog, Checkbox, FormsModule, ProjectForm, ProjectAttachments, ConfirmDialogComponent],
   templateUrl: './project-list.html'
 })
 export class ProjectListComponent implements OnInit {
 
+  private router = inject(Router);
   private projectService = inject(ProjectService);
   private clientService = inject(ClientService);
 
@@ -32,9 +33,11 @@ export class ProjectListComponent implements OnInit {
   clients = signal<Client[]>([]);
   showArchived = signal(false);
 
+  // Manual chantier creation has no trigger in the UI right now (a chantier
+  // only comes from an accepted quote - see the toolbar's comment), but the
+  // dialog/form themselves are kept as-is, reachable again by re-adding a
+  // single button.
   createDialogVisible = signal(false);
-  // Set when "Dupliquer" is used - passed to <app-project-form> so it can
-  // pre-fill itself. null means the dialog opened fresh via "Ajouter".
   duplicateSource = signal<Project | null>(null);
 
   confirmVisible = signal(false);
@@ -44,9 +47,6 @@ export class ProjectListComponent implements OnInit {
 
   attachmentsDialogVisible = signal(false);
   attachmentsProject = signal<Project | null>(null);
-
-  resourcesDialogVisible = signal(false);
-  resourcesProject = signal<Project | null>(null);
 
   completeConfirmVisible = signal(false);
   private projectPendingComplete: Project | null = null;
@@ -105,11 +105,6 @@ export class ProjectListComponent implements OnInit {
     this.createDialogVisible.set(true);
   }
 
-  duplicateProject(project: Project): void {
-    this.duplicateSource.set(project);
-    this.createDialogVisible.set(true);
-  }
-
   closeCreateDialog(): void {
     this.createDialogVisible.set(false);
     this.duplicateSource.set(null);
@@ -126,16 +121,12 @@ export class ProjectListComponent implements OnInit {
         ? { label: 'Archiver', command: () => this.archiveProject(project) }
         : { label: 'Restaurer', command: () => this.unarchiveProject(project) },
       {
-        label: 'Dupliquer',
-        command: () => this.duplicateProject(project)
+        label: 'Détail',
+        command: () => this.router.navigate(['/projects', project.id])
       },
       {
         label: 'Pièces jointes',
         command: () => this.openAttachmentsDialog(project)
-      },
-      {
-        label: 'Ressources',
-        command: () => this.openResourcesDialog(project)
       },
       ...(project.status === 'IN_PROGRESS'
         ? [{ label: 'Clôturer', command: () => this.completeProject(project) }]
@@ -146,11 +137,6 @@ export class ProjectListComponent implements OnInit {
   openAttachmentsDialog(project: Project): void {
     this.attachmentsProject.set(project);
     this.attachmentsDialogVisible.set(true);
-  }
-
-  openResourcesDialog(project: Project): void {
-    this.resourcesProject.set(project);
-    this.resourcesDialogVisible.set(true);
   }
 
   private completeProject(project: Project): void {

@@ -7,7 +7,10 @@
       <p-checkbox [binary]="true" [ngModel]="showArchived()" (ngModelChange)="onShowArchivedChange($event)" />
       Afficher les archivés
     </label>
-    <p-button label="" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+    <!-- No "Nouveau chantier" trigger for now: a chantier only comes from an
+         accepted quote (see document.service.ts's acceptQuoteServ) - the
+         dialog/form below still exist, just unreachable from this page,
+         should a manual-creation need come back later. -->
   </ng-template>
 </p-toolbar>
 
@@ -30,17 +33,6 @@
 >
   @if (attachmentsDialogVisible() && attachmentsProject()) {
     <app-project-attachments [projectId]="attachmentsProject()!.id" />
-  }
-</p-dialog>
-
-<p-dialog
-  [(visible)]="resourcesDialogVisible"
-  header="Ressources du chantier"
-  [modal]="true"
-  [style]="{ width: '32rem' }"
->
-  @if (resourcesDialogVisible() && resourcesProject()) {
-    <app-project-resources [project]="resourcesProject()!" />
   }
 </p-dialog>
 

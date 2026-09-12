@@ -18,6 +18,10 @@ export class ProjectService {
     });
   }
 
+  getProject(id: number) {
+    return this.http.get<Project>(`${API_BASE}/project/${id}`);
+  }
+
   createProject(project: CreateProjectPayload) {
     return this.http.post<Project>(`${API_BASE}/project`, project);
   }

@@ -65,6 +65,11 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'projects/:id',
+    loadComponent: () => import('./features/projects/project-detail/project-detail').then(m => m.ProjectDetail),
+    canActivate: [authGuard]
+  },
+  {
     // Layout for the whole section (router-outlet + a persistent side menu,
     // see profile.html) - every child below renders inside it, so the menu
     // never disappears when navigating between them. '' redirects to
