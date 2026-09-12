@@ -1,5 +1,5 @@
 import { pool } from "../../shared/config/database";
-import { Document } from "./document.types";
+import { Document, UpdateDocumentData } from "./document.types";
 
 export const getDocumentsFromDB = async (company_id: number, includeArchived = false) => {
   const query = includeArchived
@@ -94,6 +94,42 @@ export const acceptDocumentInDB = async (
   `;
 
   const result = await pool.query(query, [project_id, id, company_id]);
+  return result.rows[0];
+};
+
+export const updateDocumentInDB = async (
+  id: number,
+  company_id: number,
+  data: UpdateDocumentData
+): Promise<Document> => {
+  const query = `
+    UPDATE documents SET
+      client_id = $1,
+      date = $2,
+      discount = $3,
+      vat_rate = $4,
+      introduction = $5,
+      conclusion = $6,
+      payment_terms = $7,
+      due_date = $8
+      WHERE id = $9 AND company_id = $10
+    RETURNING *;
+  `;
+
+  const values = [
+    data.client_id,
+    data.date,
+    data.discount,
+    data.vat_rate,
+    data.introduction,
+    data.conclusion,
+    data.payment_terms,
+    data.due_date,
+    id,
+    company_id
+  ];
+
+  const result = await pool.query(query, values);
   return result.rows[0];
 };
 

@@ -32,3 +32,13 @@ export type CreateDocumentData = Omit<
   Document,
   "id" | "company_id" | "number" | "amount_excl_vat" | "amount_incl_vat"
 >;
+
+// What a caller sends to edit an already-existing document (see
+// updateDocumentServ) - deliberately narrower than CreateDocumentData:
+// type/number/project_id/status/parent_document_id are never editable this
+// way, each has its own dedicated flow instead (acceptQuoteServ for
+// project_id+status, archive/unarchive for is_active).
+export type UpdateDocumentData = Pick<
+  Document,
+  "client_id" | "date" | "discount" | "vat_rate" | "introduction" | "conclusion" | "payment_terms" | "due_date"
+>;

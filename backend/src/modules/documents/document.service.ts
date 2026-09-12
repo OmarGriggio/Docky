@@ -1,10 +1,11 @@
-import { CreateDocumentData, DocumentType } from "./document.types";
+import { CreateDocumentData, UpdateDocumentData, DocumentType, DocumentStatus } from "./document.types";
 import {
   getDocumentsFromDB,
   getDocumentsByTypeFromDB,
   getDocumentByIdFromDB,
   getLastDocumentNumberFromDB,
   createDocumentInDB,
+  updateDocumentInDB,
   archiveDocumentInDB,
   unarchiveDocumentInDB,
   updateDocumentTotalsInDB,
@@ -97,6 +98,33 @@ export const addDocumentServ = async (documentData: CreateDocumentData, company_
   // none yet, so it always starts at 0, whatever the request body sent for
   // those fields.
   return await createDocumentInDB({ ...documentData, project_id, company_id, number, amount_excl_vat: 0, amount_incl_vat: 0 });
+};
+
+// Editable while the client hasn't answered yet (or before it's even been
+// sent) - once a quote is ACCEPTED it's the frozen record a chantier was
+// born from (see zz_docs/Project Definition.md's lifecycle), and once
+// REJECTED/an invoice is PAID/CANCELLED there's nothing left to correct.
+const EDITABLE_STATUSES: DocumentStatus[] = ["DRAFT", "SENT"];
+
+export const updateDocumentServ = async (id: number, company_id: number, documentData: UpdateDocumentData) => {
+  const document = await getDocumentByIdFromDB(id, company_id);
+  if (!document) {
+    throw new NotFoundError("Document not found");
+  }
+  if (!EDITABLE_STATUSES.includes(document.status)) {
+    throw new ConflictError("This document can no longer be edited");
+  }
+
+  const client = await getClientByIdFromDB(documentData.client_id, company_id);
+  if (!client) {
+    throw new NotFoundError("Client not found");
+  }
+
+  await updateDocumentInDB(id, company_id, documentData);
+  // discount/vat_rate may have just changed - the stored totals were
+  // computed against the old ones, so the row just written back isn't the
+  // final one; recomputeDocumentTotalsServ's own result is.
+  return await recomputeDocumentTotalsServ(id, company_id);
 };
 
 // Turns an accepted quote into a chantier: creates a brand new project

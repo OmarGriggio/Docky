@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { addDocumentServ, archiveDocumentServ, unarchiveDocumentServ, getAllDocumentsServ, getDocumentsByTypeServ, getDocumentByIdServ, acceptQuoteServ } from "./document.service";
-import { CreateDocumentData } from "./document.types";
+import { addDocumentServ, updateDocumentServ, archiveDocumentServ, unarchiveDocumentServ, getAllDocumentsServ, getDocumentsByTypeServ, getDocumentByIdServ, acceptQuoteServ } from "./document.service";
+import { CreateDocumentData, UpdateDocumentData } from "./document.types";
 
 export const getDocuments = async (req: Request, res: Response) => {
   const type = req.query.type as string | undefined;
@@ -22,6 +22,13 @@ export const createDocument = async (req: Request, res: Response) => {
 
   const documentCreated = await addDocumentServ(documentData, req.user.company_id);
   res.json(documentCreated);
+};
+
+export const updateDocument = async (req: Request, res: Response) => {
+  const documentData: UpdateDocumentData = req.body;
+
+  const documentUpdated = await updateDocumentServ(Number(req.params.id), req.user.company_id, documentData);
+  res.json(documentUpdated);
 };
 
 export const archiveDocument = async (req: Request, res: Response) => {
