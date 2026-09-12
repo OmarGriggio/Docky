@@ -6,6 +6,7 @@ export interface DocumentSection {
 
   position: number;
   title: string;
+  description: string | null;
 
   is_active: boolean;
 }

@@ -337,6 +337,7 @@ CREATE TABLE document_sections (
     document_id INTEGER NOT NULL,
     position INTEGER NOT NULL,
     title VARCHAR(255) NOT NULL,
+    description TEXT,
     is_active BOOLEAN DEFAULT TRUE,
 
     FOREIGN KEY (document_id)
