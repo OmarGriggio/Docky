@@ -1,16 +1,18 @@
-import { blob } from "stream/consumers";
 import { PDFImage } from "pdf-lib";
 import { PdfWriter } from "../core/pdf-writer";
 import { PdfTable } from "../core/pdf-writer.types";
-import { InvoiceDto, InvoiceSectionDto } from "./invoice.types";
+import { QuoteDto, QuoteSectionDto } from "./quote.types";
 
 const LOGO_MAX_WIDTH = 120;
 const LOGO_MAX_HEIGHT = 60;
 
-export class InvoiceTemplate {
+// Mirrors InvoiceTemplate (invoice.template.ts) - same layout, but titled
+// "Offre", with an optional validity date instead of payment info, and no
+// Swiss QR-bill page (nothing to pay yet on a quote).
+export class QuoteTemplate {
 
-    static async render(pdf: PdfWriter, invoice: InvoiceDto, logoBytes: Buffer | null) {
-        const date = new Date(invoice.date).toLocaleDateString("fr-CH", {
+    static async render(pdf: PdfWriter, quote: QuoteDto, logoBytes: Buffer | null) {
+        const date = new Date(quote.date).toLocaleDateString("fr-CH", {
             day: "numeric",
             month: "long",
             year: "numeric",
@@ -19,24 +21,23 @@ export class InvoiceTemplate {
             await this.drawLogo(pdf, logoBytes);
         }
 
-        pdf.title(`Facture ${invoice.number}`);
+        pdf.title(`Offre ${quote.number}`);
 
-        pdf.text(invoice.company.name, {bold: true});
-        pdf.text(invoice.company.street);
-        pdf.text(invoice.company.postalCodeCity, {marginBottom: 30});
+        pdf.text(quote.company.name, { bold: true });
+        pdf.text(quote.company.street);
+        pdf.text(quote.company.postalCodeCity, { marginBottom: 30 });
 
-        pdf.text(invoice.client.name, { bold: true, indent:250 });
-        pdf.text(invoice.client.street, {indent:250});
-        pdf.text(invoice.client.postalCodeCity, {indent:250, marginBottom: 15});
+        pdf.text(quote.client.name, { bold: true, indent: 250 });
+        pdf.text(quote.client.street, { indent: 250 });
+        pdf.text(quote.client.postalCodeCity, { indent: 250, marginBottom: 15 });
 
-        pdf.text(invoice.company.city + ", le " + date, {marginBottom: 10, indent:250});
+        pdf.text(quote.company.city + ", le " + date, { marginBottom: 10, indent: 250 });
 
-        pdf.text(invoice.client.title, {marginBottom: 5});
+        pdf.text(quote.client.title, { marginBottom: 5 });
 
-        //TODO: add to the document table
-        pdf.text(invoice.introduction, { marginBottom: 15 });
+        pdf.text(quote.introduction, { marginBottom: 15 });
 
-        for (const section of invoice.sections) {
+        for (const section of quote.sections) {
             pdf.text(section.title, { bold: true, size: 12, marginTop: 10, marginBottom: section.description ? 2 : 4 });
             if (section.description) {
                 pdf.text(section.description, { size: 10, marginBottom: 4 });
@@ -46,15 +47,24 @@ export class InvoiceTemplate {
 
         pdf.line();
 
-        pdf.text(`Total HT : ${invoice.amountExclVat.toFixed(2)} CHF`, { bold: true, marginTop: 15 });
-        pdf.text(`Total TTC : ${invoice.amountInclVat.toFixed(2)} CHF`, { bold: true, marginBottom: 20 });
+        pdf.text(`Total HT : ${quote.amountExclVat.toFixed(2)} CHF`, { bold: true, marginTop: 15 });
+        pdf.text(`Total TTC : ${quote.amountInclVat.toFixed(2)} CHF`, { bold: true, marginBottom: 20 });
 
-        pdf.text(invoice.conclusion);
+        if (quote.validUntil) {
+            const validUntil = new Date(quote.validUntil).toLocaleDateString("fr-CH", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+            });
+            pdf.text(`Offre valable jusqu'au ${validUntil}`, { marginBottom: 15 });
+        }
 
-        pdf.text(invoice.company.name, {indent: 250, marginTop: 20})
+        pdf.text(quote.conclusion);
+
+        pdf.text(quote.company.name, { indent: 250, marginTop: 20 });
     };
 
-    private static createSectionTable(section: InvoiceSectionDto): PdfTable {
+    private static createSectionTable(section: QuoteSectionDto): PdfTable {
         return {
             columns: [
                 {

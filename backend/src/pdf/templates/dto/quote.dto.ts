@@ -1,13 +1,13 @@
 import { ClientWithAddresses } from "../../../modules/clients/client.types";
 import { DocumentComplete } from "../../../modules/documents/document_complete.types";
 import { Company } from "../../../modules/companies/company.types";
-import { InvoiceDto, InvoiceSectionDto } from "../invoice.types";
+import { QuoteDto, QuoteSectionDto } from "../quote.types";
 
-// document.sections/lines are already scoped to this document and active-only
-// (the repository queries default to is_active = true) - but neither comes
-// back ordered by `position` from the DB (lines have no ORDER BY at all), so
-// that has to happen here.
-const buildSections = (document: DocumentComplete): InvoiceSectionDto[] => {
+// Same shape/ordering rules as invoice.dto.ts's buildSections - document.sections/
+// lines aren't ordered by `position` from the DB, and an emptied-out section
+// (everything archived, or nothing added yet) is skipped rather than shown
+// as a bare heading.
+const buildSections = (document: DocumentComplete): QuoteSectionDto[] => {
     return [...document.sections]
         .sort((a, b) => a.position - b.position)
         .map(section => ({
@@ -23,17 +23,16 @@ const buildSections = (document: DocumentComplete): InvoiceSectionDto[] => {
                     unitPrice: line.unit_price,
                 })),
         }))
-        // A section with every line archived (or none added yet) has
-        // nothing to print - skip it rather than showing a bare heading.
         .filter(section => section.lines.length > 0);
 };
 
-export const createInvoiceDto = (document: DocumentComplete, client: ClientWithAddresses, company: Company): InvoiceDto => {
+export const createQuoteDto = (document: DocumentComplete, client: ClientWithAddresses, company: Company): QuoteDto => {
     const address = client.addresses[0];
 
-    const data: InvoiceDto = {
+    return {
         number: document.number,
         date: document.date,
+        validUntil: document.due_date,
         company: {
             name: company.name ?? "",
             street: company.street ?? "",
@@ -54,6 +53,4 @@ export const createInvoiceDto = (document: DocumentComplete, client: ClientWithA
         introduction: document.introduction ?? "",
         conclusion: document.conclusion ?? ""
     };
-
-    return data;
 }

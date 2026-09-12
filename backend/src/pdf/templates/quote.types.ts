@@ -1,19 +1,23 @@
-export interface InvoiceLineDto {
+export interface QuoteLineDto {
     label: string;
     quantity: number;
     unit: string | null;
     unitPrice: number;
 }
 
-export interface InvoiceSectionDto {
+export interface QuoteSectionDto {
     title: string;
     description: string | null;
-    lines: InvoiceLineDto[];
+    lines: QuoteLineDto[];
 }
 
-export interface InvoiceDto {
+export interface QuoteDto {
     number: string;
     date: Date;
+    // documents.due_date doubles as "offer valid until" for a QUOTE (there's
+    // no separate column for it) - null shows nothing rather than a bare
+    // "-".
+    validUntil: Date | null;
     company: {
         name: string;
         street: string;
@@ -28,7 +32,7 @@ export interface InvoiceDto {
         postalCodeCity: string;
         title: string;
     };
-    sections: InvoiceSectionDto[];
+    sections: QuoteSectionDto[];
     amountExclVat: number;
     amountInclVat: number;
     introduction: string;
