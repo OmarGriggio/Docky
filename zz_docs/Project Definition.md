@@ -127,3 +127,23 @@ They only handle the technical and administrative aspects of the platform.
 4. Manages user accounts.
 5. Views global statistics.
 6. Steps in for technical or administrative issues.
+
+---
+
+## 4.4 - Quote → chantier → invoice lifecycle
+
+The core workflow the application is built around, assuming the company's catalog (materials, services, prices) already exists. This is the authoritative description of the intended order of things - implementation should follow it, not the other way around.
+
+1. **Quote.** The employee drafts a quote for a client (this is also where they sketch the work's general plan - which materials/services, roughly how much of each). A quote never has a chantier attached: at this stage nothing has been built yet for there to be a chantier *of*.
+2. **Send.** Once the quote looks right, it's printed to PDF and sent to the client.
+3. **Client's answer** decides what happens next, and only one of these:
+   - **Refused** → the quote's status becomes REJECTED. Nothing else happens - no chantier, no follow-up.
+   - **Accepted** → the quote's status becomes ACCEPTED, and *this is the exact moment a chantier is created* from it. The chantier starts from the quote's own resources/quantities, and this is when the employee moves on to more detailed, on-site planning.
+4. **Chantier.** Work happens. Real quantities almost never match what was quoted (more hours, more material) - the employee corrects the chantier's own resource quantities as reality unfolds. The original quote is never edited to reflect this: it stays a frozen record of what was proposed, the chantier is the live record of what's actually happening.
+5. **Close.** Once the work is done, the employee closes the chantier - this locks in its final quantities.
+6. **Invoice.** From a closed chantier, the employee creates the invoice - billed on the chantier's real, final quantities, not the original quote's.
+7. **No-quote shortcut.** Not every job needs a quote first. An invoice can always be created directly, with neither a quote nor a chantier behind it, when going through the full process isn't worth it.
+
+A chantier only ever exists because a quote was accepted - there is no other way to create one, and duplicating a chantier directly (independent of a quote) isn't a supported action either. An invoice, on the other hand, can exist with no chantier and no quote at all.
+
+**Known gaps against this journey** (as of 2026-09-12): step 3's REJECTED/ACCEPTED split and step 2's SENT status aren't wired up yet as distinct actions - today a single "Valider l'offre" button on the quote's detail page jumps straight from DRAFT to ACCEPTED-with-a-new-chantier, with no explicit send/reject step in between. Step 6's "create the invoice from the chantier" is also reversed in the current UI: the employee goes to the invoice form and picks a (closed) chantier from a dropdown, rather than starting from the chantier itself and landing in a pre-filled invoice.
