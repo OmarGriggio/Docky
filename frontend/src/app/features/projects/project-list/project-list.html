@@ -36,25 +36,63 @@
   }
 </p-dialog>
 
-<p-table [value]="projects()" dataKey="id" showGridlines [tableStyle]="{ 'min-width': '50rem' }">
+<p-table [value]="projects()" dataKey="id" showGridlines [tableStyle]="{ 'min-width': '50rem' }" editMode="cell" (onEditComplete)="onCellEditComplete($event)">
   <ng-template #header>
     <tr>
       <th>Nom</th>
       <th>Client</th>
-      <th pSortableColumn="project_type"><div>Type</div></th>
-      <th>Ville</th>
+      <th>Type</th>
       <th>Statut</th>
       <th></th>
     </tr>
   </ng-template>
 
-  <ng-template #body let-project>
+  <ng-template #body let-project let-rowIndex="rowIndex">
     <tr>
-      <td>{{ project.name }}</td>
+      <td [pEditableColumn]="project.name" pEditableColumnField="name" [pEditableColumnRowIndex]="rowIndex">
+        <p-cellEditor>
+          <ng-template #input>
+            <input pInputText [(ngModel)]="project.name" [fluid]="true" />
+          </ng-template>
+          <ng-template #output>
+            {{ project.name }}
+          </ng-template>
+        </p-cellEditor>
+      </td>
+
+      <!-- Not editable - which client/document a chantier is for never
+           changes once created. -->
       <td>{{ clientName(project) }}</td>
-      <td><p-tag [value]="project.project_type" severity="secondary" /></td>
-      <td>{{ project.city }}</td>
+
+      <td [pEditableColumn]="project.project_type_id" pEditableColumnField="project_type_id" [pEditableColumnRowIndex]="rowIndex">
+        <p-cellEditor>
+          <ng-template #input>
+            <p-select [(ngModel)]="project.project_type_id" [options]="typeOptions()" optionLabel="label" optionValue="value" [fluid]="true">
+              <ng-template #footer>
+                <div class="flex gap-2 p-2 border-t border-surface-200">
+                  <input
+                    pInputText size="small" [fluid]="true"
+                    placeholder="Nouveau type (ex. Parquets)"
+                    #newTypeInput
+                    (keydown.enter)="addProjectType(project, newTypeInput.value); newTypeInput.value = ''"
+                  />
+                  <p-button
+                    type="button" icon="pi pi-plus" size="small"
+                    (onClick)="addProjectType(project, newTypeInput.value); newTypeInput.value = ''"
+                  />
+                </div>
+              </ng-template>
+            </p-select>
+          </ng-template>
+          <ng-template #output>
+            <p-tag [value]="project.project_type" severity="secondary" />
+          </ng-template>
+        </p-cellEditor>
+      </td>
+
+      <!-- Not editable - see "Clôturer" in the row menu below instead. -->
       <td><p-tag [value]="statusLabel(project)" [severity]="statusSeverity(project)" /></td>
+
       <td>
         <p-menu #menu [popup]="true" [model]="getActions(project)" appendTo="body"></p-menu>
         <p-button icon="pi pi-ellipsis-v" (click)="menu.toggle($event)"></p-button>

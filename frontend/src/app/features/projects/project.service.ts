@@ -26,6 +26,12 @@ export class ProjectService {
     return this.http.post<Project>(`${API_BASE}/project`, project);
   }
 
+  // Only name/project_type_id - client/status/document_id aren't editable
+  // this way (see project.types.ts's UpdateProjectData on the backend).
+  updateProject(id: number, project: { name: string; project_type_id: number | null }) {
+    return this.http.put<Project>(`${API_BASE}/project/${id}`, project);
+  }
+
   archiveProject(id: number) {
     return this.http.patch<Project>(`${API_BASE}/project/${id}/archive`, {});
   }

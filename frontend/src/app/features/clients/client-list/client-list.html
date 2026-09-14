@@ -22,27 +22,91 @@
   }
 </p-dialog>
 
-<p-table [value]="clients()" dataKey="id" showGridlines>
+<p-table [value]="clients()" dataKey="id" showGridlines editMode="cell" (onEditComplete)="onCellEditComplete($event)">
   <ng-template #header>
     <tr>
       <th>N° client</th>
+      <th>Type</th>
       <th>Société</th>
+      <th>Prénom</th>
       <th>Nom</th>
       <th>Email</th>
-      <th>Téléphones</th>
-      <th></th>
+      <th>Téléphone</th>
       <th></th>
     </tr>
   </ng-template>
 
-  <ng-template #body let-client>
+  <ng-template #body let-client let-rowIndex="rowIndex">
     <tr>
+      <!-- Not editable - the client's stable business key. -->
       <td>{{ client.client_number }}</td>
-      <td>{{ client.type }}</td>
-      <td>{{ client.company_name }}</td>
-      <td>{{ client.first_name }} {{ client.last_name }}</td>
-      <td>{{ client.email }}</td>
-      <td>{{ client.phone }}</td>
+
+      <td [pEditableColumn]="client.type" pEditableColumnField="type" [pEditableColumnRowIndex]="rowIndex">
+        <p-cellEditor>
+          <ng-template #input>
+            <p-select [(ngModel)]="client.type" [options]="typeOptions" optionLabel="label" optionValue="value" [fluid]="true" />
+          </ng-template>
+          <ng-template #output>
+            {{ client.type === 'PROFESSIONAL' ? 'Professionnel' : 'Particulier' }}
+          </ng-template>
+        </p-cellEditor>
+      </td>
+
+      <td [pEditableColumn]="client.company_name" pEditableColumnField="company_name" [pEditableColumnRowIndex]="rowIndex">
+        <p-cellEditor>
+          <ng-template #input>
+            <input pInputText [(ngModel)]="client.company_name" [fluid]="true" />
+          </ng-template>
+          <ng-template #output>
+            {{ client.company_name }}
+          </ng-template>
+        </p-cellEditor>
+      </td>
+
+      <td [pEditableColumn]="client.first_name" pEditableColumnField="first_name" [pEditableColumnRowIndex]="rowIndex">
+        <p-cellEditor>
+          <ng-template #input>
+            <input pInputText [(ngModel)]="client.first_name" [fluid]="true" />
+          </ng-template>
+          <ng-template #output>
+            {{ client.first_name }}
+          </ng-template>
+        </p-cellEditor>
+      </td>
+
+      <td [pEditableColumn]="client.last_name" pEditableColumnField="last_name" [pEditableColumnRowIndex]="rowIndex">
+        <p-cellEditor>
+          <ng-template #input>
+            <input pInputText [(ngModel)]="client.last_name" [fluid]="true" />
+          </ng-template>
+          <ng-template #output>
+            {{ client.last_name }}
+          </ng-template>
+        </p-cellEditor>
+      </td>
+
+      <td [pEditableColumn]="client.email" pEditableColumnField="email" [pEditableColumnRowIndex]="rowIndex">
+        <p-cellEditor>
+          <ng-template #input>
+            <input pInputText [(ngModel)]="client.email" [fluid]="true" />
+          </ng-template>
+          <ng-template #output>
+            {{ client.email }}
+          </ng-template>
+        </p-cellEditor>
+      </td>
+
+      <td [pEditableColumn]="client.phone" pEditableColumnField="phone" [pEditableColumnRowIndex]="rowIndex">
+        <p-cellEditor>
+          <ng-template #input>
+            <input pInputText [(ngModel)]="client.phone" [fluid]="true" />
+          </ng-template>
+          <ng-template #output>
+            {{ client.phone }}
+          </ng-template>
+        </p-cellEditor>
+      </td>
+
       <td>
         <p-menu #menu [popup]="true" [model]="getActions(client)" appendTo="body"></p-menu>
         <p-button icon="pi pi-ellipsis-v" (click)="menu.toggle($event)"></p-button>

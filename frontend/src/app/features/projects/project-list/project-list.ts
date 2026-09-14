@@ -1,17 +1,19 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { TableModule } from 'primeng/table';
+import { TableModule, TableEditCompleteEvent } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { Toolbar } from 'primeng/toolbar';
 import { Menu } from 'primeng/menu';
 import { Dialog } from 'primeng/dialog';
 import { Checkbox } from 'primeng/checkbox';
+import { InputText } from 'primeng/inputtext';
+import { Select } from 'primeng/select';
 import { MenuItem } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { ProjectService } from '../project.service';
 import { ClientService } from '../../clients/client.service';
-import { Project } from '../../../shared/models/project';
+import { Project, ProjectType } from '../../../shared/models/project';
 import { Client } from '../../../shared/models/client';
 import { ProjectForm } from '../project-form/project-form';
 import { ProjectAttachments } from '../project-attachments/project-attachments';
@@ -20,7 +22,7 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
 @Component({
   selector: 'app-project-list',
   standalone: true,
-  imports: [TableModule, TagModule, Toolbar, Menu, Button, Dialog, Checkbox, FormsModule, ProjectForm, ProjectAttachments, ConfirmDialogComponent],
+  imports: [TableModule, TagModule, Toolbar, Menu, Button, Dialog, Checkbox, InputText, Select, FormsModule, ProjectForm, ProjectAttachments, ConfirmDialogComponent],
   templateUrl: './project-list.html'
 })
 export class ProjectListComponent implements OnInit {
@@ -31,7 +33,12 @@ export class ProjectListComponent implements OnInit {
 
   projects = signal<Project[]>([]);
   clients = signal<Client[]>([]);
+  projectTypes = signal<ProjectType[]>([]);
   showArchived = signal(false);
+
+  typeOptions = computed(() =>
+    this.projectTypes().map(type => ({ label: type.label, value: type.id }))
+  );
 
   // Manual chantier creation has no trigger in the UI right now (a chantier
   // only comes from an accepted quote - see the toolbar's comment), but the
@@ -69,6 +76,11 @@ export class ProjectListComponent implements OnInit {
       error: err => {
         console.error("project-list : " + err);
       }
+    });
+
+    this.projectService.getProjectTypes().subscribe({
+      next: data => this.projectTypes.set(data),
+      error: err => console.error("project-list : " + err)
     });
   }
 
@@ -187,6 +199,49 @@ export class ProjectListComponent implements OnInit {
       },
       error: err => {
         console.error("project-list : " + err);
+      }
+    });
+  }
+
+  // Triggered from the Type cell editor's own footer (see project-list.html)
+  // - creates a new project type on the fly and selects it for this row
+  // right away, same as project-form.ts's own "Nouveau type". Doesn't save
+  // anything by itself: like picking an existing option, the actual PUT
+  // only happens once the cell editor completes (blur/click away/Enter),
+  // via onCellEditComplete below.
+  addProjectType(project: Project, label: string): void {
+    const trimmed = label.trim();
+    if (!trimmed) {
+      return;
+    }
+
+    this.projectService.createProjectType(trimmed).subscribe({
+      next: projectType => {
+        this.projectTypes.update(types => [...types, projectType]);
+        project.project_type_id = projectType.id;
+      },
+      error: err => console.error('project-list : ' + err)
+    });
+  }
+
+  // Resolved via event.index (the row), not event.data: [pEditableColumn]
+  // is bound to each cell's own value (e.g. project.name), matching
+  // PrimeNG's own docs/internal cancel-path logic - see client-list.ts's
+  // own onCellEditComplete for the same reasoning.
+  onCellEditComplete(event: TableEditCompleteEvent): void {
+    const project = event.index !== undefined ? this.projects()[event.index] : undefined;
+    if (!project) {
+      return;
+    }
+
+    this.projectService.updateProject(project.id, {
+      name: project.name,
+      project_type_id: project.project_type_id,
+    }).subscribe({
+      next: () => this.loadProjects(),
+      error: err => {
+        console.error('project-list : ' + err);
+        this.loadProjects();
       }
     });
   }
