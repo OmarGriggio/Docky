@@ -26,12 +26,24 @@ export const getProjectByIdFromDB = async (id: number, company_id: number) => {
   return result.rows[0] ?? null;
 };
 
+// Used to check a project's status from the PROJECT document it's backed
+// by (see document.service.ts's addDocumentServ, which validates an
+// INVOICE's parent_document_id this way).
+export const getProjectByDocumentIdFromDB = async (document_id: number, company_id: number) => {
+  const result = await pool.query(
+    "SELECT * FROM projects WHERE document_id = $1 AND company_id = $2",
+    [document_id, company_id]
+  );
+  return result.rows[0] ?? null;
+};
+
 export const createProjectInDB = async (
-  project: CreateProjectData & { company_id: number }
+  project: CreateProjectData & { company_id: number; document_id: number }
 ): Promise<Project> => {
   const query = `
     INSERT INTO projects (
       company_id,
+      document_id,
       client_id,
       project_type_id,
       name,
@@ -42,12 +54,13 @@ export const createProjectInDB = async (
       city,
       country
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
     RETURNING *;
   `;
 
   const values = [
     project.company_id,
+    project.document_id,
     project.client_id,
     project.project_type_id,
     project.name,

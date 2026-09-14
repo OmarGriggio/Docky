@@ -11,11 +11,11 @@ import {
   updateDocumentTotalsInDB,
   acceptDocumentInDB
 } from "./document.repository";
-import { getLinesByDocumentIdFromDB } from "./document_line.repository";
+import { getLinesByDocumentIdFromDB, createLineInDB } from "./document_line.repository";
+import { getSectionsByDocumentIdFromDB, createSectionInDB } from "./document_section.repository";
 import { getClientByIdFromDB } from "../clients/client.repository";
 import { Client } from "../clients/client.types";
-import { getProjectByIdFromDB, createProjectInDB } from "../projects/project.repository";
-import { createProjectResourceInDB } from "../projects/project_resource.repository";
+import { getProjectByDocumentIdFromDB, createProjectInDB } from "../projects/project.repository";
 import { NotFoundError, ConflictError } from "../../shared/types/errors";
 import { computeDocumentTotals } from "./document.calculations";
 
@@ -46,17 +46,22 @@ export const getDocumentByIdServ = async (id: number, company_id: number) => {
 // the PDF and shown to the (French-speaking Swiss) client, same content-stays-
 // French reasoning as the seed data and the frontend's UI text - not a code
 // naming convention. Matches the format already used in zz_migrations/001_data.sql.
+// "CH" (chantier) for PROJECT isn't printed anywhere yet, but still needs a
+// value - documents.number is NOT NULL regardless of type.
 const DOCUMENT_NUMBER_PREFIXES: Record<DocumentType, string> = {
   QUOTE: "OFF",
   INVOICE: "FAC",
+  PROJECT: "CH",
 };
 
 const DOCUMENT_NUMBER_SEQUENCE_LENGTH = 4;
 
 // The sequence resets every year (the year is embedded in the number itself)
 // and is scoped per company + document type, matching the
-// UNIQUE (company_id, number) constraint on the documents table.
-const generateDocumentNumber = async (company_id: number, type: DocumentType): Promise<string> => {
+// UNIQUE (company_id, number) constraint on the documents table. Exported so
+// project.service.ts's addProjectServ can number a hand-created chantier's
+// own PROJECT document the same way.
+export const generateDocumentNumber = async (company_id: number, type: DocumentType): Promise<string> => {
   const year = new Date().getFullYear();
   const prefix = `${DOCUMENT_NUMBER_PREFIXES[type]}-${year}-`;
 
@@ -68,25 +73,34 @@ const generateDocumentNumber = async (company_id: number, type: DocumentType): P
 };
 
 export const addDocumentServ = async (documentData: CreateDocumentData, company_id: number) => {
+  // A PROJECT document is always created together with its projects row, in
+  // one go - see project.service.ts's addProjectServ (a chantier created by
+  // hand) and acceptQuoteServ below (one spawned from an accepted quote).
+  // POST /document never creates one on its own.
+  if (documentData.type === "PROJECT") {
+    throw new ConflictError("A PROJECT document can't be created directly - create a project instead");
+  }
+
   const client = await getClientByIdFromDB(documentData.client_id, company_id);
   if (!client) {
     throw new NotFoundError("Client not found");
   }
 
-  // A quote is where the need gets defined - it can never target an
-  // existing project (a project is born from an accepted quote instead, see
-  // acceptQuoteServ below). Ignore any client-supplied project_id for a
-  // QUOTE, same as `number` is always server-generated regardless of input.
-  const project_id = documentData.type === "QUOTE" ? null : documentData.project_id;
+  // A quote is where the need gets defined - it never derives from anything.
+  // Only an INVOICE can point at the PROJECT document it bills, via
+  // parent_document_id (see document.types.ts) - ignore any client-supplied
+  // value for a QUOTE, same as `number` is always server-generated.
+  const parent_document_id = documentData.type === "QUOTE" ? null : documentData.parent_document_id;
 
-  if (project_id !== null) {
-    const project = await getProjectByIdFromDB(project_id, company_id);
-    if (!project) {
+  if (parent_document_id !== null) {
+    const projectDocument = await getDocumentByIdFromDB(parent_document_id, company_id);
+    if (!projectDocument || projectDocument.type !== "PROJECT") {
       throw new NotFoundError("Project not found");
     }
+    const project = await getProjectByDocumentIdFromDB(projectDocument.id, company_id);
     // The real, final quantities aren't settled until the project is closed
     // - invoicing from an in-progress one would bill a moving target.
-    if (project.status !== "COMPLETED") {
+    if (!project || project.status !== "COMPLETED") {
       throw new ConflictError("Project must be completed before it can be invoiced");
     }
   }
@@ -97,13 +111,16 @@ export const addDocumentServ = async (documentData: CreateDocumentData, company_
   // lines (see recomputeDocumentTotalsServ) — a freshly created document has
   // none yet, so it always starts at 0, whatever the request body sent for
   // those fields.
-  return await createDocumentInDB({ ...documentData, project_id, company_id, number, amount_excl_vat: 0, amount_incl_vat: 0 });
+  return await createDocumentInDB({ ...documentData, parent_document_id, company_id, number, amount_excl_vat: 0, amount_incl_vat: 0 });
 };
 
 // Editable while the client hasn't answered yet (or before it's even been
 // sent) - once a quote is ACCEPTED it's the frozen record a chantier was
 // born from (see zz_docs/Project Definition.md's lifecycle), and once
-// REJECTED/an invoice is PAID/CANCELLED there's nothing left to correct.
+// REJECTED/an invoice is PAID/CANCELLED there's nothing left to correct. A
+// PROJECT document's status is always null (its lifecycle lives on
+// projects.status instead), so it's never editable through this generic
+// flow either.
 const EDITABLE_STATUSES: DocumentStatus[] = ["DRAFT", "SENT"];
 
 export const updateDocumentServ = async (id: number, company_id: number, documentData: UpdateDocumentData) => {
@@ -111,7 +128,7 @@ export const updateDocumentServ = async (id: number, company_id: number, documen
   if (!document) {
     throw new NotFoundError("Document not found");
   }
-  if (!EDITABLE_STATUSES.includes(document.status)) {
+  if (document.status === null || !EDITABLE_STATUSES.includes(document.status)) {
     throw new ConflictError("This document can no longer be edited");
   }
 
@@ -127,63 +144,108 @@ export const updateDocumentServ = async (id: number, company_id: number, documen
   return await recomputeDocumentTotalsServ(id, company_id);
 };
 
-// Turns an accepted quote into a chantier: creates a brand new project
-// (always new, never an existing one - see zz_docs/Decisions.md), copies
-// the quote's resource-backed lines into it as project_resources (the
-// project's starting quantities/prices, adjustable by hand from there on),
-// and attaches the quote to that project. A hand-typed line (no resource_id)
-// contributes nothing - there's no catalog resource to attach it to.
+// Turns an accepted quote into a chantier: creates a brand new PROJECT
+// document (always new, never an existing one - see zz_docs/Decisions.md),
+// copies the quote's own sections/resource-backed lines into it 1:1 (that
+// document's sections/lines become the project's resource ledger), and a
+// projects row on top of it holding the chantier's own identity/lifecycle.
+// A hand-typed line (no resource_id) contributes nothing - there's no
+// catalog resource to attach it to; a section left with none of those is
+// skipped entirely rather than created empty.
 export const acceptQuoteServ = async (id: number, company_id: number) => {
-  const document = await getDocumentByIdFromDB(id, company_id);
-  if (!document) {
+  const quote = await getDocumentByIdFromDB(id, company_id);
+  if (!quote) {
     throw new NotFoundError("Document not found");
   }
-  if (document.type !== "QUOTE") {
+  if (quote.type !== "QUOTE") {
     throw new ConflictError("Only a quote can be accepted");
   }
-  if (document.status === "ACCEPTED") {
+  if (quote.status === "ACCEPTED") {
     throw new ConflictError("This quote has already been accepted");
   }
 
-  const client = await getClientByIdFromDB(document.client_id, company_id);
+  const client = await getClientByIdFromDB(quote.client_id, company_id);
   if (!client) {
     throw new NotFoundError("Client not found");
   }
 
+  const number = await generateDocumentNumber(company_id, "PROJECT");
+
+  const projectDocument = await createDocumentInDB({
+    company_id,
+    client_id: quote.client_id,
+    address_id: quote.address_id,
+    reference_client: quote.reference_client,
+    // This PROJECT document's own "derived from" - the quote it was
+    // accepted from (see document.types.ts's parent_document_id comment).
+    parent_document_id: quote.id,
+    type: "PROJECT",
+    number,
+    date: new Date(),
+    discount: 0,
+    vat_rate: 0,
+    status: null,
+    introduction: null,
+    conclusion: null,
+    payment_terms: null,
+    due_date: null,
+    is_active: true,
+    amount_excl_vat: 0,
+    amount_incl_vat: 0,
+  });
+
+  const sections = await getSectionsByDocumentIdFromDB(id);
+  const lines = await getLinesByDocumentIdFromDB(id);
+
+  for (const section of sections) {
+    const resourceLines = lines.filter(line => line.section_id === section.id && line.resource_id !== null);
+    if (resourceLines.length === 0) {
+      continue;
+    }
+
+    const projectSection = await createSectionInDB({
+      company_id,
+      document_id: projectDocument.id,
+      position: section.position,
+      title: section.title,
+      description: section.description,
+      date_start: null,
+      date_end: null,
+      is_active: true,
+    });
+
+    for (const line of resourceLines) {
+      await createLineInDB({
+        company_id,
+        document_id: projectDocument.id,
+        section_id: projectSection.id,
+        type: line.type,
+        position: line.position,
+        label: line.label,
+        quantity: line.quantity,
+        unit: line.unit,
+        unit_price: line.unit_price,
+        discount: 0,
+        resource_id: line.resource_id,
+        is_active: true,
+      });
+    }
+  }
+
+  await recomputeDocumentTotalsServ(projectDocument.id, company_id);
+
   // Starts as "same address as client", like a manually-created project's
   // own default (project-form.ts) - no street/city of its own yet, editable
   // by hand afterwards from the project list.
-  const project = await createProjectInDB({
+  await createProjectInDB({
     company_id,
-    client_id: document.client_id,
+    document_id: projectDocument.id,
+    client_id: quote.client_id,
     name: clientDisplayName(client),
     same_address_as_client: true,
   });
 
-  const lines = await getLinesByDocumentIdFromDB(id);
-
-  // Several lines can reference the same catalog resource (e.g. split
-  // across sections) - project_resources has one row per resource
-  // (UNIQUE(project_id, resource_id)), so their quantities are summed into
-  // it. unit_price just keeps whichever line was seen last - a starting
-  // point, not meant to be exact once differently-priced lines collide.
-  const totalsByResource = new Map<number, { quantity: number; unit_price: number }>();
-  for (const line of lines) {
-    if (line.resource_id === null) {
-      continue;
-    }
-    const existing = totalsByResource.get(line.resource_id);
-    totalsByResource.set(line.resource_id, {
-      quantity: (existing?.quantity ?? 0) + Number(line.quantity),
-      unit_price: Number(line.unit_price),
-    });
-  }
-
-  for (const [resource_id, { quantity, unit_price }] of totalsByResource) {
-    await createProjectResourceInDB({ company_id, project_id: project.id, resource_id, quantity, unit_price });
-  }
-
-  return await acceptDocumentInDB(id, company_id, project.id);
+  return await acceptDocumentInDB(id, company_id);
 };
 
 // The actual math lives in document.calculations.ts (computeDocumentTotals) — this

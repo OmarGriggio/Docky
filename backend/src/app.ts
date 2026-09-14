@@ -4,9 +4,7 @@ import clientRoutes from "./modules/clients/client.routes";
 import addressRoutes from "./modules/clients/address.routes";
 import userRoutes from "./modules/users/user.routes";
 import authRoutes from "./modules/auth/auth.routes";
-import supplierRoutes from "./modules/suppliers/supplier.routes";
 import resourceRoutes from "./modules/catalog/resource.routes";
-import resourceSupplierPriceRoutes from "./modules/catalog/resource_supplier_price.routes";
 import documentRoutes from "./modules/documents/document.routes";
 import documentCompleteRoutes from "./modules/documents/document_complete.routes";
 import documentLineRoutes from "./modules/documents/document_line.routes";
@@ -15,7 +13,6 @@ import documentTemplateRoutes from "./modules/documents/document_template.routes
 import companyRoutes from "./modules/companies/company.routes";
 import projectRoutes from "./modules/projects/project.routes";
 import projectTypeRoutes from "./modules/projects/project_type.routes";
-import projectResourceRoutes from "./modules/projects/project_resource.routes";
 import projectAttachmentRoutes from "./modules/projects/project_attachment.routes";
 import pdfRoutes from "./pdf/pdf.routes";
 import cors from 'cors';
@@ -57,11 +54,7 @@ app.use("/client", clientRoutes);
 
 app.use("/address", addressRoutes);
 
-app.use("/supplier", supplierRoutes);
-
 app.use("/resource", resourceRoutes);
-
-app.use("/resource-supplier-price", resourceSupplierPriceRoutes);
 
 app.use("/document", documentRoutes);
 
@@ -80,8 +73,6 @@ app.use("/user", userRoutes);
 app.use("/project", projectRoutes);
 
 app.use("/project-type", projectTypeRoutes);
-
-app.use("/project-resource", projectResourceRoutes);
 
 app.use("/project-attachment", projectAttachmentRoutes);
 

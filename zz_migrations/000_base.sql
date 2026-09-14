@@ -45,10 +45,8 @@ CREATE TABLE users
 -- REFRESH TOKENS
 -- ==========================================
 
--- token_hash stores a SHA-256 hash of the refresh token, never the raw value,
--- so a database leak alone doesn't hand out valid tokens. revoked_at is set on
--- logout; expires_at is enforced on top of the JWT's own expiry so a revoked
--- or stale row is rejected even if the token's signature still checks out.
+-- token_hash is a SHA-256 hash, never the raw token; revoked_at/expires_at
+-- let a token be revoked (logout) independently of the JWT's own expiry.
 CREATE TABLE refresh_tokens (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL,
@@ -86,69 +84,14 @@ CREATE TABLE clients (
 );
 
 -- ==========================================
--- PROJECT
--- ==========================================
-
-CREATE TABLE project_types (
-    id SERIAL PRIMARY KEY,
-    label VARCHAR(100) NOT NULL UNIQUE
-);
-
-CREATE TABLE projects (
-    id SERIAL PRIMARY KEY,
-    company_id INTEGER NOT NULL,
-    client_id INTEGER,
-    project_type_id INTEGER,
-    name VARCHAR(255) NOT NULL,
-    note TEXT,
-    same_address_as_client BOOLEAN NOT NULL DEFAULT TRUE,
-    street VARCHAR(255),
-    postal_code VARCHAR(20),
-    city VARCHAR(100),
-    country VARCHAR(100),
-    -- Lifecycle of the actual work, separate from is_active (archiving).
-    -- Set to IN_PROGRESS when a project is created (by hand, or when an
-    -- accepted quote spawns one - see document.service.ts's acceptQuoteServ),
-    -- COMPLETED once closed by hand. An invoice can only be created from a
-    -- COMPLETED project (see document.service.ts's createDocumentServ) - the
-    -- real, adjusted quantities aren't final until then.
-    status VARCHAR(20) NOT NULL DEFAULT 'IN_PROGRESS'
-        CHECK (status IN ('IN_PROGRESS', 'COMPLETED')),
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    is_active BOOLEAN DEFAULT TRUE,
-
-    FOREIGN KEY (client_id)
-        REFERENCES clients(id),
-    FOREIGN KEY (project_type_id)
-        REFERENCES project_types(id)
-);
-
--- ==========================================
--- SUPPLIERS
--- ==========================================
-
-CREATE TABLE suppliers (
-    id SERIAL PRIMARY KEY,
-    company_id INTEGER NOT NULL,
-    supplier_code VARCHAR(50) UNIQUE,
-    name VARCHAR(255),
-    category VARCHAR(100),
-    is_active BOOLEAN DEFAULT TRUE,
-
-    FOREIGN KEY (company_id)
-        REFERENCES companies(id)
-);
-
--- ==========================================
 -- ADDRESSES
 -- ==========================================
 
--- Belongs to exactly one of client / supplier, never both, never neither.
+-- Client-owned only (suppliers removed) - documents.address_id picks one.
 CREATE TABLE addresses (
     id SERIAL PRIMARY KEY,
     company_id INTEGER NOT NULL,
-    client_id INTEGER,
-    supplier_id INTEGER,
+    client_id INTEGER NOT NULL,
     is_primary BOOLEAN NOT NULL DEFAULT FALSE,
     Attention VARCHAR(100),
     street VARCHAR(100),
@@ -159,17 +102,12 @@ CREATE TABLE addresses (
     FOREIGN KEY (company_id)
         REFERENCES companies(id),
     FOREIGN KEY (client_id)
-        REFERENCES clients(id),
-    FOREIGN KEY (supplier_id)
-        REFERENCES suppliers(id),
-    CHECK ((client_id IS NOT NULL) <> (supplier_id IS NOT NULL))
+        REFERENCES clients(id)
 );
 
--- At most one "primary" address per client, and per supplier.
+-- At most one "primary" address per client.
 CREATE UNIQUE INDEX addresses_one_primary_per_client
-    ON addresses (client_id) WHERE is_primary = TRUE AND client_id IS NOT NULL;
-CREATE UNIQUE INDEX addresses_one_primary_per_supplier
-    ON addresses (supplier_id) WHERE is_primary = TRUE AND supplier_id IS NOT NULL;
+    ON addresses (client_id) WHERE is_primary = TRUE;
 
 -- ==========================================
 -- RESOURCES
@@ -193,108 +131,21 @@ CREATE TABLE resources (
 );
 
 -- ==========================================
--- PROJECT RESOURCES
--- ==========================================
-
--- Links a project ("chantier") to the resources (materials/services) it
--- uses - a plain many-to-many join, no quantity/price of its own yet. The
--- point: picking a project when creating a document can pre-fill its lines
--- from this association (not implemented yet - see the TODO in CLAUDE.md).
-CREATE TABLE project_resources (
-    id SERIAL PRIMARY KEY,
-    company_id INTEGER NOT NULL,
-    project_id INTEGER NOT NULL,
-    resource_id INTEGER NOT NULL,
-    -- The real, adjustable amount used on site - starts as a copy of the
-    -- accepted quote's line quantity (see document.service.ts's
-    -- acceptQuoteServ) and is corrected by hand as the project runs (e.g.
-    -- more hours than planned). unit_price is frozen at that same moment
-    -- (the price agreed in the quote), not re-read from resources.selling_price
-    -- later - a later catalog price change shouldn't retroactively change
-    -- what an ongoing project is billed at.
-    quantity NUMERIC(10,2) NOT NULL DEFAULT 0,
-    unit_price NUMERIC(10,2),
-
-    UNIQUE (project_id, resource_id),
-
-    FOREIGN KEY (project_id)
-        REFERENCES projects(id),
-    FOREIGN KEY (resource_id)
-        REFERENCES resources(id),
-    FOREIGN KEY (company_id)
-        REFERENCES companies(id)
-);
-
--- ==========================================
--- PROJECT ATTACHMENTS
--- ==========================================
-
--- Files attached to a project (plans, directives, ...), stored in
--- MinIO/S3 (see shared/storage/storage.service.ts) - PDF only for now,
--- docx/xlsx planned later. No storage_key column: the S3 key is always
--- derived from company_id/project_id/id/filename (see
--- project_attachment.controller.ts), so there's nothing to keep in sync.
-CREATE TABLE project_attachments (
-    id SERIAL PRIMARY KEY,
-    company_id INTEGER NOT NULL,
-    project_id INTEGER NOT NULL,
-    uploaded_by INTEGER,
-    filename VARCHAR(255) NOT NULL,
-    mime_type VARCHAR(100) NOT NULL,
-    size_bytes INTEGER NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    is_active BOOLEAN DEFAULT TRUE,
-
-    FOREIGN KEY (project_id)
-        REFERENCES projects(id)
-        ON DELETE CASCADE,
-    FOREIGN KEY (uploaded_by)
-        REFERENCES users(id)
-        ON DELETE SET NULL,
-    FOREIGN KEY (company_id)
-        REFERENCES companies(id)
-);
-
--- ==========================================
--- RESOURCE SUPPLIER PRICES
--- ==========================================
-
-CREATE TABLE resource_supplier_prices (
-    id SERIAL PRIMARY KEY,
-    company_id INTEGER NOT NULL,
-    resource_id INTEGER,
-    supplier_id INTEGER,
-    purchase_price NUMERIC(10,2),
-    discount NUMERIC(5,2),
-    delivery_time INTEGER,
-    is_default BOOLEAN,
-
-    FOREIGN KEY (resource_id)
-        REFERENCES resources(id),
-
-    FOREIGN KEY (supplier_id)
-        REFERENCES suppliers(id),
-
-    FOREIGN KEY (company_id)
-        REFERENCES companies(id)
-);
-
--- ==========================================
 -- DOCUMENTS
 -- ==========================================
 
+-- type PROJECT is the chantier itself - its document_sections/document_lines
+-- are its resource ledger, grouped into sections.
 CREATE TABLE documents (
     id SERIAL PRIMARY KEY,
     company_id INTEGER NOT NULL,
     client_id INTEGER NOT NULL,
-    project_id INTEGER,
+    address_id INTEGER, -- which of the client's addresses; falls back to primary if unset
+    reference_client VARCHAR(100), -- client's own reference/PO number, optional
     parent_document_id INTEGER,
     type VARCHAR(20) NOT NULL
-        CHECK (type IN ('QUOTE', 'INVOICE')),
-    -- Not UNIQUE on its own: two different companies can both have a
-    -- number "INVOICE-2026-0001". Uniqueness is scoped per company below.
-    -- The actual FAC_YYYY_00001/INV_YYYY_00001 generation happens in the
-    -- service layer, not here - this column just has to be able to hold it.
+        CHECK (type IN ('QUOTE', 'INVOICE', 'PROJECT')),
+    -- Scoped unique per company below, not globally - generated in the service layer.
     number VARCHAR(50) NOT NULL,
     date DATE NOT NULL,
     amount_excl_vat NUMERIC(12,2) DEFAULT 0,
@@ -313,8 +164,8 @@ CREATE TABLE documents (
 
     FOREIGN KEY (client_id)
         REFERENCES clients(id),
-    FOREIGN KEY (project_id)
-        REFERENCES projects(id),
+    FOREIGN KEY (address_id)
+        REFERENCES addresses(id),
     FOREIGN KEY (parent_document_id)
         REFERENCES documents(id),
     FOREIGN KEY (company_id)
@@ -326,11 +177,7 @@ CREATE TABLE documents (
 -- DOCUMENT SECTIONS
 -- ==========================================
 
--- A grouping title within a document (e.g. "Gros oeuvre", "Finitions") -
--- every document_lines row belongs to exactly one of these. Replaces the
--- earlier flat-list-with-a-SECTION-marker-line approach (see the "Flexible
--- document lines" entry in zz_docs/Decisions.md for that original decision
--- and why it was revisited).
+-- Groups document_lines under a title (e.g. "Gros oeuvre", "Finitions").
 CREATE TABLE document_sections (
     id SERIAL PRIMARY KEY,
     company_id INTEGER NOT NULL,
@@ -338,6 +185,8 @@ CREATE TABLE document_sections (
     position INTEGER NOT NULL,
     title VARCHAR(255) NOT NULL,
     description TEXT,
+    date_start TIMESTAMP, -- optional schedule for this section's work
+    date_end TIMESTAMP,
     is_active BOOLEAN DEFAULT TRUE,
 
     FOREIGN KEY (document_id)
@@ -357,25 +206,14 @@ CREATE TABLE document_lines (
     company_id INTEGER NOT NULL,
     document_id INTEGER NOT NULL,
     section_id INTEGER NOT NULL,
-    -- Both priced: MATERIAL uses quantity+unit for a physical amount (e.g.
-    -- "20 Sac"), SERVICE uses quantity+unit for time (e.g. "5 Heure") - same
-    -- two columns for both, no separate "hours" field.
-    type VARCHAR(20) NOT NULL,
-    -- Position within its section (not the whole document) - section
-    -- ordering itself is document_sections.position.
-    position INTEGER NOT NULL,
+    type VARCHAR(20) NOT NULL, -- MATERIAL/SERVICE, both priced via quantity+unit
+    position INTEGER NOT NULL, -- position within its section, not the whole document
     label VARCHAR(255) NOT NULL,
     quantity NUMERIC(10,2) NOT NULL,
     unit VARCHAR(50),
     unit_price NUMERIC(10,2) NOT NULL,
     discount NUMERIC(5,2) DEFAULT 0,
-    -- Which catalog resource this line was added from, if any (null for a
-    -- hand-typed line) - kept (unlike before) so an accepted quote's lines
-    -- can be turned into project_resources rows (see document.service.ts's
-    -- acceptQuoteServ). Doesn't drive display: label/unit_price above stay
-    -- the source of truth for what was actually printed on this document,
-    -- even if the resource is later renamed/repriced/archived.
-    resource_id INTEGER,
+    resource_id INTEGER, -- catalog resource this line came from, if any (null = hand-typed)
     is_active BOOLEAN DEFAULT TRUE,
 
     FOREIGN KEY (document_id)
@@ -397,11 +235,7 @@ CREATE TABLE document_lines (
 -- DOCUMENT TEMPLATES
 -- ==========================================
 
--- Default introduction/conclusion text per document type (e.g. a standard
--- "Vous trouverez ci-dessous la facture..." for INVOICE) - at most one row
--- per (company_id, type), applied client-side when that type is picked on a
--- new document (see document-form.ts/document-form-v2.ts), never touched
--- server-side otherwise.
+-- Default introduction/conclusion per document type, applied client-side.
 CREATE TABLE document_templates (
     id SERIAL PRIMARY KEY,
     company_id INTEGER NOT NULL,
@@ -412,6 +246,71 @@ CREATE TABLE document_templates (
 
     UNIQUE (company_id, type),
 
+    FOREIGN KEY (company_id)
+        REFERENCES companies(id)
+);
+
+-- ==========================================
+-- PROJECT
+-- ==========================================
+
+CREATE TABLE project_types (
+    id SERIAL PRIMARY KEY,
+    label VARCHAR(100) NOT NULL UNIQUE
+);
+
+-- Backed 1:1 by a PROJECT document (document_id) - its sections/lines are
+-- this project's resource ledger. This table just holds the rest: identity/lifecycle.
+CREATE TABLE projects (
+    id SERIAL PRIMARY KEY,
+    company_id INTEGER NOT NULL,
+    document_id INTEGER NOT NULL UNIQUE,
+    client_id INTEGER,
+    project_type_id INTEGER,
+    name VARCHAR(255) NOT NULL,
+    note TEXT,
+    same_address_as_client BOOLEAN NOT NULL DEFAULT TRUE,
+    street VARCHAR(255),
+    postal_code VARCHAR(20),
+    city VARCHAR(100),
+    country VARCHAR(100),
+    -- Work lifecycle, separate from is_active (archiving) - COMPLETED unlocks invoicing.
+    status VARCHAR(20) NOT NULL DEFAULT 'IN_PROGRESS'
+        CHECK (status IN ('IN_PROGRESS', 'COMPLETED')),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT TRUE,
+
+    FOREIGN KEY (document_id)
+        REFERENCES documents(id),
+    FOREIGN KEY (client_id)
+        REFERENCES clients(id),
+    FOREIGN KEY (project_type_id)
+        REFERENCES project_types(id)
+);
+
+-- ==========================================
+-- PROJECT ATTACHMENTS
+-- ==========================================
+
+-- Files attached to a project, stored in MinIO/S3 - no storage_key, the key
+-- is derived from company_id/project_id/id/filename.
+CREATE TABLE project_attachments (
+    id SERIAL PRIMARY KEY,
+    company_id INTEGER NOT NULL,
+    project_id INTEGER NOT NULL,
+    uploaded_by INTEGER,
+    filename VARCHAR(255) NOT NULL,
+    mime_type VARCHAR(100) NOT NULL,
+    size_bytes INTEGER NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT TRUE,
+
+    FOREIGN KEY (project_id)
+        REFERENCES projects(id)
+        ON DELETE CASCADE,
+    FOREIGN KEY (uploaded_by)
+        REFERENCES users(id)
+        ON DELETE SET NULL,
     FOREIGN KEY (company_id)
         REFERENCES companies(id)
 );

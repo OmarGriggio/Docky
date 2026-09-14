@@ -11,11 +11,6 @@ export const getAddressesByClientIdFromDB = async (client_id: number) => {
   return result.rows;
 };
 
-export const getAddressesBySupplierIdFromDB = async (supplier_id: number) => {
-  const result = await pool.query("SELECT * FROM addresses WHERE supplier_id = $1", [supplier_id]);
-  return result.rows;
-};
-
 export const getAddressByIdFromDB = async (id: number, company_id: number) => {
   const result = await pool.query(
     "SELECT * FROM addresses WHERE id = $1 AND company_id = $2",
@@ -42,13 +37,6 @@ export const unsetPrimaryForClientInDB = async (client_id: number, company_id: n
   );
 };
 
-export const unsetPrimaryForSupplierInDB = async (supplier_id: number, company_id: number) => {
-  await pool.query(
-    "UPDATE addresses SET is_primary = false WHERE supplier_id = $1 AND company_id = $2 AND is_primary = true",
-    [supplier_id, company_id]
-  );
-};
-
 export const createAddressInDB = async (
   address: Omit<Address, "id">
 ): Promise<Address> => {
@@ -56,7 +44,6 @@ export const createAddressInDB = async (
     INSERT INTO addresses (
       company_id,
       client_id,
-      supplier_id,
       is_primary,
       attention,
       street,
@@ -64,14 +51,13 @@ export const createAddressInDB = async (
       city,
       country
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     RETURNING *;
   `;
 
   const values = [
     address.company_id,
     address.client_id,
-    address.supplier_id,
     address.is_primary,
     address.attention,
     address.street,

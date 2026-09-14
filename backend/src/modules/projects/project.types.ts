@@ -5,6 +5,11 @@ export type ProjectStatus = "IN_PROGRESS" | "COMPLETED";
 export interface Project {
   id: number;
   company_id: number;
+  // The PROJECT-type document backing this chantier - its own
+  // document_sections/document_lines are this project's resource ledger
+  // (see document.service.ts's acceptQuoteServ and project.service.ts's
+  // addProjectServ, which both create that document before this row).
+  document_id: number;
   client_id: number | null;
   project_type_id: number | null;
   name: string;

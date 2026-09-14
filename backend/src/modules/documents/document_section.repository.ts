@@ -35,9 +35,11 @@ export const createSectionInDB = async (
       position,
       title,
       description,
+      date_start,
+      date_end,
       is_active
     )
-    VALUES ($1, $2, $3, $4, $5, $6)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     RETURNING *;
   `;
 
@@ -47,6 +49,8 @@ export const createSectionInDB = async (
     section.position,
     section.title,
     section.description,
+    section.date_start,
+    section.date_end,
     section.is_active
   ];
 

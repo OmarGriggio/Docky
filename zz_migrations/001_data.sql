@@ -42,56 +42,13 @@ VALUES
 
 -- One per client here, so each is its client's only (and therefore primary) address.
 INSERT INTO addresses
-(company_id, client_id, supplier_id, is_primary, street, postal_code, city, country)
+(company_id, client_id, is_primary, street, postal_code, city, country)
 VALUES
-(1, 1, NULL, TRUE, 'Rue de Lausanne 12', '1000', 'Lausanne', 'Suisse'),
-(1, 2, NULL, TRUE, 'Route de Genève 5', '1007', 'Lausanne', 'Suisse'),
-(1, 3, NULL, TRUE, 'Rue Centrale 18', '1020', 'Renens', 'Suisse'),
-(1, 4, NULL, TRUE, 'Chemin du Bois 45', '1008', 'Prilly', 'Suisse'),
-(1, 5, NULL, TRUE, 'Avenue des Alpes 9', '1800', 'Vevey', 'Suisse');
-
--- ==========================================
--- PROJECTS
--- ==========================================
-
-INSERT INTO project_types (label)
-VALUES
-('Porte'),
-('Cuisines'),
-('Salle de bain'),
-('Réparation'),
-('Isolation'),
-('Autre');
-
--- Projects 1 and 2 are COMPLETED: they exist because quotes OFF-2026-0001/
--- 0002 (below) were accepted, which is what actually creates a project now
--- (see document.service.ts's acceptQuoteServ) - a QUOTE itself can never
--- pick an existing project. Projects 3 and 4 are still IN_PROGRESS, created
--- by hand (project-form.ts), no quote yet.
-INSERT INTO projects (company_id, client_id, project_type_id, name, same_address_as_client, street, postal_code, city, country, status)
-VALUES
-(1, 1, 1, 'Réparation de porte de cave', FALSE, 'Rue de la gare 2', '2500', 'Lausanne', 'Suisse', 'COMPLETED'),
-(1, 1, 2, 'Création de cuisine sur mesure', FALSE, 'Rue de Génève 2', '3300', 'Geneve', 'Suisse', 'COMPLETED'),
-(1, 2, 3, 'Réparation de meuble de salle de bain', TRUE, NULL, NULL, NULL, NULL, 'IN_PROGRESS'),
-(1, 2, 4, 'Posage de l''isolation', TRUE, NULL, NULL, NULL, NULL, 'IN_PROGRESS');
-
--- ==========================================
--- SUPPLIERS
--- ==========================================
-
-INSERT INTO suppliers
-(company_id, supplier_code, name, category)
-VALUES
-(1, 'F001', 'Hornbach', 'Matériaux'),
-(1, 'F002', 'Jumbo', 'Bricolage'),
-(1, 'F003', 'Sanitas Troesch', 'Sanitaire');
-
-INSERT INTO addresses
-(company_id, client_id, supplier_id, is_primary, street, postal_code, city, country)
-VALUES
-(1, NULL, 1, TRUE, 'Route de Villeneuve 1', '1844', 'Villeneuve', 'Suisse'),
-(1, NULL, 2, TRUE, 'Avenue de la Gare 10', '1023', 'Crissier', 'Suisse'),
-(1, NULL, 3, TRUE, 'Chemin du Croset 20', '1023', 'Crissier', 'Suisse');
+(1, 1, TRUE, 'Rue de Lausanne 12', '1000', 'Lausanne', 'Suisse'),
+(1, 2, TRUE, 'Route de Genève 5', '1007', 'Lausanne', 'Suisse'),
+(1, 3, TRUE, 'Rue Centrale 18', '1020', 'Renens', 'Suisse'),
+(1, 4, TRUE, 'Chemin du Bois 45', '1008', 'Prilly', 'Suisse'),
+(1, 5, TRUE, 'Avenue des Alpes 9', '1800', 'Vevey', 'Suisse');
 
 -- ==========================================
 -- RESOURCES
@@ -114,78 +71,40 @@ VALUES
 (1, NULL, 'SERVICE', 'DIV002', 'Location nacelle', 'Jour', 250.00, 180.00);
 
 -- ==========================================
--- PROJECT RESOURCES
--- ==========================================
-
-INSERT INTO project_resources
-(company_id, project_id, resource_id, quantity, unit_price)
-VALUES
-
--- Réparation de porte de cave: quantities/prices auto-derived from quote
--- OFF-2026-0001's own lines when it was accepted (see acceptQuoteServ) -
--- ciment adjusted up by hand afterwards (22 used on site vs. 20 quoted, the
--- "plus d'heures que prévu" case), maçon unchanged. Déplacement was added by
--- hand mid-chantier, not part of the original quote at all.
-(1, 1, 1, 22, 15.00),
-(1, 1, 5, 5, 95.00),
-(1, 1, 8, 1, 60.00),
-
--- Création de cuisine sur mesure: matches quote OFF-2026-0002's lines
--- exactly, no adjustment needed on this one - already invoiced as
--- FAC-2026-0001.
-(1, 2, 2, 300, 4.50),
-(1, 2, 5, 6, 95.00),
-(1, 2, 8, 1, 60.00),
-
--- Réparation de meuble de salle de bain: still IN_PROGRESS, no quote behind
--- it - linked by hand (tube PVC, maçon), nothing used on site yet (quantity
--- 0, same default linkResourceToProjectServ itself uses), priced at the
--- catalog's current price.
-(1, 3, 3, 0, 22.00),
-(1, 3, 5, 0, 95.00),
-
--- Posage de l'isolation: same idea (apprenti, location nacelle).
-(1, 4, 6, 0, 55.00),
-(1, 4, 9, 0, 250.00);
-
--- ==========================================
--- RESOURCE SUPPLIER PRICES
--- ==========================================
-
-INSERT INTO resource_supplier_prices
-(company_id, resource_id, supplier_id, purchase_price, discount, delivery_time, is_default)
-VALUES
-(1, 1, 1, 8.20, 5, 2, TRUE),
-(1, 2, 1, 2.70, 3, 2, TRUE),
-(1, 3, 2, 14.50, 0, 1, TRUE),
-(1, 4, 2, 68.00, 10, 3, TRUE),
-(1, 3, 3, 15.20, 5, 5, FALSE);
-
--- ==========================================
 -- DOCUMENTS
 -- ==========================================
 
 -- amount_excl_vat/amount_incl_vat below match what the app itself would compute
 -- from the lines further down (sum of each line's own total, then the document's
 -- own discount% applied on top — see recomputeDocumentTotalsServ). amount_incl_vat
--- equals amount_excl_vat since no VAT rate is modelled anywhere yet. Kept in sync
--- by hand here since this file bypasses the API — if you change a line below,
--- update the matching document's amounts too.
--- Quotes never carry a project_id at creation (see document.service.ts's
--- addDocumentServ) - the two below already have one because they're
--- ACCEPTED, which is what created projects 1/2 in the first place. Invoices
--- FAC-2026-0001/0002 point to those same (now COMPLETED) projects.
+-- equals amount_excl_vat since no VAT rate is used in this seed. Kept in sync by
+-- hand here since this file bypasses the API — if you change a line below, update
+-- the matching document's amounts too. address_id/reference_client/vat_rate are
+-- left at their defaults (NULL/NULL/0) throughout.
+--
+-- Ids 1-2 are the two quotes; 3-6 are the PROJECT document each accepted quote (or
+-- manual chantier) is backed by (see document.service.ts's acceptQuoteServ and
+-- project.service.ts's addProjectServ); 7-8 are the two invoices, each pointing at
+-- the PROJECT document it bills via parent_document_id. A PROJECT document's own
+-- parent_document_id is the quote it came from, or NULL for a manually-created
+-- chantier (projects 3/4 below).
 INSERT INTO documents
-(company_id, client_id, project_id, parent_document_id, type, number, date, amount_excl_vat, amount_incl_vat, discount, status, introduction, conclusion)
+(company_id, client_id, parent_document_id, type, number, date, amount_excl_vat, amount_incl_vat, discount, status, introduction, conclusion)
 VALUES
-(1, 1, 1, NULL, 'QUOTE', 'OFF-2026-0001', '2026-07-10', 775.00, 775.00, 0, 'ACCEPTED', NULL, NULL),
-(1, 3, 2, NULL, 'QUOTE', 'OFF-2026-0002', '2026-07-11', 1881.00, 1881.00, 5, 'ACCEPTED', NULL, NULL),
-(1, 3, 2, 2, 'INVOICE', 'FAC-2026-0001', '2026-07-15', 1881.00, 1881.00, 5, 'PAID',
+(1, 1, NULL, 'QUOTE', 'OFF-2026-0001', '2026-07-10', 775.00, 775.00, 0, 'ACCEPTED', NULL, NULL),
+(1, 3, NULL, 'QUOTE', 'OFF-2026-0002', '2026-07-11', 1881.00, 1881.00, 5, 'ACCEPTED', NULL, NULL),
+
+(1, 1, 1, 'PROJECT', 'CH-2026-0001', '2026-07-12', 865.00, 865.00, 0, NULL, NULL, NULL),
+(1, 3, 2, 'PROJECT', 'CH-2026-0002', '2026-07-13', 1980.00, 1980.00, 0, NULL, NULL, NULL),
+(1, 2, NULL, 'PROJECT', 'CH-2026-0003', '2026-08-01', 0, 0, 0, NULL, NULL, NULL),
+(1, 2, NULL, 'PROJECT', 'CH-2026-0004', '2026-08-02', 0, 0, 0, NULL, NULL, NULL),
+
+(1, 3, 4, 'INVOICE', 'FAC-2026-0001', '2026-07-15', 1881.00, 1881.00, 5, 'PAID',
 	'Nous avons le plaisir de vous soumettre la facture suivante.',
 	'Nous vous remercions de votre confiance et restons à votre disposition pour toute information complémentaire.
 
 	Avec nos meilleures salutations.'),
-(1, 1, 1, 1, 'INVOICE', 'FAC-2026-0002', '2026-08-05', 865.00, 865.00, 0, 'SENT',
+(1, 1, 3, 'INVOICE', 'FAC-2026-0002', '2026-08-05', 865.00, 865.00, 0, 'SENT',
 	'Nous avons le plaisir de vous soumettre la facture suivante.',
 	'Nous vous remercions de votre confiance et restons à votre disposition pour toute information complémentaire.
 
@@ -195,7 +114,7 @@ VALUES
 -- DOCUMENT SECTIONS
 -- ==========================================
 
--- One section per document for now (ids 1/2/3/4, in insertion order below) -
+-- One "Travaux" section per document above (ids 1-8, same order) -
 -- document_lines references these by id further down.
 INSERT INTO document_sections
 (company_id, document_id, position, title)
@@ -203,39 +122,64 @@ VALUES
 (1, 1, 1, 'Travaux'),
 (1, 2, 1, 'Travaux'),
 (1, 3, 1, 'Travaux'),
-(1, 4, 1, 'Travaux');
+(1, 4, 1, 'Travaux'),
+(1, 5, 1, 'Travaux'),
+(1, 6, 1, 'Travaux'),
+(1, 7, 1, 'Travaux'),
+(1, 8, 1, 'Travaux');
 
 -- ==========================================
 -- DOCUMENT LINES
 -- ==========================================
 
--- resource_id links each line to the catalog resource it was added from
--- (see acceptQuoteServ) - matches resources' insertion order above (1 Sac
--- ciment, 2 Parpaing, 5 Maçon qualifié, 8 Déplacement).
+-- resource_id matches resources' insertion order above (1 Sac ciment,
+-- 2 Parpaing, 3 Tube PVC, 5 Maçon qualifié, 6 Apprenti, 8 Déplacement,
+-- 9 Location nacelle).
 INSERT INTO document_lines
 (company_id, document_id, section_id, type, position, label, quantity, unit, unit_price, discount, resource_id)
 VALUES
 
--- Quote 1 (775.00) - section "Travaux" (id 1)
+-- Quote 1 (775.00) - section 1
 (1, 1, 1, 'MATERIAL', 1, 'Sac ciment 25kg', 20, 'Sac', 15, 0, 1),
 (1, 1, 1, 'SERVICE', 2, 'Maçon qualifié', 5, 'Heure', 95, 0, 5),
 
--- Quote 2 (1980 - 5% = 1881.00) - section "Travaux" (id 2)
+-- Quote 2 (1980 - 5% = 1881.00) - section 2
 (1, 2, 2, 'MATERIAL', 1, 'Parpaing 20 cm', 300, 'Pièce', 4.50, 0, 2),
 (1, 2, 2, 'SERVICE', 2, 'Maçon qualifié', 6, 'Heure', 95, 0, 5),
 (1, 2, 2, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 60, 0, 8),
 
--- Invoice issued from quote 2 / project 2 (same lines, same total) - section "Travaux" (id 3)
-(1, 3, 3, 'MATERIAL', 1, 'Parpaing 20 cm', 300, 'Pièce', 4.50, 0, 2),
-(1, 3, 3, 'SERVICE', 2, 'Maçon qualifié', 6, 'Heure', 95, 0, 5),
+-- PROJECT CH-2026-0001 (865.00) - section 3. Real quantities used on site,
+-- adjusted by hand from quote 1's own (20 sacs -> 22, déplacement added).
+(1, 3, 3, 'MATERIAL', 1, 'Sac ciment 25kg', 22, 'Sac', 15, 0, 1),
+(1, 3, 3, 'SERVICE', 2, 'Maçon qualifié', 5, 'Heure', 95, 0, 5),
 (1, 3, 3, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 60, 0, 8),
 
--- Invoice issued from project 1 once completed (865.00) - section "Travaux"
--- (id 4). Real quantities used on site (see project_resources), not the
--- original quote's (20 sacs, no déplacement).
-(1, 4, 4, 'MATERIAL', 1, 'Sac ciment 25kg', 22, 'Sac', 15, 0, 1),
-(1, 4, 4, 'SERVICE', 2, 'Maçon qualifié', 5, 'Heure', 95, 0, 5),
-(1, 4, 4, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 60, 0, 8);
+-- PROJECT CH-2026-0002 (1980.00) - section 4. Matches quote 2's lines
+-- exactly, no adjustment needed on this one - already invoiced below.
+(1, 4, 4, 'MATERIAL', 1, 'Parpaing 20 cm', 300, 'Pièce', 4.50, 0, 2),
+(1, 4, 4, 'SERVICE', 2, 'Maçon qualifié', 6, 'Heure', 95, 0, 5),
+(1, 4, 4, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 60, 0, 8),
+
+-- PROJECT CH-2026-0003 (0.00) - section 5. Still IN_PROGRESS, no quote
+-- behind it - linked by hand, nothing used on site yet.
+(1, 5, 5, 'MATERIAL', 1, 'Tube PVC Ø100', 0, 'm', 22.00, 0, 3),
+(1, 5, 5, 'SERVICE', 2, 'Maçon qualifié', 0, 'Heure', 95, 0, 5),
+
+-- PROJECT CH-2026-0004 (0.00) - section 6. Same idea (apprenti, nacelle).
+(1, 6, 6, 'SERVICE', 1, 'Apprenti', 0, 'Heure', 55, 0, 6),
+(1, 6, 6, 'SERVICE', 2, 'Location nacelle', 0, 'Jour', 250, 0, 9),
+
+-- Invoice FAC-2026-0001 (1881.00), bills PROJECT CH-2026-0002 - section 7,
+-- same lines as that project.
+(1, 7, 7, 'MATERIAL', 1, 'Parpaing 20 cm', 300, 'Pièce', 4.50, 0, 2),
+(1, 7, 7, 'SERVICE', 2, 'Maçon qualifié', 6, 'Heure', 95, 0, 5),
+(1, 7, 7, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 60, 0, 8),
+
+-- Invoice FAC-2026-0002 (865.00), bills PROJECT CH-2026-0001 - section 8,
+-- same lines as that project.
+(1, 8, 8, 'MATERIAL', 1, 'Sac ciment 25kg', 22, 'Sac', 15, 0, 1),
+(1, 8, 8, 'SERVICE', 2, 'Maçon qualifié', 5, 'Heure', 95, 0, 5),
+(1, 8, 8, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 60, 0, 8);
 
 -- ==========================================
 -- DOCUMENT TEMPLATES
@@ -253,3 +197,28 @@ VALUES
 	'Nous vous remercions pour votre confiance et vous souhaitons, Madame, Monsieur, nos salutations les meilleures.
 
                                                                                                           Nom de l''entreprise');
+
+-- ==========================================
+-- PROJECTS
+-- ==========================================
+
+INSERT INTO project_types (label)
+VALUES
+('Porte'),
+('Cuisines'),
+('Salle de bain'),
+('Réparation'),
+('Isolation'),
+('Autre');
+
+-- document_id points at each project's own PROJECT document above (ids
+-- 3-6) - that document's own sections/lines (see DOCUMENT LINES above) are
+-- this project's resource ledger. Projects 1/2 are COMPLETED (their quote
+-- was accepted, see acceptQuoteServ); 3/4 are still IN_PROGRESS, created by
+-- hand (project-form.ts), no quote behind them.
+INSERT INTO projects (company_id, document_id, client_id, project_type_id, name, same_address_as_client, street, postal_code, city, country, status)
+VALUES
+(1, 3, 1, 1, 'Réparation de porte de cave', FALSE, 'Rue de la gare 2', '2500', 'Lausanne', 'Suisse', 'COMPLETED'),
+(1, 4, 3, 2, 'Création de cuisine sur mesure', FALSE, 'Rue de Génève 2', '3300', 'Geneve', 'Suisse', 'COMPLETED'),
+(1, 5, 2, 3, 'Réparation de meuble de salle de bain', TRUE, NULL, NULL, NULL, NULL, 'IN_PROGRESS'),
+(1, 6, 2, 4, 'Posage de l''isolation', TRUE, NULL, NULL, NULL, NULL, 'IN_PROGRESS');

@@ -79,21 +79,14 @@ export const unarchiveDocumentInDB = async (id: number, company_id: number): Pro
   return result.rows[0];
 };
 
-// Both set together, atomically - a quote can't end up ACCEPTED without its
-// new project actually being attached (see document.service.ts's
-// acceptQuoteServ, which creates that project first and passes its id here).
-export const acceptDocumentInDB = async (
-  id: number,
-  company_id: number,
-  project_id: number
-): Promise<Document> => {
+export const acceptDocumentInDB = async (id: number, company_id: number): Promise<Document> => {
   const query = `
-    UPDATE documents SET status = 'ACCEPTED', project_id = $1
-      WHERE id = $2 AND company_id = $3
+    UPDATE documents SET status = 'ACCEPTED'
+      WHERE id = $1 AND company_id = $2
     RETURNING *;
   `;
 
-  const result = await pool.query(query, [project_id, id, company_id]);
+  const result = await pool.query(query, [id, company_id]);
   return result.rows[0];
 };
 
@@ -105,19 +98,23 @@ export const updateDocumentInDB = async (
   const query = `
     UPDATE documents SET
       client_id = $1,
-      date = $2,
-      discount = $3,
-      vat_rate = $4,
-      introduction = $5,
-      conclusion = $6,
-      payment_terms = $7,
-      due_date = $8
-      WHERE id = $9 AND company_id = $10
+      address_id = $2,
+      reference_client = $3,
+      date = $4,
+      discount = $5,
+      vat_rate = $6,
+      introduction = $7,
+      conclusion = $8,
+      payment_terms = $9,
+      due_date = $10
+      WHERE id = $11 AND company_id = $12
     RETURNING *;
   `;
 
   const values = [
     data.client_id,
+    data.address_id,
+    data.reference_client,
     data.date,
     data.discount,
     data.vat_rate,
@@ -140,7 +137,8 @@ export const createDocumentInDB = async (
     INSERT INTO documents (
       company_id,
       client_id,
-      project_id,
+      address_id,
+      reference_client,
       parent_document_id,
       type,
       number,
@@ -155,14 +153,15 @@ export const createDocumentInDB = async (
       payment_terms,
       due_date
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
     RETURNING *;
   `;
 
   const values = [
     document.company_id,
     document.client_id,
-    document.project_id,
+    document.address_id,
+    document.reference_client,
     document.parent_document_id,
     document.type,
     document.number,
