@@ -26,8 +26,20 @@ const buildSections = (document: DocumentComplete): QuoteSectionDto[] => {
         .filter(section => section.lines.length > 0);
 };
 
+// Same rule as invoice.dto.ts's resolveAddress - documents.address_id picks
+// a specific one of the client's addresses, falling back to their primary.
+const resolveAddress = (document: DocumentComplete, client: ClientWithAddresses) => {
+    if (document.address_id !== null) {
+        const chosen = client.addresses.find(a => a.id === document.address_id);
+        if (chosen) {
+            return chosen;
+        }
+    }
+    return client.addresses.find(a => a.is_primary) ?? client.addresses[0];
+};
+
 export const createQuoteDto = (document: DocumentComplete, client: ClientWithAddresses, company: Company): QuoteDto => {
-    const address = client.addresses[0];
+    const address = resolveAddress(document, client);
 
     return {
         number: document.number,

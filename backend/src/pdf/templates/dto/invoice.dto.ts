@@ -28,8 +28,22 @@ const buildSections = (document: DocumentComplete): InvoiceSectionDto[] => {
         .filter(section => section.lines.length > 0);
 };
 
+// documents.address_id picks a specific one of the client's addresses (set
+// when the document was created/edited); falls back to the client's own
+// primary address if unset, same rule the column's own comment in
+// zz_migrations/000_base.sql describes.
+const resolveAddress = (document: DocumentComplete, client: ClientWithAddresses) => {
+    if (document.address_id !== null) {
+        const chosen = client.addresses.find(a => a.id === document.address_id);
+        if (chosen) {
+            return chosen;
+        }
+    }
+    return client.addresses.find(a => a.is_primary) ?? client.addresses[0];
+};
+
 export const createInvoiceDto = (document: DocumentComplete, client: ClientWithAddresses, company: Company): InvoiceDto => {
-    const address = client.addresses[0];
+    const address = resolveAddress(document, client);
 
     const data: InvoiceDto = {
         number: document.number,
