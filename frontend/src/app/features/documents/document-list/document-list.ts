@@ -1,6 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { forkJoin } from 'rxjs';
 import { TableModule, TableRowExpandEvent } from 'primeng/table';
 import { Toolbar } from 'primeng/toolbar';
 import { Button } from 'primeng/button';
@@ -9,8 +10,10 @@ import { Checkbox } from 'primeng/checkbox';
 import { MenuItem } from 'primeng/api';
 import { DocumentService } from '../document.service';
 import { DocumentSectionService } from '../document-section.service';
+import { DocumentLineService } from '../document-line.service';
 import { Document, DocumentType } from '../../../shared/models/document';
 import { DocumentSection } from '../../../shared/models/document-section';
+import { DocumentLine } from '../../../shared/models/document-line';
 import { ClientService } from '../../clients/client.service';
 import { Client } from '../../../shared/models/client';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
@@ -25,6 +28,12 @@ const TYPE_LABELS: Record<DocumentType, string> = {
   'PROJECT': 'Chantiers',
 };
 
+// Stable shared reference for "no lines yet" - handing linesFor()'s nested
+// p-table a freshly-allocated [] on every call (there's one every change
+// detection cycle) would look like new data each time and make it redo its
+// internal work non-stop. Reused instead of allocated.
+const EMPTY_LINES: DocumentLine[] = [];
+
 @Component({
   selector: 'app-document-list',
   standalone: true,
@@ -37,6 +46,7 @@ export class DocumentListComponent implements OnInit {
   private router = inject(Router);
   private documentService = inject(DocumentService);
   private documentSectionService = inject(DocumentSectionService);
+  private documentLineService = inject(DocumentLineService);
   private clientService = inject(ClientService);
 
   documents = signal<Document[]>([]);
@@ -64,13 +74,26 @@ export class DocumentListComponent implements OnInit {
   acceptConfirmVisible = signal(false);
   private documentPendingAccept: Document | null = null;
 
-  // Expandable rows (see document-list.html) - a document's sections are
-  // fetched lazily the first time its row is expanded, not preloaded for
-  // every row up front, and kept around after that so collapsing/expanding
-  // again doesn't refetch.
+  // Expandable rows (see document-list.html) - a document's sections and
+  // lines are fetched together, lazily, the first time its row is expanded,
+  // not preloaded for every row up front, and kept around after that so
+  // collapsing/expanding again doesn't refetch.
   expandedRowKeys: Record<number, boolean> = {};
   private sectionsByDocumentId = new Map<number, DocumentSection[]>();
+  // Grouped by section id (unique table-wide, same reasoning as
+  // sectionExpandedRowKeys below) rather than by document id, and grouped
+  // once up front when the data arrives - so linesFor() below is a plain
+  // lookup returning the same array reference every time, not a re-filter
+  // on every change detection cycle (see EMPTY_LINES for why that matters).
+  private linesBySectionId = new Map<number, DocumentLine[]>();
   private loadingSectionIds = new Set<number>();
+
+  // Nested expandable rows for a document's own sections (one level down,
+  // to reveal that section's lines). Section ids are unique across the
+  // whole table regardless of which document they belong to, so a single
+  // flat map works for every document's nested sections-table at once -
+  // no per-document scoping needed.
+  sectionExpandedRowKeys: Record<number, boolean> = {};
 
   ngOnInit(): void {
     this.route.queryParamMap.subscribe(params => {
@@ -205,9 +228,15 @@ export class DocumentListComponent implements OnInit {
     }
 
     this.loadingSectionIds.add(document.id);
-    this.documentSectionService.getSections(document.id).subscribe({
-      next: sections => {
+    forkJoin({
+      sections: this.documentSectionService.getSections(document.id),
+      lines: this.documentLineService.getLines(document.id)
+    }).subscribe({
+      next: ({ sections, lines }) => {
         this.sectionsByDocumentId.set(document.id, sections);
+        for (const section of sections) {
+          this.linesBySectionId.set(section.id, lines.filter(line => line.section_id === section.id));
+        }
         this.loadingSectionIds.delete(document.id);
       },
       error: err => {
@@ -223,6 +252,10 @@ export class DocumentListComponent implements OnInit {
 
   sectionsFor(document: Document): DocumentSection[] {
     return this.sectionsByDocumentId.get(document.id) ?? [];
+  }
+
+  linesFor(section: DocumentSection): DocumentLine[] {
+    return this.linesBySectionId.get(section.id) ?? EMPTY_LINES;
   }
 
   openPdf(document: Document): void {

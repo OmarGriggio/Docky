@@ -61,16 +61,71 @@
         } @else if (sectionsFor(document).length === 0) {
           <p class="text-sm text-surface-500 m-0">Aucune section.</p>
         } @else {
-          <ul class="flex flex-col gap-1 m-0 pl-4">
-            @for (section of sectionsFor(document); track section.id) {
-              <li>
-                <span class="font-medium">{{ section.title }}</span>
-                @if (section.description) {
-                  <span class="text-sm text-surface-500"> — {{ section.description }}</span>
-                }
-              </li>
-            }
-          </ul>
+          <!-- Nested expandable table: a section's own row can be expanded
+               again to reveal its lines (the #expandedrow just below, this
+               table's own). sectionExpandedRowKeys is shared across every
+               document's nested table - section ids are unique table-wide. -->
+          <p-table [value]="sectionsFor(document)" dataKey="id" [expandedRowKeys]="sectionExpandedRowKeys" class="p-datatable-sm">
+            <ng-template #header>
+              <tr>
+                <th style="width: 3rem"></th>
+                <th>Section</th>
+                <th>Période</th>
+              </tr>
+            </ng-template>
+
+            <ng-template #body let-section>
+              <tr>
+                <td>
+                  <p-button
+                    type="button" [text]="true" size="small"
+                    [icon]="sectionExpandedRowKeys[section.id] ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+                    [pRowToggler]="section"
+                  />
+                </td>
+                <td>
+                  <span class="font-medium">{{ section.title }}</span>
+                  @if (section.description) {
+                    <span class="text-sm text-surface-500"> — {{ section.description }}</span>
+                  }
+                </td>
+                <td>
+                  @if (section.date_start || section.date_end) {
+                    {{ section.date_start | appDate }} – {{ section.date_end | appDate }}
+                  }
+                </td>
+              </tr>
+            </ng-template>
+
+            <ng-template #expandedrow let-section>
+              <tr>
+                <td colspan="3">
+                  @if (linesFor(section).length === 0) {
+                    <p class="text-sm text-surface-500 m-0">Aucune ligne.</p>
+                  } @else {
+                    <p-table [value]="linesFor(section)" class="p-datatable-sm">
+                      <ng-template #header>
+                        <tr>
+                          <th>Désignation</th>
+                          <th>Quantité</th>
+                          <th>Unité</th>
+                          <th>Prix unitaire</th>
+                        </tr>
+                      </ng-template>
+                      <ng-template #body let-line>
+                        <tr>
+                          <td>{{ line.label }}</td>
+                          <td>{{ line.quantity }}</td>
+                          <td>{{ line.unit }}</td>
+                          <td>{{ line.unit_price }}</td>
+                        </tr>
+                      </ng-template>
+                    </p-table>
+                  }
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
         }
       </td>
     </tr>
