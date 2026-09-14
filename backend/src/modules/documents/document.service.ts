@@ -234,15 +234,13 @@ export const acceptQuoteServ = async (id: number, company_id: number) => {
 
   await recomputeDocumentTotalsServ(projectDocument.id, company_id);
 
-  // Starts as "same address as client", like a manually-created project's
-  // own default (project-form.ts) - no street/city of its own yet, editable
-  // by hand afterwards from the project list.
+  // The chantier's own address lives on its PROJECT document (address_id,
+  // copied from the quote above) now, not duplicated on this row.
   await createProjectInDB({
     company_id,
     document_id: projectDocument.id,
     client_id: quote.client_id,
     name: clientDisplayName(client),
-    same_address_as_client: true,
   });
 
   return await acceptDocumentInDB(id, company_id);

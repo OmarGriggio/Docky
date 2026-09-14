@@ -14,11 +14,6 @@ export interface Project {
   project_type_id: number | null;
   name: string;
   note: string | null;
-  same_address_as_client: boolean;
-  street: string | null;
-  postal_code: string | null;
-  city: string | null;
-  country: string | null;
   status: ProjectStatus;
   created_at: Date;
   is_active: boolean;
@@ -33,9 +28,12 @@ export interface CreateProjectData {
   project_type_id?: number | null;
   name: string;
   note?: string | null;
-  same_address_as_client: boolean;
-  street?: string | null;
-  postal_code?: string | null;
-  city?: string | null;
-  country?: string | null;
+}
+
+// Only the chantier's own identity fields - client/status/document_id each
+// have their own dedicated flow (or none at all: which client/document a
+// project is for never changes once created).
+export interface UpdateProjectData {
+  name: string;
+  project_type_id: number | null;
 }

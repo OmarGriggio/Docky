@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createProject, archiveProject, unarchiveProject, completeProject, getProjects, getProjectById } from "./project.controller";
+import { createProject, updateProject, archiveProject, unarchiveProject, completeProject, getProjects, getProjectById } from "./project.controller";
 import { authenticate } from "../../shared/middlewares/auth.middleware";
 
 const router = Router();
@@ -11,6 +11,8 @@ router.get("/", getProjects);
 router.get("/:id", getProjectById);
 
 router.post("/", createProject);
+
+router.put("/:id", updateProject);
 
 router.patch("/:id/archive", archiveProject);
 

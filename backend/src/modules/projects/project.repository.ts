@@ -1,16 +1,21 @@
 import { pool } from "../../shared/config/database";
-import { Project, CreateProjectData } from "./project.types";
+import { Project, CreateProjectData, UpdateProjectData } from "./project.types";
 
+// Without an explicit ORDER BY, Postgres doesn't guarantee row order at all
+// - two calls back-to-back (list, then reload right after a save) can come
+// back differently ordered, which reads as the table shuffling itself.
 export const getProjectsFromDB = async (company_id: number, includeArchived = false) => {
   const query = includeArchived
     ? `SELECT p.*, pt.label AS project_type
        FROM projects p
        LEFT JOIN project_types pt ON pt.id = p.project_type_id
-       WHERE p.company_id = $1`
+       WHERE p.company_id = $1
+       ORDER BY p.id`
     : `SELECT p.*, pt.label AS project_type
        FROM projects p
        LEFT JOIN project_types pt ON pt.id = p.project_type_id
-       WHERE p.company_id = $1 AND p.is_active = true`;
+       WHERE p.company_id = $1 AND p.is_active = true
+       ORDER BY p.id`;
   const result = await pool.query(query, [company_id]);
   return result.rows;
 };
@@ -47,14 +52,9 @@ export const createProjectInDB = async (
       client_id,
       project_type_id,
       name,
-      note,
-      same_address_as_client,
-      street,
-      postal_code,
-      city,
-      country
+      note
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    VALUES ($1, $2, $3, $4, $5, $6)
     RETURNING *;
   `;
 
@@ -64,15 +64,27 @@ export const createProjectInDB = async (
     project.client_id,
     project.project_type_id,
     project.name,
-    project.note ?? null,
-    project.same_address_as_client,
-    project.street ?? null,
-    project.postal_code ?? null,
-    project.city ?? null,
-    project.country ?? null
+    project.note ?? null
   ];
 
   const result = await pool.query(query, values);
+  return result.rows[0];
+};
+
+export const updateProjectInDB = async (
+  id: number,
+  company_id: number,
+  data: UpdateProjectData
+): Promise<Project> => {
+  const query = `
+    UPDATE projects SET
+      name = $1,
+      project_type_id = $2
+      WHERE id = $3 AND company_id = $4
+    RETURNING *;
+  `;
+
+  const result = await pool.query(query, [data.name, data.project_type_id, id, company_id]);
   return result.rows[0];
 };
 

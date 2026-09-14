@@ -2,11 +2,12 @@ import {
   getProjectsFromDB,
   getProjectByIdFromDB,
   createProjectInDB,
+  updateProjectInDB,
   archiveProjectInDB,
   unarchiveProjectInDB,
   completeProjectInDB
 } from "./project.repository";
-import { CreateProjectData } from "./project.types";
+import { CreateProjectData, UpdateProjectData } from "./project.types";
 import { createDocumentInDB } from "../documents/document.repository";
 import { generateDocumentNumber } from "../documents/document.service";
 import { AppError, NotFoundError } from "../../shared/types/errors";
@@ -58,6 +59,14 @@ export const addProjectServ = async (projectData: CreateProjectData, company_id:
   });
 
   return await createProjectInDB({ ...projectData, company_id, document_id: document.id });
+};
+
+export const updateProjectServ = async (id: number, company_id: number, data: UpdateProjectData) => {
+  const project = await getProjectByIdFromDB(id, company_id);
+  if (!project) {
+    throw new NotFoundError("Project not found");
+  }
+  return await updateProjectInDB(id, company_id, data);
 };
 
 export const archiveProjectServ = async (id: number, company_id: number) => {

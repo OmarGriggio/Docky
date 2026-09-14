@@ -3,11 +3,12 @@ import {
   getAllProjectsServ,
   getProjectByIdServ,
   addProjectServ,
+  updateProjectServ,
   archiveProjectServ,
   unarchiveProjectServ,
   completeProjectServ
 } from "./project.service";
-import { CreateProjectData } from "./project.types";
+import { CreateProjectData, UpdateProjectData } from "./project.types";
 
 export const getProjects = async (req: Request, res: Response) => {
   const includeArchived = req.query.includeArchived === "true";
@@ -25,6 +26,13 @@ export const createProject = async (req: Request, res: Response) => {
 
   const projectCreated = await addProjectServ(projectData, req.user.company_id);
   res.json(projectCreated);
+};
+
+export const updateProject = async (req: Request, res: Response) => {
+  const projectData: UpdateProjectData = req.body;
+
+  const projectUpdated = await updateProjectServ(Number(req.params.id), req.user.company_id, projectData);
+  res.json(projectUpdated);
 };
 
 export const archiveProject = async (req: Request, res: Response) => {
