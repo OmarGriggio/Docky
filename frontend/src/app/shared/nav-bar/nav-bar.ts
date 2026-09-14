@@ -1,4 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
+import { Location } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../features/auth/auth.service';
 import { UserRole } from '../models/auth';
@@ -26,9 +27,18 @@ interface NavItem {
 export class NavBar {
 
   private authService = inject(AuthService);
+  private location = inject(Location);
 
   isAuthenticated = this.authService.isAuthenticated;
   currentUser = this.authService.currentUser;
+
+  // One global "Retour" in the nav-bar (itself present on every page,
+  // being part of the app shell - see app.ts) rather than a button
+  // repeated on each individual page template. Plain browser-history back,
+  // not a fixed route - it goes wherever the user actually came from.
+  goBack(): void {
+    this.location.back();
+  }
 
   navItems: NavItem[] = [
     {

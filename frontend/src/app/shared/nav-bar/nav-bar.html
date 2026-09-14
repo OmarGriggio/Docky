@@ -1,5 +1,10 @@
 @if (isAuthenticated()) {
   <nav>
+    <button type="button" class="nav-bar__icon-link nav-bar__back" (click)="goBack()">
+      <i class="pi pi-arrow-left"></i>
+      <span class="nav-bar__tooltip">Retour</span>
+    </button>
+
     @for (item of visibleNavItems(); track item.label) {
       @if (item.links.length > 1) {
         <details #group class="nav-bar__group">
