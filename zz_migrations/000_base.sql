@@ -22,8 +22,7 @@ CREATE TABLE companies (
 -- USERS
 -- ==========================================
 
-CREATE TABLE users
-(
+CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     company_id INTEGER NOT NULL,
     role VARCHAR(20) NOT NULL DEFAULT ('USER')
@@ -93,7 +92,7 @@ CREATE TABLE addresses (
     company_id INTEGER NOT NULL,
     client_id INTEGER NOT NULL,
     is_primary BOOLEAN NOT NULL DEFAULT FALSE,
-    Attention VARCHAR(100),
+    attention VARCHAR(100),
     street VARCHAR(100),
     postal_code VARCHAR(20),
     city VARCHAR(100),
@@ -269,11 +268,6 @@ CREATE TABLE projects (
     project_type_id INTEGER,
     name VARCHAR(255) NOT NULL,
     note TEXT,
-    same_address_as_client BOOLEAN NOT NULL DEFAULT TRUE,
-    street VARCHAR(255),
-    postal_code VARCHAR(20),
-    city VARCHAR(100),
-    country VARCHAR(100),
     -- Work lifecycle, separate from is_active (archiving) - COMPLETED unlocks invoicing.
     status VARCHAR(20) NOT NULL DEFAULT 'IN_PROGRESS'
         CHECK (status IN ('IN_PROGRESS', 'COMPLETED')),

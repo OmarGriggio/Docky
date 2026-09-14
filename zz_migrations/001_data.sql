@@ -216,9 +216,9 @@ VALUES
 -- this project's resource ledger. Projects 1/2 are COMPLETED (their quote
 -- was accepted, see acceptQuoteServ); 3/4 are still IN_PROGRESS, created by
 -- hand (project-form.ts), no quote behind them.
-INSERT INTO projects (company_id, document_id, client_id, project_type_id, name, same_address_as_client, street, postal_code, city, country, status)
+INSERT INTO projects (company_id, document_id, client_id, project_type_id, name, status)
 VALUES
-(1, 3, 1, 1, 'Réparation de porte de cave', FALSE, 'Rue de la gare 2', '2500', 'Lausanne', 'Suisse', 'COMPLETED'),
-(1, 4, 3, 2, 'Création de cuisine sur mesure', FALSE, 'Rue de Génève 2', '3300', 'Geneve', 'Suisse', 'COMPLETED'),
-(1, 5, 2, 3, 'Réparation de meuble de salle de bain', TRUE, NULL, NULL, NULL, NULL, 'IN_PROGRESS'),
-(1, 6, 2, 4, 'Posage de l''isolation', TRUE, NULL, NULL, NULL, NULL, 'IN_PROGRESS');
+(1, 3, 1, 1, 'Réparation de porte de cave', 'COMPLETED'),
+(1, 4, 3, 2, 'Création de cuisine sur mesure', 'COMPLETED'),
+(1, 5, 2, 3, 'Réparation de meuble de salle de bain', 'IN_PROGRESS'),
+(1, 6, 2, 4, 'Posage de l''isolation', 'IN_PROGRESS');
