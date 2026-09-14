@@ -1,14 +1,16 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { TableModule } from 'primeng/table';
+import { TableModule, TableRowExpandEvent } from 'primeng/table';
 import { Toolbar } from 'primeng/toolbar';
 import { Button } from 'primeng/button';
 import { Menu } from 'primeng/menu';
 import { Checkbox } from 'primeng/checkbox';
 import { MenuItem } from 'primeng/api';
 import { DocumentService } from '../document.service';
+import { DocumentSectionService } from '../document-section.service';
 import { Document, DocumentType } from '../../../shared/models/document';
+import { DocumentSection } from '../../../shared/models/document-section';
 import { ClientService } from '../../clients/client.service';
 import { Client } from '../../../shared/models/client';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
@@ -34,6 +36,7 @@ export class DocumentListComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private documentService = inject(DocumentService);
+  private documentSectionService = inject(DocumentSectionService);
   private clientService = inject(ClientService);
 
   documents = signal<Document[]>([]);
@@ -60,6 +63,14 @@ export class DocumentListComponent implements OnInit {
 
   acceptConfirmVisible = signal(false);
   private documentPendingAccept: Document | null = null;
+
+  // Expandable rows (see document-list.html) - a document's sections are
+  // fetched lazily the first time its row is expanded, not preloaded for
+  // every row up front, and kept around after that so collapsing/expanding
+  // again doesn't refetch.
+  expandedRowKeys: Record<number, boolean> = {};
+  private sectionsByDocumentId = new Map<number, DocumentSection[]>();
+  private loadingSectionIds = new Set<number>();
 
   ngOnInit(): void {
     this.route.queryParamMap.subscribe(params => {
@@ -185,6 +196,33 @@ export class DocumentListComponent implements OnInit {
         console.error('document-list : ' + err);
       }
     });
+  }
+
+  onRowExpand(event: TableRowExpandEvent<Document>): void {
+    const document = event.data;
+    if (this.sectionsByDocumentId.has(document.id) || this.loadingSectionIds.has(document.id)) {
+      return;
+    }
+
+    this.loadingSectionIds.add(document.id);
+    this.documentSectionService.getSections(document.id).subscribe({
+      next: sections => {
+        this.sectionsByDocumentId.set(document.id, sections);
+        this.loadingSectionIds.delete(document.id);
+      },
+      error: err => {
+        console.error('document-list : ' + err);
+        this.loadingSectionIds.delete(document.id);
+      }
+    });
+  }
+
+  isLoadingSections(document: Document): boolean {
+    return this.loadingSectionIds.has(document.id);
+  }
+
+  sectionsFor(document: Document): DocumentSection[] {
+    return this.sectionsByDocumentId.get(document.id) ?? [];
   }
 
   openPdf(document: Document): void {

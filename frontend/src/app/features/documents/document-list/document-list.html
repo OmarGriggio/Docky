@@ -11,9 +11,10 @@
   </ng-template>
 </p-toolbar>
 
-<p-table [value]="documents()" dataKey="id" showGridlines>
+<p-table [value]="documents()" dataKey="id" showGridlines [expandedRowKeys]="expandedRowKeys" (onRowExpand)="onRowExpand($event)">
   <ng-template #header>
     <tr>
+      <th style="width: 3rem"></th>
       <th>Numéro</th>
       <th>Client</th>
       <th>Date</th>
@@ -28,6 +29,13 @@
 
   <ng-template #body let-document>
     <tr>
+      <td>
+        <p-button
+          type="button" [text]="true" size="small"
+          [icon]="expandedRowKeys[document.id] ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+          [pRowToggler]="document"
+        />
+      </td>
       <td>{{ document.number }}</td>
       <td>{{ clientName(document) }}</td>
       <td>{{ document.date | appDate }}</td>
@@ -41,6 +49,29 @@
       <td>
         <p-menu #menu [popup]="true" [model]="getActions(document)" appendTo="body"></p-menu>
         <p-button icon="pi pi-ellipsis-v" (click)="menu.toggle($event)"></p-button>
+      </td>
+    </tr>
+  </ng-template>
+
+  <ng-template #expandedrow let-document>
+    <tr>
+      <td colspan="10">
+        @if (isLoadingSections(document)) {
+          <p class="text-sm text-surface-500 m-0">Chargement...</p>
+        } @else if (sectionsFor(document).length === 0) {
+          <p class="text-sm text-surface-500 m-0">Aucune section.</p>
+        } @else {
+          <ul class="flex flex-col gap-1 m-0 pl-4">
+            @for (section of sectionsFor(document); track section.id) {
+              <li>
+                <span class="font-medium">{{ section.title }}</span>
+                @if (section.description) {
+                  <span class="text-sm text-surface-500"> — {{ section.description }}</span>
+                }
+              </li>
+            }
+          </ul>
+        }
       </td>
     </tr>
   </ng-template>
