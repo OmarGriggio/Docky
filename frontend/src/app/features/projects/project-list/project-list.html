@@ -67,7 +67,7 @@
       <td [pEditableColumn]="project.project_type_id" pEditableColumnField="project_type_id" [pEditableColumnRowIndex]="rowIndex">
         <p-cellEditor>
           <ng-template #input>
-            <p-select [(ngModel)]="project.project_type_id" [options]="typeOptions()" optionLabel="label" optionValue="value" [fluid]="true">
+            <p-select [(ngModel)]="project.project_type_id" [options]="typeOptions()" optionLabel="label" optionValue="value" [fluid]="true" appendTo="body">
               <ng-template #footer>
                 <div class="flex gap-2 p-2 border-t border-surface-200">
                   <input

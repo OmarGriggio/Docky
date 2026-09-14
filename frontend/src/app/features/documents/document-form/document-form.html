@@ -204,6 +204,7 @@
                         optionValue="value"
                         [ngModel]="line.type"
                         (ngModelChange)="updateLine(section.id, line.id, { type: $event })"
+                        appendTo="body"
                       />
                     </td>
                     <td class="py-[0.3rem] px-[0.2rem] align-middle">
@@ -275,6 +276,7 @@
                       optionValue="value"
                       [ngModel]="draft.type"
                       (ngModelChange)="draft.type = $event"
+                      appendTo="body"
                     />
                   </td>
                   <td class="py-[0.3rem] px-[0.2rem] align-middle">

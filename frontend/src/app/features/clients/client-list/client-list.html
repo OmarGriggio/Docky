@@ -44,7 +44,7 @@
       <td [pEditableColumn]="client.type" pEditableColumnField="type" [pEditableColumnRowIndex]="rowIndex">
         <p-cellEditor>
           <ng-template #input>
-            <p-select [(ngModel)]="client.type" [options]="typeOptions" optionLabel="label" optionValue="value" [fluid]="true" />
+            <p-select [(ngModel)]="client.type" [options]="typeOptions" optionLabel="label" optionValue="value" [fluid]="true" appendTo="body" />
           </ng-template>
           <ng-template #output>
             {{ client.type === 'PROFESSIONAL' ? 'Professionnel' : 'Particulier' }}
