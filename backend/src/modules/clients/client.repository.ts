@@ -1,10 +1,14 @@
 import { pool } from "../../shared/config/database";
-import {Client} from "./client.types"
+import {Client, UpdateClientData} from "./client.types"
 
+// Without an explicit ORDER BY, Postgres doesn't guarantee row order at
+// all - two calls back-to-back (e.g. list, then reload right after a save)
+// can come back in a different order, which reads as the table shuffling
+// itself on screen for no reason.
 export const getClientsFromDB = async (company_id: number, includeArchived = false) => {
   const query = includeArchived
-    ? "SELECT * FROM clients where company_id = $1"
-    : "SELECT * FROM clients where company_id = $1 AND is_active = true";
+    ? "SELECT * FROM clients where company_id = $1 ORDER BY id"
+    : "SELECT * FROM clients where company_id = $1 AND is_active = true ORDER BY id";
   const result = await pool.query(query, [company_id]);
   return result.rows;
 };
@@ -59,6 +63,44 @@ export const createClientInDB = async (
       client.email,
       client.phone,
       client.note
+    ];
+
+    const result = await pool.query(query, values);
+    return result.rows[0];
+};
+
+export const updateClientInDB = async (
+    id: number,
+    company_id: number,
+    data: UpdateClientData
+): Promise<Client> => {
+    const query = `
+    UPDATE clients SET
+      type = $1,
+      company_name = $2,
+      vat_number = $3,
+      last_name = $4,
+      first_name = $5,
+      title = $6,
+      email = $7,
+      phone = $8,
+      note = $9
+      WHERE id = $10 AND company_id = $11
+    RETURNING *;
+  `;
+
+    const values = [
+      data.type,
+      data.company_name,
+      data.vat_number,
+      data.last_name,
+      data.first_name,
+      data.title,
+      data.email,
+      data.phone,
+      data.note,
+      id,
+      company_id
     ];
 
     const result = await pool.query(query, values);

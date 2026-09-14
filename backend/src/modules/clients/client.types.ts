@@ -23,3 +23,11 @@ export interface Client {
 export interface ClientWithAddresses extends Client {
   addresses: Address[];
 }
+
+// client_number is immutable (the client's stable business key, like a
+// document's own `number`) and is_active/company_id have their own
+// dedicated flows - everything else can be edited this way.
+export type UpdateClientData = Pick<
+  Client,
+  "type" | "company_name" | "vat_number" | "last_name" | "first_name" | "title" | "email" | "phone" | "note"
+>;

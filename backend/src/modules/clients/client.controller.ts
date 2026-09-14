@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { addClientServ, archiveClientServ, unarchiveClientServ, getAllClientsServ, getClientByIdServ } from "./client.service";
-import { Client } from "./client.types";
+import { addClientServ, updateClientServ, archiveClientServ, unarchiveClientServ, getAllClientsServ, getClientByIdServ } from "./client.service";
+import { Client, UpdateClientData } from "./client.types";
 
 export const getClients = async (req: Request, res: Response) => {
   const company_id = req.user.company_id
@@ -20,6 +20,13 @@ export const createClient = async (req: Request, res: Response) => {
 
     const clientCreated = await addClientServ(clientData, req.user!.company_id);
     res.json(clientCreated);
+};
+
+export const updateClient = async (req: Request, res: Response) => {
+    const clientData: UpdateClientData = req.body;
+
+    const clientUpdated = await updateClientServ(Number(req.params.id), req.user.company_id, clientData);
+    res.json(clientUpdated);
 };
 
 export const archiveClient = async (req: Request, res: Response) => {

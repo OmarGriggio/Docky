@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createClient, archiveClient, unarchiveClient, getClient, getClients } from "./client.controller";
+import { createClient, updateClient, archiveClient, unarchiveClient, getClient, getClients } from "./client.controller";
 import { authenticate } from "../../shared/middlewares/auth.middleware";
 
 const router = Router();
@@ -11,6 +11,8 @@ router.get("/", getClients);
 router.get("/:id", getClient);
 
 router.post("/", createClient);
+
+router.put("/:id", updateClient);
 
 router.patch("/:id/archive", archiveClient);
 

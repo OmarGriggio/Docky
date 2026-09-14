@@ -1,5 +1,5 @@
-import {Client, ClientWithAddresses} from "./client.types"
-import { createClientInDB, archiveClientInDB, unarchiveClientInDB, getClientByIdFromDB, getClientByEmail, getClientByNumber, getClientsFromDB } from "./client.repository";
+import {Client, ClientWithAddresses, UpdateClientData} from "./client.types"
+import { createClientInDB, updateClientInDB, archiveClientInDB, unarchiveClientInDB, getClientByIdFromDB, getClientByEmail, getClientByNumber, getClientsFromDB } from "./client.repository";
 import { getAddressesByClientIdFromDB } from "./address.repository";
 import { NotFoundError, ConflictError } from "../../shared/types/errors";
 
@@ -32,6 +32,24 @@ export const addClientServ = async (clientData: Omit<Client, "id" | "company_id"
   } else {
     throw new ConflictError("Client number already exists");
   }
+}
+
+export const updateClientServ = async (id: number, company_id: number, data: UpdateClientData) => {
+  const client = await getClientByIdFromDB(id, company_id);
+  if (!client) {
+    throw new NotFoundError("Client not found");
+  }
+
+  // Same uniqueness rule as addClientServ - only re-checked if the email
+  // actually changed, and excluding this client's own current row.
+  if (data.email && data.email !== client.email) {
+    const existing = await getClientByEmail(data.email);
+    if (existing) {
+      throw new ConflictError("Client email already exists");
+    }
+  }
+
+  return await updateClientInDB(id, company_id, data);
 }
 
 export const archiveClientServ = async (id: number, company_id: number) => {
