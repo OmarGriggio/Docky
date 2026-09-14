@@ -27,16 +27,6 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
-    path: 'suppliers',
-    loadComponent: () => import('./features/suppliers/supplier-list/supplier-list').then(m => m.SupplierListComponent),
-    canActivate: [authGuard]
-  },
-  {
-    path: 'suppliers/:id',
-    loadComponent: () => import('./features/suppliers/supplier-detail/supplier-detail').then(m => m.SupplierDetail),
-    canActivate: [authGuard]
-  },
-  {
     path: 'documents',
     loadComponent: () => import('./features/documents/document-list/document-list').then(m => m.DocumentListComponent),
     canActivate: [authGuard]

@@ -17,10 +17,7 @@ export class AddressForm {
   private fb = inject(FormBuilder);
   private addressService = inject(AddressService);
 
-  // Exactly one of these two must be set by the parent — this form is used from
-  // both the client and the supplier detail page.
-  clientId = input<number | null>(null);
-  supplierId = input<number | null>(null);
+  clientId = input.required<number>();
 
   saved = output<void>();
   cancelled = output<void>();
@@ -46,7 +43,6 @@ export class AddressForm {
     this.addressService.createAddress({
       ...this.form.getRawValue(),
       client_id: this.clientId(),
-      supplier_id: this.supplierId(),
     }).subscribe({
       next: () => {
         this.saved.emit();

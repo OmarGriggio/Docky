@@ -1,7 +1,7 @@
 export interface Address {
   id: number;
-  client_id: number | null;
-  supplier_id: number | null;
+  // Client-owned only now (suppliers removed).
+  client_id: number;
   is_primary: boolean;
   attention: string | null;
   street: string;

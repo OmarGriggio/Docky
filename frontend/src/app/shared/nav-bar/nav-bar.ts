@@ -46,13 +46,6 @@ export class NavBar {
       ]
     },
     {
-      label: 'Fournisseurs',
-      icon: 'pi pi-truck',
-      links: [
-        { label: 'Liste', path: '/suppliers' }
-      ]
-    },
-    {
       label: 'Documents',
       icon: 'pi pi-receipt',
       links: [
