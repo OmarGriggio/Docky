@@ -14,9 +14,13 @@ import { Client } from '../../../shared/models/client';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { AppDatePipe } from '../../../shared/pipes/app-date.pipe';
 
+// PROJECT documents never appear in this list (see document-list.html's own
+// GET /document?type=QUOTE|INVOICE calls) but DocumentType still includes
+// it, so the Record needs an entry regardless.
 const TYPE_LABELS: Record<DocumentType, string> = {
   'QUOTE': 'Offres',
   'INVOICE': 'Factures',
+  'PROJECT': 'Chantiers',
 };
 
 @Component({

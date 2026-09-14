@@ -5,7 +5,9 @@ import { Tag } from 'primeng/tag';
 import { Button } from 'primeng/button';
 import { ProjectService } from '../project.service';
 import { ClientService } from '../../clients/client.service';
+import { DocumentService } from '../../documents/document.service';
 import { Project } from '../../../shared/models/project';
+import { Address } from '../../../shared/models/address';
 import { ProjectResources } from '../project-resources/project-resources';
 import { clientDisplayName } from '../../../shared/utils/display';
 
@@ -13,10 +15,8 @@ import { clientDisplayName } from '../../../shared/utils/display';
 // read-only here - it's set once, either by hand (project-form, currently
 // hidden) or auto-filled when an accepted quote creates it (see
 // document.service.ts's acceptQuoteServ). What actually changes as a
-// project runs is its resources (see zz_migrations/000_base.sql's comment
-// on project_resources.quantity), so that's the one editable thing on this
-// page - <app-project-resources> below, the same component the project
-// list's own dialog used to embed.
+// project runs is its resources, so that's the one editable thing on this
+// page - <app-project-resources> below.
 @Component({
   selector: 'app-project-detail',
   standalone: true,
@@ -29,9 +29,16 @@ export class ProjectDetail implements OnInit {
   private router = inject(Router);
   private projectService = inject(ProjectService);
   private clientService = inject(ClientService);
+  private documentService = inject(DocumentService);
 
   project = signal<Project | null>(null);
   clientName = signal<string>('—');
+  // The chantier's own address lives on its backing PROJECT document
+  // (address_id), not duplicated on the project row itself anymore - same
+  // resolution rule as the PDF templates' own resolveAddress on the
+  // backend: the document's picked address, falling back to the client's
+  // primary one.
+  address = signal<Address | null>(null);
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
@@ -39,15 +46,25 @@ export class ProjectDetail implements OnInit {
     this.projectService.getProject(id).subscribe({
       next: project => {
         this.project.set(project);
-        this.loadClientName(project.client_id);
+        this.loadClientAndAddress(project.client_id, project.document_id);
       },
       error: err => console.error('project-detail : ' + err)
     });
   }
 
-  private loadClientName(clientId: number): void {
+  private loadClientAndAddress(clientId: number, documentId: number): void {
     this.clientService.getClient(clientId).subscribe({
-      next: client => this.clientName.set(clientDisplayName(client)),
+      next: client => {
+        this.clientName.set(clientDisplayName(client));
+
+        this.documentService.getDocument(documentId).subscribe({
+          next: document => {
+            const chosen = client.addresses.find(a => a.id === document.address_id);
+            this.address.set(chosen ?? client.addresses.find(a => a.is_primary) ?? client.addresses[0] ?? null);
+          },
+          error: err => console.error('project-detail : ' + err)
+        });
+      },
       error: err => console.error('project-detail : ' + err)
     });
   }

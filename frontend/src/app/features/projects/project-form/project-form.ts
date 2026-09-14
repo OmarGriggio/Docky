@@ -3,7 +3,6 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { InputText } from 'primeng/inputtext';
 import { Textarea } from 'primeng/textarea';
 import { FloatLabel } from 'primeng/floatlabel';
-import { SelectButton } from 'primeng/selectbutton';
 import { Select } from 'primeng/select';
 import { Button } from 'primeng/button';
 import { ProjectService } from '../project.service';
@@ -11,10 +10,15 @@ import { ClientService } from '../../clients/client.service';
 import { Client } from '../../../shared/models/client';
 import { Project, ProjectType } from '../../../shared/models/project';
 
+// A chantier's own address now lives on its backing PROJECT document
+// (documents.address_id - see shared/models/document.ts), not duplicated
+// here anymore, so this form no longer has an address section at all - a
+// project created this way just starts with none set (same as
+// project.service.ts's addProjectServ on the backend, address_id: null).
 @Component({
   selector: 'app-project-form',
   standalone: true,
-  imports: [ReactiveFormsModule, InputText, Textarea, FloatLabel, SelectButton, Select, Button],
+  imports: [ReactiveFormsModule, InputText, Textarea, FloatLabel, Select, Button],
   templateUrl: './project-form.html',
   styleUrl: './project-form.css',
 })
@@ -48,34 +52,12 @@ export class ProjectForm implements OnInit {
     this.projectTypes().map(type => ({ label: type.label, value: type.id }))
   );
 
-  addressOptions = [
-    { label: 'Adresse du client', value: true },
-    { label: 'Autre adresse', value: false }
-  ];
-
   form = this.fb.nonNullable.group({
     client_id: [null as number | null, Validators.required],
     project_type_id: [null as number | null, Validators.required],
     name: ['', Validators.required],
     note: [''],
-    same_address_as_client: [true],
-    street: [''],
-    postal_code: [''],
-    city: [''],
-    country: [''],
   });
-
-  constructor() {
-    this.form.controls.same_address_as_client.valueChanges.subscribe(sameAddress => {
-      if (sameAddress) {
-        this.form.patchValue({ street: '', postal_code: '', city: '', country: '' });
-      }
-    });
-  }
-
-  get sameAddressAsClient(): boolean {
-    return this.form.controls.same_address_as_client.value;
-  }
 
   ngOnInit(): void {
     this.clientService.getClients().subscribe({
@@ -95,11 +77,6 @@ export class ProjectForm implements OnInit {
         client_id: source.client_id,
         name: source.name,
         note: source.note ?? '',
-        same_address_as_client: source.same_address_as_client,
-        street: source.street ?? '',
-        postal_code: source.postal_code ?? '',
-        city: source.city ?? '',
-        country: source.country ?? '',
       });
     }
   }

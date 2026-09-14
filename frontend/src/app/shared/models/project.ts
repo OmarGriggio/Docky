@@ -11,15 +11,16 @@ export type ProjectStatus = 'IN_PROGRESS' | 'COMPLETED';
 
 export interface Project {
   id: number;
+  // The PROJECT-type document backing this chantier - its own
+  // document_sections/document_lines (fetched via document-section.service.ts/
+  // document-line.service.ts) are this project's resource ledger. Also
+  // carries this chantier's own address (address_id) - not duplicated here.
+  document_id: number;
   client_id: number;
+  project_type_id: number | null;
   project_type: string;
   name: string;
   note: string | null;
-  same_address_as_client: boolean;
-  street: string | null;
-  postal_code: string | null;
-  city: string | null;
-  country: string | null;
   status: ProjectStatus;
   created_at: string;
   is_active: boolean;
@@ -30,9 +31,4 @@ export interface CreateProjectPayload {
   project_type_id: number;
   name: string;
   note?: string | null;
-  same_address_as_client: boolean;
-  street?: string | null;
-  postal_code?: string | null;
-  city?: string | null;
-  country?: string | null;
 }

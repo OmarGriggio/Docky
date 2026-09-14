@@ -29,10 +29,13 @@ export class DocumentService {
     return this.http.post<Document>(`${API_BASE}/document`, document);
   }
 
-  // type/number/project_id/status/parent_document_id aren't editable this
-  // way - each has its own dedicated flow (see document.types.ts's
-  // UpdateDocumentData on the backend).
-  updateDocument(id: number, document: Pick<Document, 'client_id' | 'date' | 'discount' | 'vat_rate' | 'introduction' | 'conclusion' | 'payment_terms' | 'due_date'>) {
+  // type/number/status/parent_document_id aren't editable this way - each
+  // has its own dedicated flow (see document.types.ts's UpdateDocumentData
+  // on the backend). address_id/reference_client ARE included even though
+  // document-form.ts has no UI for them yet - the backend requires them on
+  // every PUT body, so they always have to be sent explicitly (preserving
+  // whatever was loaded) rather than omitted.
+  updateDocument(id: number, document: Pick<Document, 'client_id' | 'address_id' | 'reference_client' | 'date' | 'discount' | 'vat_rate' | 'introduction' | 'conclusion' | 'payment_terms' | 'due_date'>) {
     return this.http.put<Document>(`${API_BASE}/document/${id}`, document);
   }
 

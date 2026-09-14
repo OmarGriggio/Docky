@@ -40,37 +40,6 @@
     </div>
   }
 
-  <div class="ui-form__full project-form-address-toggle">
-    <p-selectbutton
-      formControlName="same_address_as_client"
-      [options]="addressOptions"
-      optionLabel="label"
-      optionValue="value"
-    />
-  </div>
-
-  @if (!sameAddressAsClient) {
-    <p-floatlabel variant="on">
-      <input pInputText id="street" formControlName="street" />
-      <label for="street">Rue</label>
-    </p-floatlabel>
-
-    <p-floatlabel variant="on">
-      <input pInputText id="postal_code" formControlName="postal_code" />
-      <label for="postal_code">NPA</label>
-    </p-floatlabel>
-
-    <p-floatlabel variant="on">
-      <input pInputText id="city" formControlName="city" />
-      <label for="city">Ville</label>
-    </p-floatlabel>
-
-    <p-floatlabel variant="on">
-      <input pInputText id="country" formControlName="country" />
-      <label for="country">Pays</label>
-    </p-floatlabel>
-  }
-
   <p-floatlabel variant="on" class="ui-form__full">
     <textarea pTextarea id="note" formControlName="note" rows="4"></textarea>
     <label for="note">Remarque</label>

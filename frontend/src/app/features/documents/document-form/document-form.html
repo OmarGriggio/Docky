@@ -60,6 +60,13 @@
             {{ address.country }}
           </div>
         }
+
+        @if (type === 'INVOICE') {
+          <p-floatlabel variant="on" class="w-full">
+            <input pInputText pSize="small" id="reference_client" [(ngModel)]="referenceClient" [fluid]="true" />
+            <label for="reference_client">Référence client</label>
+          </p-floatlabel>
+        }
       </div>
     </div>
 

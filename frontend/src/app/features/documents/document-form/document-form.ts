@@ -19,7 +19,6 @@ import { DocumentCompleteService } from '../document-complete.service';
 import { DocumentTemplateService } from '../document-template.service';
 import { ClientService } from '../../clients/client.service';
 import { ProjectService } from '../../projects/project.service';
-import { ProjectResourceService } from '../../projects/project-resource.service';
 import { ResourceService } from '../../resources/resource.service';
 import { CompanyService } from '../../profile/company.service';
 import { AuthService } from '../../auth/auth.service';
@@ -27,15 +26,19 @@ import { Client } from '../../../shared/models/client';
 import { Address } from '../../../shared/models/address';
 import { Project } from '../../../shared/models/project';
 import { Resource } from '../../../shared/models/resource';
-import { ProjectResource } from '../../../shared/models/project-resource';
+import { DocumentLine } from '../../../shared/models/document-line';
 import { Company } from '../../../shared/models/company';
 import { DocumentStatus, DocumentType } from '../../../shared/models/document';
 import { DocumentComplete } from '../../../shared/models/document-complete';
 import { clientDisplayName } from '../../../shared/utils/display';
 
+// PROJECT never actually reaches this page (a chantier is never created or
+// edited here - see zz_docs/Project Definition.md) but DocumentType still
+// includes it, so the Record needs an entry regardless.
 const TYPE_LABELS: Record<DocumentType, string> = {
   QUOTE: 'offre',
   INVOICE: 'facture',
+  PROJECT: 'chantier',
 };
 
 // Matches document.service.ts's own EDITABLE_STATUSES on the backend -
@@ -112,7 +115,6 @@ export class DocumentForm implements OnInit {
   private documentTemplateService = inject(DocumentTemplateService);
   private clientService = inject(ClientService);
   private projectService = inject(ProjectService);
-  private projectResourceService = inject(ProjectResourceService);
   private resourceService = inject(ResourceService);
   private companyService = inject(CompanyService);
   private authService = inject(AuthService);
@@ -145,19 +147,25 @@ export class DocumentForm implements OnInit {
   selectedClientId = signal<number | null>(null);
   selectedClientAddress = signal<Address | null>(null);
   selectedProjectId: number | null = null;
+  // A chantier is no longer a flat "resource + quantity" list
+  // (project_resources is gone) - it's a real PROJECT-type document, whose
+  // own document_sections/document_lines ARE its resource ledger. This is
+  // that document's id, resolved from the picked Project's own document_id
+  // (see onProjectChange) - what "Charger chantier" and the per-section
+  // picker below actually read from.
+  private selectedProjectDocumentId: number | null = null;
 
   // The company's full resource catalog - source for the "Ajouter depuis le
   // catalogue" picker (QUOTE: this is how the need actually gets defined,
   // see zz_docs/Decisions.md).
   resources = signal<Resource[]>([]);
-  // The selected project's own linked resources (project_resources) paired
-  // with their catalog resource, fetched as soon a project is picked - feeds
-  // both "Charger chantier" (bulk import) and each section's own "Ajouter
-  // une ressource du chantier" picker (INVOICE only). Each link's own
-  // quantity/unit_price (the project's real, adjusted amounts - see
-  // zz_migrations/000_base.sql) is what gets copied onto the line, not a
-  // fixed "1 at catalog price" default.
-  projectResources = signal<{ link: ProjectResource; resource: Resource }[]>([]);
+  // The selected project's own PROJECT document lines (its resource ledger,
+  // flattened across all its sections) - fetched as soon as a project is
+  // picked, feeding the per-section "Ajouter une ressource du chantier"
+  // picker (INVOICE only). Each line's own quantity/unit_price (the
+  // project's real, adjusted amounts) is what gets copied onto the new line,
+  // not a fixed "1 at catalog price" default.
+  chantierLines = signal<DocumentLine[]>([]);
   // Ids of sections that came from "Charger chantier" - tracked so a
   // re-selection (or clearing the project) replaces exactly these, never a
   // section the user built by hand.
@@ -181,11 +189,12 @@ export class DocumentForm implements OnInit {
       .map(resource => ({ label: resource.name, value: resource.id }))
   );
 
-  availableProjectResourceOptions = computed(() =>
-    this.projectResources()
-      .filter(({ resource }) => !this.usedResourceIds().has(resource.id))
-      .map(({ resource }) => ({ label: resource.name, value: resource.id }))
-  );
+  availableProjectResourceOptions = computed(() => {
+    const usedIds = this.usedResourceIds();
+    return this.chantierLines()
+      .filter(line => line.resource_id === null || !usedIds.has(line.resource_id))
+      .map(line => ({ label: line.label, value: line.id }));
+  });
 
   // Decided by which list (Offres/Factures) "Ajouter" was clicked from - see
   // document-list.ts's createDocument() - not editable here. Defaults to
@@ -217,6 +226,14 @@ export class DocumentForm implements OnInit {
   }
 
   date = new Date();
+  // No picker for this yet - always null on a fresh/duplicated draft, and
+  // preserved as-is (not reset) when editing an existing document (see
+  // loadForEdit) so a PUT never silently wipes a value this page can't show.
+  private addressId: number | null = null;
+  // The client's own reference/PO number - INVOICE only (see the template),
+  // a QUOTE has no field for it. Bound directly via ngModel like the other
+  // plain text fields below (paymentTerms etc.), so it has to be public.
+  referenceClient = '';
   introduction = '';
   conclusion = '';
   paymentTerms = '';
@@ -253,46 +270,8 @@ export class DocumentForm implements OnInit {
   );
 
   ngOnInit(): void {
-    // documents/:id (edit) and documents/new (create/duplicate) are two
-    // different route configs pointing at this same component, so a
-    // snapshot read is enough here - Angular doesn't reuse the instance
-    // across them, unlike the ?type= switch below on the create route.
-    const idParam = this.route.snapshot.paramMap.get('id');
-
-    if (idParam) {
-      this.loadForEdit(Number(idParam));
-    } else {
-      // A queryParamMap subscription, not a one-time snapshot read: this
-      // route (documents/new) stays the same whether it's reached with
-      // ?type=QUOTE or ?type=INVOICE, so Angular reuses the same component
-      // instance across navigations between them - a snapshot taken once in
-      // ngOnInit would go stale the second time this page is visited
-      // without a full reload.
-      this.route.queryParamMap.subscribe(params => {
-        const typeParam = params.get('type') as DocumentType | null;
-        this.type = (typeParam === 'QUOTE' || typeParam === 'INVOICE') ? typeParam : 'QUOTE';
-
-        // "Dupliquer" (document-list.ts) - pre-fills this page from an
-        // existing quote's own data instead of the type's default template
-        // (the two would otherwise race, and the duplicate's own
-        // introduction/conclusion should win regardless of which resolves
-        // first).
-        const duplicateFromParam = params.get('duplicateFrom');
-        if (duplicateFromParam) {
-          this.applyDuplicateFrom(Number(duplicateFromParam));
-        } else {
-          this.loadTemplate(this.type);
-        }
-      });
-    }
-
     this.clientService.getClients().subscribe({
       next: data => this.clients.set(data),
-      error: err => console.error('document-form : ' + err)
-    });
-
-    this.projectService.getProjects().subscribe({
-      next: data => this.projects.set(data),
       error: err => console.error('document-form : ' + err)
     });
 
@@ -308,6 +287,50 @@ export class DocumentForm implements OnInit {
         error: err => console.error('document-form : ' + err)
       });
     }
+
+    // Loaded before deciding create-vs-edit below (not in parallel with it):
+    // editing an INVOICE needs to resolve its parent_document_id back to
+    // which Project that is (see loadForEdit), which needs this list
+    // already populated - a plain parallel fetch would race it.
+    this.projectService.getProjects().subscribe({
+      next: data => {
+        this.projects.set(data);
+
+        // documents/:id (edit) and documents/new (create/duplicate) are two
+        // different route configs pointing at this same component, so a
+        // snapshot read is enough here - Angular doesn't reuse the instance
+        // across them, unlike the ?type= switch below on the create route.
+        const idParam = this.route.snapshot.paramMap.get('id');
+
+        if (idParam) {
+          this.loadForEdit(Number(idParam));
+        } else {
+          // A queryParamMap subscription, not a one-time snapshot read:
+          // this route (documents/new) stays the same whether it's reached
+          // with ?type=QUOTE or ?type=INVOICE, so Angular reuses the same
+          // component instance across navigations between them - a
+          // snapshot taken once here would go stale the second time this
+          // page is visited without a full reload.
+          this.route.queryParamMap.subscribe(params => {
+            const typeParam = params.get('type') as DocumentType | null;
+            this.type = (typeParam === 'QUOTE' || typeParam === 'INVOICE') ? typeParam : 'QUOTE';
+
+            // "Dupliquer" (document-list.ts) - pre-fills this page from an
+            // existing quote's own data instead of the type's default
+            // template (the two would otherwise race, and the duplicate's
+            // own introduction/conclusion should win regardless of which
+            // resolves first).
+            const duplicateFromParam = params.get('duplicateFrom');
+            if (duplicateFromParam) {
+              this.applyDuplicateFrom(Number(duplicateFromParam));
+            } else {
+              this.loadTemplate(this.type);
+            }
+          });
+        }
+      },
+      error: err => console.error('document-form : ' + err)
+    });
   }
 
   // Fills introduction/conclusion from this type's saved template, if any -
@@ -360,8 +383,13 @@ export class DocumentForm implements OnInit {
       next: source => {
         this.type = source.type;
         this.documentNumber.set(source.number);
-        this.locked.set(!EDITABLE_STATUSES.includes(source.status));
+        // A PROJECT document's own status is always null (see
+        // shared/models/document.ts) - never editable through this page
+        // either way, though nothing currently routes one here.
+        this.locked.set(source.status === null || !EDITABLE_STATUSES.includes(source.status));
         this.date = new Date(source.date);
+        this.addressId = source.address_id;
+        this.referenceClient = source.reference_client ?? '';
 
         this.onClientChange(source.client_id);
 
@@ -374,10 +402,16 @@ export class DocumentForm implements OnInit {
         // Populates the "ressource du chantier" picker/"Charger chantier"
         // with the already-linked project's data - editing never changes
         // which project an invoice is on (see UpdateDocumentData on the
-        // backend), this is purely so more lines can still be added from it.
-        if (this.type === 'INVOICE' && source.project_id !== null) {
-          this.selectedProjectId = source.project_id;
-          this.onProjectChange(source.project_id);
+        // backend), this is purely so more lines can still be added from
+        // it. parent_document_id is the chantier's own PROJECT document -
+        // resolved back to which Project that is via its document_id
+        // (this.projects() is already loaded by the time this runs, see
+        // ngOnInit).
+        if (this.type === 'INVOICE' && source.parent_document_id !== null) {
+          const project = this.projects().find(p => p.document_id === source.parent_document_id);
+          if (project) {
+            this.onProjectChange(project.id);
+          }
         }
 
         this.sections.set(this.buildDraftSections(source));
@@ -440,9 +474,9 @@ export class DocumentForm implements OnInit {
   onClientChange(clientId: number | null): void {
     this.selectedClientId.set(clientId);
     // A project picked for a previous client no longer makes sense - and
-    // neither does whatever it had imported.
-    this.selectedProjectId = null;
-    this.clearImportedSections();
+    // neither does whatever it had imported (onProjectChange(null) already
+    // clears both).
+    this.onProjectChange(null);
 
     if (clientId === null) {
       this.selectedClientAddress.set(null);
@@ -463,87 +497,90 @@ export class DocumentForm implements OnInit {
 
   // Picking a project doesn't prefill any section/line by itself - only
   // invalidates whatever the previous project had bulk-imported (if any),
-  // since it no longer applies. It does fetch the new project's own linked
-  // resources right away though, so each section's "Ajouter une ressource du
+  // since it no longer applies. It does fetch the chantier's own PROJECT
+  // document's lines right away though (flattened across all its sections -
+  // see chantierLines), so each section's "Ajouter une ressource du
   // chantier" picker (and "Charger chantier") has something to offer as soon
-  // as a project is picked, with no extra step required.
-  // INVOICE only - fetches the picked project's own linked resources (with
-  // their real, adjusted quantity/price) so "Charger chantier" and the
-  // per-section picker have something to offer.
+  // as a project is picked, with no extra step required. INVOICE only - a
+  // QUOTE never has a project to pick from.
   onProjectChange(projectId: number | null): void {
     this.selectedProjectId = projectId;
     this.clearImportedSections();
 
-    if (projectId === null) {
-      this.projectResources.set([]);
+    const project = this.projects().find(p => p.id === projectId);
+    this.selectedProjectDocumentId = project?.document_id ?? null;
+
+    if (this.selectedProjectDocumentId === null) {
+      this.chantierLines.set([]);
       return;
     }
 
-    this.projectResourceService.getResourcesForProject(projectId).subscribe({
-      next: links => {
-        const resourceById = new Map(this.resources().map(r => [r.id, r]));
-        this.projectResources.set(
-          links
-            .map(link => {
-              const resource = resourceById.get(link.resource_id);
-              return resource ? { link, resource } : null;
-            })
-            .filter((entry): entry is { link: ProjectResource; resource: Resource } => entry !== null)
-        );
+    this.documentLineService.getLines(this.selectedProjectDocumentId).subscribe({
+      next: lines => this.chantierLines.set(lines),
+      error: err => console.error('document-form : ' + err)
+    });
+  }
+
+  // "Charger chantier" - copies the selected project's own PROJECT document
+  // sections+lines wholesale into this document's draft (same
+  // buildDraftSections used for "Dupliquer" an offer - a chantier's resource
+  // ledger IS a document now, not a flat list, so there's no "Matériel"/
+  // "Service" regrouping to do anymore, its own section titles are kept
+  // as-is). Skips any line whose resource is already used elsewhere in this
+  // document, and drops a section left with nothing to import. Replaces
+  // whatever a previous load had imported - never touches a section the
+  // user added by hand.
+  loadProjectResources(): void {
+    if (this.selectedProjectDocumentId === null) {
+      return;
+    }
+
+    this.clearImportedSections();
+
+    this.documentCompleteService.getDocumentComplete(this.selectedProjectDocumentId).subscribe({
+      next: source => {
+        const usedIds = this.usedResourceIds();
+        const importedSections = this.buildDraftSections(source)
+          .map(section => ({
+            ...section,
+            lines: section.lines.filter(line => line.resource_id === null || !usedIds.has(line.resource_id)),
+          }))
+          .filter(section => section.lines.length > 0);
+
+        for (const section of importedSections) {
+          this.importedSectionIds.add(section.id);
+        }
+        this.sections.update(sections => [...sections, ...importedSections]);
       },
       error: err => console.error('document-form : ' + err)
     });
   }
 
-  // Pre-fills the document body from project_resources: one "Matériel"
-  // section for the selected project's linked MATERIAL resources, one
-  // "Service" section for its linked SERVICE ones (only created if that
-  // group isn't empty, and skips whichever resource of either group is
-  // already used elsewhere in the document - same rule as the per-section
-  // picker). Replaces whatever a previous load had imported - never touches
-  // a section the user added by hand.
-  loadProjectResources(): void {
-    if (this.selectedProjectId === null) {
+  // Adds a single line from the selected project's own resource ledger as a
+  // new line at the end of the given section - the "Ajouter une ressource du
+  // chantier" picker inside each section (INVOICE only).
+  addResourceLine(sectionId: number, chantierLineId: number | null): void {
+    if (chantierLineId === null) {
       return;
     }
 
-    this.clearImportedSections();
-
-    const usedIds = this.usedResourceIds();
-    const available = this.projectResources().filter(({ resource }) => !usedIds.has(resource.id));
-    const materials = available.filter(({ resource }) => resource.type === 'MATERIAL');
-    const services = available.filter(({ resource }) => resource.type === 'SERVICE');
-
-    const importedSections: DraftSection[] = [];
-    if (materials.length > 0) {
-      importedSections.push(this.sectionFromProjectResources('Matériel', materials));
-    }
-    if (services.length > 0) {
-      importedSections.push(this.sectionFromProjectResources('Service', services));
-    }
-
-    for (const section of importedSections) {
-      this.importedSectionIds.add(section.id);
-    }
-    this.sections.update(sections => [...sections, ...importedSections]);
-  }
-
-  // Adds a single resource from the selected project as a new line at the
-  // end of the given section - the "Ajouter une ressource du chantier"
-  // picker inside each section (INVOICE only).
-  addResourceLine(sectionId: number, resourceId: number | null): void {
-    if (resourceId === null) {
+    const line = this.chantierLines().find(l => l.id === chantierLineId);
+    if (!line) {
       return;
     }
 
-    const entry = this.projectResources().find(({ resource }) => resource.id === resourceId);
-    if (!entry) {
-      return;
-    }
-
-    const line = this.lineFromResource(entry.resource, entry.link.quantity, entry.link.unit_price ?? entry.resource.selling_price);
+    const draftLine: DraftLine = {
+      id: nextId++,
+      type: line.type,
+      label: line.label,
+      quantity: line.quantity,
+      unit: line.unit,
+      unit_price: line.unit_price,
+      discount: 0,
+      resource_id: line.resource_id,
+    };
     this.sections.update(sections =>
-      sections.map(s => s.id === sectionId ? { ...s, lines: [...s.lines, line] } : s)
+      sections.map(s => s.id === sectionId ? { ...s, lines: [...s.lines, draftLine] } : s)
     );
   }
 
@@ -573,15 +610,6 @@ export class DocumentForm implements OnInit {
     }
     this.sections.update(sections => sections.filter(s => !this.importedSectionIds.has(s.id)));
     this.importedSectionIds.clear();
-  }
-
-  private sectionFromProjectResources(title: string, items: { link: ProjectResource; resource: Resource }[]): DraftSection {
-    return {
-      id: nextId++,
-      title,
-      description: '',
-      lines: items.map(({ link, resource }) => this.lineFromResource(resource, link.quantity, link.unit_price ?? resource.selling_price)),
-    };
   }
 
   private lineFromResource(resource: Resource, quantity: number, unit_price: number): DraftLine {
@@ -715,6 +743,10 @@ export class DocumentForm implements OnInit {
       if (editingId !== null) {
         await firstValueFrom(this.documentService.updateDocument(editingId, {
           client_id: clientId,
+          // address_id has no picker yet, preserved as-is (see the comment
+          // above); reference_client has one, INVOICE only (see template).
+          address_id: this.addressId,
+          reference_client: this.referenceClient.trim() || null,
           date: this.date.toISOString(),
           discount: this.discount,
           vat_rate: this.vatRate,
@@ -733,7 +765,12 @@ export class DocumentForm implements OnInit {
       const document = await firstValueFrom(this.documentService.createDocument({
         type: this.type,
         client_id: clientId,
-        project_id: this.selectedProjectId,
+        address_id: this.addressId,
+        reference_client: this.referenceClient.trim() || null,
+        // A QUOTE never has one (forced null server-side regardless); an
+        // INVOICE points at the picked chantier's own PROJECT document, not
+        // the Project row's id (see selectedProjectDocumentId).
+        parent_document_id: this.type === 'INVOICE' ? this.selectedProjectDocumentId : null,
         date: this.date.toISOString(),
         discount: this.discount,
         vat_rate: this.vatRate,
@@ -741,7 +778,6 @@ export class DocumentForm implements OnInit {
         due_date: null,
         introduction: this.introduction,
         conclusion: this.conclusion,
-        parent_document_id: null,
         // Every document starts as a draft - status changes happen
         // afterwards, not at creation.
         status: 'DRAFT',
@@ -769,6 +805,11 @@ export class DocumentForm implements OnInit {
         document_id: documentId,
         title: section.title,
         description: section.description.trim() || null,
+        // No scheduling UI on this page yet (see document_sections'
+        // date_start/date_end - a QUOTE/INVOICE's own sections don't need
+        // one, only a chantier's might, handled separately).
+        date_start: null,
+        date_end: null,
       }));
 
       for (const line of section.lines) {
