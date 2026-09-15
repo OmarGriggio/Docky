@@ -26,12 +26,10 @@
   <ng-template #header>
     <tr>
       <th>Code</th>
-      <th>Type</th>
       <th>Désignation</th>
       <th>Unité</th>
       <th>Prix de vente</th>
       <th>Prix d'achat</th>
-      <th>Actif</th>
       <th></th>
     </tr>
   </ng-template>
@@ -39,12 +37,10 @@
   <ng-template #body let-item>
     <tr>
       <td>{{ item.code }}</td>
-      <td>{{ item.type }}</td>
       <td>{{ item.name }}</td>
       <td>{{ item.unit }}</td>
       <td>{{ item.selling_price }}</td>
       <td>{{ item.purchase_price }}</td>
-      <td>{{ item.is_active }}</td>
       <td>
         <p-menu #menu [popup]="true" [model]="getActions(item)" appendTo="body"></p-menu>
         <p-button icon="pi pi-ellipsis-v" (click)="menu.toggle($event)"></p-button>
