@@ -32,7 +32,7 @@
             @for (line of section.lines; track line.id) {
               <li class="flex items-center gap-2">
                 <input
-                  pInputText size="small" [fluid]="true" class="flex-1"
+                  pInputText size="small" class="flex-1 max-w-[50%]"
                   [ngModel]="line.label"
                   (ngModelChange)="updateLine(section.id, line.id, { label: $event })"
                   [disabled]="readonly()"
