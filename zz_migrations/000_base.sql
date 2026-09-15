@@ -59,6 +59,29 @@ CREATE TABLE refresh_tokens (
 );
 
 -- ==========================================
+-- LOGIN HISTORY
+-- ==========================================
+
+-- One row per login attempt (successful or not) - see auth.service.ts's
+-- authUserService. user_id is nullable: an attempt against an unknown email
+-- never resolves to a user, but email (what was actually typed) is kept
+-- either way so a PLATFORM_ADMIN can still see it was tried. Deliberately
+-- not scoped to a company - a PLATFORM_ADMIN is the only one who can read
+-- this (see login_history.routes.ts), and oversees the whole SaaS.
+CREATE TABLE login_history (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER,
+    email VARCHAR(255) NOT NULL,
+    success BOOLEAN NOT NULL,
+    ip_address VARCHAR(45),
+    user_agent TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (user_id)
+        REFERENCES users(id)
+);
+
+-- ==========================================
 -- CLIENTS
 -- ==========================================
 

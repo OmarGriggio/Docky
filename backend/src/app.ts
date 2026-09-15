@@ -4,6 +4,7 @@ import clientRoutes from "./modules/clients/client.routes";
 import addressRoutes from "./modules/clients/address.routes";
 import userRoutes from "./modules/users/user.routes";
 import authRoutes from "./modules/auth/auth.routes";
+import loginHistoryRoutes from "./modules/auth/login_history.routes";
 import resourceRoutes from "./modules/catalog/resource.routes";
 import documentRoutes from "./modules/documents/document.routes";
 import documentCompleteRoutes from "./modules/documents/document_complete.routes";
@@ -50,6 +51,8 @@ app.get("/uploads/*splat", async (req, res) => {
 });
 
 app.use("/auth", authRoutes);
+
+app.use("/login-history", loginHistoryRoutes);
 
 app.use("/client", clientRoutes);
 

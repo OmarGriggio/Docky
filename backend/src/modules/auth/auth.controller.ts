@@ -19,7 +19,7 @@ const REFRESH_TOKEN_COOKIE_OPTIONS = {
 
 export const authUserController = async (req: Request, res: Response) => {
     const loginData: LoginUserData = req.body
-    const { token, refreshToken } = await authUserService(loginData);
+    const { token, refreshToken } = await authUserService(loginData, req.ip ?? null, req.headers["user-agent"] ?? null);
     res.cookie(REFRESH_TOKEN_COOKIE, refreshToken, {
         ...REFRESH_TOKEN_COOKIE_OPTIONS,
         maxAge: REFRESH_TOKEN_TTL_MS,

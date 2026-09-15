@@ -14,11 +14,15 @@ import {
   getValidRefreshTokenFromDB,
   revokeRefreshTokenInDB
 } from "./refresh_token.repository";
+import { recordLoginAttemptServ } from "./login_history.service";
 
-export const authUserService = async (loginData: LoginUserData) => {
+// ip/userAgent come from the request (see auth.controller.ts) purely to be
+// recorded in login_history - nothing else here needs them.
+export const authUserService = async (loginData: LoginUserData, ip: string | null, userAgent: string | null) => {
   const user: User | undefined = await getUserByEmail(loginData.email)
 
   if (!user) {
+    await recordLoginAttemptServ({ user_id: null, email: loginData.email, success: false, ip_address: ip, user_agent: userAgent });
     throw new UnauthorizedError();
   }
 
@@ -28,6 +32,7 @@ export const authUserService = async (loginData: LoginUserData) => {
   );
 
   if (!isPasswordValid) {
+    await recordLoginAttemptServ({ user_id: user.id, email: loginData.email, success: false, ip_address: ip, user_agent: userAgent });
     throw new UnauthorizedError();
   }
 
@@ -42,6 +47,7 @@ export const authUserService = async (loginData: LoginUserData) => {
   const refreshToken = generateRefreshToken(payload);
 
   await createRefreshTokenInDB(user.id, refreshToken, new Date(Date.now() + REFRESH_TOKEN_TTL_MS));
+  await recordLoginAttemptServ({ user_id: user.id, email: loginData.email, success: true, ip_address: ip, user_agent: userAgent });
 
   return { token, refreshToken };
 };
