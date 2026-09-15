@@ -665,3 +665,43 @@ INSERT INTO projects
 (company_id, document_id, client_id, project_type_id, name, note, status, is_active)
 VALUES
 (1, 25, 12, NULL, 'Rénovation façade', 'Chantier suspendu - à reprendre', 'IN_PROGRESS', FALSE);
+
+-- ==========================================
+-- MORE PAID INVOICES (for the dashboard's own "paid amount per client")
+-- ==========================================
+
+-- Every PAID invoice above (FAC-2026-0001/0005) bills client 3 - the
+-- dashboard's own "paid amount per client" table (GET /dashboard/paid-by-client)
+-- had only one row to show for company 1 because of that. These two add a
+-- second and third client to it.
+INSERT INTO documents
+(company_id, client_id, parent_document_id, type, number, date, amount_excl_vat, amount_incl_vat, discount, status, introduction, conclusion)
+VALUES
+(1, 1, NULL, 'INVOICE', 'FAC-2026-0006', '2026-08-25', 530.00, 530.00, 0, 'PAID',
+	'Nous avons le plaisir de vous soumettre la facture suivante.',
+	'Nous vous remercions de votre confiance et restons à votre disposition pour toute information complémentaire.
+
+	Avec nos meilleures salutations.'),
+(1, 5, NULL, 'INVOICE', 'FAC-2026-0007', '2026-08-28', 635.00, 635.00, 0, 'PAID',
+	'Nous avons le plaisir de vous soumettre la facture suivante.',
+	'Nous vous remercions de votre confiance et restons à votre disposition pour toute information complémentaire.
+
+	Avec nos meilleures salutations.');
+
+INSERT INTO document_sections
+(company_id, document_id, position, title)
+VALUES
+(1, 26, 1, 'Travaux'),
+(1, 27, 1, 'Travaux');
+
+INSERT INTO document_lines
+(company_id, document_id, section_id, type, position, label, quantity, unit, unit_price, discount, resource_id)
+VALUES
+
+-- Invoice FAC-2026-0006 (530.00), client 1 - section 27
+(1, 26, 27, 'MATERIAL', 1, 'Sac ciment 25kg', 10, 'Sac', 15, 0, 1),
+(1, 26, 27, 'SERVICE', 2, 'Maçon qualifié', 4, 'Heure', 95, 0, 5),
+
+-- Invoice FAC-2026-0007 (635.00), client 5 - section 28
+(1, 27, 28, 'MATERIAL', 1, 'Parpaing 20 cm', 80, 'Pièce', 4.50, 0, 2),
+(1, 27, 28, 'SERVICE', 2, 'Apprenti', 5, 'Heure', 55, 0, 6);
