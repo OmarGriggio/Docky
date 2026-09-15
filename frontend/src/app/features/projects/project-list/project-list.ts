@@ -1,6 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { forkJoin, map } from 'rxjs';
 import { TableModule, TableEditCompleteEvent } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { Toolbar } from 'primeng/toolbar';
@@ -26,11 +27,13 @@ import { ProjectForm } from '../project-form/project-form';
 import { ProjectAttachments } from '../project-attachments/project-attachments';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { DocumentLedger } from '../../../shared/components/document-ledger/document-ledger';
+import { closestDateStart } from '../../../shared/utils/display';
+import { AppDatePipe } from '../../../shared/pipes/app-date.pipe';
 
 @Component({
   selector: 'app-project-list',
   standalone: true,
-  imports: [TableModule, TagModule, Toolbar, Menu, Button, Dialog, Checkbox, InputText, Select, DatePicker, FormsModule, ProjectForm, ProjectAttachments, ConfirmDialogComponent, DocumentLedger],
+  imports: [TableModule, TagModule, Toolbar, Menu, Button, Dialog, Checkbox, InputText, Select, DatePicker, FormsModule, AppDatePipe, ProjectForm, ProjectAttachments, ConfirmDialogComponent, DocumentLedger],
   templateUrl: './project-list.html'
 })
 export class ProjectListComponent implements OnInit {
@@ -51,6 +54,13 @@ export class ProjectListComponent implements OnInit {
   private projectDocuments = signal<Document[]>([]);
   private addresses = signal<Address[]>([]);
   showArchived = signal(false);
+
+  // "Date" column: the date_start (among a chantier's own sections) closest
+  // to today - fetched in one request per chantier once the list itself has
+  // loaded (there's no bulk "sections for several documents at once"
+  // endpoint - one request per row keeps this self-contained without a
+  // backend change, and chantier lists stay small in practice).
+  private closestDateByProjectId = signal(new Map<number, string | null>());
 
   typeOptions = computed(() =>
     this.projectTypes().map(type => ({ label: type.label, value: type.id }))
@@ -132,11 +142,37 @@ export class ProjectListComponent implements OnInit {
     this.projectService.getProjects(this.showArchived()).subscribe({
       next: data => {
         this.projects.set(data);
+        this.loadClosestDates(data);
       },
       error: err => {
         console.error("project-list : " + err);
       }
     });
+  }
+
+  private loadClosestDates(projects: Project[]): void {
+    if (projects.length === 0) {
+      this.closestDateByProjectId.set(new Map());
+      return;
+    }
+
+    const now = Date.now();
+    forkJoin(
+      projects.map(project =>
+        this.documentSectionService.getSections(project.document_id).pipe(
+          map(sections => [project.id, closestDateStart(sections, now)] as const)
+        )
+      )
+    ).subscribe({
+      next: entries => this.closestDateByProjectId.set(new Map(entries)),
+      error: err => console.error("project-list : " + err)
+    });
+  }
+
+  // '—' when nothing's scheduled yet, same convention as clientName()/
+  // location() above for "nothing to show".
+  date(project: Project): string | null {
+    return this.closestDateByProjectId().get(project.id) ?? null;
   }
 
   onShowArchivedChange(value: boolean): void {
@@ -157,7 +193,7 @@ export class ProjectListComponent implements OnInit {
     const address = clientAddresses.find(a => a.id === document?.address_id)
       ?? clientAddresses.find(a => a.is_primary)
       ?? clientAddresses[0];
-    return address?.street ?? '—';
+    return address ? `${address.street}, ${address.city}` : '—';
   }
 
   statusLabel(project: Project): string {

@@ -47,6 +47,7 @@
       <th>Nom</th>
       <th>Client</th>
       <th>Lieu</th>
+      <th>Date</th>
       <th>Type</th>
       <th>Statut</th>
       <th></th>
@@ -80,6 +81,11 @@
       <!-- Not editable - lives on the chantier's own backing document
            (address_id), same as document-list.ts's own "Lieu" column. -->
       <td>{{ location(project) }}</td>
+
+      <!-- Not editable here either - the date_start closest to today among
+           this chantier's own sections (see project-list.ts's date()); edit
+           it by expanding the row instead. -->
+      <td>{{ date(project) ? (date(project) | appDate) : '—' }}</td>
 
       <td [pEditableColumn]="project.project_type_id" pEditableColumnField="project_type_id" [pEditableColumnRowIndex]="rowIndex">
         <p-cellEditor>
@@ -119,7 +125,7 @@
 
   <ng-template #expandedrow let-project>
     <tr>
-      <td colspan="7">
+      <td colspan="8">
         <!-- #sectionHeader replaces <app-document-ledger>'s own default
              read-only header with editable date pickers - see
              shared/components/document-ledger. #ledger is referenced from

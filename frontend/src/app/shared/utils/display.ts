@@ -52,6 +52,35 @@ export const documentStatusSeverity = (status: DocumentStatus): 'secondary' | 'i
   return DOCUMENT_STATUS_SEVERITIES[status];
 };
 
+// project-list.html's own "Date" column: among a chantier's own sections
+// (its backing PROJECT document's own document_sections), the one
+// date_start closest to today - earlier or later, whichever is nearer -
+// null if none of them have one set. Pure on purpose (see file header) even
+// though the "today" it compares against isn't a fixed value - Date.now()
+// is read once by the caller and passed in, not read in here, so the
+// function itself still always returns the same output for the same input.
+export interface SectionWithDateStart {
+  date_start: string | null;
+}
+
+export const closestDateStart = (sections: SectionWithDateStart[], now: number): string | null => {
+  let closest: string | null = null;
+  let closestDiff = Infinity;
+
+  for (const section of sections) {
+    if (!section.date_start) {
+      continue;
+    }
+    const diff = Math.abs(new Date(section.date_start).getTime() - now);
+    if (diff < closestDiff) {
+      closestDiff = diff;
+      closest = section.date_start;
+    }
+  }
+
+  return closest;
+};
+
 // Used for project attachments' size column - Ko/Mo, not KB/MB (French UI).
 export const formatFileSize = (bytes: number): string => {
   if (bytes < 1024) {
