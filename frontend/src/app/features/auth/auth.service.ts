@@ -54,6 +54,10 @@ export class AuthService {
     this.currentUser()?.role === 'USER'
   );
 
+  isPlatformAdmin = computed(() =>
+    this.currentUser()?.role === 'PLATFORM_ADMIN'
+  );
+
   getToken(): string | null {
     return this.token();
   }

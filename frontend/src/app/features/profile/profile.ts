@@ -20,6 +20,7 @@ export class Profile {
   private router = inject(Router);
 
   private isAdmin = this.authService.isAdmin;
+  private isPlatformAdmin = this.authService.isPlatformAdmin;
 
   items = computed<MenuItem[]>(() => {
     const menu: MenuItem[] = [
@@ -32,6 +33,10 @@ export class Profile {
         { label: 'Nouvel utilisateur', icon: 'pi pi-user-plus', routerLink: '/profile/users/new' },
         { label: 'UI Kit', icon: 'pi pi-palette', routerLink: '/profile/uitest' },
       );
+    }
+
+    if (this.isPlatformAdmin()) {
+      menu.push({ label: 'Historique des connexions', icon: 'pi pi-history', routerLink: '/profile/login-history' });
     }
 
     menu.push({ label: 'Déconnexion', icon: 'pi pi-sign-out', command: () => this.logout() });

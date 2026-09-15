@@ -1,0 +1,33 @@
+<h1>Historique des connexions</h1>
+
+<p-table [value]="entries()" dataKey="id" showGridlines [tableStyle]="{ 'min-width': '60rem' }">
+  <ng-template #header>
+    <tr>
+      <th>Date</th>
+      <th>Statut</th>
+      <th>Email saisi</th>
+      <th>Utilisateur</th>
+      <th>Entreprise</th>
+      <th>Adresse IP</th>
+      <th>Navigateur</th>
+    </tr>
+  </ng-template>
+
+  <ng-template #body let-entry>
+    <tr>
+      <td>{{ entry.created_at | appDateTime }}</td>
+      <td><p-tag [value]="entry.success ? 'Réussie' : 'Échouée'" [severity]="entry.success ? 'success' : 'danger'" /></td>
+      <td>{{ entry.email }}</td>
+      <td>{{ userName(entry) }}</td>
+      <td>{{ entry.company_name ?? '—' }}</td>
+      <td>{{ entry.ip_address ?? '—' }}</td>
+      <td class="max-w-80 truncate" [title]="entry.user_agent ?? ''">{{ entry.user_agent ?? '—' }}</td>
+    </tr>
+  </ng-template>
+
+  <ng-template #emptymessage>
+    <tr>
+      <td colspan="7">Aucune connexion enregistrée.</td>
+    </tr>
+  </ng-template>
+</p-table>

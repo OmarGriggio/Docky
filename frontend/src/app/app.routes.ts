@@ -91,6 +91,14 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['ADMIN'] }
       },
+      {
+        // PLATFORM_ADMIN only, deliberately not ADMIN - see
+        // login-history.routes.ts on the backend for why.
+        path: 'login-history',
+        loadComponent: () => import('./features/admin/login-history/login-history').then(m => m.LoginHistoryComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['PLATFORM_ADMIN'] }
+      },
     ]
   },
   {
