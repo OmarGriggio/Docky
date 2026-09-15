@@ -19,11 +19,14 @@ export const deleteUserService = async (id: Number, company_id: number) => {
 // POST /user serves two different flows on purpose:
 // - actor === null: unauthenticated self-registration — only allowed to create the
 //   first ADMIN of a brand-new company (company_id must have zero existing users).
-// - actor set: an authenticated ADMIN adding an employee to their OWN company —
-//   company_id is forced from the token, never trusted from the request body.
+// - actor set: an authenticated PLATFORM_ADMIN adding an employee to a company —
+//   company_id is forced from the token (their own, or an impersonated one via
+//   POST /auth/impersonate/:companyId - see zz_docs/Decisions.md), never trusted
+//   from the request body. Deliberately PLATFORM_ADMIN only, not ADMIN - user
+//   management was centralized there, see user.routes.ts.
 export const createUserService = async (userData: CreateUserData, actor: TokenPayload | null) => {
   if (actor) {
-    if (actor.role !== "ADMIN") {
+    if (actor.role !== "PLATFORM_ADMIN") {
       throw new ForbiddenError();
     }
     userData.company_id = actor.company_id;

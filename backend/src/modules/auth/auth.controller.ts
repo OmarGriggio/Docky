@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { authUserService, refreshAccessTokenServ, logoutServ } from "./auth.service";
+import { authUserService, refreshAccessTokenServ, logoutServ, impersonateCompanyServ } from "./auth.service";
 import { LoginUserData } from "../users/user.types";
 import { REFRESH_TOKEN_TTL_MS } from "../../shared/middlewares/jwt.service";
 
@@ -38,4 +38,11 @@ export const logoutController = async (req: Request, res: Response) => {
     await logoutServ(refreshToken);
     res.clearCookie(REFRESH_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE_OPTIONS);
     res.status(204).send();
+};
+
+// requireRole("PLATFORM_ADMIN") on the route handles the role check - req.user
+// is that platform admin's own token payload, untouched otherwise.
+export const impersonateCompanyController = async (req: Request, res: Response) => {
+    const resp = await impersonateCompanyServ(req.user, Number(req.params.companyId));
+    res.json(resp);
 };

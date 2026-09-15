@@ -1,7 +1,8 @@
 import bcrypt from "bcrypt";
 import { getUserByEmail } from "../users/user.repository";
 import { LoginUserData, User } from "../users/user.types";
-import { UnauthorizedError } from "../../shared/types/errors";
+import { getCompanyByIdFromDB } from "../companies/company.repository";
+import { NotFoundError, UnauthorizedError } from "../../shared/types/errors";
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -50,6 +51,38 @@ export const authUserService = async (loginData: LoginUserData, ip: string | nul
   await recordLoginAttemptServ({ user_id: user.id, email: loginData.email, success: true, ip_address: ip, user_agent: userAgent });
 
   return { token, refreshToken };
+};
+
+// A PLATFORM_ADMIN "acts as" another company's own ADMIN by swapping into an
+// access token carrying that company's own company_id - role stays
+// PLATFORM_ADMIN (not downgraded to ADMIN), which is what makes every
+// existing endpoint's own `req.user.company_id` scoping work for this for
+// free, no endpoint needs to know impersonation exists (see
+// zz_docs/Decisions.md's "Cross-company access" entry).
+//
+// Deliberately does NOT touch the refresh token / refresh_tokens row at all
+// - that stays tied to the platform admin's own real company_id. This
+// access token is short-lived (5h, same as any other) and isn't renewable
+// through POST /auth/refresh; once it expires the frontend just asks the
+// user to pick the company again, rather than silently keeping them
+// impersonated (or silently dropping them back to their own company)
+// through an automatic refresh. Chosen over teaching /auth/refresh about
+// impersonation to keep that flow simple - see the Decisions.md entry for
+// why this was left open before now.
+export const impersonateCompanyServ = async (actor: TokenPayload, companyId: number) => {
+  const company = await getCompanyByIdFromDB(companyId);
+  if (!company) {
+    throw new NotFoundError("Company not found");
+  }
+
+  const payload: TokenPayload = {
+    userId: actor.userId,
+    email: actor.email,
+    role: actor.role,
+    company_id: companyId,
+  };
+
+  return { token: generateAccessToken(payload) };
 };
 
 // Exchanges a still-valid refresh token for a new access token. The refresh
