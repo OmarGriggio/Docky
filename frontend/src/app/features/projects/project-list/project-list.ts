@@ -1,8 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { forkJoin } from 'rxjs';
-import { TableModule, TableEditCompleteEvent, TableRowExpandEvent } from 'primeng/table';
+import { TableModule, TableEditCompleteEvent } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { Toolbar } from 'primeng/toolbar';
 import { Menu } from 'primeng/menu';
@@ -17,29 +16,21 @@ import { ProjectService } from '../project.service';
 import { ClientService } from '../../clients/client.service';
 import { DocumentService } from '../../documents/document.service';
 import { DocumentSectionService } from '../../documents/document-section.service';
-import { DocumentLineService } from '../../documents/document-line.service';
 import { AddressService } from '../../addresses/address.service';
 import { Project, ProjectType } from '../../../shared/models/project';
 import { Client } from '../../../shared/models/client';
 import { Document } from '../../../shared/models/document';
 import { DocumentSection } from '../../../shared/models/document-section';
-import { DocumentLine } from '../../../shared/models/document-line';
 import { Address } from '../../../shared/models/address';
 import { ProjectForm } from '../project-form/project-form';
 import { ProjectAttachments } from '../project-attachments/project-attachments';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
-
-// Stable shared references for "nothing yet" - see document-list.ts's own
-// EMPTY_SECTIONS/EMPTY_LINES for why (handing a nested p-table a freshly
-// allocated [] every change-detection cycle makes it redo its internal
-// work non-stop).
-const EMPTY_SECTIONS: DocumentSection[] = [];
-const EMPTY_LINES: DocumentLine[] = [];
+import { DocumentLedger } from '../../../shared/components/document-ledger/document-ledger';
 
 @Component({
   selector: 'app-project-list',
   standalone: true,
-  imports: [TableModule, TagModule, Toolbar, Menu, Button, Dialog, Checkbox, InputText, Select, DatePicker, FormsModule, ProjectForm, ProjectAttachments, ConfirmDialogComponent],
+  imports: [TableModule, TagModule, Toolbar, Menu, Button, Dialog, Checkbox, InputText, Select, DatePicker, FormsModule, ProjectForm, ProjectAttachments, ConfirmDialogComponent, DocumentLedger],
   templateUrl: './project-list.html'
 })
 export class ProjectListComponent implements OnInit {
@@ -49,7 +40,6 @@ export class ProjectListComponent implements OnInit {
   private clientService = inject(ClientService);
   private documentService = inject(DocumentService);
   private documentSectionService = inject(DocumentSectionService);
-  private documentLineService = inject(DocumentLineService);
   private addressService = inject(AddressService);
 
   projects = signal<Project[]>([]);
@@ -84,16 +74,13 @@ export class ProjectListComponent implements OnInit {
   completeConfirmVisible = signal(false);
   private projectPendingComplete: Project | null = null;
 
-  // Expandable rows (same pattern as document-list.ts's own) - a chantier's
-  // sections/lines (its resource ledger, see shared/models/project.ts) are
-  // fetched lazily, keyed by its backing PROJECT document's id, the first
-  // time its row is expanded. Signals, not plain mutated Maps/Sets - see
-  // document-list.ts's own comment for why that matters (a real NG0100 was
-  // caused by exactly that).
+  // Expandable rows - the row's own expand/collapse state, PrimeNG's usual
+  // pattern. A chantier's own sections/lines (its resource ledger) are
+  // fetched by <app-document-ledger> once the row is expanded - see
+  // shared/components/document-ledger. project-list.html projects its own
+  // #sectionHeader template into it, to show editable date pickers instead
+  // of that component's default read-only period.
   expandedRowKeys: Record<number, boolean> = {};
-  private sectionsByDocumentId = signal(new Map<number, DocumentSection[]>());
-  private linesBySectionId = signal(new Map<number, DocumentLine[]>());
-  private loadingSectionIds = signal(new Set<number>());
 
   private clientNames = computed(() => {
     const names = new Map<number, string>();
@@ -315,73 +302,18 @@ export class ProjectListComponent implements OnInit {
     });
   }
 
-  onRowExpand(event: TableRowExpandEvent<Project>): void {
-    const documentId = event.data.document_id;
-    if (this.sectionsByDocumentId().has(documentId) || this.loadingSectionIds().has(documentId)) {
-      return;
-    }
-    this.fetchSectionsAndLines(documentId);
-  }
-
-  // Shared by onRowExpand above (first expand) and onSectionCellEditComplete
-  // below (refresh after a date edit) - see document-list.ts's own
-  // onRowExpand for the same fetch-both-at-once/group-by-section shape.
-  private fetchSectionsAndLines(documentId: number): void {
-    this.loadingSectionIds.update(ids => new Set(ids).add(documentId));
-    forkJoin({
-      sections: this.documentSectionService.getSections(documentId),
-      lines: this.documentLineService.getLines(documentId)
-    }).subscribe({
-      next: ({ sections, lines }) => {
-        this.sectionsByDocumentId.update(map => new Map(map).set(documentId, sections));
-        this.linesBySectionId.update(map => {
-          const next = new Map(map);
-          for (const section of sections) {
-            next.set(section.id, lines.filter(line => line.section_id === section.id));
-          }
-          return next;
-        });
-        this.loadingSectionIds.update(ids => {
-          const next = new Set(ids);
-          next.delete(documentId);
-          return next;
-        });
-      },
-      error: err => {
-        console.error('project-list : ' + err);
-        this.loadingSectionIds.update(ids => {
-          const next = new Set(ids);
-          next.delete(documentId);
-          return next;
-        });
-      }
-    });
-  }
-
-  isLoadingSections(project: Project): boolean {
-    return this.loadingSectionIds().has(project.document_id);
-  }
-
-  sectionsFor(project: Project): DocumentSection[] {
-    return this.sectionsByDocumentId().get(project.document_id) ?? EMPTY_SECTIONS;
-  }
-
-  linesFor(section: DocumentSection): DocumentLine[] {
-    return this.linesBySectionId().get(section.id) ?? EMPTY_LINES;
-  }
-
   // p-datepicker needs a Date (or null), but date_start/date_end are stored
   // as ISO strings (see shared/models/document-section.ts). Memoized per
-  // section object (not just re-parsed on every call): p-datepicker is now
-  // always mounted (not just while editing a cell), so its own [ngModel]
-  // gets re-evaluated on every change detection cycle - handing it a
-  // freshly-allocated `new Date(...)` each time made PrimeNG treat it as an
-  // external value change on every single cycle, which itself triggers
-  // another cycle, and so on: a real infinite loop that froze the tab the
-  // moment a chantier row was expanded. A section is replaced wholesale
-  // (new object reference) whenever fetchSectionsAndLines reloads, which is
-  // exactly when this cache should stop being valid too - a WeakMap keyed
-  // by the section object does that for free.
+  // section object (not just re-parsed on every call): p-datepicker is
+  // always mounted here (not just while editing a cell), so its own
+  // [ngModel] gets re-evaluated on every change detection cycle - handing
+  // it a freshly-allocated `new Date(...)` each time made PrimeNG treat it
+  // as an external value change on every single cycle, which itself
+  // triggers another cycle, and so on: a real infinite loop that froze the
+  // tab the moment a chantier row was expanded. <app-document-ledger>
+  // replaces a section wholesale (new object reference) on refresh(), which
+  // is exactly when this cache should stop being valid too - a WeakMap
+  // keyed by the section object does that for free.
   private sectionDates = new WeakMap<DocumentSection, { start: Date | null; end: Date | null }>();
 
   private datesFor(section: DocumentSection): { start: Date | null; end: Date | null } {
@@ -404,12 +336,14 @@ export class ProjectListComponent implements OnInit {
     return this.datesFor(section).end;
   }
 
-  // Sections/lines here are a read-only glance (see project-list.html's own
-  // #expandedrow) - a plain card per section, not a nested p-table, same
-  // layout as project-resources.html's own. The schedule is the one thing
-  // still directly editable from this list; picking a date saves right
-  // away (no separate "Enregistrer" step) and refreshes from the server.
-  updateSectionDate(section: DocumentSection, field: 'date_start' | 'date_end', value: Date | null): void {
+  // Picking a date saves right away (no separate "Enregistrer" step). The
+  // ledger instance is passed in directly (project-list.html's own
+  // #sectionHeader template is projected into <app-document-ledger #ledger>,
+  // so `ledger` is in scope there) rather than looked up via a class-level
+  // viewChild - a project row's own <app-document-ledger> only exists while
+  // that row is expanded, and more than one can be expanded at once, so
+  // there's no single static view to query from the component class itself.
+  updateSectionDate(section: DocumentSection, field: 'date_start' | 'date_end', value: Date | null, ledger: DocumentLedger): void {
     const iso = value ? value.toISOString() : null;
     const data = {
       date_start: field === 'date_start' ? iso : section.date_start,
@@ -417,10 +351,10 @@ export class ProjectListComponent implements OnInit {
     };
 
     this.documentSectionService.updateSection(section.id, data).subscribe({
-      next: () => this.fetchSectionsAndLines(section.document_id),
+      next: () => ledger.refresh(),
       error: err => {
         console.error('project-list : ' + err);
-        this.fetchSectionsAndLines(section.document_id);
+        ledger.refresh();
       }
     });
   }

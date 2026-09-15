@@ -1,8 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { forkJoin } from 'rxjs';
-import { TableModule, TableRowExpandEvent } from 'primeng/table';
+import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { Toolbar } from 'primeng/toolbar';
 import { Button } from 'primeng/button';
@@ -10,17 +9,14 @@ import { Menu } from 'primeng/menu';
 import { Checkbox } from 'primeng/checkbox';
 import { MenuItem } from 'primeng/api';
 import { DocumentService } from '../document.service';
-import { DocumentSectionService } from '../document-section.service';
-import { DocumentLineService } from '../document-line.service';
 import { Document, DocumentType } from '../../../shared/models/document';
 import { documentStatusLabel, documentStatusSeverity } from '../../../shared/utils/display';
-import { DocumentSection } from '../../../shared/models/document-section';
-import { DocumentLine } from '../../../shared/models/document-line';
 import { ClientService } from '../../clients/client.service';
 import { Client } from '../../../shared/models/client';
 import { AddressService } from '../../addresses/address.service';
 import { Address } from '../../../shared/models/address';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
+import { DocumentLedger } from '../../../shared/components/document-ledger/document-ledger';
 import { AppDatePipe } from '../../../shared/pipes/app-date.pipe';
 
 // PROJECT documents never appear in this list (see document-list.html's own
@@ -32,17 +28,10 @@ const TYPE_LABELS: Record<DocumentType, string> = {
   'PROJECT': 'Chantiers',
 };
 
-// Stable shared references for "nothing yet" - handing a nested p-table a
-// freshly-allocated [] on every call (there's one every change detection
-// cycle) would look like new data each time and make it redo its internal
-// work non-stop. Reused instead of allocated.
-const EMPTY_SECTIONS: DocumentSection[] = [];
-const EMPTY_LINES: DocumentLine[] = [];
-
 @Component({
   selector: 'app-document-list',
   standalone: true,
-  imports: [TableModule, TagModule, Toolbar, Button, Menu, Checkbox, FormsModule, AppDatePipe, ConfirmDialogComponent],
+  imports: [TableModule, TagModule, Toolbar, Button, Menu, Checkbox, FormsModule, AppDatePipe, ConfirmDialogComponent, DocumentLedger],
   templateUrl: './document-list.html'
 })
 export class DocumentListComponent implements OnInit {
@@ -50,8 +39,6 @@ export class DocumentListComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private documentService = inject(DocumentService);
-  private documentSectionService = inject(DocumentSectionService);
-  private documentLineService = inject(DocumentLineService);
   private clientService = inject(ClientService);
   private addressService = inject(AddressService);
 
@@ -81,31 +68,11 @@ export class DocumentListComponent implements OnInit {
   acceptConfirmVisible = signal(false);
   private documentPendingAccept: Document | null = null;
 
-  // Expandable rows (see document-list.html) - a document's sections and
-  // lines are fetched together, lazily, the first time its row is expanded,
-  // not preloaded for every row up front, and kept around after that so
-  // collapsing/expanding again doesn't refetch.
-  //
-  // These three are signals, not plain mutated Maps/Sets, deliberately: a
-  // plain field mutated from an HTTP subscribe callback and read straight
-  // from the template caused a real NG0100
-  // (ExpressionChangedAfterItHasBeenCheckedError) - a fast-resolving local
-  // request could mutate the Map/Set mid change-detection-cycle (between
-  // Angular's dev-mode check and its own re-check of the same @if), so the
-  // same read returned two different results within one cycle. Going
-  // through .set()/.update() instead schedules its own change detection
-  // properly rather than racing the current one. Always replaced with a new
-  // Map/Set instance on write (never mutated in place) so the signal's own
-  // equality check actually sees a change.
+  // Expandable rows (see document-list.html) - the row's own expand/collapse
+  // state, PrimeNG's usual pattern. The document's own sections/lines
+  // themselves are fetched by <app-document-ledger> once the row is
+  // expanded (it's only mounted then) - see shared/components/document-ledger.
   expandedRowKeys: Record<number, boolean> = {};
-  private sectionsByDocumentId = signal(new Map<number, DocumentSection[]>());
-  // Grouped by section id (unique table-wide) rather than by document id,
-  // and grouped once up front when the data arrives - so linesFor() below
-  // is a plain lookup returning the same array reference every time, not a
-  // re-filter on every change detection cycle (see EMPTY_LINES for why
-  // that matters).
-  private linesBySectionId = signal(new Map<number, DocumentLine[]>());
-  private loadingSectionIds = signal(new Set<number>());
 
   ngOnInit(): void {
     this.route.queryParamMap.subscribe(params => {
@@ -258,55 +225,6 @@ export class DocumentListComponent implements OnInit {
         console.error('document-list : ' + err);
       }
     });
-  }
-
-  onRowExpand(event: TableRowExpandEvent<Document>): void {
-    const document = event.data;
-    if (this.sectionsByDocumentId().has(document.id) || this.loadingSectionIds().has(document.id)) {
-      return;
-    }
-
-    this.loadingSectionIds.update(ids => new Set(ids).add(document.id));
-    forkJoin({
-      sections: this.documentSectionService.getSections(document.id),
-      lines: this.documentLineService.getLines(document.id)
-    }).subscribe({
-      next: ({ sections, lines }) => {
-        this.sectionsByDocumentId.update(map => new Map(map).set(document.id, sections));
-        this.linesBySectionId.update(map => {
-          const next = new Map(map);
-          for (const section of sections) {
-            next.set(section.id, lines.filter(line => line.section_id === section.id));
-          }
-          return next;
-        });
-        this.loadingSectionIds.update(ids => {
-          const next = new Set(ids);
-          next.delete(document.id);
-          return next;
-        });
-      },
-      error: err => {
-        console.error('document-list : ' + err);
-        this.loadingSectionIds.update(ids => {
-          const next = new Set(ids);
-          next.delete(document.id);
-          return next;
-        });
-      }
-    });
-  }
-
-  isLoadingSections(document: Document): boolean {
-    return this.loadingSectionIds().has(document.id);
-  }
-
-  sectionsFor(document: Document): DocumentSection[] {
-    return this.sectionsByDocumentId().get(document.id) ?? EMPTY_SECTIONS;
-  }
-
-  linesFor(section: DocumentSection): DocumentLine[] {
-    return this.linesBySectionId().get(section.id) ?? EMPTY_LINES;
   }
 
   openPdf(document: Document): void {

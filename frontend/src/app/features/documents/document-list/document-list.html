@@ -11,7 +11,7 @@
   </ng-template>
 </p-toolbar>
 
-<p-table [value]="documents()" dataKey="id" showGridlines [expandedRowKeys]="expandedRowKeys" (onRowExpand)="onRowExpand($event)">
+<p-table [value]="documents()" dataKey="id" showGridlines [expandedRowKeys]="expandedRowKeys">
   <ng-template #header>
     <tr>
       <th style="width: 3rem"></th>
@@ -58,59 +58,7 @@
   <ng-template #expandedrow let-document>
     <tr>
       <td colspan="11">
-        @if (isLoadingSections(document)) {
-          <p class="text-sm text-surface-500 m-0">Chargement...</p>
-        } @else if (sectionsFor(document).length === 0) {
-          <p class="text-sm text-surface-500 m-0">Aucune section.</p>
-        } @else {
-          <!-- Read-only glance, same card-per-section layout as
-               project-list.html's own: sections and their lines both show
-               up directly, no extra click needed. -->
-          <div class="flex flex-col gap-3">
-            @for (section of sectionsFor(document); track section.id) {
-              <div class="border border-surface-200 rounded-lg p-3">
-                <div class="flex items-center justify-between gap-4 flex-wrap mb-2">
-                  <div>
-                    <span class="font-semibold">{{ section.title }}</span>
-                    @if (section.description) {
-                      <span class="text-sm text-surface-500"> — {{ section.description }}</span>
-                    }
-                  </div>
-                  @if (section.date_start || section.date_end) {
-                    <span class="text-xs text-surface-500">
-                      {{ section.date_start | appDate }} – {{ section.date_end | appDate }}
-                    </span>
-                  }
-                </div>
-
-                @if (linesFor(section).length === 0) {
-                  <p class="text-xs text-surface-500 m-0">Aucune ligne.</p>
-                } @else {
-                  <table class="w-full text-sm">
-                    <thead>
-                      <tr class="text-left text-xs text-surface-500 uppercase">
-                        <th class="font-normal pb-1">Désignation</th>
-                        <th class="font-normal pb-1">Quantité</th>
-                        <th class="font-normal pb-1">Unité</th>
-                        <th class="font-normal pb-1">Prix unitaire</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      @for (line of linesFor(section); track line.id) {
-                        <tr>
-                          <td>{{ line.label }}</td>
-                          <td>{{ line.quantity }}</td>
-                          <td>{{ line.unit }}</td>
-                          <td>{{ line.unit_price }}</td>
-                        </tr>
-                      }
-                    </tbody>
-                  </table>
-                }
-              </div>
-            }
-          </div>
-        }
+        <app-document-ledger [documentId]="document.id" />
       </td>
     </tr>
   </ng-template>
