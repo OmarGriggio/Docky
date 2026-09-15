@@ -1,0 +1,29 @@
+<h1>Entreprises</h1>
+
+<p-table [value]="companies()" dataKey="id" showGridlines>
+  <ng-template #header>
+    <tr>
+      <th>Nom</th>
+      <th>Email</th>
+      <th>Ville</th>
+      <th></th>
+    </tr>
+  </ng-template>
+
+  <ng-template #body let-company>
+    <tr>
+      <td>{{ company.name }}</td>
+      <td>{{ company.email ?? '—' }}</td>
+      <td>{{ company.city ?? '—' }}</td>
+      <td>
+        <p-button label="Se connecter" icon="pi pi-sign-in" size="small" (onClick)="impersonate(company)" />
+      </td>
+    </tr>
+  </ng-template>
+
+  <ng-template #emptymessage>
+    <tr>
+      <td colspan="4">Aucune entreprise.</td>
+    </tr>
+  </ng-template>
+</p-table>

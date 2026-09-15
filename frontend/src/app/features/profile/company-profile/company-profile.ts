@@ -7,7 +7,6 @@ import { FloatLabel } from 'primeng/floatlabel';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { CompanyService } from '../company.service';
-import { UserService } from '../../admin/user.service';
 import { AuthService } from '../../auth/auth.service';
 import { DocumentTemplateService } from '../../documents/document-template.service';
 
@@ -24,7 +23,6 @@ export class CompanyProfile implements OnInit, OnDestroy {
 
   private fb = inject(FormBuilder);
   private companyService = inject(CompanyService);
-  private userService = inject(UserService);
   private authService = inject(AuthService);
   private documentTemplateService = inject(DocumentTemplateService);
 
@@ -71,7 +69,11 @@ export class CompanyProfile implements OnInit, OnDestroy {
 
   private companyId: number | null = null;
 
-  isAdmin = this.authService.isAdmin;
+  // A PLATFORM_ADMIN can manage a company's profile too, same as that
+  // company's own ADMIN - see zz_docs/Decisions.md's "Cross-company access"
+  // entry (this page is reached by impersonating a company first, same flow
+  // an ADMIN would use for their own).
+  canManageCompany = computed(() => this.authService.isAdmin() || this.authService.isPlatformAdmin());
 
   ngOnInit(): void {
     this.loadCompany();
@@ -85,42 +87,37 @@ export class CompanyProfile implements OnInit, OnDestroy {
   private loadCompany(): void {
     this.loading.set(true);
 
-    this.userService.getUsers().subscribe({
-      next: users => {
-        const self = users.find(user => user.id === this.authService.currentUser()?.userId);
-        this.companyId = self?.company_id ?? null;
+    // Straight from the token - company_id is already right there
+    // (currentUser().company_id is the impersonated one while a
+    // PLATFORM_ADMIN is acting as this company, their own otherwise), no
+    // need to fetch the company's user list just to find "self" in it
+    // (GET /user is PLATFORM_ADMIN only now anyway - see user.routes.ts).
+    this.companyId = this.authService.currentUser()?.company_id ?? null;
 
-        if (this.companyId === null) {
-          this.errorMessage.set('Impossible de retrouver votre entreprise.');
-          this.loading.set(false);
-          return;
-        }
+    if (this.companyId === null) {
+      this.errorMessage.set('Impossible de retrouver votre entreprise.');
+      this.loading.set(false);
+      return;
+    }
 
-        this.companyService.getCompany(this.companyId).subscribe({
-          next: company => {
-            this.form.patchValue({
-              name: company.name ?? '',
-              email: company.email ?? '',
-              phone: company.phone ?? '',
-              iban: company.iban ?? '',
-              street: company.street ?? '',
-              postal_code: company.postal_code ?? '',
-              city: company.city ?? '',
-              country: company.country ?? '',
-            });
-            this.logoPath.set(company.logo);
-            this.loading.set(false);
-
-            if (!this.isAdmin()) {
-              this.form.disable();
-            }
-          },
-          error: err => {
-            console.error('profile : ' + err);
-            this.errorMessage.set('Impossible de charger les données de l\'entreprise.');
-            this.loading.set(false);
-          }
+    this.companyService.getCompany(this.companyId).subscribe({
+      next: company => {
+        this.form.patchValue({
+          name: company.name ?? '',
+          email: company.email ?? '',
+          phone: company.phone ?? '',
+          iban: company.iban ?? '',
+          street: company.street ?? '',
+          postal_code: company.postal_code ?? '',
+          city: company.city ?? '',
+          country: company.country ?? '',
         });
+        this.logoPath.set(company.logo);
+        this.loading.set(false);
+
+        if (!this.canManageCompany()) {
+          this.form.disable();
+        }
       },
       error: err => {
         console.error('profile : ' + err);
@@ -165,7 +162,7 @@ export class CompanyProfile implements OnInit, OnDestroy {
         });
         this.templatesLoading.set(false);
 
-        if (!this.isAdmin()) {
+        if (!this.canManageCompany()) {
           this.templatesForm.disable();
         }
       },
@@ -198,14 +195,14 @@ export class CompanyProfile implements OnInit, OnDestroy {
   }
 
   onDropzoneClick(fileInput: HTMLInputElement): void {
-    if (!this.isAdmin()) {
+    if (!this.canManageCompany()) {
       return;
     }
     fileInput.click();
   }
 
   onDragOver(event: DragEvent): void {
-    if (!this.isAdmin()) {
+    if (!this.canManageCompany()) {
       return;
     }
     event.preventDefault();
@@ -224,7 +221,7 @@ export class CompanyProfile implements OnInit, OnDestroy {
     event.stopPropagation();
     this.isDraggingOver.set(false);
 
-    if (!this.isAdmin()) {
+    if (!this.canManageCompany()) {
       return;
     }
 

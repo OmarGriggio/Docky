@@ -112,6 +112,16 @@ nav {
   border-bottom: 1px solid #ddd;
 }
 
+/* A PLATFORM_ADMIN impersonating a company - stands out from the ordinary
+   icons around it as a reminder they're not acting as themselves. */
+.nav-bar__impersonating {
+  color: #b45309;
+}
+
+.nav-bar__impersonating:hover {
+  background-color: #fef3c7;
+}
+
 @media (max-width: 768px) {
   nav {
     flex-direction: row;

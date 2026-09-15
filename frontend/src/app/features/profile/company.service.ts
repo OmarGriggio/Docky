@@ -12,6 +12,12 @@ export class CompanyService {
 
   private http = inject(HttpClient);
 
+  // PLATFORM_ADMIN only (the backend route itself enforces this) - every
+  // company, not just the caller's own.
+  getCompanies() {
+    return this.http.get<Company[]>(`${API_BASE}/company`);
+  }
+
   getCompany(id: number) {
     return this.http.get<Company>(`${API_BASE}/company/${id}`);
   }

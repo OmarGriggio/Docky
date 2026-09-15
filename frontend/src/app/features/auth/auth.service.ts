@@ -8,6 +8,11 @@ import { environment } from '../../../environments/environment';
 
 const API_BASE = environment.apiUrl;
 const TOKEN_KEY = 'docky_token';
+// Only ever set while a PLATFORM_ADMIN is impersonating a company - their
+// own real token, parked here so "return to platform view" doesn't need a
+// backend round-trip. See impersonateCompany()/returnToPlatformView() below
+// and zz_docs/Decisions.md's "Cross-company access" entry.
+const PLATFORM_TOKEN_KEY = 'docky_platform_token';
 
 interface TokenPayload {
   userId: number;
@@ -34,6 +39,7 @@ export class AuthService {
   private http = inject(HttpClient);
 
   private token = signal<string | null>(localStorage.getItem(TOKEN_KEY));
+  private platformToken = signal<string | null>(localStorage.getItem(PLATFORM_TOKEN_KEY));
 
   // Several API calls can 401 around the same moment (e.g. a page firing off
   // several list requests at once) - they all await this same in-flight
@@ -57,6 +63,8 @@ export class AuthService {
   isPlatformAdmin = computed(() =>
     this.currentUser()?.role === 'PLATFORM_ADMIN'
   );
+
+  isImpersonating = computed(() => this.platformToken() !== null);
 
   getToken(): string | null {
     return this.token();
@@ -131,6 +139,46 @@ export class AuthService {
 
     localStorage.removeItem(TOKEN_KEY);
     this.token.set(null);
+    this.clearPlatformToken();
+  }
+
+  // PLATFORM_ADMIN only (the backend route itself enforces this - see
+  // auth.routes.ts). Swaps the active token for one carrying the target
+  // company's own company_id, role unchanged - every existing endpoint's
+  // own req.user.company_id scoping does the rest, nothing else needs to
+  // know impersonation exists. The real platform token is parked in a
+  // second slot on the FIRST switch only - switching company again while
+  // already impersonating must not overwrite it with an impersonated one.
+  impersonateCompany(companyId: number): Observable<void> {
+    return this.http.post<{ token: string }>(`${API_BASE}/auth/impersonate/${companyId}`, {}).pipe(
+      tap(response => {
+        if (!this.platformToken()) {
+          const current = this.token();
+          if (current) {
+            localStorage.setItem(PLATFORM_TOKEN_KEY, current);
+            this.platformToken.set(current);
+          }
+        }
+        this.setToken(response.token);
+      }),
+      map(() => undefined)
+    );
+  }
+
+  // No backend call needed - the real token was never invalidated, just set
+  // aside (see impersonateCompany() above).
+  returnToPlatformView(): void {
+    const platformToken = this.platformToken();
+    if (!platformToken) {
+      return;
+    }
+    this.setToken(platformToken);
+    this.clearPlatformToken();
+  }
+
+  private clearPlatformToken(): void {
+    localStorage.removeItem(PLATFORM_TOKEN_KEY);
+    this.platformToken.set(null);
   }
 
   private setToken(token: string): void {

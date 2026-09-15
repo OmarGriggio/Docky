@@ -31,6 +31,12 @@
     }
 
     <div class="nav-bar__auth">
+      @if (isImpersonating()) {
+        <button type="button" class="nav-bar__icon-link nav-bar__impersonating" (click)="returnToPlatformView()">
+          <i class="pi pi-sign-out"></i>
+          <span class="nav-bar__tooltip">Retour vue plateforme</span>
+        </button>
+      }
       <a routerLink="/profile" class="nav-bar__icon-link">
         <i class="pi pi-user"></i>
         <span class="nav-bar__tooltip">{{ currentUser()?.email ?? 'Profil' }}</span>

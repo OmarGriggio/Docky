@@ -74,28 +74,43 @@ export const routes: Routes = [
         loadComponent: () => import('./features/profile/company-profile/company-profile').then(m => m.CompanyProfile)
       },
       {
+        // PLATFORM_ADMIN only, deliberately not (also) ADMIN - user
+        // management was centralized there, see user.routes.ts on the
+        // backend for why (and how a PLATFORM_ADMIN still manages a given
+        // company's users - by impersonating it first).
         path: 'users',
         loadComponent: () => import('./features/admin/user-list/user-list').then(m => m.UserListComponent),
         canActivate: [roleGuard],
-        data: { roles: ['ADMIN'] }
+        data: { roles: ['PLATFORM_ADMIN'] }
       },
       {
         path: 'users/new',
         loadComponent: () => import('./features/admin/user-form/user-form').then(m => m.UserForm),
         canActivate: [roleGuard],
-        data: { roles: ['ADMIN'] }
+        data: { roles: ['PLATFORM_ADMIN'] }
       },
       {
+        // ADMIN and PLATFORM_ADMIN both - not one of the pages centralized
+        // to PLATFORM_ADMIN only (unlike users/login-history above), just an
+        // ordinary admin-level page.
         path: 'uitest',
         loadComponent: () => import('./features/uitest/uitest').then(m => m.UiTest),
         canActivate: [roleGuard],
-        data: { roles: ['ADMIN'] }
+        data: { roles: ['ADMIN', 'PLATFORM_ADMIN'] }
       },
       {
         // PLATFORM_ADMIN only, deliberately not ADMIN - see
         // login-history.routes.ts on the backend for why.
         path: 'login-history',
         loadComponent: () => import('./features/admin/login-history/login-history').then(m => m.LoginHistoryComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['PLATFORM_ADMIN'] }
+      },
+      {
+        // Where a PLATFORM_ADMIN picks which company to act as - see
+        // AuthService's own impersonateCompany().
+        path: 'companies',
+        loadComponent: () => import('./features/admin/company-list/company-list').then(m => m.CompanyListComponent),
         canActivate: [roleGuard],
         data: { roles: ['PLATFORM_ADMIN'] }
       },

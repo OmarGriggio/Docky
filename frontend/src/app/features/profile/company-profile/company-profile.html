@@ -48,7 +48,7 @@
           <div
             class="profile-logo__dropzone"
             [class.profile-logo__dropzone--dragging]="isDraggingOver()"
-            [class.profile-logo__dropzone--disabled]="!isAdmin()"
+            [class.profile-logo__dropzone--disabled]="!canManageCompany()"
             (click)="onDropzoneClick(logoInput)"
             (dragover)="onDragOver($event)"
             (dragleave)="onDragLeave($event)"
@@ -60,7 +60,7 @@
               <i class="pi pi-image profile-logo__placeholder"></i>
             }
 
-            @if (isAdmin()) {
+            @if (canManageCompany()) {
               <p class="profile-logo__hint">Glissez-déposez une image ici, ou cliquez pour parcourir</p>
             }
 
@@ -69,12 +69,12 @@
               type="file"
               accept="image/jpeg,image/png"
               class="profile-logo__input"
-              [disabled]="!isAdmin()"
+              [disabled]="!canManageCompany()"
               (change)="onFileInputChange($event)"
             />
           </div>
 
-          @if (isAdmin() && selectedLogoFile()) {
+          @if (canManageCompany() && selectedLogoFile()) {
             <p-button type="button" label="Uploader le logo" [loading]="uploadingLogo()" (onClick)="uploadLogo()" />
           }
 
@@ -83,7 +83,7 @@
           }
         </div>
 
-        @if (!isAdmin()) {
+        @if (!canManageCompany()) {
           <p class="ui-form__full">Seul un administrateur peut modifier les informations de l'entreprise.</p>
         }
 
@@ -95,7 +95,7 @@
           <p class="ui-form__full profile-error">{{ errorMessage() }}</p>
         }
 
-        @if (isAdmin()) {
+        @if (canManageCompany()) {
           <div class="ui-form__actions">
             <p-button type="submit" label="Enregistrer" />
           </div>
@@ -131,7 +131,7 @@
           <label for="invoice_conclusion">Facture - Conclusion</label>
         </p-floatlabel>
 
-        @if (!isAdmin()) {
+        @if (!canManageCompany()) {
           <p class="ui-form__full">Seul un administrateur peut modifier les modèles de documents.</p>
         }
 
@@ -143,7 +143,7 @@
           <p class="ui-form__full profile-error">{{ templatesErrorMessage() }}</p>
         }
 
-        @if (isAdmin()) {
+        @if (canManageCompany()) {
           <div class="ui-form__actions">
             <p-button type="submit" label="Enregistrer" />
           </div>

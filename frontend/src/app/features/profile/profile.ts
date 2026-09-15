@@ -27,16 +27,23 @@ export class Profile {
       { label: 'Entreprise', icon: 'pi pi-building', routerLink: '/profile/company' },
     ];
 
-    if (this.isAdmin()) {
-      menu.push(
-        { label: 'Utilisateurs', icon: 'pi pi-users', routerLink: '/profile/users' },
-        { label: 'Nouvel utilisateur', icon: 'pi pi-user-plus', routerLink: '/profile/users/new' },
-        { label: 'UI Kit', icon: 'pi pi-palette', routerLink: '/profile/uitest' },
-      );
+    // Same page, open to either role now - not one of the pages
+    // centralized to PLATFORM_ADMIN only below.
+    if (this.isAdmin() || this.isPlatformAdmin()) {
+      menu.push({ label: 'UI Kit', icon: 'pi pi-palette', routerLink: '/profile/uitest' });
     }
 
+    // User management was centralized to PLATFORM_ADMIN only (see
+    // user.routes.ts on the backend) - an ordinary ADMIN no longer sees
+    // these, even for their own company. They manage a company's users by
+    // impersonating it first (see "Entreprises" below).
     if (this.isPlatformAdmin()) {
-      menu.push({ label: 'Historique des connexions', icon: 'pi pi-history', routerLink: '/profile/login-history' });
+      menu.push(
+        { label: 'Entreprises', icon: 'pi pi-sitemap', routerLink: '/profile/companies' },
+        { label: 'Utilisateurs', icon: 'pi pi-users', routerLink: '/profile/users' },
+        { label: 'Nouvel utilisateur', icon: 'pi pi-user-plus', routerLink: '/profile/users/new' },
+        { label: 'Historique des connexions', icon: 'pi pi-history', routerLink: '/profile/login-history' },
+      );
     }
 
     menu.push({ label: 'Déconnexion', icon: 'pi pi-sign-out', command: () => this.logout() });

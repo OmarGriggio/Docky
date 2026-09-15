@@ -1,6 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
 import { Location } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../features/auth/auth.service';
 import { UserRole } from '../models/auth';
 
@@ -28,9 +28,19 @@ export class NavBar {
 
   private authService = inject(AuthService);
   private location = inject(Location);
+  private router = inject(Router);
 
   isAuthenticated = this.authService.isAuthenticated;
   currentUser = this.authService.currentUser;
+  isImpersonating = this.authService.isImpersonating;
+
+  // Lands back on the company picker rather than wherever the impersonated
+  // view happened to be - that page wouldn't mean anything once back on the
+  // platform admin's own company/token.
+  returnToPlatformView(): void {
+    this.authService.returnToPlatformView();
+    this.router.navigate(['/profile/companies']);
+  }
 
   // One global "Retour" in the nav-bar (itself present on every page,
   // being part of the app shell - see app.ts) rather than a button
