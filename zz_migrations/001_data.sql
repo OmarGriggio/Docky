@@ -7,15 +7,11 @@ VALUES
 -- USERS
 -- ==========================================
 
--- One user per role, all with the same dev password (password123) - bcrypt
--- salts each hash differently even for an identical plaintext, so this
--- doesn't collide with password_hash's UNIQUE constraint.
--- Dev seed logins:
---   admin@dedonnostyle.ch          / password123  (ADMIN)
---   user@dedonnostyle.ch           / password123  (USER)
---   platform-admin@docky.ch        / password123  (PLATFORM_ADMIN - see the
---     "Roles" bullet in CLAUDE.md: no self-service way to create one, this
---     is the "inserted by hand" path, just done here instead of via psql)
+-- One user per role, all with the same dev password - bcrypt salts each
+-- hash differently even for an identical plaintext, so this doesn't
+-- collide with password_hash's UNIQUE constraint. The PLATFORM_ADMIN one is
+-- inserted by hand here rather than via psql - see the "Roles" bullet in
+-- CLAUDE.md for why there's no self-service way to create one otherwise.
 INSERT INTO users
 (company_id, role, last_name, first_name, email, password_hash)
 VALUES
@@ -92,9 +88,9 @@ INSERT INTO documents
 (company_id, client_id, parent_document_id, type, number, date, amount_excl_vat, amount_incl_vat, discount, status, introduction, conclusion)
 VALUES
 (1, 1, NULL, 'QUOTE', 'OFF-2026-0001', '2026-07-10', 775.00, 775.00, 0, 'ACCEPTED', NULL, NULL),
-(1, 3, NULL, 'QUOTE', 'OFF-2026-0002', '2026-07-11', 1881.00, 1881.00, 5, 'ACCEPTED', NULL, NULL),
+(1, 3, NULL, 'QUOTE', 'OFF-2026-0002', '2026-07-11', 2607.75, 2607.75, 5, 'ACCEPTED', NULL, NULL),
 
-(1, 1, 1, 'PROJECT', 'CH-2026-0001', '2026-07-12', 865.00, 865.00, 0, NULL, NULL, NULL),
+(1, 1, 1, 'PROJECT', 'CH-2026-0001', '2026-07-12', 1070.00, 1070.00, 0, NULL, NULL, NULL),
 (1, 3, 2, 'PROJECT', 'CH-2026-0002', '2026-07-13', 1980.00, 1980.00, 0, NULL, NULL, NULL),
 (1, 2, NULL, 'PROJECT', 'CH-2026-0003', '2026-08-01', 0, 0, 0, NULL, NULL, NULL),
 (1, 2, NULL, 'PROJECT', 'CH-2026-0004', '2026-08-02', 0, 0, 0, NULL, NULL, NULL),
@@ -114,19 +110,25 @@ VALUES
 -- DOCUMENT SECTIONS
 -- ==========================================
 
--- One "Travaux" section per document above (ids 1-8, same order) -
--- document_lines references these by id further down.
+-- One section per document above, except documents 2/3 (the second quote
+-- and its own PROJECT) which get two ("Pos 1"/"Pos 2"), to have at least
+-- one multi-section document in the seed data. document_lines references
+-- these by id further down - ids run 1-10 here (not 1-8), in insertion
+-- order: 1 (doc 1), 2-3 (doc 2), 4-5 (doc 3), 6 (doc 4), 7 (doc 5),
+-- 8 (doc 6), 9 (doc 7), 10 (doc 8).
 INSERT INTO document_sections
-(company_id, document_id, position, title)
+(company_id, document_id, position, title, description)
 VALUES
-(1, 1, 1, 'Travaux'),
-(1, 2, 1, 'Travaux'),
-(1, 3, 1, 'Travaux'),
-(1, 4, 1, 'Travaux'),
-(1, 5, 1, 'Travaux'),
-(1, 6, 1, 'Travaux'),
-(1, 7, 1, 'Travaux'),
-(1, 8, 1, 'Travaux');
+(1, 1, 1, 'Pos 1', NULL),
+(1, 2, 1, 'Pos 1', NULL),
+(1, 2, 2, 'Pos 2', 'Finitions et raccordement électrique'),
+(1, 3, 1, 'Pos 1', NULL),
+(1, 3, 2, 'Pos 2', 'Peinture et finitions'),
+(1, 4, 1, 'Pos 1', NULL),
+(1, 5, 1, 'Pos 1', NULL),
+(1, 6, 1, 'Pos 1', NULL),
+(1, 7, 1, 'Pos 1', NULL),
+(1, 8, 1, 'Pos 1', NULL);
 
 -- ==========================================
 -- DOCUMENT LINES
@@ -143,43 +145,58 @@ VALUES
 (1, 1, 1, 'MATERIAL', 1, 'Sac ciment 25kg', 20, 'Sac', 15, 0, 1),
 (1, 1, 1, 'SERVICE', 2, 'Maçon qualifié', 5, 'Heure', 95, 0, 5),
 
--- Quote 2 (1980 - 5% = 1881.00) - section 2
+-- Quote 2 - section 2 ("Pos 1": 1980, unchanged below).
 (1, 2, 2, 'MATERIAL', 1, 'Parpaing 20 cm', 300, 'Pièce', 4.50, 0, 2),
 (1, 2, 2, 'SERVICE', 2, 'Maçon qualifié', 6, 'Heure', 95, 0, 5),
 (1, 2, 2, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 60, 0, 8),
 
--- PROJECT CH-2026-0001 (865.00) - section 3. Real quantities used on site,
--- adjusted by hand from quote 1's own (20 sacs -> 22, déplacement added).
-(1, 3, 3, 'MATERIAL', 1, 'Sac ciment 25kg', 22, 'Sac', 15, 0, 1),
-(1, 3, 3, 'SERVICE', 2, 'Maçon qualifié', 5, 'Heure', 95, 0, 5),
-(1, 3, 3, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 60, 0, 8),
+-- Quote 2 - section 3 ("Pos 2": 765). Combined subtotal 1980 + 765 = 2745,
+-- - 5% = 2607.75 (this document's own stored amount).
+(1, 2, 3, 'MATERIAL', 1, 'Peinture blanche 10L', 3, 'Pot', 95, 0, 4),
+(1, 2, 3, 'SERVICE', 2, 'Electricien externe', 4, 'Heure', 120, 0, 7),
 
--- PROJECT CH-2026-0002 (1980.00) - section 4. Matches quote 2's lines
--- exactly, no adjustment needed on this one - already invoiced below.
-(1, 4, 4, 'MATERIAL', 1, 'Parpaing 20 cm', 300, 'Pièce', 4.50, 0, 2),
-(1, 4, 4, 'SERVICE', 2, 'Maçon qualifié', 6, 'Heure', 95, 0, 5),
-(1, 4, 4, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 60, 0, 8),
+-- PROJECT CH-2026-0001 - section 4 ("Pos 1": 865). Real quantities used on
+-- site, adjusted by hand from quote 1's own (20 sacs -> 22, déplacement
+-- added).
+(1, 3, 4, 'MATERIAL', 1, 'Sac ciment 25kg', 22, 'Sac', 15, 0, 1),
+(1, 3, 4, 'SERVICE', 2, 'Maçon qualifié', 5, 'Heure', 95, 0, 5),
+(1, 3, 4, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 60, 0, 8),
 
--- PROJECT CH-2026-0003 (0.00) - section 5. Still IN_PROGRESS, no quote
+-- PROJECT CH-2026-0001 - section 5 ("Pos 2": 205, a later addition not in
+-- the original quote). Combined subtotal 865 + 205 = 1070 (this document's
+-- own stored amount, no discount).
+(1, 3, 5, 'MATERIAL', 1, 'Peinture blanche 10L', 1, 'Pot', 95, 0, 4),
+(1, 3, 5, 'SERVICE', 2, 'Apprenti', 2, 'Heure', 55, 0, 6),
+
+-- PROJECT CH-2026-0002 (1980.00) - section 6. Matches quote 2's own "Pos 1"
+-- exactly (not its "Pos 2" - that extra finishing work was quoted but never
+-- actually part of this chantier), no adjustment needed, already invoiced
+-- below.
+(1, 4, 6, 'MATERIAL', 1, 'Parpaing 20 cm', 300, 'Pièce', 4.50, 0, 2),
+(1, 4, 6, 'SERVICE', 2, 'Maçon qualifié', 6, 'Heure', 95, 0, 5),
+(1, 4, 6, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 60, 0, 8),
+
+-- PROJECT CH-2026-0003 (0.00) - section 7. Still IN_PROGRESS, no quote
 -- behind it - linked by hand, nothing used on site yet.
-(1, 5, 5, 'MATERIAL', 1, 'Tube PVC Ø100', 0, 'm', 22.00, 0, 3),
-(1, 5, 5, 'SERVICE', 2, 'Maçon qualifié', 0, 'Heure', 95, 0, 5),
+(1, 5, 7, 'MATERIAL', 1, 'Tube PVC Ø100', 0, 'm', 22.00, 0, 3),
+(1, 5, 7, 'SERVICE', 2, 'Maçon qualifié', 0, 'Heure', 95, 0, 5),
 
--- PROJECT CH-2026-0004 (0.00) - section 6. Same idea (apprenti, nacelle).
-(1, 6, 6, 'SERVICE', 1, 'Apprenti', 0, 'Heure', 55, 0, 6),
-(1, 6, 6, 'SERVICE', 2, 'Location nacelle', 0, 'Jour', 250, 0, 9),
+-- PROJECT CH-2026-0004 (0.00) - section 8. Same idea (apprenti, nacelle).
+(1, 6, 8, 'SERVICE', 1, 'Apprenti', 0, 'Heure', 55, 0, 6),
+(1, 6, 8, 'SERVICE', 2, 'Location nacelle', 0, 'Jour', 250, 0, 9),
 
--- Invoice FAC-2026-0001 (1881.00), bills PROJECT CH-2026-0002 - section 7,
+-- Invoice FAC-2026-0001 (1881.00), bills PROJECT CH-2026-0002 - section 9,
 -- same lines as that project.
-(1, 7, 7, 'MATERIAL', 1, 'Parpaing 20 cm', 300, 'Pièce', 4.50, 0, 2),
-(1, 7, 7, 'SERVICE', 2, 'Maçon qualifié', 6, 'Heure', 95, 0, 5),
-(1, 7, 7, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 60, 0, 8),
+(1, 7, 9, 'MATERIAL', 1, 'Parpaing 20 cm', 300, 'Pièce', 4.50, 0, 2),
+(1, 7, 9, 'SERVICE', 2, 'Maçon qualifié', 6, 'Heure', 95, 0, 5),
+(1, 7, 9, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 60, 0, 8),
 
--- Invoice FAC-2026-0002 (865.00), bills PROJECT CH-2026-0001 - section 8,
--- same lines as that project.
-(1, 8, 8, 'MATERIAL', 1, 'Sac ciment 25kg', 22, 'Sac', 15, 0, 1),
-(1, 8, 8, 'SERVICE', 2, 'Maçon qualifié', 5, 'Heure', 95, 0, 5),
-(1, 8, 8, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 60, 0, 8);
+-- Invoice FAC-2026-0002 (865.00), bills PROJECT CH-2026-0001 - section 10,
+-- same lines as that project's own "Pos 1" (not its "Pos 2" - the finishing
+-- work billed separately later, not part of this invoice).
+(1, 8, 10, 'MATERIAL', 1, 'Sac ciment 25kg', 22, 'Sac', 15, 0, 1),
+(1, 8, 10, 'SERVICE', 2, 'Maçon qualifié', 5, 'Heure', 95, 0, 5),
+(1, 8, 10, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 60, 0, 8);
 
 -- ==========================================
 -- DOCUMENT TEMPLATES
@@ -350,7 +367,9 @@ VALUES
 -- DOCUMENT SECTIONS
 -- ==========================================
 
--- One "Travaux" section per document above (ids 9-18, same order).
+-- One "Travaux" section per document above (ids 11-20, same order - company
+-- 1 now seeds 10 sections of its own, not 8, so company 2's own start two
+-- higher than the document ids alone would suggest).
 INSERT INTO document_sections
 (company_id, document_id, position, title)
 VALUES
@@ -378,64 +397,64 @@ INSERT INTO document_lines
 (company_id, document_id, section_id, type, position, label, quantity, unit, unit_price, discount, resource_id)
 VALUES
 
--- Quote 1 (2540.00) - section 9
-(2, 9, 9, 'MATERIAL', 1, 'Tuile terre cuite', 200, 'Pièce', 3.20, 0, 10),
-(2, 9, 9, 'SERVICE', 2, 'Couvreur qualifié', 12, 'Heure', 105, 0, 13),
-(2, 9, 9, 'SERVICE', 3, 'Location échafaudage', 2, 'Semaine', 320, 0, 17),
+-- Quote 1 (2540.00) - section 11
+(2, 9, 11, 'MATERIAL', 1, 'Tuile terre cuite', 200, 'Pièce', 3.20, 0, 10),
+(2, 9, 11, 'SERVICE', 2, 'Couvreur qualifié', 12, 'Heure', 105, 0, 13),
+(2, 9, 11, 'SERVICE', 3, 'Location échafaudage', 2, 'Semaine', 320, 0, 17),
 
--- Quote 2 (6985 - 5% = 6635.75) - section 10
-(2, 10, 10, 'MATERIAL', 1, 'Isolant laine de roche 100mm', 120, 'm²', 18.50, 0, 11),
-(2, 10, 10, 'MATERIAL', 2, 'Fenêtre PVC triple vitrage', 4, 'Pièce', 650, 0, 12),
-(2, 10, 10, 'SERVICE', 3, 'Couvreur qualifié', 20, 'Heure', 105, 0, 13),
-(2, 10, 10, 'SERVICE', 4, 'Déplacement', 1, 'Forfait', 65, 0, 16),
+-- Quote 2 (6985 - 5% = 6635.75) - section 12
+(2, 10, 12, 'MATERIAL', 1, 'Isolant laine de roche 100mm', 120, 'm²', 18.50, 0, 11),
+(2, 10, 12, 'MATERIAL', 2, 'Fenêtre PVC triple vitrage', 4, 'Pièce', 650, 0, 12),
+(2, 10, 12, 'SERVICE', 3, 'Couvreur qualifié', 20, 'Heure', 105, 0, 13),
+(2, 10, 12, 'SERVICE', 4, 'Déplacement', 1, 'Forfait', 65, 0, 16),
 
--- Quote 3 (1597.00) - section 11
-(2, 11, 11, 'MATERIAL', 1, 'Fenêtre PVC triple vitrage', 2, 'Pièce', 650, 0, 12),
-(2, 11, 11, 'SERVICE', 2, 'Apprenti couvreur', 4, 'Heure', 58, 0, 14),
-(2, 11, 11, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 65, 0, 16),
+-- Quote 3 (1597.00) - section 13
+(2, 11, 13, 'MATERIAL', 1, 'Fenêtre PVC triple vitrage', 2, 'Pièce', 650, 0, 12),
+(2, 11, 13, 'SERVICE', 2, 'Apprenti couvreur', 4, 'Heure', 58, 0, 14),
+(2, 11, 13, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 65, 0, 16),
 
--- PROJECT CH-2026-0001 (2572.00) - section 12. Real quantities used on
+-- PROJECT CH-2026-0001 (2572.00) - section 14. Real quantities used on
 -- site, adjusted by hand from quote 1's own (200 tuiles -> 210).
-(2, 12, 12, 'MATERIAL', 1, 'Tuile terre cuite', 210, 'Pièce', 3.20, 0, 10),
-(2, 12, 12, 'SERVICE', 2, 'Couvreur qualifié', 12, 'Heure', 105, 0, 13),
-(2, 12, 12, 'SERVICE', 3, 'Location échafaudage', 2, 'Semaine', 320, 0, 17),
+(2, 12, 14, 'MATERIAL', 1, 'Tuile terre cuite', 210, 'Pièce', 3.20, 0, 10),
+(2, 12, 14, 'SERVICE', 2, 'Couvreur qualifié', 12, 'Heure', 105, 0, 13),
+(2, 12, 14, 'SERVICE', 3, 'Location échafaudage', 2, 'Semaine', 320, 0, 17),
 
--- PROJECT CH-2026-0002 (6635.75) - section 13. Matches quote 2's lines
+-- PROJECT CH-2026-0002 (6635.75) - section 15. Matches quote 2's lines
 -- exactly - already invoiced below.
-(2, 13, 13, 'MATERIAL', 1, 'Isolant laine de roche 100mm', 120, 'm²', 18.50, 0, 11),
-(2, 13, 13, 'MATERIAL', 2, 'Fenêtre PVC triple vitrage', 4, 'Pièce', 650, 0, 12),
-(2, 13, 13, 'SERVICE', 3, 'Couvreur qualifié', 20, 'Heure', 105, 0, 13),
-(2, 13, 13, 'SERVICE', 4, 'Déplacement', 1, 'Forfait', 65, 0, 16),
+(2, 13, 15, 'MATERIAL', 1, 'Isolant laine de roche 100mm', 120, 'm²', 18.50, 0, 11),
+(2, 13, 15, 'MATERIAL', 2, 'Fenêtre PVC triple vitrage', 4, 'Pièce', 650, 0, 12),
+(2, 13, 15, 'SERVICE', 3, 'Couvreur qualifié', 20, 'Heure', 105, 0, 13),
+(2, 13, 15, 'SERVICE', 4, 'Déplacement', 1, 'Forfait', 65, 0, 16),
 
--- PROJECT CH-2026-0003 (1597.00) - section 14. Matches quote 3's lines
+-- PROJECT CH-2026-0003 (1597.00) - section 16. Matches quote 3's lines
 -- exactly - already invoiced below (still SENT, not yet paid).
-(2, 14, 14, 'MATERIAL', 1, 'Fenêtre PVC triple vitrage', 2, 'Pièce', 650, 0, 12),
-(2, 14, 14, 'SERVICE', 2, 'Apprenti couvreur', 4, 'Heure', 58, 0, 14),
-(2, 14, 14, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 65, 0, 16),
+(2, 14, 16, 'MATERIAL', 1, 'Fenêtre PVC triple vitrage', 2, 'Pièce', 650, 0, 12),
+(2, 14, 16, 'SERVICE', 2, 'Apprenti couvreur', 4, 'Heure', 58, 0, 14),
+(2, 14, 16, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 65, 0, 16),
 
--- PROJECT CH-2026-0004 (0.00) - section 15. Still IN_PROGRESS, no quote
+-- PROJECT CH-2026-0004 (0.00) - section 17. Still IN_PROGRESS, no quote
 -- behind it - linked by hand, nothing used on site yet.
-(2, 15, 15, 'MATERIAL', 1, 'Isolant laine de roche 100mm', 0, 'm²', 18.50, 0, 11),
-(2, 15, 15, 'SERVICE', 2, 'Couvreur qualifié', 0, 'Heure', 105, 0, 13),
+(2, 15, 17, 'MATERIAL', 1, 'Isolant laine de roche 100mm', 0, 'm²', 18.50, 0, 11),
+(2, 15, 17, 'SERVICE', 2, 'Couvreur qualifié', 0, 'Heure', 105, 0, 13),
 
--- Invoice FAC-2026-0001 (2572.00), bills PROJECT CH-2026-0001 - section 16,
+-- Invoice FAC-2026-0001 (2572.00), bills PROJECT CH-2026-0001 - section 18,
 -- same lines as that project.
-(2, 16, 16, 'MATERIAL', 1, 'Tuile terre cuite', 210, 'Pièce', 3.20, 0, 10),
-(2, 16, 16, 'SERVICE', 2, 'Couvreur qualifié', 12, 'Heure', 105, 0, 13),
-(2, 16, 16, 'SERVICE', 3, 'Location échafaudage', 2, 'Semaine', 320, 0, 17),
+(2, 16, 18, 'MATERIAL', 1, 'Tuile terre cuite', 210, 'Pièce', 3.20, 0, 10),
+(2, 16, 18, 'SERVICE', 2, 'Couvreur qualifié', 12, 'Heure', 105, 0, 13),
+(2, 16, 18, 'SERVICE', 3, 'Location échafaudage', 2, 'Semaine', 320, 0, 17),
 
--- Invoice FAC-2026-0002 (6635.75), bills PROJECT CH-2026-0002 - section 17,
+-- Invoice FAC-2026-0002 (6635.75), bills PROJECT CH-2026-0002 - section 19,
 -- same lines as that project.
-(2, 17, 17, 'MATERIAL', 1, 'Isolant laine de roche 100mm', 120, 'm²', 18.50, 0, 11),
-(2, 17, 17, 'MATERIAL', 2, 'Fenêtre PVC triple vitrage', 4, 'Pièce', 650, 0, 12),
-(2, 17, 17, 'SERVICE', 3, 'Couvreur qualifié', 20, 'Heure', 105, 0, 13),
-(2, 17, 17, 'SERVICE', 4, 'Déplacement', 1, 'Forfait', 65, 0, 16),
+(2, 17, 19, 'MATERIAL', 1, 'Isolant laine de roche 100mm', 120, 'm²', 18.50, 0, 11),
+(2, 17, 19, 'MATERIAL', 2, 'Fenêtre PVC triple vitrage', 4, 'Pièce', 650, 0, 12),
+(2, 17, 19, 'SERVICE', 3, 'Couvreur qualifié', 20, 'Heure', 105, 0, 13),
+(2, 17, 19, 'SERVICE', 4, 'Déplacement', 1, 'Forfait', 65, 0, 16),
 
--- Invoice FAC-2026-0003 (1597.00), bills PROJECT CH-2026-0003 - section 18,
+-- Invoice FAC-2026-0003 (1597.00), bills PROJECT CH-2026-0003 - section 20,
 -- same lines as that project.
-(2, 18, 18, 'MATERIAL', 1, 'Fenêtre PVC triple vitrage', 2, 'Pièce', 650, 0, 12),
-(2, 18, 18, 'SERVICE', 2, 'Apprenti couvreur', 4, 'Heure', 58, 0, 14),
-(2, 18, 18, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 65, 0, 16);
+(2, 18, 20, 'MATERIAL', 1, 'Fenêtre PVC triple vitrage', 2, 'Pièce', 650, 0, 12),
+(2, 18, 20, 'SERVICE', 2, 'Apprenti couvreur', 4, 'Heure', 58, 0, 14),
+(2, 18, 20, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 65, 0, 16);
 
 -- ==========================================
 -- DOCUMENT TEMPLATES
