@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getSections, createSection, archiveSection, unarchiveSection } from "./document_section.controller";
+import { getSections, createSection, updateSection, archiveSection, unarchiveSection } from "./document_section.controller";
 import { authenticate } from "../../shared/middlewares/auth.middleware";
 
 const router = Router();
@@ -9,6 +9,8 @@ router.use(authenticate);
 router.get("/", getSections);
 
 router.post("/", createSection);
+
+router.put("/:id", updateSection);
 
 router.patch("/:id/archive", archiveSection);
 

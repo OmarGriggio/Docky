@@ -14,3 +14,10 @@ export interface DocumentSection {
 
   is_active: boolean;
 }
+
+// Only the schedule is editable this way for now - title/description/
+// position/is_active each have their own dedicated flow already (created
+// once via POST, archived/unarchived, or replaced wholesale by the
+// caller's own archive-and-recreate pattern - see document-form.ts and
+// project-resources.ts on the frontend).
+export type UpdateDocumentSectionData = Pick<DocumentSection, "date_start" | "date_end">;

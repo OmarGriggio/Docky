@@ -1,9 +1,10 @@
-import { DocumentSection } from "./document_section.types";
+import { DocumentSection, UpdateDocumentSectionData } from "./document_section.types";
 import {
   getSectionsByDocumentIdFromDB,
   getSectionByIdFromDB,
   getNextPositionForDocumentFromDB,
   createSectionInDB,
+  updateSectionInDB,
   archiveSectionInDB,
   unarchiveSectionInDB
 } from "./document_section.repository";
@@ -31,6 +32,14 @@ export const addSectionServ = async (
   const position = await getNextPositionForDocumentFromDB(document_id);
 
   return await createSectionInDB({ ...sectionData, document_id, company_id, position, is_active: true });
+};
+
+export const updateSectionServ = async (id: number, company_id: number, data: UpdateDocumentSectionData) => {
+  const section = await getSectionByIdFromDB(id, company_id);
+  if (!section) {
+    throw new NotFoundError("Section not found");
+  }
+  return await updateSectionInDB(id, company_id, data);
 };
 
 export const archiveSectionServ = async (id: number, company_id: number) => {

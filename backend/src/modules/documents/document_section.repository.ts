@@ -1,5 +1,5 @@
 import { pool } from "../../shared/config/database";
-import { DocumentSection } from "./document_section.types";
+import { DocumentSection, UpdateDocumentSectionData } from "./document_section.types";
 
 export const getSectionsByDocumentIdFromDB = async (document_id: number, includeArchived = false) => {
   const query = includeArchived
@@ -55,6 +55,21 @@ export const createSectionInDB = async (
   ];
 
   const result = await pool.query(query, values);
+  return result.rows[0];
+};
+
+export const updateSectionInDB = async (
+  id: number,
+  company_id: number,
+  data: UpdateDocumentSectionData
+): Promise<DocumentSection> => {
+  const query = `
+    UPDATE document_sections SET date_start = $1, date_end = $2
+      WHERE id = $3 AND company_id = $4
+    RETURNING *;
+  `;
+
+  const result = await pool.query(query, [data.date_start, data.date_end, id, company_id]);
   return result.rows[0];
 };
 

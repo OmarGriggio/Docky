@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { getSectionsForDocumentServ, addSectionServ, archiveSectionServ, unarchiveSectionServ } from "./document_section.service";
-import { DocumentSection } from "./document_section.types";
+import { getSectionsForDocumentServ, addSectionServ, updateSectionServ, archiveSectionServ, unarchiveSectionServ } from "./document_section.service";
+import { DocumentSection, UpdateDocumentSectionData } from "./document_section.types";
 
 export const getSections = async (req: Request, res: Response) => {
   const document_id = Number(req.query.document_id);
@@ -15,6 +15,13 @@ export const createSection = async (req: Request, res: Response) => {
 
   const sectionCreated = await addSectionServ(sectionData, document_id, req.user.company_id);
   res.json(sectionCreated);
+};
+
+export const updateSection = async (req: Request, res: Response) => {
+  const sectionData: UpdateDocumentSectionData = req.body;
+
+  const sectionUpdated = await updateSectionServ(Number(req.params.id), req.user.company_id, sectionData);
+  res.json(sectionUpdated);
 };
 
 export const archiveSection = async (req: Request, res: Response) => {
