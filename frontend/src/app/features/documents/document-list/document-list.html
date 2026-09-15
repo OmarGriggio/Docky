@@ -17,6 +17,7 @@
       <th style="width: 3rem"></th>
       <th>Numéro</th>
       <th>Client</th>
+      <th>Lieu</th>
       <th>Date</th>
       <th>Montant HT</th>
       <th>Montant TTC</th>
@@ -38,11 +39,12 @@
       </td>
       <td>{{ document.number }}</td>
       <td>{{ clientName(document) }}</td>
+      <td>{{ location(document) }}</td>
       <td>{{ document.date | appDate }}</td>
       <td>{{ document.amount_excl_vat }}</td>
       <td>{{ document.amount_incl_vat }}</td>
       <td>{{ document.discount }}</td>
-      <td>{{ document.status }}</td>
+      <td><p-tag [value]="statusLabel(document)" [severity]="statusSeverity(document)" /></td>
       <td>
         <p-button label="" icon="pi pi-file-pdf" (click)="openPdf(document)" />
       </td>
@@ -55,77 +57,59 @@
 
   <ng-template #expandedrow let-document>
     <tr>
-      <td colspan="10">
+      <td colspan="11">
         @if (isLoadingSections(document)) {
           <p class="text-sm text-surface-500 m-0">Chargement...</p>
         } @else if (sectionsFor(document).length === 0) {
           <p class="text-sm text-surface-500 m-0">Aucune section.</p>
         } @else {
-          <!-- Nested expandable table: a section's own row can be expanded
-               again to reveal its lines (the #expandedrow just below, this
-               table's own). sectionExpandedRowKeys is shared across every
-               document's nested table - section ids are unique table-wide. -->
-          <p-table [value]="sectionsFor(document)" dataKey="id" [expandedRowKeys]="sectionExpandedRowKeys" class="p-datatable-sm">
-            <ng-template #header>
-              <tr>
-                <th style="width: 3rem"></th>
-                <th>Section</th>
-                <th>Période</th>
-              </tr>
-            </ng-template>
-
-            <ng-template #body let-section>
-              <tr>
-                <td>
-                  <p-button
-                    type="button" [text]="true" size="small"
-                    [icon]="sectionExpandedRowKeys[section.id] ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
-                    [pRowToggler]="section"
-                  />
-                </td>
-                <td>
-                  <span class="font-medium">{{ section.title }}</span>
-                  @if (section.description) {
-                    <span class="text-sm text-surface-500"> — {{ section.description }}</span>
-                  }
-                </td>
-                <td>
+          <!-- Read-only glance, same card-per-section layout as
+               project-list.html's own: sections and their lines both show
+               up directly, no extra click needed. -->
+          <div class="flex flex-col gap-3">
+            @for (section of sectionsFor(document); track section.id) {
+              <div class="border border-surface-200 rounded-lg p-3">
+                <div class="flex items-center justify-between gap-4 flex-wrap mb-2">
+                  <div>
+                    <span class="font-semibold">{{ section.title }}</span>
+                    @if (section.description) {
+                      <span class="text-sm text-surface-500"> — {{ section.description }}</span>
+                    }
+                  </div>
                   @if (section.date_start || section.date_end) {
-                    {{ section.date_start | appDate }} – {{ section.date_end | appDate }}
+                    <span class="text-xs text-surface-500">
+                      {{ section.date_start | appDate }} – {{ section.date_end | appDate }}
+                    </span>
                   }
-                </td>
-              </tr>
-            </ng-template>
+                </div>
 
-            <ng-template #expandedrow let-section>
-              <tr>
-                <td colspan="3">
-                  @if (linesFor(section).length === 0) {
-                    <p class="text-sm text-surface-500 m-0">Aucune ligne.</p>
-                  } @else {
-                    <p-table [value]="linesFor(section)" class="p-datatable-sm">
-                      <ng-template #header>
-                        <tr>
-                          <th>Désignation</th>
-                          <th>Quantité</th>
-                          <th>Unité</th>
-                          <th>Prix unitaire</th>
-                        </tr>
-                      </ng-template>
-                      <ng-template #body let-line>
+                @if (linesFor(section).length === 0) {
+                  <p class="text-xs text-surface-500 m-0">Aucune ligne.</p>
+                } @else {
+                  <table class="w-full text-sm">
+                    <thead>
+                      <tr class="text-left text-xs text-surface-500 uppercase">
+                        <th class="font-normal pb-1">Désignation</th>
+                        <th class="font-normal pb-1">Quantité</th>
+                        <th class="font-normal pb-1">Unité</th>
+                        <th class="font-normal pb-1">Prix unitaire</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (line of linesFor(section); track line.id) {
                         <tr>
                           <td>{{ line.label }}</td>
                           <td>{{ line.quantity }}</td>
                           <td>{{ line.unit }}</td>
                           <td>{{ line.unit_price }}</td>
                         </tr>
-                      </ng-template>
-                    </p-table>
-                  }
-                </td>
-              </tr>
-            </ng-template>
-          </p-table>
+                      }
+                    </tbody>
+                  </table>
+                }
+              </div>
+            }
+          </div>
         }
       </td>
     </tr>

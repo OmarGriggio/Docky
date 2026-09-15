@@ -2,6 +2,8 @@
 // Same idea as backend/document.calculations.ts: same input always gives the
 // same output, so no setup is needed to test them.
 
+import { DocumentStatus } from '../models/document';
+
 export interface NameableClient {
   company_name: string | null;
   first_name: string | null;
@@ -19,6 +21,35 @@ export const clientDisplayName = (client: NameableClient): string => {
 // archive/restore actions: clients, suppliers, projects, documents, resources.
 export const archiveActionLabel = (is_active: boolean): 'Archiver' | 'Restaurer' => {
   return is_active ? 'Archiver' : 'Restaurer';
+};
+
+// A document's status is a raw DB enum value (see shared/models/document.ts)
+// - never show it as-is, always through this (a quote/invoice list column,
+// document-form's own header, ...). PrimeNG Tag severities, not raw colors.
+const DOCUMENT_STATUS_LABELS: Record<DocumentStatus, string> = {
+  DRAFT: 'Brouillon',
+  SENT: 'Envoyée',
+  ACCEPTED: 'Acceptée',
+  REJECTED: 'Refusée',
+  PAID: 'Payée',
+  CANCELLED: 'Annulée',
+};
+
+const DOCUMENT_STATUS_SEVERITIES: Record<DocumentStatus, 'secondary' | 'info' | 'success' | 'danger'> = {
+  DRAFT: 'secondary',
+  SENT: 'info',
+  ACCEPTED: 'success',
+  REJECTED: 'danger',
+  PAID: 'success',
+  CANCELLED: 'danger',
+};
+
+export const documentStatusLabel = (status: DocumentStatus): string => {
+  return DOCUMENT_STATUS_LABELS[status];
+};
+
+export const documentStatusSeverity = (status: DocumentStatus): 'secondary' | 'info' | 'success' | 'danger' => {
+  return DOCUMENT_STATUS_SEVERITIES[status];
 };
 
 // Used for project attachments' size column - Ko/Mo, not KB/MB (French UI).
