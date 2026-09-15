@@ -2,26 +2,10 @@
 
 <h2 class="text-lg font-medium mt-4 mb-2">Montant payé par client</h2>
 
-<p-table [value]="paidByClient()" dataKey="client_id" showGridlines>
-  <ng-template #header>
-    <tr>
-      <th>N° client</th>
-      <th>Client</th>
-      <th>Total payé</th>
-    </tr>
-  </ng-template>
-
-  <ng-template #body let-row>
-    <tr>
-      <td>{{ row.client_number }}</td>
-      <td>{{ clientName(row) }}</td>
-      <td>{{ row.total_paid | number: '1.2-2' }} CHF</td>
-    </tr>
-  </ng-template>
-
-  <ng-template #emptymessage>
-    <tr>
-      <td colspan="3">Aucune facture payée pour l'instant.</td>
-    </tr>
-  </ng-template>
-</p-table>
+@if (paidByClient().length === 0) {
+  <p class="text-sm text-surface-500">Aucune facture payée pour l'instant.</p>
+} @else if (chartData(); as data) {
+  <div style="max-width: 40rem">
+    <p-chart type="bar" [data]="data" [options]="chartOptions" />
+  </div>
+}
