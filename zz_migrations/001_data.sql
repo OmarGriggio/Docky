@@ -487,3 +487,181 @@ VALUES
 (2, 13, 9, 5, 'Isolation et fenêtres immeuble', 'COMPLETED'),
 (2, 14, 10, 6, 'Remplacement fenêtres', 'COMPLETED'),
 (2, 15, 6, 5, 'Isolation combles', 'IN_PROGRESS');
+
+-- ==========================================================================
+-- COMPANY 1 - ADDITIONAL TEST DATA
+-- ==========================================================================
+--
+-- More company 1 rows, purely to exercise cases the data above doesn't:
+-- an archived client/resource/project, a client with a second (non-primary)
+-- address, every DocumentStatus value not used yet (DRAFT/SENT/REJECTED/
+-- CANCELLED - only ACCEPTED/PAID/SENT existed before), a document with
+-- reference_client set, a document billed to a specific non-primary address,
+-- a QUOTE document_template, and a project with no project_type_id.
+--
+-- Deliberately appended here (after company 2's own block) instead of
+-- alongside company 1's other INSERTs above - every id below continues
+-- straight on from the current end of the file (clients 10, addresses 10,
+-- resources 17, documents 18, document_sections 20, document_templates 2,
+-- projects 8), so adding it here instead means none of company 2's own
+-- hardcoded id references above have to be renumbered.
+
+-- ==========================================
+-- CLIENTS
+-- ==========================================
+
+-- C0011+ (not C0006+) - company 2 already claimed those (client_number is
+-- UNIQUE table-wide, not per company - see 000_base.sql).
+INSERT INTO clients
+(company_id, client_number, type, company_name, vat_number, last_name, first_name, title, email, phone, note, is_active)
+VALUES
+(1, 'C0011', 'PROFESSIONAL', 'Toiture Plus Sàrl', 'CHE-222.333.444', NULL, NULL, 'Madame, Monsieur,', 'contact@toitureplus.ch', '0219998877', NULL, FALSE),
+(1, 'C0012', 'INDIVIDUAL', NULL, NULL, 'Bertrand', 'Lucie', 'Madame', 'lucie.bertrand@gmail.com', '0761234567', NULL, TRUE),
+(1, 'C0013', 'INDIVIDUAL', NULL, NULL, 'Moser', 'Thomas', 'Monsieur', 'thomas.moser@gmail.com', '0789876543', NULL, TRUE);
+
+-- ==========================================
+-- ADDRESSES
+-- ==========================================
+
+-- First row is a second, non-primary address for client 3 (Entreprise
+-- Martin SA) - its own site address, different from its HQ (address 3
+-- above) - document 24 further down bills that one specifically via its
+-- own address_id, to test picking a non-default address. The rest are the
+-- one-per-client pattern used everywhere else in this file.
+INSERT INTO addresses
+(company_id, client_id, is_primary, street, postal_code, city, country)
+VALUES
+(1, 3, FALSE, 'Route Industrielle 8', '1020', 'Renens', 'Suisse'),
+(1, 11, TRUE, 'Rue de la Gare 3', '1003', 'Lausanne', 'Suisse'),
+(1, 12, TRUE, 'Chemin des Fleurs 7', '1010', 'Lausanne', 'Suisse'),
+(1, 13, TRUE, 'Avenue de la Praille 22', '1227', 'Carouge', 'Suisse');
+
+-- ==========================================
+-- RESOURCES
+-- ==========================================
+
+INSERT INTO resources
+(company_id, parent_resource_id, type, code, name, unit, selling_price, purchase_price, is_active)
+VALUES
+(1, NULL, 'SERVICE', 'MO003', 'Chef de chantier', 'Heure', 110.00, NULL, TRUE),
+-- Archived - to test the resource list's own archive filter.
+(1, NULL, 'MATERIAL', 'MAT005', 'Brique réfractaire', 'Pièce', 6.50, 4.00, FALSE);
+
+-- ==========================================
+-- DOCUMENT TEMPLATES
+-- ==========================================
+
+-- Company 1 only had an INVOICE template - this adds its QUOTE one too.
+INSERT INTO document_templates
+(company_id, type, introduction, conclusion)
+VALUES
+(1, 'QUOTE',
+	'Madame, Monsieur,
+
+	Nous avons le plaisir de vous soumettre notre offre pour les travaux décrits ci-dessous.',
+	'Cette offre est valable 30 jours à compter de sa date d''émission. Nous restons à votre disposition pour toute question.
+
+	Avec nos meilleures salutations.');
+
+-- ==========================================
+-- DOCUMENTS
+-- ==========================================
+
+-- Same bypass-the-API caveat as the blocks above: amounts are hand-computed
+-- from the lines further down. Ids 19-24 (client_id/status/notes below):
+--   19 QUOTE  client 12  DRAFT      - still being put together, no lines yet.
+--   20 QUOTE  client 13  SENT       - sent, awaiting an answer.
+--   21 QUOTE  client 13  REJECTED   - declined, and archived (is_active).
+--   22 INVOICE client 3  CANCELLED  - standalone, no parent_document_id.
+--   23 INVOICE client 4  DRAFT      - reference_client set (client's own PO
+--                                     number); client 4 (ABC Construction SA)
+--                                     otherwise has no documents anywhere else.
+--   24 INVOICE client 3  PAID       - address_id set to client 3's second,
+--                                     non-primary address (see ADDRESSES).
+-- 25 is a PROJECT document (a manually-created chantier, no quote behind
+-- it) - see PROJECTS further down.
+INSERT INTO documents
+(company_id, client_id, address_id, reference_client, parent_document_id, type, number, date, amount_excl_vat, amount_incl_vat, discount, status, introduction, conclusion, is_active)
+VALUES
+(1, 12, NULL, NULL, NULL, 'QUOTE', 'OFF-2026-0003', '2026-08-10', 0, 0, 0, 'DRAFT', NULL, NULL, TRUE),
+(1, 13, NULL, NULL, NULL, 'QUOTE', 'OFF-2026-0004', '2026-08-11', 980.00, 980.00, 0, 'SENT', NULL, NULL, TRUE),
+(1, 13, NULL, NULL, NULL, 'QUOTE', 'OFF-2026-0005', '2026-08-12', 355.00, 355.00, 0, 'REJECTED', NULL, NULL, FALSE),
+(1, 3, NULL, NULL, NULL, 'INVOICE', 'FAC-2026-0003', '2026-08-15', 75.00, 75.00, 0, 'CANCELLED',
+	'Nous avons le plaisir de vous soumettre la facture suivante.',
+	'Nous vous remercions de votre confiance et restons à votre disposition pour toute information complémentaire.
+
+	Avec nos meilleures salutations.', TRUE),
+(1, 4, NULL, 'BC-2026-445', NULL, 'INVOICE', 'FAC-2026-0004', '2026-08-18', 780.00, 780.00, 0, 'DRAFT',
+	'Nous avons le plaisir de vous soumettre la facture suivante.',
+	'Nous vous remercions de votre confiance et restons à votre disposition pour toute information complémentaire.
+
+	Avec nos meilleures salutations.', TRUE),
+(1, 3, 11, NULL, NULL, 'INVOICE', 'FAC-2026-0005', '2026-08-20', 1625.00, 1462.50, 10, 'PAID',
+	'Nous avons le plaisir de vous soumettre la facture suivante.',
+	'Nous vous remercions de votre confiance et restons à votre disposition pour toute information complémentaire.
+
+	Avec nos meilleures salutations.', TRUE),
+(1, 12, NULL, NULL, NULL, 'PROJECT', 'CH-2026-0005', '2026-08-22', 680.00, 680.00, 0, NULL, NULL, NULL, FALSE);
+
+-- ==========================================
+-- DOCUMENT SECTIONS
+-- ==========================================
+
+-- One "Travaux" section per document above that has lines (not document 19,
+-- the still-empty DRAFT quote) - ids 21-26, same order as documents 20-25.
+INSERT INTO document_sections
+(company_id, document_id, position, title)
+VALUES
+(1, 20, 1, 'Travaux'),
+(1, 21, 1, 'Travaux'),
+(1, 22, 1, 'Travaux'),
+(1, 23, 1, 'Travaux'),
+(1, 24, 1, 'Travaux'),
+(1, 25, 1, 'Travaux');
+
+-- ==========================================
+-- DOCUMENT LINES
+-- ==========================================
+
+-- resource_id matches resources' insertion order across the whole file (1
+-- Sac ciment, 2 Parpaing, 3 Tube PVC, 4 Peinture, 5 Maçon qualifié, 6
+-- Apprenti, 7 Electricien externe, 8 Déplacement, 18 Chef de chantier, 19
+-- Brique réfractaire - the last two added just above).
+INSERT INTO document_lines
+(company_id, document_id, section_id, type, position, label, quantity, unit, unit_price, discount, resource_id)
+VALUES
+
+-- Quote OFF-2026-0004 (980.00) - section 21
+(1, 20, 21, 'MATERIAL', 1, 'Tube PVC Ø100', 10, 'm', 22.00, 0, 3),
+(1, 20, 21, 'SERVICE', 2, 'Maçon qualifié', 8, 'Heure', 95, 0, 5),
+
+-- Quote OFF-2026-0005 (355.00), rejected - section 22
+(1, 21, 22, 'MATERIAL', 1, 'Peinture blanche 10L', 2, 'Pot', 95, 0, 4),
+(1, 21, 22, 'SERVICE', 2, 'Apprenti', 3, 'Heure', 55, 0, 6),
+
+-- Invoice FAC-2026-0003 (75.00), cancelled - section 23
+(1, 22, 23, 'MATERIAL', 1, 'Sac ciment 25kg', 5, 'Sac', 15, 0, 1),
+
+-- Invoice FAC-2026-0004 (780.00), still DRAFT - section 24
+(1, 23, 24, 'SERVICE', 1, 'Electricien externe', 6, 'Heure', 120, 0, 7),
+(1, 23, 24, 'SERVICE', 2, 'Déplacement', 1, 'Forfait', 60, 0, 8),
+
+-- Invoice FAC-2026-0005 (1625 - 10% = 1462.50) - section 25
+(1, 24, 25, 'MATERIAL', 1, 'Parpaing 20 cm', 150, 'Pièce', 4.50, 0, 2),
+(1, 24, 25, 'SERVICE', 2, 'Maçon qualifié', 10, 'Heure', 95, 0, 5),
+
+-- PROJECT CH-2026-0005 (680.00), archived, no project_type_id - section 26
+(1, 25, 26, 'SERVICE', 1, 'Chef de chantier', 5, 'Heure', 110, 0, 18),
+(1, 25, 26, 'MATERIAL', 2, 'Brique réfractaire', 20, 'Pièce', 6.50, 0, 19);
+
+-- ==========================================
+-- PROJECTS
+-- ==========================================
+
+-- Backed by document 25 above - archived (is_active) and with no
+-- project_type_id (an "unclassified" chantier), both otherwise untested
+-- edge cases in the data above.
+INSERT INTO projects
+(company_id, document_id, client_id, project_type_id, name, note, status, is_active)
+VALUES
+(1, 25, 12, NULL, 'Rénovation façade', 'Chantier suspendu - à reprendre', 'IN_PROGRESS', FALSE);
