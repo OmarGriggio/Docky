@@ -49,20 +49,21 @@ Three types of users are planned: **employees** (day-to-day usage), **company ad
 **Backend**
 - [x] Express + TypeScript API with a layered architecture (`controller` → `service` → `repository`)
 - [x] JWT-based authentication, with rate limiting on login
-- [x] CRUD endpoints for clients, suppliers, resources (materials/labor/subcontracting), resource pricing, documents (quotes and invoices) and invoice lines
+- [x] CRUD endpoints for clients, projects, resources (materials/services), documents (quotes, invoices, a project's own resource ledger) and their lines
 - [x] PostgreSQL access via raw SQL (no ORM, by design — see [zz_docs/Architecture.md](zz_docs/Architecture.md))
 - [x] Role/permission enforcement (`ADMIN` vs `USER` vs `PLATFORM_ADMIN` — see [zz_docs/Decisions.md](zz_docs/Decisions.md))
 - [x] Multi-tenant data isolation between companies, and archive (soft-delete) instead of hard delete for business records
 - [x] Refresh token stored in an httpOnly cookie (not readable by frontend JS, mitigates XSS token theft)
+- [x] Platform-admin company impersonation, login history/audit trail (see [CLAUDE.md](CLAUDE.md)'s Roles section)
 - [ ] Automated tests (Vitest is wired up and passing on both sides, but only covers a couple of pure functions so far — not real coverage yet)
 - [ ] Database migrations (schema is currently created manually)
 
 **Frontend**
 - [x] Angular app skeleton with routing (every route lazy-loaded)
-- [x] Client, supplier, project, document and resource list/form features wired to the API, with archive/restore
+- [x] Client, project, document and resource list/form features wired to the API, with archive/restore
 - [x] Authentication flow / login and registration screens
 - [x] Invoice and quote creation, with per-project resource prefill and default intro/conclusion templates
-- [ ] Dashboard (placeholder page only)
+- [x] Dashboard: paid amount per client as a bar chart (`p-chart`/Chart.js)
 
 **Ops**
 - [x] Docker Compose for local dev; separate multi-stage production images (compiled, non-root), deployed behind an Nginx gateway
@@ -200,7 +201,7 @@ cp backend/.env.example backend/.env
 | `JWT_SECRET`  | Secret used to sign/verify access tokens                        |
 | `JWT_REFRESH_SECRET` | Secret used to sign/verify refresh tokens (separate from `JWT_SECRET`) |
 
-> The database schema is bootstrapped automatically the first time the Postgres container starts, from the SQL files in [zz_migrations/](zz_migrations/) (mounted into `/docker-entrypoint-initdb.d`). To re-run them, drop the `postgres_data` volume and start the containers again. This also seeds a full sample dataset (a company, clients, projects, suppliers, a resource catalog, quotes/invoices...) so there's always something to explore right away — one login per role, all on `password123`: **`admin@dedonnostyle.ch`** (`ADMIN`), **`user@dedonnostyle.ch`** (`USER`), **`platform-admin@docky.ch`** (`PLATFORM_ADMIN`).
+> The database schema is bootstrapped automatically the first time the Postgres container starts, from the SQL files in [zz_migrations/](zz_migrations/) (mounted into `/docker-entrypoint-initdb.d`). To re-run them, drop the `postgres_data` volume and start the containers again. This also seeds two companies' worth of sample data (clients, chantiers, a resource catalog, quotes/invoices covering every status...) so there's always something to explore right away — one login per role on the first company, all on `password123`: **`admin@dedonnostyle.ch`** (`ADMIN`), **`user@dedonnostyle.ch`** (`USER`), **`platform-admin@docky.ch`** (`PLATFORM_ADMIN`). The second company is the one behind the [live demo](#live-demo) above.
 
 ## Documentation
 
