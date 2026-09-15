@@ -25,6 +25,10 @@ export class DocumentSectionService {
     return this.http.post<DocumentSection>(`${API_BASE}/document-section`, section);
   }
 
+  updateSection(id: number, section: Pick<DocumentSection, 'date_start' | 'date_end'>) {
+    return this.http.put<DocumentSection>(`${API_BASE}/document-section/${id}`, section);
+  }
+
   archiveSection(id: number) {
     return this.http.patch<DocumentSection>(`${API_BASE}/document-section/${id}/archive`, {});
   }
