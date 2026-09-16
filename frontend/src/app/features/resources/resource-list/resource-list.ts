@@ -46,6 +46,17 @@ export class ResourceListComponent implements OnInit {
 
   private resourcePendingArchive: Resource | null = null;
 
+  // Computed once, right when the ⋮ button is clicked - see
+  // user-list.ts's own openActionsMenu for why a live
+  // [model]="getActions(item)" template expression breaks p-menu (it
+  // needs a click, then a second one, to actually fire an action).
+  menuItems: MenuItem[] = [];
+
+  openActionsMenu(menu: Menu, event: Event, resource: Resource): void {
+    this.menuItems = this.getActions(resource);
+    menu.toggle(event);
+  }
+
   ngOnInit(): void {
     this.route.queryParamMap.subscribe(params => {
       const type = params.get('type') as ResourceType | null;

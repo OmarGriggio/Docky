@@ -24,6 +24,20 @@ export class UserListComponent implements OnInit {
 
   private userPendingDelete: User | null = null;
 
+  // Computed once, right when the ⋮ button is clicked - not as a live
+  // [model]="getActions(user)" template expression, which Angular
+  // re-evaluates on every change-detection cycle. That handed p-menu a
+  // brand new array of brand new MenuItem objects (with their own command
+  // closures) constantly, including mid-interaction - p-menu rebuilding its
+  // own items right as/after you click one is why a first click seemed to
+  // do nothing and a second one (once things had settled) actually worked.
+  menuItems: MenuItem[] = [];
+
+  openActionsMenu(menu: Menu, event: Event, user: User): void {
+    this.menuItems = this.getActions(user);
+    menu.toggle(event);
+  }
+
   ngOnInit(): void {
     this.loadUsers();
   }
