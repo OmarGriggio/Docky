@@ -22,9 +22,10 @@
   }
 </p-dialog>
 
-<p-table [value]="clients()" dataKey="id" showGridlines editMode="cell" (onEditComplete)="onCellEditComplete($event)">
+<p-table [value]="clients()" dataKey="id" showGridlines editMode="cell" (onEditComplete)="onCellEditComplete($event)" [expandedRowKeys]="expandedRowKeys" (onRowExpand)="onRowExpand($event)">
   <ng-template #header>
     <tr>
+      <th style="width: 3rem"></th>
       <th>N° client</th>
       <th>Type</th>
       <th>Société</th>
@@ -38,6 +39,13 @@
 
   <ng-template #body let-client let-rowIndex="rowIndex">
     <tr>
+      <td>
+        <p-button
+          type="button" [text]="true" size="small"
+          [icon]="expandedRowKeys[client.id] ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+          [pRowToggler]="client"
+        />
+      </td>
       <!-- Not editable - the client's stable business key. -->
       <td>{{ client.client_number }}</td>
 
@@ -108,8 +116,45 @@
       </td>
 
       <td>
-        <p-menu #menu [popup]="true" [model]="getActions(client)" appendTo="body"></p-menu>
-        <p-button icon="pi pi-ellipsis-v" (click)="menu.toggle($event)"></p-button>
+        <p-menu #menu [popup]="true" [model]="menuItems" appendTo="body"></p-menu>
+        <p-button icon="pi pi-ellipsis-v" (click)="openActionsMenu(menu, $event, client)"></p-button>
+      </td>
+    </tr>
+  </ng-template>
+
+  <ng-template #expandedrow let-client>
+    <tr>
+      <td colspan="9">
+        @if (isLoadingDocuments(client)) {
+          <p>Chargement...</p>
+        } @else if (documentsFor(client).length === 0) {
+          <p>Aucune offre ni facture pour ce client.</p>
+        } @else {
+          <p-table [value]="documentsFor(client)" dataKey="id" showGridlines>
+            <ng-template #header>
+              <tr>
+                <th>Numéro</th>
+                <th>Type</th>
+                <th>Date</th>
+                <th>Montant TTC</th>
+                <th>Statut</th>
+                <th></th>
+              </tr>
+            </ng-template>
+            <ng-template #body let-document>
+              <tr>
+                <td>{{ document.number }}</td>
+                <td>{{ document.type === 'QUOTE' ? 'Offre' : 'Facture' }}</td>
+                <td>{{ document.date | appDate }}</td>
+                <td>{{ document.amount_incl_vat }}</td>
+                <td><p-tag [value]="statusLabel(document)" [severity]="statusSeverity(document)" /></td>
+                <td>
+                  <p-button label="" icon="pi pi-arrow-right" [text]="true" (click)="openDocument(document)" />
+                </td>
+              </tr>
+            </ng-template>
+          </p-table>
+        }
       </td>
     </tr>
   </ng-template>

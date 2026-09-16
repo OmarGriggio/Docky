@@ -12,11 +12,12 @@ export class DocumentService {
 
   private http = inject(HttpClient);
 
-  getDocuments(type?: DocumentType, includeArchived = false) {
+  getDocuments(type?: DocumentType, includeArchived = false, clientId?: number) {
     return this.http.get<Document[]>(`${API_BASE}/document`, {
       params: {
         ...(type ? { type } : {}),
-        ...(includeArchived ? { includeArchived: 'true' } : {})
+        ...(includeArchived ? { includeArchived: 'true' } : {}),
+        ...(clientId ? { client_id: clientId } : {})
       }
     });
   }
