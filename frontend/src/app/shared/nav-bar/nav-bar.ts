@@ -1,4 +1,4 @@
-import { Component, computed, ElementRef, HostListener, inject } from '@angular/core';
+import { Component, computed, ElementRef, HostListener, inject, signal } from '@angular/core';
 import { Location } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../features/auth/auth.service';
@@ -16,6 +16,11 @@ interface NavItem {
   links: NavLink[];
   roles?: UserRole[];
 }
+
+// Collapsed/expanded is a per-browser display preference, not app state -
+// kept in localStorage the same way as auth.service.ts's own tokens, read
+// once at construction.
+const NAV_EXPANDED_KEY = 'docky_nav_expanded';
 
 @Component({
   selector: 'app-nav-bar',
@@ -35,6 +40,47 @@ export class NavBar {
   currentUser = this.authService.currentUser;
   isImpersonating = this.authService.isImpersonating;
 
+  expanded = signal(localStorage.getItem(NAV_EXPANDED_KEY) === 'true');
+
+  toggleExpanded(): void {
+    const next = !this.expanded();
+    this.expanded.set(next);
+    localStorage.setItem(NAV_EXPANDED_KEY, String(next));
+  }
+
+  // Every rail item (the toggle button itself included) shares this same
+  // layout: an icon, centered in a 40px square while collapsed - its label
+  // shown only as a hover tooltip (labelClasses() below) - versus icon +
+  // always-visible inline label, full-height row, while expanded. Kept as
+  // methods returning whole literal class strings (not built up from
+  // pieces) so Tailwind's own static-source scan can still find them.
+  linkClasses(): string {
+    return this.expanded()
+      // min-w-0: overrides the flex item's default "never shrink below
+      // content size" floor - without it, a long label (e.g. "Retour vue
+      // plateforme" below) forced this button wider than nav's own
+      // stretched width, so its hover background/border spilled out past
+      // nav's right edge instead of being clipped/truncated by labelClasses().
+      ? 'group relative flex items-center gap-3 h-10 px-3 rounded-md text-[1.1rem] text-gray-500 hover:bg-gray-100 transition-colors min-w-0'
+      : 'group relative flex items-center justify-center w-10 h-10 rounded-md text-[1.1rem] text-gray-500 hover:bg-gray-100 transition-colors';
+  }
+
+  // Collapsed: an absolutely-positioned tooltip, hidden until the parent
+  // .group is hovered (replaces the old CSS :hover rule with Tailwind's
+  // group-hover). Expanded: a plain static inline label instead - min-w-0 +
+  // truncate (rather than whitespace-nowrap alone) so a label too long for
+  // nav's own fixed width ellipsizes instead of forcing its parent button
+  // wider than nav itself (see linkClasses() above).
+  //
+  // Uses Tailwind's own gray-* palette, not PrimeNG's surface-* tokens (see
+  // linkClasses() above) - same reasoning, this project has no bridge
+  // between the two.
+  labelClasses(): string {
+    return this.expanded()
+      ? 'text-sm truncate min-w-0'
+      : 'absolute left-[calc(100%+0.5rem)] top-1/2 -translate-y-1/2 bg-gray-800 text-white text-xs px-2.5 py-1 rounded whitespace-nowrap opacity-0 invisible pointer-events-none transition-opacity duration-150 group-hover:opacity-100 group-hover:visible z-[1]';
+  }
+
   // Lands back on the company picker rather than wherever the impersonated
   // view happened to be - that page wouldn't mean anything once back on the
   // platform admin's own company/token.
@@ -52,12 +98,26 @@ export class NavBar {
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     const target = event.target as Node;
-    const openGroups: NodeListOf<HTMLDetailsElement> = this.elementRef.nativeElement.querySelectorAll('details.nav-bar__group[open]');
+    // No more .nav-bar__group marker class now that layout classes are
+    // Tailwind utilities computed in linkClasses() - every <details> inside
+    // this component's own host is one of the flyout groups above, nothing
+    // else uses that element here.
+    const openGroups: NodeListOf<HTMLDetailsElement> = this.elementRef.nativeElement.querySelectorAll('details[open]');
     openGroups.forEach(details => {
       if (!details.contains(target)) {
         details.open = false;
       }
     });
+  }
+
+  // <nav>'s own width - only takes effect at the md breakpoint (see
+  // nav-bar.html): below it, nav stays the full-width wrapped top bar it's
+  // always been regardless of expanded(), the rail width only being a
+  // desktop-sidebar concept.
+  navWidthClasses(): string {
+    return this.expanded()
+      ? 'md:w-56 md:items-stretch md:px-3'
+      : 'md:w-16 md:items-center md:px-2';
   }
 
   // One global "Retour" in the nav-bar (itself present on every page,

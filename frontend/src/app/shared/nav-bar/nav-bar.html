@@ -1,20 +1,29 @@
 @if (isAuthenticated()) {
-  <nav>
-    <button type="button" class="nav-bar__icon-link nav-bar__back" (click)="goBack()">
+  <nav
+    class="flex flex-row flex-wrap items-center gap-1 w-full h-auto py-2 px-2 border-b border-gray-200
+           md:flex-col md:h-screen md:sticky md:top-0 md:z-[1] md:border-b-0 md:border-r md:py-4 transition-[width] duration-150"
+    [class]="navWidthClasses()"
+  >
+    <button type="button" [class]="linkClasses()" (click)="toggleExpanded()">
+      <i [class]="expanded() ? 'pi pi-angle-double-left' : 'pi pi-angle-double-right'"></i>
+      <span [class]="labelClasses()">{{ expanded() ? 'Réduire' : 'Agrandir' }}</span>
+    </button>
+
+    <button type="button" [class]="linkClasses() + ' mb-2 pb-2 border-b border-gray-200'" (click)="goBack()">
       <i class="pi pi-arrow-left"></i>
-      <span class="nav-bar__tooltip">Retour</span>
+      <span [class]="labelClasses()">Retour</span>
     </button>
 
     @for (item of visibleNavItems(); track item.label) {
       @if (item.links.length > 1) {
-        <details #group class="nav-bar__group">
-          <summary class="nav-bar__icon-link">
+        <details #group class="relative min-w-0">
+          <summary [class]="linkClasses() + ' list-none [&::-webkit-details-marker]:hidden'">
             <i [class]="item.icon"></i>
-            <span class="nav-bar__tooltip">{{ item.label }}</span>
+            <span [class]="labelClasses()">{{ item.label }}</span>
           </summary>
-          <div class="nav-bar__flyout">
+          <div class="absolute left-[calc(100%+0.5rem)] top-0 min-w-[140px] bg-white border border-gray-200 rounded-md shadow-lg p-1 z-[1]">
             @for (link of item.links; track link.label) {
-              <a [routerLink]="link.path" [queryParams]="link.queryParams" class="nav-bar__flyout-link" (click)="group.open = false">{{ link.label }}</a>
+              <a [routerLink]="link.path" [queryParams]="link.queryParams" class="block px-3 py-2 rounded text-gray-800 no-underline text-sm whitespace-nowrap hover:bg-gray-100" (click)="group.open = false">{{ link.label }}</a>
             }
           </div>
         </details>
@@ -22,24 +31,24 @@
         <a
           [routerLink]="item.links[0].path"
           [queryParams]="item.links[0].queryParams"
-          class="nav-bar__icon-link"
+          [class]="linkClasses()"
         >
           <i [class]="item.icon"></i>
-          <span class="nav-bar__tooltip">{{ item.label }}</span>
+          <span [class]="labelClasses()">{{ item.label }}</span>
         </a>
       }
     }
 
-    <div class="nav-bar__auth">
+    <div class="flex flex-row md:flex-col items-center md:items-stretch gap-1 ml-auto md:ml-0 md:mt-auto pt-0 md:pt-3 border-t-0 md:border-t md:border-gray-200 min-w-0">
       @if (isImpersonating()) {
-        <button type="button" class="nav-bar__icon-link nav-bar__impersonating" (click)="returnToPlatformView()">
+        <button type="button" [class]="linkClasses() + ' text-amber-700 hover:bg-amber-100'" (click)="returnToPlatformView()">
           <i class="pi pi-sign-out"></i>
-          <span class="nav-bar__tooltip">Retour vue plateforme</span>
+          <span [class]="labelClasses()">Retour vue plateforme</span>
         </button>
       }
-      <a routerLink="/profile" class="nav-bar__icon-link">
+      <a routerLink="/profile" [class]="linkClasses()">
         <i class="pi pi-user"></i>
-        <span class="nav-bar__tooltip">{{ currentUser()?.email ?? 'Profil' }}</span>
+        <span [class]="labelClasses()">{{ currentUser()?.email ?? 'Profil' }}</span>
       </a>
     </div>
   </nav>
