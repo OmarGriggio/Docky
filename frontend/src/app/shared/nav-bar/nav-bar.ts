@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, ElementRef, HostListener, inject } from '@angular/core';
 import { Location } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../features/auth/auth.service';
@@ -29,6 +29,7 @@ export class NavBar {
   private authService = inject(AuthService);
   private location = inject(Location);
   private router = inject(Router);
+  private elementRef = inject(ElementRef);
 
   isAuthenticated = this.authService.isAuthenticated;
   currentUser = this.authService.currentUser;
@@ -40,6 +41,23 @@ export class NavBar {
   returnToPlatformView(): void {
     this.authService.returnToPlatformView();
     this.router.navigate(['/profile/companies']);
+  }
+
+  // A flyout is a plain <details>/<summary> (see nav-bar.html - no PrimeNG
+  // overlay here, same eager-bundle-size reasoning as the tooltip). Clicking
+  // one of its own links already closes it, but a native <details> doesn't
+  // close on its own when you click anywhere else - that has to be done by
+  // hand, so this closes any that are open whenever a click lands outside
+  // this component's own host element.
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as Node;
+    const openGroups: NodeListOf<HTMLDetailsElement> = this.elementRef.nativeElement.querySelectorAll('details.nav-bar__group[open]');
+    openGroups.forEach(details => {
+      if (!details.contains(target)) {
+        details.open = false;
+      }
+    });
   }
 
   // One global "Retour" in the nav-bar (itself present on every page,
