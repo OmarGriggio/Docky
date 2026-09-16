@@ -1,8 +1,10 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { TableModule } from 'primeng/table';
+import { ActivatedRoute, Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { TableModule, TableEditCompleteEvent } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import { Button } from 'primeng/button';
+import { InputText } from 'primeng/inputtext';
 import { Dialog } from 'primeng/dialog';
 import { Card } from 'primeng/card';
 import { ClientService } from '../client.service';
@@ -15,13 +17,14 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
 @Component({
   selector: 'app-client-detail',
   standalone: true,
-  imports: [TableModule, Tag, Button, Dialog, Card, AddressForm, ConfirmDialogComponent],
+  imports: [TableModule, Tag, Button, InputText, Dialog, Card, FormsModule, AddressForm, ConfirmDialogComponent],
   templateUrl: './client-detail.html',
   styleUrl: './client-detail.css'
 })
 export class ClientDetail implements OnInit {
 
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private clientService = inject(ClientService);
   private addressService = inject(AddressService);
 
@@ -55,6 +58,36 @@ export class ClientDetail implements OnInit {
     this.loadClient();
   }
 
+  // Resolved via event.index (the row) into c.addresses, and the response
+  // is merged into the *same* address object rather than swapping it out -
+  // see client-list.ts's own onCellEditComplete for why both of those
+  // matter (PrimeNG's own cancel-path logic, and not breaking a same-row
+  // edit started right after this one resolves).
+  onCellEditComplete(event: TableEditCompleteEvent): void {
+    const addresses = this.client()?.addresses;
+    const address = addresses && event.index !== undefined ? addresses[event.index] : undefined;
+    if (!address) {
+      return;
+    }
+
+    this.addressService.updateAddress(address.id, {
+      attention: address.attention,
+      street: address.street,
+      postal_code: address.postal_code,
+      city: address.city,
+      country: address.country,
+    }).subscribe({
+      next: updated => {
+        Object.assign(address, updated);
+        this.client.update(c => c ? { ...c } : c);
+      },
+      error: err => {
+        console.error('client-detail : ' + err);
+        this.loadClient();
+      }
+    });
+  }
+
   deleteAddress(address: Address): void {
     this.addressPendingDelete = address;
     this.confirmMessage.set(`Supprimer l'adresse ${address.street}, ${address.city} ?`);
@@ -76,6 +109,10 @@ export class ClientDetail implements OnInit {
         console.error('client-detail : ' + err);
       }
     });
+  }
+
+  back(): void {
+    this.router.navigate(['/clients']);
   }
 
 }

@@ -1,17 +1,46 @@
 @if (client(); as c) {
-  <p-card [header]="c.company_name || (c.first_name + ' ' + c.last_name)" styleClass="ui-card--elevated">
-    <table>
-      <tbody>
-        <tr><th>N° client</th><td>{{ c.client_number }}</td></tr>
-        <tr><th>Civilité</th><td>{{ c.title }}</td></tr>
-        <tr><th>Nom</th><td>{{ c.first_name }} {{ c.last_name }}</td></tr>
-        <tr><th>Société</th><td>{{ c.company_name }}</td></tr>
-        <tr><th>TVA</th><td>{{ c.vat_number }}</td></tr>
-        <tr><th>Email</th><td>{{ c.email }}</td></tr>
-        <tr><th>Téléphone</th><td>{{ c.phone }}</td></tr>
-        <tr><th>Remarque</th><td>{{ c.note }}</td></tr>
-      </tbody>
-    </table>
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="m-0">{{ c.company_name || (c.first_name + ' ' + c.last_name) }}</h1>
+    <p-button label="Retour" icon="pi pi-arrow-left" severity="secondary" (onClick)="back()" />
+  </div>
+
+  <p-card styleClass="ui-card--elevated mb-6">
+    <div class="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-y-4 gap-x-6">
+      <div class="flex flex-col gap-1">
+        <span class="text-xs text-gray-500 uppercase tracking-wide">N° client</span>
+        <span class="font-medium">{{ c.client_number }}</span>
+      </div>
+      <div class="flex flex-col gap-1">
+        <span class="text-xs text-gray-500 uppercase tracking-wide">Civilité</span>
+        <span class="font-medium">{{ c.title || '—' }}</span>
+      </div>
+      <div class="flex flex-col gap-1">
+        <span class="text-xs text-gray-500 uppercase tracking-wide">Nom</span>
+        <span class="font-medium">{{ c.first_name }} {{ c.last_name }}</span>
+      </div>
+      <div class="flex flex-col gap-1">
+        <span class="text-xs text-gray-500 uppercase tracking-wide">Société</span>
+        <span class="font-medium">{{ c.company_name || '—' }}</span>
+      </div>
+      <div class="flex flex-col gap-1">
+        <span class="text-xs text-gray-500 uppercase tracking-wide">TVA</span>
+        <span class="font-medium">{{ c.vat_number || '—' }}</span>
+      </div>
+      <div class="flex flex-col gap-1">
+        <span class="text-xs text-gray-500 uppercase tracking-wide">Email</span>
+        <span class="font-medium">{{ c.email }}</span>
+      </div>
+      <div class="flex flex-col gap-1">
+        <span class="text-xs text-gray-500 uppercase tracking-wide">Téléphone</span>
+        <span class="font-medium">{{ c.phone || '—' }}</span>
+      </div>
+      @if (c.note) {
+        <div class="flex flex-col gap-1">
+          <span class="text-xs text-gray-500 uppercase tracking-wide">Remarque</span>
+          <span class="font-medium">{{ c.note }}</span>
+        </div>
+      }
+    </div>
   </p-card>
 
   <div class="detail-addresses-header">
@@ -19,7 +48,7 @@
     <p-button label="Ajouter une adresse" icon="pi pi-plus" (onClick)="addAddressDialogVisible.set(true)" />
   </div>
 
-  <p-table [value]="c.addresses" dataKey="id">
+  <p-table [value]="c.addresses" dataKey="id" editMode="cell" (onEditComplete)="onCellEditComplete($event)">
     <ng-template #header>
       <tr>
         <th>Attention</th>
@@ -31,13 +60,63 @@
         <th></th>
       </tr>
     </ng-template>
-    <ng-template #body let-address>
+    <ng-template #body let-address let-rowIndex="rowIndex">
       <tr>
-        <td>{{ address.attention }}</td>
-        <td>{{ address.street }}</td>
-        <td>{{ address.postal_code }}</td>
-        <td>{{ address.city }}</td>
-        <td>{{ address.country }}</td>
+        <td [pEditableColumn]="address.attention" pEditableColumnField="attention" [pEditableColumnRowIndex]="rowIndex">
+          <p-cellEditor>
+            <ng-template #input>
+              <input pInputText [(ngModel)]="address.attention" [fluid]="true" />
+            </ng-template>
+            <ng-template #output>
+              {{ address.attention }}
+            </ng-template>
+          </p-cellEditor>
+        </td>
+
+        <td [pEditableColumn]="address.street" pEditableColumnField="street" [pEditableColumnRowIndex]="rowIndex">
+          <p-cellEditor>
+            <ng-template #input>
+              <input pInputText [(ngModel)]="address.street" [fluid]="true" />
+            </ng-template>
+            <ng-template #output>
+              {{ address.street }}
+            </ng-template>
+          </p-cellEditor>
+        </td>
+
+        <td [pEditableColumn]="address.postal_code" pEditableColumnField="postal_code" [pEditableColumnRowIndex]="rowIndex">
+          <p-cellEditor>
+            <ng-template #input>
+              <input pInputText [(ngModel)]="address.postal_code" [fluid]="true" />
+            </ng-template>
+            <ng-template #output>
+              {{ address.postal_code }}
+            </ng-template>
+          </p-cellEditor>
+        </td>
+
+        <td [pEditableColumn]="address.city" pEditableColumnField="city" [pEditableColumnRowIndex]="rowIndex">
+          <p-cellEditor>
+            <ng-template #input>
+              <input pInputText [(ngModel)]="address.city" [fluid]="true" />
+            </ng-template>
+            <ng-template #output>
+              {{ address.city }}
+            </ng-template>
+          </p-cellEditor>
+        </td>
+
+        <td [pEditableColumn]="address.country" pEditableColumnField="country" [pEditableColumnRowIndex]="rowIndex">
+          <p-cellEditor>
+            <ng-template #input>
+              <input pInputText [(ngModel)]="address.country" [fluid]="true" />
+            </ng-template>
+            <ng-template #output>
+              {{ address.country }}
+            </ng-template>
+          </p-cellEditor>
+        </td>
+
         <td>
           @if (address.is_primary) {
             <p-tag value="Principale" severity="success" />

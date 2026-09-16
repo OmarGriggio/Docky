@@ -20,6 +20,12 @@ export class AddressService {
     return this.http.post<Address>(`${API_BASE}/address`, address);
   }
 
+  // is_primary/client_id aren't editable this way - see address.types.ts's
+  // UpdateAddressData on the backend.
+  updateAddress(id: number, address: Pick<Address, 'attention' | 'street' | 'postal_code' | 'city' | 'country'>) {
+    return this.http.put<Address>(`${API_BASE}/address/${id}`, address);
+  }
+
   deleteAddress(id: number) {
     return this.http.delete<Address>(`${API_BASE}/address/${id}`);
   }
