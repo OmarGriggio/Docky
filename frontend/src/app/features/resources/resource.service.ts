@@ -25,6 +25,12 @@ export class ResourceService {
     return this.http.post<Resource>(`${API_BASE}/resource`, resource);
   }
 
+  // type/parent_resource_id/is_active aren't editable this way - see
+  // resource.types.ts's UpdateResourceData on the backend.
+  updateResource(id: number, resource: Pick<Resource, 'code' | 'name' | 'unit' | 'selling_price' | 'purchase_price'>) {
+    return this.http.put<Resource>(`${API_BASE}/resource/${id}`, resource);
+  }
+
   archiveResource(id: number) {
     return this.http.patch<Resource>(`${API_BASE}/resource/${id}/archive`, {});
   }

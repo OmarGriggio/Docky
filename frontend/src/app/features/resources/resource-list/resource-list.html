@@ -22,7 +22,7 @@
   }
 </p-dialog>
 
-<p-table [value]="resources()" dataKey="id" showGridlines>
+<p-table [value]="resources()" dataKey="id" showGridlines editMode="cell" (onEditComplete)="onCellEditComplete($event)">
   <ng-template #header>
     <tr>
       <th>Code</th>
@@ -34,13 +34,63 @@
     </tr>
   </ng-template>
 
-  <ng-template #body let-item>
+  <ng-template #body let-item let-rowIndex="rowIndex">
     <tr>
-      <td>{{ item.code }}</td>
-      <td>{{ item.name }}</td>
-      <td>{{ item.unit }}</td>
-      <td>{{ item.selling_price }}</td>
-      <td>{{ item.purchase_price }}</td>
+      <td [pEditableColumn]="item.code" pEditableColumnField="code" [pEditableColumnRowIndex]="rowIndex">
+        <p-cellEditor>
+          <ng-template #input>
+            <input pInputText [(ngModel)]="item.code" [fluid]="true" />
+          </ng-template>
+          <ng-template #output>
+            {{ item.code }}
+          </ng-template>
+        </p-cellEditor>
+      </td>
+
+      <td [pEditableColumn]="item.name" pEditableColumnField="name" [pEditableColumnRowIndex]="rowIndex">
+        <p-cellEditor>
+          <ng-template #input>
+            <input pInputText [(ngModel)]="item.name" [fluid]="true" />
+          </ng-template>
+          <ng-template #output>
+            {{ item.name }}
+          </ng-template>
+        </p-cellEditor>
+      </td>
+
+      <td [pEditableColumn]="item.unit" pEditableColumnField="unit" [pEditableColumnRowIndex]="rowIndex">
+        <p-cellEditor>
+          <ng-template #input>
+            <input pInputText [(ngModel)]="item.unit" [fluid]="true" />
+          </ng-template>
+          <ng-template #output>
+            {{ item.unit }}
+          </ng-template>
+        </p-cellEditor>
+      </td>
+
+      <td [pEditableColumn]="item.selling_price" pEditableColumnField="selling_price" [pEditableColumnRowIndex]="rowIndex">
+        <p-cellEditor>
+          <ng-template #input>
+            <p-inputnumber [(ngModel)]="item.selling_price" mode="decimal" [minFractionDigits]="2" [fluid]="true" />
+          </ng-template>
+          <ng-template #output>
+            {{ item.selling_price }}
+          </ng-template>
+        </p-cellEditor>
+      </td>
+
+      <td [pEditableColumn]="item.purchase_price" pEditableColumnField="purchase_price" [pEditableColumnRowIndex]="rowIndex">
+        <p-cellEditor>
+          <ng-template #input>
+            <p-inputnumber [(ngModel)]="item.purchase_price" mode="decimal" [minFractionDigits]="2" [fluid]="true" />
+          </ng-template>
+          <ng-template #output>
+            {{ item.purchase_price }}
+          </ng-template>
+        </p-cellEditor>
+      </td>
+
       <td>
         <p-menu #menu [popup]="true" [model]="getActions(item)" appendTo="body"></p-menu>
         <p-button icon="pi pi-ellipsis-v" (click)="menu.toggle($event)"></p-button>
