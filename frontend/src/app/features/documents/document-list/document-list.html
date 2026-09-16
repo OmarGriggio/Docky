@@ -49,8 +49,8 @@
         <p-button label="" icon="pi pi-file-pdf" (click)="openPdf(document)" />
       </td>
       <td>
-        <p-menu #menu [popup]="true" [model]="getActions(document)" appendTo="body"></p-menu>
-        <p-button icon="pi pi-ellipsis-v" (click)="menu.toggle($event)"></p-button>
+        <p-menu #menu [popup]="true" [model]="menuItems" appendTo="body"></p-menu>
+        <p-button icon="pi pi-ellipsis-v" (click)="openActionsMenu(menu, $event, document)"></p-button>
       </td>
     </tr>
   </ng-template>
@@ -58,7 +58,7 @@
   <ng-template #expandedrow let-document>
     <tr>
       <td colspan="11">
-        <app-document-ledger [documentId]="document.id" />
+        <app-document-ledger [documentId]="document.id" [columns]="2" />
       </td>
     </tr>
   </ng-template>

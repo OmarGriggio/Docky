@@ -78,6 +78,17 @@ export class ProjectListComponent implements OnInit {
 
   private projectPendingArchive: Project | null = null;
 
+  // Computed once, right when the ⋮ button is clicked - see
+  // user-list.ts's own openActionsMenu for why a live
+  // [model]="getActions(project)" template expression breaks p-menu (it
+  // needs a click, then a second one, to actually fire an action).
+  menuItems: MenuItem[] = [];
+
+  openActionsMenu(menu: Menu, event: Event, project: Project): void {
+    this.menuItems = this.getActions(project);
+    menu.toggle(event);
+  }
+
   attachmentsDialogVisible = signal(false);
   attachmentsProject = signal<Project | null>(null);
 

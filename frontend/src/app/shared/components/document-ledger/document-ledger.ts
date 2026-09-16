@@ -38,6 +38,12 @@ export class DocumentLedger implements OnInit {
   // to replace the default title/description/period header per section.
   sectionHeader = contentChild<TemplateRef<{ $implicit: DocumentSection }>>('sectionHeader');
 
+  // 1 (default, document-list.ts's own usage) stacks sections in a single
+  // column; 2 (project-list.ts's own usage) lays them out two per row
+  // instead - purely a display preference, the data/fetch logic below
+  // doesn't care either way.
+  columns = input<1 | 2>(1);
+
   private documentSectionService = inject(DocumentSectionService);
   private documentLineService = inject(DocumentLineService);
 

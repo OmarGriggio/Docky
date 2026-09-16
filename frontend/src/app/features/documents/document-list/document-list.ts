@@ -65,6 +65,17 @@ export class DocumentListComponent implements OnInit {
 
   private documentPendingArchive: Document | null = null;
 
+  // Computed once, right when the ⋮ button is clicked - see
+  // user-list.ts's own openActionsMenu for why a live
+  // [model]="getActions(document)" template expression breaks p-menu (it
+  // needs a click, then a second one, to actually fire an action).
+  menuItems: MenuItem[] = [];
+
+  openActionsMenu(menu: Menu, event: Event, document: Document): void {
+    this.menuItems = this.getActions(document);
+    menu.toggle(event);
+  }
+
   acceptConfirmVisible = signal(false);
   private documentPendingAccept: Document | null = null;
 

@@ -117,8 +117,8 @@
       <td><p-tag [value]="statusLabel(project)" [severity]="statusSeverity(project)" /></td>
 
       <td>
-        <p-menu #menu [popup]="true" [model]="getActions(project)" appendTo="body"></p-menu>
-        <p-button icon="pi pi-ellipsis-v" (click)="menu.toggle($event)"></p-button>
+        <p-menu #menu [popup]="true" [model]="menuItems" appendTo="body"></p-menu>
+        <p-button icon="pi pi-ellipsis-v" (click)="openActionsMenu(menu, $event, project)"></p-button>
       </td>
     </tr>
   </ng-template>
@@ -131,7 +131,7 @@
              shared/components/document-ledger. #ledger is referenced from
              inside that projected template further down (updateSectionDate
              needs it to refresh once a date is saved). -->
-        <app-document-ledger #ledger [documentId]="project.document_id">
+        <app-document-ledger #ledger [documentId]="project.document_id" [columns]="2">
           <ng-template #sectionHeader let-section>
             <div>
               <span class="font-semibold">{{ section.title }}</span>
