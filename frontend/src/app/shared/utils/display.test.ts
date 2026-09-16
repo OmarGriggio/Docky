@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { clientDisplayName, archiveActionLabel, formatFileSize, closestDateStart } from './display';
+import { clientDisplayName, archiveActionLabel, formatFileSize } from './display';
 
 describe('clientDisplayName', () => {
 
@@ -44,33 +44,6 @@ describe('formatFileSize', () => {
 
   it('shows Mo from 1 Mo up', () => {
     expect(formatFileSize(3 * 1024 * 1024)).toBe('3.0 Mo');
-  });
-
-});
-
-describe('closestDateStart', () => {
-
-  const now = new Date('2026-06-15T00:00:00.000Z').getTime();
-
-  it('picks the closer of a past and a future date', () => {
-    const sections = [
-      { date_start: '2026-06-01T00:00:00.000Z' }, // 14 days before
-      { date_start: '2026-06-20T00:00:00.000Z' }, // 5 days after
-    ];
-    expect(closestDateStart(sections, now)).toBe('2026-06-20T00:00:00.000Z');
-  });
-
-  it('ignores sections with no date_start', () => {
-    const sections = [
-      { date_start: null },
-      { date_start: '2026-07-01T00:00:00.000Z' },
-    ];
-    expect(closestDateStart(sections, now)).toBe('2026-07-01T00:00:00.000Z');
-  });
-
-  it('returns null when nothing has a date_start', () => {
-    const sections = [{ date_start: null }, { date_start: null }];
-    expect(closestDateStart(sections, now)).toBeNull();
   });
 
 });

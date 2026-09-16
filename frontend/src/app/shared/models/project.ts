@@ -24,6 +24,11 @@ export interface Project {
   status: ProjectStatus;
   created_at: string;
   is_active: boolean;
+  // The date_start, among this chantier's own sections, closest to right
+  // now - see project.repository.ts's getProjectsFromDB on the backend for
+  // how it's computed and used to order the list. null when none of the
+  // chantier's sections has a date_start set yet.
+  closest_section_date: string | null;
 }
 
 export interface CreateProjectPayload {
