@@ -13,7 +13,7 @@ A dedicated company, seeded with realistic sample data (clients, quotes, chantie
 - **Email**: `admin@demo.docky.ch`
 - **Password**: `Demo2026!`
 
-Feel free to click around — it's isolated demo data, separate from my own company's, and gets reset whenever the database is reseeded.
+Feel free to click around !
 
 ## Table of contents
 
@@ -34,10 +34,10 @@ Many small and medium construction businesses still handle their quotes and invo
 
 Docky aims to be a simple, focused SaaS where a construction company can:
 
-- manage its clients and suppliers,
-- keep a catalog of materials with supplier pricing,
+- manage its clients,
+- keep a catalog of ressources,
 - quickly build quotes and invoices,
-- add materials and labor to a quote/invoice and get totals automatically,
+- add ressources (materials and labor) to a quote/invoice and get totals automatically,
 - keep a history of past invoices.
 
 Three types of users are planned: **employees** (day-to-day usage), **company admins** (manage their company's data and staff) and a **platform admin** (manages the SaaS itself, subscriptions and companies). Full details are in [zz_docs/Project Definition.md](zz_docs/Project%20Definition.md).
@@ -54,7 +54,7 @@ Three types of users are planned: **employees** (day-to-day usage), **company ad
 - [x] Role/permission enforcement (`ADMIN` vs `USER` vs `PLATFORM_ADMIN` — see [zz_docs/Decisions.md](zz_docs/Decisions.md))
 - [x] Multi-tenant data isolation between companies, and archive (soft-delete) instead of hard delete for business records
 - [x] Refresh token stored in an httpOnly cookie (not readable by frontend JS, mitigates XSS token theft)
-- [x] Platform-admin company impersonation, login history/audit trail (see [CLAUDE.md](CLAUDE.md)'s Roles section)
+- [x] Platform-admin company impersonation, login history/audit trail
 - [ ] Automated tests (Vitest is wired up and passing on both sides, but only covers a couple of pure functions so far — not real coverage yet)
 - [ ] Database migrations (schema is currently created manually)
 
@@ -100,7 +100,10 @@ Docky/
 │   └── src/app/
 │       ├── shared/             # Shared models/components
 │       └── features/           # Feature modules (clients, suppliers, documents...)
-└── zz_docs/                    # Project specs, architecture & decisions log
+├── zz_docs/                    # Project specs, architecture & decisions log
+└── zz_migrations/              # Schema (000_base.sql) & seed data (001_data.sql),
+                                 #   run on first boot by Postgres' own
+                                 #   docker-entrypoint-initdb.d
 ```
 
 ## Domain model
@@ -108,11 +111,9 @@ Docky/
 The core entities and how they relate:
 
 - **Company** — owns everything below; the tenant in this multi-company SaaS
-- **User** — belongs to one company, has a role (employee/admin)
+- **User** — belongs to one company, has a role (employee/admin/platform_admin)
 - **Client** — belongs to a company, can have several invoices
-- **Supplier** — belongs to a company, provides priced resources
 - **Resource** — a catalog item (material, labor, subcontracting or other), priced by one or more suppliers
-- **Resource supplier price** — links a supplier, a resource and a price
 - **Project** — a client's job site, optionally linked to a document
 - **Document** — a quote or an invoice issued to a client, made of document lines
 - **Document line** — a resource or a labor entry on a document
@@ -121,7 +122,7 @@ Full field-level definitions are in [zz_docs/Data Definition.md](zz_docs/Data%20
 
 ## API overview
 
-All routes are prefixed by their resource name and return JSON. Most are protected by the JWT `authenticate` middleware.
+All routes are prefixed by their resource name and return JSON. All are protected by the JWT `authenticate` middleware.
 
 | Resource               | Base path                  |
 | ----------------------- | --------------------------- |
@@ -200,8 +201,6 @@ cp backend/.env.example backend/.env
 | `DB_NAME`     | PostgreSQL database name                                         |
 | `JWT_SECRET`  | Secret used to sign/verify access tokens                        |
 | `JWT_REFRESH_SECRET` | Secret used to sign/verify refresh tokens (separate from `JWT_SECRET`) |
-
-> The database schema is bootstrapped automatically the first time the Postgres container starts, from the SQL files in [zz_migrations/](zz_migrations/) (mounted into `/docker-entrypoint-initdb.d`). To re-run them, drop the `postgres_data` volume and start the containers again. This also seeds two companies' worth of sample data (clients, chantiers, a resource catalog, quotes/invoices covering every status...) so there's always something to explore right away — one login per role on the first company, all on `password123`: **`admin@dedonnostyle.ch`** (`ADMIN`), **`user@dedonnostyle.ch`** (`USER`), **`platform-admin@docky.ch`** (`PLATFORM_ADMIN`). The second company is the one behind the [live demo](#live-demo) above.
 
 ## Documentation
 
