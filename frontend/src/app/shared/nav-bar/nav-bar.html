@@ -16,7 +16,7 @@
 
     @for (item of visibleNavItems(); track item.label) {
       @if (item.links.length > 1) {
-        <details #group class="relative min-w-0">
+        <details #group [class]="groupClasses()">
           <summary [class]="linkClasses() + ' list-none [&::-webkit-details-marker]:hidden'">
             <i [class]="item.icon"></i>
             <span [class]="labelClasses()">{{ item.label }}</span>
@@ -39,7 +39,7 @@
       }
     }
 
-    <div class="flex flex-row md:flex-col items-center md:items-stretch gap-1 ml-auto md:ml-0 md:mt-auto pt-0 md:pt-3 border-t-0 md:border-t md:border-gray-200 min-w-0">
+    <div class="flex flex-row md:flex-col items-center md:items-stretch gap-1 ml-auto md:ml-0 md:mt-auto pt-0 md:pt-3 border-t-0 md:border-t md:border-gray-200 min-w-0 md:w-full">
       @if (isImpersonating()) {
         <button type="button" [class]="linkClasses() + ' text-amber-700 hover:bg-amber-100'" (click)="returnToPlatformView()">
           <i class="pi pi-sign-out"></i>

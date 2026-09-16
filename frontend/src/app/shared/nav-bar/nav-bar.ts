@@ -56,12 +56,18 @@ export class NavBar {
   // pieces) so Tailwind's own static-source scan can still find them.
   linkClasses(): string {
     return this.expanded()
-      // min-w-0: overrides the flex item's default "never shrink below
-      // content size" floor - without it, a long label (e.g. "Retour vue
-      // plateforme" below) forced this button wider than nav's own
-      // stretched width, so its hover background/border spilled out past
-      // nav's right edge instead of being clipped/truncated by labelClasses().
-      ? 'group relative flex items-center gap-3 h-10 px-3 rounded-md text-[1.1rem] text-gray-500 hover:bg-gray-100 transition-colors min-w-0'
+      // md:w-full: items-stretch on the ancestor chain (nav > the auth
+      // wrapper div) turned out not to be enough on its own - measured live,
+      // the profile link stayed sized to its own content (214px) instead of
+      // actually filling nav's 224px, 3px short of nav's own right edge once
+      // its 12px left padding was added back in. An explicit width:100% is a
+      // direct instruction, not dependent on every ancestor's align-items
+      // correctly cascading, so it doesn't have the same failure mode.
+      // min-w-0 still matters alongside it - width:100% alone doesn't
+      // override a flex item's own "never shrink below content size" floor,
+      // which is what let a long label (e.g. "Retour vue plateforme" below)
+      // keep forcing this button wider than that 100% in the first place.
+      ? 'group relative flex items-center gap-3 h-10 px-3 rounded-md text-[1.1rem] text-gray-500 hover:bg-gray-100 transition-colors min-w-0 md:w-full'
       : 'group relative flex items-center justify-center w-10 h-10 rounded-md text-[1.1rem] text-gray-500 hover:bg-gray-100 transition-colors';
   }
 
@@ -108,6 +114,17 @@ export class NavBar {
         details.open = false;
       }
     });
+  }
+
+  // The flyout <details> wrapper (Documents/Ressources - see nav-bar.html)
+  // needs the same md:w-full as linkClasses() above, but ONLY while
+  // expanded: unlike a plain <a>/<button>, <details> isn't itself a flex
+  // container centering its own <summary>, so forcing it full-width while
+  // collapsed left the summary's 40px icon sitting at <details>'s own left
+  // edge instead of centered like every sibling icon - a regression caught
+  // live (Documents/Ressources icons sat further left than the rest).
+  groupClasses(): string {
+    return this.expanded() ? 'relative min-w-0 md:w-full' : 'relative';
   }
 
   // <nav>'s own width - only takes effect at the md breakpoint (see
