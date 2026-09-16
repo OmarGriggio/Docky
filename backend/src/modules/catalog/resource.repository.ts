@@ -1,18 +1,18 @@
 import { pool } from "../../shared/config/database";
-import { Resource } from "./resource.types";
+import { Resource, UpdateResourceData } from "./resource.types";
 
 export const getResourcesFromDB = async (company_id: number, includeArchived = false) => {
   const query = includeArchived
-    ? "SELECT * FROM resources WHERE company_id = $1"
-    : "SELECT * FROM resources WHERE company_id = $1 AND is_active = true";
+    ? "SELECT * FROM resources WHERE company_id = $1 ORDER BY id"
+    : "SELECT * FROM resources WHERE company_id = $1 AND is_active = true ORDER BY id";
   const result = await pool.query(query, [company_id]);
   return result.rows;
 };
 
 export const getResourcesByTypeFromDB = async (type: string, company_id: number, includeArchived = false) => {
   const query = includeArchived
-    ? "SELECT * FROM resources WHERE type = $1 AND company_id = $2"
-    : "SELECT * FROM resources WHERE type = $1 AND company_id = $2 AND is_active = true";
+    ? "SELECT * FROM resources WHERE type = $1 AND company_id = $2 ORDER BY id"
+    : "SELECT * FROM resources WHERE type = $1 AND company_id = $2 AND is_active = true ORDER BY id";
   const result = await pool.query(query, [type, company_id]);
   return result.rows;
 };
@@ -65,6 +65,17 @@ export const createResourceInDB = async (
   ];
 
   const result = await pool.query(query, values);
+  return result.rows[0];
+};
+
+export const updateResourceInDB = async (id: number, company_id: number, data: UpdateResourceData): Promise<Resource> => {
+  const query = `
+    UPDATE resources SET code = $1, name = $2, unit = $3, selling_price = $4, purchase_price = $5
+      WHERE id = $6 AND company_id = $7
+    RETURNING *;
+  `;
+
+  const result = await pool.query(query, [data.code, data.name, data.unit, data.selling_price, data.purchase_price, id, company_id]);
   return result.rows[0];
 };
 
