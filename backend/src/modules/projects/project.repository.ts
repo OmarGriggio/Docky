@@ -76,12 +76,21 @@ export const updateProjectInDB = async (
   company_id: number,
   data: UpdateProjectData
 ): Promise<Project> => {
+  // Same shape as getProjectsFromDB's own SELECT (project_type joined in,
+  // not just project_type_id) - the frontend's cell-editable project list
+  // replaces a row with this response directly instead of reloading the
+  // whole list, and needs the label to display, not just the id.
   const query = `
-    UPDATE projects SET
-      name = $1,
-      project_type_id = $2
-      WHERE id = $3 AND company_id = $4
-    RETURNING *;
+    WITH updated AS (
+      UPDATE projects SET
+        name = $1,
+        project_type_id = $2
+        WHERE id = $3 AND company_id = $4
+      RETURNING *
+    )
+    SELECT u.*, pt.label AS project_type
+    FROM updated u
+    LEFT JOIN project_types pt ON pt.id = u.project_type_id;
   `;
 
   const result = await pool.query(query, [data.name, data.project_type_id, id, company_id]);
