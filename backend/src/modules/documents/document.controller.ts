@@ -6,9 +6,10 @@ export const getDocuments = async (req: Request, res: Response) => {
   const type = req.query.type as string | undefined;
   const company_id = req.user.company_id;
   const includeArchived = req.query.includeArchived === "true";
+  const client_id = req.query.client_id ? Number(req.query.client_id) : undefined;
   const documents = type
-    ? await getDocumentsByTypeServ(type, company_id, includeArchived)
-    : await getAllDocumentsServ(company_id, includeArchived);
+    ? await getDocumentsByTypeServ(type, company_id, includeArchived, client_id)
+    : await getAllDocumentsServ(company_id, includeArchived, client_id);
   res.json(documents);
 };
 

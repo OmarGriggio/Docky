@@ -1,19 +1,41 @@
 import { pool } from "../../shared/config/database";
 import { Document, UpdateDocumentData } from "./document.types";
 
-export const getDocumentsFromDB = async (company_id: number, includeArchived = false) => {
-  const query = includeArchived
-    ? "SELECT * FROM documents WHERE company_id = $1"
-    : "SELECT * FROM documents WHERE company_id = $1 AND is_active = true";
-  const result = await pool.query(query, [company_id]);
+// client_id is an optional extra narrowing on top of company_id - used by
+// client-detail.ts's own expandable rows (a client's own documents), kept
+// as a plain appended condition rather than duplicating this whole function
+// per combination.
+export const getDocumentsFromDB = async (company_id: number, includeArchived = false, client_id?: number) => {
+  const conditions = ["company_id = $1"];
+  const values: number[] = [company_id];
+
+  if (client_id) {
+    values.push(client_id);
+    conditions.push(`client_id = $${values.length}`);
+  }
+  if (!includeArchived) {
+    conditions.push("is_active = true");
+  }
+
+  const query = `SELECT * FROM documents WHERE ${conditions.join(" AND ")} ORDER BY id`;
+  const result = await pool.query(query, values);
   return result.rows;
 };
 
-export const getDocumentsByTypeFromDB = async (type: string, company_id: number, includeArchived = false) => {
-  const query = includeArchived
-    ? "SELECT * FROM documents WHERE type = $1 AND company_id = $2"
-    : "SELECT * FROM documents WHERE type = $1 AND company_id = $2 AND is_active = true";
-  const result = await pool.query(query, [type, company_id]);
+export const getDocumentsByTypeFromDB = async (type: string, company_id: number, includeArchived = false, client_id?: number) => {
+  const conditions = ["type = $1", "company_id = $2"];
+  const values: (number | string)[] = [type, company_id];
+
+  if (client_id) {
+    values.push(client_id);
+    conditions.push(`client_id = $${values.length}`);
+  }
+  if (!includeArchived) {
+    conditions.push("is_active = true");
+  }
+
+  const query = `SELECT * FROM documents WHERE ${conditions.join(" AND ")} ORDER BY id`;
+  const result = await pool.query(query, values);
   return result.rows;
 };
 

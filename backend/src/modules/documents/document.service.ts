@@ -26,12 +26,12 @@ const clientDisplayName = (client: Client): string => {
   return client.company_name || `${client.first_name ?? ""} ${client.last_name ?? ""}`.trim();
 };
 
-export const getAllDocumentsServ = async (company_id: number, includeArchived = false) => {
-  return await getDocumentsFromDB(company_id, includeArchived);
+export const getAllDocumentsServ = async (company_id: number, includeArchived = false, client_id?: number) => {
+  return await getDocumentsFromDB(company_id, includeArchived, client_id);
 };
 
-export const getDocumentsByTypeServ = async (type: string, company_id: number, includeArchived = false) => {
-  return await getDocumentsByTypeFromDB(type, company_id, includeArchived);
+export const getDocumentsByTypeServ = async (type: string, company_id: number, includeArchived = false, client_id?: number) => {
+  return await getDocumentsByTypeFromDB(type, company_id, includeArchived, client_id);
 };
 
 export const getDocumentByIdServ = async (id: number, company_id: number) => {
