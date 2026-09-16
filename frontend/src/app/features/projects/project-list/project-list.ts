@@ -330,7 +330,13 @@ export class ProjectListComponent implements OnInit {
       name: project.name,
       project_type_id: project.project_type_id,
     }).subscribe({
-      next: () => this.loadProjects(),
+      // Mutate the *same* project object in place (see client-list.ts's own
+      // onCellEditComplete for why a new object - even id-equal - breaks
+      // clicking straight into another cell of that same row).
+      next: updated => {
+        Object.assign(project, updated);
+        this.projects.update(projects => [...projects]);
+      },
       error: err => {
         console.error('project-list : ' + err);
         this.loadProjects();

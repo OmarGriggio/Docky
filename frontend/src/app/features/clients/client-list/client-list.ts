@@ -20,7 +20,16 @@ import { archiveActionLabel } from '../../../shared/utils/display';
   selector: 'app-client-list',
   standalone: true,
   imports: [TableModule, Toolbar, Menu, Button, Dialog, Checkbox, InputText, Select, FormsModule, ClientForm, ConfirmDialogComponent],
-  templateUrl: './client-list.html'
+  templateUrl: './client-list.html',
+  // Tried ChangeDetectionStrategy.OnPush here as an experiment - reverted.
+  // It broke switching directly from one cell's edit mode to another
+  // (click cell A, then click cell B without clicking outside the table
+  // first): B's input flashed and immediately reverted. Most likely
+  // PrimeNG's own cell-edit-switching logic doesn't reliably propagate a
+  // markForCheck() up through an OnPush ancestor in that exact sequence -
+  // not confirmed against PrimeNG's own source, just the cleanest
+  // explanation matching the symptom. Revisit if this needs solving for
+  // real; for now, default detection.
 })
 export class ClientListComponent implements OnInit {
 
@@ -156,7 +165,20 @@ export class ClientListComponent implements OnInit {
       phone: client.phone,
       note: client.note,
     }).subscribe({
-      next: () => this.loadClients(),
+      // Mutate the *same* client object in place with the server's
+      // canonical values, rather than swapping in a new object (or
+      // reloading the whole list) - PrimeNG ties "which cell is being
+      // edited" to a row's own object identity (dataKey="id" tracks the
+      // id, but a changed reference still recreates the row), so replacing
+      // it - even with an id-equal object - while you're clicking straight
+      // into another cell of that *same* row wipes out that cell's own
+      // just-opened editor. Still bumping the array reference (a shallow
+      // copy) so the clients() signal formally changes for anything else
+      // watching it.
+      next: updated => {
+        Object.assign(client, updated);
+        this.clients.update(clients => [...clients]);
+      },
       error: err => {
         console.error('client-list : ' + err);
         this.loadClients();
