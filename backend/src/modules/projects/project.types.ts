@@ -23,6 +23,14 @@ export interface ProjectWithType extends Omit<Project, "project_type_id"> {
   project_type: string | null;
 }
 
+// Only getProjectsFromDB's list query computes this (the date_start, among
+// this chantier's own sections, closest to right now) - see its own comment
+// for why and how it's used to order the list. null when none of the
+// chantier's sections has a date_start set yet.
+export interface ProjectListItem extends ProjectWithType {
+  closest_section_date: string | null;
+}
+
 export interface CreateProjectData {
   client_id?: number | null;
   project_type_id?: number | null;

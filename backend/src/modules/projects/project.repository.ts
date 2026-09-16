@@ -1,21 +1,44 @@
 import { pool } from "../../shared/config/database";
-import { Project, CreateProjectData, UpdateProjectData } from "./project.types";
+import { Project, ProjectListItem, CreateProjectData, UpdateProjectData } from "./project.types";
 
-// Without an explicit ORDER BY, Postgres doesn't guarantee row order at all
-// - two calls back-to-back (list, then reload right after a save) can come
-// back differently ordered, which reads as the table shuffling itself.
-export const getProjectsFromDB = async (company_id: number, includeArchived = false) => {
+// Ordered so the chantiers needing attention soonest surface first: among
+// IN_PROGRESS projects (COMPLETED ones always sort last, regardless of their
+// own dates - they're done, nothing left to plan), by the date_start closest
+// to right now across that chantier's own sections - whichever is nearest in
+// either direction, an overdue section is just as worth surfacing as an
+// upcoming one. The LATERAL join picks that single closest section per
+// project (a plain MIN() can't express "closest to now", only "earliest
+// overall"); projects with no dated section at all sort after those that
+// have one, but still ahead of COMPLETED. Without an explicit ORDER BY,
+// Postgres doesn't guarantee row order at all - two calls back-to-back
+// (list, then reload right after a save) can come back differently ordered,
+// which reads as the table shuffling itself.
+export const getProjectsFromDB = async (company_id: number, includeArchived = false): Promise<ProjectListItem[]> => {
   const query = includeArchived
-    ? `SELECT p.*, pt.label AS project_type
+    ? `SELECT p.*, pt.label AS project_type, closest.date_start AS closest_section_date
        FROM projects p
        LEFT JOIN project_types pt ON pt.id = p.project_type_id
+       LEFT JOIN LATERAL (
+         SELECT ds.date_start
+         FROM document_sections ds
+         WHERE ds.document_id = p.document_id AND ds.date_start IS NOT NULL AND ds.is_active = true
+         ORDER BY ABS(EXTRACT(EPOCH FROM (ds.date_start - NOW())))
+         LIMIT 1
+       ) closest ON true
        WHERE p.company_id = $1
-       ORDER BY p.id`
-    : `SELECT p.*, pt.label AS project_type
+       ORDER BY (p.status = 'COMPLETED'), closest.date_start IS NULL, ABS(EXTRACT(EPOCH FROM (closest.date_start - NOW()))), p.id`
+    : `SELECT p.*, pt.label AS project_type, closest.date_start AS closest_section_date
        FROM projects p
        LEFT JOIN project_types pt ON pt.id = p.project_type_id
+       LEFT JOIN LATERAL (
+         SELECT ds.date_start
+         FROM document_sections ds
+         WHERE ds.document_id = p.document_id AND ds.date_start IS NOT NULL AND ds.is_active = true
+         ORDER BY ABS(EXTRACT(EPOCH FROM (ds.date_start - NOW())))
+         LIMIT 1
+       ) closest ON true
        WHERE p.company_id = $1 AND p.is_active = true
-       ORDER BY p.id`;
+       ORDER BY (p.status = 'COMPLETED'), closest.date_start IS NULL, ABS(EXTRACT(EPOCH FROM (closest.date_start - NOW()))), p.id`;
   const result = await pool.query(query, [company_id]);
   return result.rows;
 };
