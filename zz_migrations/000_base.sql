@@ -141,12 +141,17 @@ CREATE TABLE resources (
     parent_resource_id INTEGER, -- for composite resources
     type VARCHAR(20) NOT NULL
         CHECK (type IN ('MATERIAL', 'SERVICE')),
-    code VARCHAR(50) UNIQUE,
+    code VARCHAR(50),
     name VARCHAR(255) NOT NULL,
     unit VARCHAR(50) NOT NULL,
     selling_price NUMERIC(10,2) NOT NULL,
     purchase_price  NUMERIC(10,2),
     is_active BOOLEAN DEFAULT TRUE,
+
+    -- Scoped to the company, not table-wide - two different companies'
+    -- catalogs are independent, there's no reason company 2 owning "MAT001"
+    -- should block company 1 from using it too.
+    UNIQUE (company_id, code),
 
     FOREIGN KEY (company_id)
         REFERENCES companies(id)
