@@ -1,10 +1,11 @@
-import { Address } from "./address.types";
+import { Address, UpdateAddressData } from "./address.types";
 import {
   getAddressesFromDB,
   getAddressesByClientIdFromDB,
   getAddressByIdFromDB,
   unsetPrimaryForClientInDB,
   createAddressInDB,
+  updateAddressInDB,
   deleteAddressInDB
 } from "./address.repository";
 import { getClientByIdFromDB } from "./client.repository";
@@ -32,6 +33,14 @@ export const addAddressServ = async (addressData: Omit<Address, "id" | "company_
   }
 
   return await createAddressInDB({ ...addressData, is_primary, company_id });
+};
+
+export const updateAddressServ = async (id: number, company_id: number, data: UpdateAddressData) => {
+  const address = await getAddressByIdFromDB(id, company_id);
+  if (!address) {
+    throw new NotFoundError("Address not found");
+  }
+  return await updateAddressInDB(id, company_id, data);
 };
 
 // Addresses are a sub-detail of a client, not a business record on their own

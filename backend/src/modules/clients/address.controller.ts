@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { addAddressServ, deleteAddressServ, getAllAddressesServ } from "./address.service";
-import { Address } from "./address.types";
+import { addAddressServ, updateAddressServ, deleteAddressServ, getAllAddressesServ } from "./address.service";
+import { Address, UpdateAddressData } from "./address.types";
 
 export const getAddresses = async (req: Request, res: Response) => {
   const addresses = await getAllAddressesServ(req.user.company_id);
@@ -12,6 +12,13 @@ export const createAddress = async (req: Request, res: Response) => {
 
   const addressCreated = await addAddressServ(addressData, req.user.company_id);
   res.json(addressCreated);
+};
+
+export const updateAddress = async (req: Request, res: Response) => {
+  const addressData: UpdateAddressData = req.body;
+
+  const addressUpdated = await updateAddressServ(Number(req.params.id), req.user.company_id, addressData);
+  res.json(addressUpdated);
 };
 
 export const deleteAddress = async (req: Request, res: Response) => {
