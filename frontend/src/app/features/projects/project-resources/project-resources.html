@@ -12,12 +12,26 @@
 
     @for (section of sections(); track section.id) {
       <div class="border border-surface-200 rounded-lg p-3">
-        <div class="flex items-center gap-2 mb-2">
+        <div class="flex items-center gap-2 mb-2 flex-wrap">
           <input
-            pInputText size="small" [fluid]="true" class="flex-1 font-semibold"
+            pInputText size="small" [fluid]="true" class="flex-1 font-semibold min-w-40"
             placeholder="Titre de la section"
             [ngModel]="section.title"
             (ngModelChange)="updateSectionTitle(section.id, $event)"
+            [disabled]="readonly()"
+          />
+          <span class="text-xs text-surface-500">Début</span>
+          <p-datepicker
+            [ngModel]="section.date_start"
+            (ngModelChange)="updateSectionDate(section.id, 'date_start', $event)"
+            dateFormat="dd.mm.yy" size="small" appendTo="body"
+            [disabled]="readonly()"
+          />
+          <span class="text-xs text-surface-500">Fin</span>
+          <p-datepicker
+            [ngModel]="section.date_end"
+            (ngModelChange)="updateSectionDate(section.id, 'date_end', $event)"
+            dateFormat="dd.mm.yy" size="small" appendTo="body"
             [disabled]="readonly()"
           />
           @if (!readonly()) {
@@ -25,52 +39,94 @@
           }
         </div>
 
-        @if (section.lines.length === 0) {
+        <textarea
+          pTextarea size="small" [fluid]="true" class="mb-2" rows="2"
+          placeholder="Description de la section (optionnel)"
+          [ngModel]="section.description"
+          (ngModelChange)="updateSectionDescription(section.id, $event)"
+          [disabled]="readonly()"
+        ></textarea>
+
+        @if (section.lines.length === 0 && readonly()) {
           <p class="text-xs text-surface-500 mb-2">Aucune ligne.</p>
         } @else {
-          <ul class="flex flex-col gap-2 mb-2">
-            @for (line of section.lines; track line.id) {
-              <li class="flex items-center gap-2">
-                <input
-                  pInputText size="small" class="flex-1 max-w-[50%]"
-                  [ngModel]="line.label"
-                  (ngModelChange)="updateLine(section.id, line.id, { label: $event })"
-                  [disabled]="readonly()"
-                />
-                <p-inputnumber
-                  [ngModel]="line.quantity"
-                  (ngModelChange)="updateLine(section.id, line.id, { quantity: $event })"
-                  mode="decimal" [minFractionDigits]="2" size="small"
-                  [style]="{ width: '6rem' }"
-                  [disabled]="readonly()"
-                />
-                <span class="text-xs text-surface-500 w-12 text-center">{{ line.unit }}</span>
-                <p-inputnumber
-                  [ngModel]="line.unit_price"
-                  (ngModelChange)="updateLine(section.id, line.id, { unit_price: $event })"
-                  mode="decimal" [minFractionDigits]="2" size="small"
-                  [style]="{ width: '6rem' }"
-                  [disabled]="readonly()"
-                />
-                @if (!readonly()) {
-                  <p-button type="button" icon="pi pi-trash" severity="danger" [text]="true" size="small" (onClick)="removeLine(section.id, line.id)" />
-                }
-              </li>
-            }
-          </ul>
-        }
+          <table class="w-full text-sm mb-2">
+            <thead>
+              <tr class="text-left text-xs text-surface-500 uppercase">
+                <th class="font-normal pb-1">Désignation</th>
+                <th class="font-normal pb-1">Quantité</th>
+                <th class="font-normal pb-1">Unité</th>
+                <th class="font-normal pb-1">Prix unitaire</th>
+                <th class="font-normal pb-1">Total</th>
+                <th class="font-normal pb-1"></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (line of section.lines; track line.id) {
+                <tr>
+                  <td class="py-1">
+                    <input
+                      pInputText size="small" class="w-full max-w-[50%]"
+                      [ngModel]="line.label"
+                      (ngModelChange)="updateLine(section.id, line.id, { label: $event })"
+                      [disabled]="readonly()"
+                    />
+                  </td>
+                  <td class="py-1">
+                    <p-inputnumber
+                      [ngModel]="line.quantity"
+                      (ngModelChange)="updateLine(section.id, line.id, { quantity: $event })"
+                      mode="decimal" [minFractionDigits]="2" size="small"
+                      [style]="{ width: '6rem' }"
+                      [disabled]="readonly()"
+                    />
+                  </td>
+                  <td class="py-1">
+                    <input
+                      pInputText size="small" class="w-full"
+                      [style]="{ width: '5rem' }"
+                      [ngModel]="line.unit"
+                      (ngModelChange)="updateLine(section.id, line.id, { unit: $event })"
+                      [disabled]="readonly()"
+                    />
+                  </td>
+                  <td class="py-1">
+                    <p-inputnumber
+                      [ngModel]="line.unit_price"
+                      (ngModelChange)="updateLine(section.id, line.id, { unit_price: $event })"
+                      mode="decimal" [minFractionDigits]="2" size="small"
+                      [style]="{ width: '6rem' }"
+                      [disabled]="readonly()"
+                    />
+                  </td>
+                  <td class="py-1">{{ lineTotal(line) | number: '1.2-2' }}</td>
+                  <td class="py-1">
+                    @if (!readonly()) {
+                      <p-button type="button" icon="pi pi-trash" severity="danger" [text]="true" size="small" (onClick)="removeLine(section.id, line.id)" />
+                    }
+                  </td>
+                </tr>
+              }
 
-        @if (!readonly()) {
-          <p-select
-            class="block w-65 max-w-full"
-            [options]="availableResourceOptions()"
-            optionLabel="label"
-            optionValue="value"
-            [ngModel]="null"
-            (ngModelChange)="addResourceLine(section.id, $event)"
-            placeholder="Ajouter depuis le catalogue"
-            size="small"
-          />
+              @if (!readonly()) {
+                <tr class="bg-surface-50">
+                  <td colspan="5" class="py-1">
+                    <p-select
+                      class="block w-65 max-w-full"
+                      [options]="availableResourceOptions()"
+                      optionLabel="label"
+                      optionValue="value"
+                      [ngModel]="null"
+                      (ngModelChange)="addResourceLine(section.id, $event)"
+                      placeholder="Ajouter depuis le catalogue"
+                      size="small"
+                    />
+                  </td>
+                  <td class="py-1"></td>
+                </tr>
+              }
+            </tbody>
+          </table>
         }
       </div>
     }

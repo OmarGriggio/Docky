@@ -1,16 +1,20 @@
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { Button } from 'primeng/button';
 import { Select } from 'primeng/select';
 import { InputText } from 'primeng/inputtext';
 import { InputNumber } from 'primeng/inputnumber';
+import { Textarea } from 'primeng/textarea';
+import { DatePicker } from 'primeng/datepicker';
 import { DocumentSectionService } from '../../documents/document-section.service';
 import { DocumentLineService } from '../../documents/document-line.service';
 import { ResourceService } from '../../resources/resource.service';
 import { Project } from '../../../shared/models/project';
 import { Resource } from '../../../shared/models/resource';
 import { DocumentLineType } from '../../../shared/models/document-line';
+import { calendarDateFromIso, calendarDateToIso } from '../../../shared/utils/display';
 
 interface DraftLine {
   id: number;
@@ -25,6 +29,15 @@ interface DraftLine {
 interface DraftSection {
   id: number;
   title: string;
+  description: string | null;
+  // Kept as Date (not the raw ISO string) so p-datepicker can bind to it
+  // directly - see calendarDateFromIso/calendarDateToIso's own comment
+  // (shared/utils/display.ts) for why a plain `new Date(iso)`/`.toISOString()`
+  // round-trip would silently shift the calendar date by the local UTC
+  // offset (the exact bug hit and fixed in project-list.ts's own section
+  // date pickers).
+  date_start: Date | null;
+  date_end: Date | null;
   lines: DraftLine[];
 }
 
@@ -41,7 +54,7 @@ let nextId = 1;
 @Component({
   selector: 'app-project-resources',
   standalone: true,
-  imports: [FormsModule, Button, Select, InputText, InputNumber],
+  imports: [FormsModule, DecimalPipe, Button, Select, InputText, InputNumber, Textarea, DatePicker],
   templateUrl: './project-resources.html',
 })
 export class ProjectResources implements OnInit {
@@ -101,6 +114,9 @@ export class ProjectResources implements OnInit {
           .map(section => ({
             id: nextId++,
             title: section.title,
+            description: section.description,
+            date_start: section.date_start ? calendarDateFromIso(section.date_start) : null,
+            date_end: section.date_end ? calendarDateFromIso(section.date_end) : null,
             lines: lines
               .filter(line => line.section_id === section.id)
               .sort((a, b) => a.position - b.position)
@@ -124,7 +140,10 @@ export class ProjectResources implements OnInit {
   }
 
   addSection(): void {
-    this.sections.update(sections => [...sections, { id: nextId++, title: '', lines: [] }]);
+    this.sections.update(sections => [
+      ...sections,
+      { id: nextId++, title: '', description: null, date_start: null, date_end: null, lines: [] }
+    ]);
   }
 
   removeSection(sectionId: number): void {
@@ -134,6 +153,18 @@ export class ProjectResources implements OnInit {
   updateSectionTitle(sectionId: number, title: string): void {
     this.sections.update(sections =>
       sections.map(s => s.id === sectionId ? { ...s, title } : s)
+    );
+  }
+
+  updateSectionDescription(sectionId: number, description: string): void {
+    this.sections.update(sections =>
+      sections.map(s => s.id === sectionId ? { ...s, description: description || null } : s)
+    );
+  }
+
+  updateSectionDate(sectionId: number, field: 'date_start' | 'date_end', value: Date | null): void {
+    this.sections.update(sections =>
+      sections.map(s => s.id === sectionId ? { ...s, [field]: value } : s)
     );
   }
 
@@ -161,6 +192,10 @@ export class ProjectResources implements OnInit {
     this.sections.update(sections =>
       sections.map(s => s.id === sectionId ? { ...s, lines: [...s.lines, line] } : s)
     );
+  }
+
+  lineTotal(line: DraftLine): number {
+    return (line.quantity ?? 0) * line.unit_price;
   }
 
   updateLine(sectionId: number, lineId: number, patch: Partial<DraftLine>): void {
@@ -205,9 +240,9 @@ export class ProjectResources implements OnInit {
         const createdSection = await firstValueFrom(this.documentSectionService.createSection({
           document_id: documentId,
           title: section.title || 'Ressources',
-          description: null,
-          date_start: null,
-          date_end: null,
+          description: section.description,
+          date_start: section.date_start ? calendarDateToIso(section.date_start) : null,
+          date_end: section.date_end ? calendarDateToIso(section.date_end) : null,
         }));
 
         for (const line of section.lines) {
