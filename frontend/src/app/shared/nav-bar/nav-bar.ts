@@ -185,6 +185,16 @@ export class NavBar {
       links: [
         { label: 'Liste', path: '/projects' }
       ]
+    },
+    {
+      // PLATFORM_ADMIN only for now - matches app.routes.ts's own
+      // restriction (see calendar.ts, still just a page shell).
+      label: 'Calendrier',
+      icon: 'pi pi-calendar',
+      links: [
+        { label: 'Calendrier', path: '/calendar' }
+      ],
+      roles: ['PLATFORM_ADMIN']
     }
   ];
 
