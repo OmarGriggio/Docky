@@ -16,9 +16,9 @@ export const createCompanyInDB = async (
 ): Promise<Company> => {
     const query = `
     INSERT INTO companies (
-      name, email, phone, iban, street, postal_code, city, country, logo
+      name, email, phone, iban, street, postal_code, city, country, logo, header_image
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
     RETURNING *;
   `;
     const values = [
@@ -30,7 +30,8 @@ export const createCompanyInDB = async (
       company.postal_code,
       company.city,
       company.country,
-      company.logo
+      company.logo,
+      company.header_image
     ];
     const result = await pool.query(query, values);
     return result.rows[0];
@@ -51,8 +52,9 @@ export const updateCompanyInDB = async (
       postal_code = $6,
       city = $7,
       country = $8,
-      logo = $9
-    WHERE id = $10
+      logo = $9,
+      header_image = $10
+    WHERE id = $11
     RETURNING *;
   `;
     const values = [
@@ -65,6 +67,7 @@ export const updateCompanyInDB = async (
       company.city,
       company.country,
       company.logo,
+      company.header_image,
       id
     ];
     const result = await pool.query(query, values);
@@ -75,6 +78,14 @@ export const updateCompanyLogoInDB = async (id: number, logo: string) => {
     const result = await pool.query(
         "UPDATE companies SET logo = $1 WHERE id = $2 RETURNING *",
         [logo, id]
+    );
+    return result.rows[0] ?? null;
+};
+
+export const updateCompanyHeaderImageInDB = async (id: number, headerImage: string) => {
+    const result = await pool.query(
+        "UPDATE companies SET header_image = $1 WHERE id = $2 RETURNING *",
+        [headerImage, id]
     );
     return result.rows[0] ?? null;
 };

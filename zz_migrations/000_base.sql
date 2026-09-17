@@ -15,7 +15,8 @@ CREATE TABLE companies (
     postal_code VARCHAR(20),
     city VARCHAR(100),
     country VARCHAR(100),
-    logo VARCHAR(255)
+    logo VARCHAR(255),
+    header_image VARCHAR(255)
 );
 
 -- ==========================================

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import path from "path";
-import { addCompanyServ, getAllCompaniesServ, getCompanyByIdServ, updateCompanyServ, updateCompanyLogoServ } from "./company.service";
+import { addCompanyServ, getAllCompaniesServ, getCompanyByIdServ, updateCompanyServ, updateCompanyLogoServ, updateCompanyHeaderImageServ } from "./company.service";
 import { Company } from "./company.types";
 import { EXTENSION_BY_MIME } from "./company.upload";
 import { uploadFileServ, deleteFileServ } from "../../shared/storage/storage.service";
@@ -51,5 +51,27 @@ export const uploadCompanyLogo = async (req: Request, res: Response) => {
     await uploadFileServ(logo, req.file.buffer, req.file.mimetype);
 
     const company = await updateCompanyLogoServ(companyId, logo);
+    res.json(company);
+};
+
+export const uploadCompanyHeaderImage = async (req: Request, res: Response) => {
+    if (!req.file) {
+        res.status(400).json({ message: "Aucun fichier reçu" });
+        return;
+    }
+
+    const companyId = Number(req.params.id);
+    const extension = EXTENSION_BY_MIME[req.file.mimetype];
+    const headerImage = path.posix.join("companies", String(companyId), `header${extension}`);
+
+    for (const otherExtension of Object.values(EXTENSION_BY_MIME)) {
+        if (otherExtension !== extension) {
+            await deleteFileServ(path.posix.join("companies", String(companyId), `header${otherExtension}`));
+        }
+    }
+
+    await uploadFileServ(headerImage, req.file.buffer, req.file.mimetype);
+
+    const company = await updateCompanyHeaderImageServ(companyId, headerImage);
     res.json(company);
 };

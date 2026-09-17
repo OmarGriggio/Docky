@@ -10,4 +10,7 @@ export interface Company {
   city: string | null;
   country: string | null;
   logo: string | null;
+  // Shown at the very top of a generated invoice (see backend/src/pdf) -
+  // distinct from the logo, which stays in its own top-right corner slot.
+  header_image: string | null;
 }

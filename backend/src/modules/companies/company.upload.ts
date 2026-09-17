@@ -18,3 +18,17 @@ export const uploadLogo = multer({
         }
     },
 }).single("logo");
+
+// Same constraints as the logo - buffered in memory, uploaded to MinIO/S3 by
+// company.controller.ts.
+export const uploadHeaderImage = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 5 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype in EXTENSION_BY_MIME) {
+            cb(null, true);
+        } else {
+            cb(new Error("Seuls les fichiers JPG et PNG sont acceptés"));
+        }
+    },
+}).single("header_image");
