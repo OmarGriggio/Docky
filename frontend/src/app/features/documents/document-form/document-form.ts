@@ -519,34 +519,32 @@ export class DocumentForm implements OnInit {
     this.router.navigate(['/clients', clientId]);
   }
 
-  // preferredAddressId: "Facturer" (applyFromProject below) already knows
-  // which address it wants (the chantier's own one) before this client's
-  // addresses have even loaded - passed through here instead of set
-  // separately afterwards, since setting it after would race this method's
-  // own async default (whichever HTTP call resolved last would win).
+  // preferredAddressId: no automatic fallback (e.g. the client's own
+  // primary address) - a QUOTE always starts at null, an INVOICE only ever
+  // defaults to the chantier's own address, and both stay freely clearable
+  // by hand afterwards (see the template's [showClear]). "Facturer"
+  // (applyFromProject below) already knows which address it wants before
+  // this client's addresses have even loaded - passed through here instead
+  // of set separately afterwards, since setting it after would race this
+  // method's own async call (whichever HTTP call resolved last would win).
   onClientChange(clientId: number | null, preferredAddressId: number | null = null): void {
     this.selectedClientId.set(clientId);
     // A project picked for a previous client no longer makes sense - and
     // neither does whatever it had imported (onProjectChange(null) already
     // clears both).
     this.onProjectChange(null);
+    this.addressId = preferredAddressId;
 
     if (clientId === null) {
       this.clientAddresses.set([]);
-      this.addressId = null;
       return;
     }
 
     this.clientService.getClient(clientId).subscribe({
-      next: client => {
-        this.clientAddresses.set(client.addresses);
-        const fallback = client.addresses.find(a => a.is_primary) ?? client.addresses[0] ?? null;
-        this.addressId = preferredAddressId ?? fallback?.id ?? null;
-      },
+      next: client => this.clientAddresses.set(client.addresses),
       error: err => {
         console.error('document-form : ' + err);
         this.clientAddresses.set([]);
-        this.addressId = null;
       }
     });
   }
@@ -799,10 +797,7 @@ export class DocumentForm implements OnInit {
 
       await this.createSectionsAndLines(document.id);
 
-      // Lands back on this same page in edit mode, showing the
-      // server-generated number (see loadForEdit) - there's no separate
-      // detail/confirmation page anymore.
-      this.router.navigate(['/documents', document.id]);
+      this.router.navigate(['/documents'], { queryParams: { type: this.type } });
     } catch (err) {
       console.error('document-form : ' + err);
       this.submitting.set(false);
