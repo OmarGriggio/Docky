@@ -83,6 +83,45 @@
           }
         </div>
 
+        <div class="ui-form__full profile-logo">
+          <div
+            class="profile-logo__dropzone"
+            [class.profile-logo__dropzone--dragging]="isDraggingOverHeaderImage()"
+            [class.profile-logo__dropzone--disabled]="!canManageCompany()"
+            (click)="onHeaderImageDropzoneClick(headerImageInput)"
+            (dragover)="onHeaderImageDragOver($event)"
+            (dragleave)="onHeaderImageDragLeave($event)"
+            (drop)="onHeaderImageDrop($event)"
+          >
+            @if (displayedHeaderImageUrl()) {
+              <img [src]="displayedHeaderImageUrl()" alt="Image d'en-tête des factures" class="profile-logo__preview" />
+            } @else {
+              <i class="pi pi-image profile-logo__placeholder"></i>
+            }
+
+            @if (canManageCompany()) {
+              <p class="profile-logo__hint">Image affichée tout en haut des factures - glissez-déposez, ou cliquez pour parcourir</p>
+            }
+
+            <input
+              #headerImageInput
+              type="file"
+              accept="image/jpeg,image/png"
+              class="profile-logo__input"
+              [disabled]="!canManageCompany()"
+              (change)="onHeaderImageFileInputChange($event)"
+            />
+          </div>
+
+          @if (canManageCompany() && selectedHeaderImageFile()) {
+            <p-button type="button" label="Uploader l'image d'en-tête" [loading]="uploadingHeaderImage()" (onClick)="uploadHeaderImage()" />
+          }
+
+          @if (headerImageErrorMessage()) {
+            <p class="profile-error">{{ headerImageErrorMessage() }}</p>
+          }
+        </div>
+
         @if (!canManageCompany()) {
           <p class="ui-form__full">Seul un administrateur peut modifier les informations de l'entreprise.</p>
         }

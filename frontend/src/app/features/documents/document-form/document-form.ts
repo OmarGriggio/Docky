@@ -119,7 +119,7 @@ export class DocumentForm implements OnInit {
   private authService = inject(AuthService);
 
   company = signal<Company | null>(null);
-  companyLogoUrl = computed(() => this.companyService.getLogoUrl(this.company()?.logo ?? null));
+  companyLogoUrl = computed(() => this.companyService.getFileUrl(this.company()?.logo ?? null));
 
   clients = signal<Client[]>([]);
   clientOptions = computed(() =>

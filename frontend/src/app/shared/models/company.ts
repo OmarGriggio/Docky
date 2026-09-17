@@ -9,4 +9,5 @@ export interface Company {
   city: string | null;
   country: string | null;
   logo: string | null;
+  header_image: string | null;
 }

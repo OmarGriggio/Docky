@@ -32,8 +32,16 @@ export class CompanyService {
     return this.http.post<Company>(`${API_BASE}/company/${id}/logo`, formData);
   }
 
-  getLogoUrl(logo: string | null): string | null {
-    return logo ? `${API_BASE}/uploads/${logo}` : null;
+  uploadHeaderImage(id: number, file: File) {
+    const formData = new FormData();
+    formData.append('header_image', file);
+    return this.http.post<Company>(`${API_BASE}/company/${id}/header-image`, formData);
+  }
+
+  // Generic - both the logo and the header image are served the same way
+  // (see app.ts's /uploads/*splat), just stored under a different key.
+  getFileUrl(path: string | null): string | null {
+    return path ? `${API_BASE}/uploads/${path}` : null;
   }
 
 }
