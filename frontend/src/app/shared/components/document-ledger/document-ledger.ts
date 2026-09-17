@@ -5,7 +5,7 @@ import { DocumentSectionService } from '../../../features/documents/document-sec
 import { DocumentLineService } from '../../../features/documents/document-line.service';
 import { DocumentSection } from '../../models/document-section';
 import { DocumentLine } from '../../models/document-line';
-import { AppDatePipe } from '../../pipes/app-date.pipe';
+import { SectionDatePipe } from '../../pipes/section-date.pipe';
 
 // Stable shared reference for "no lines yet" - see document-list.ts's own
 // original EMPTY_LINES (this component replaces that file's and
@@ -27,7 +27,7 @@ const EMPTY_LINES: DocumentLine[] = [];
 @Component({
   selector: 'app-document-ledger',
   standalone: true,
-  imports: [NgTemplateOutlet, AppDatePipe],
+  imports: [NgTemplateOutlet, SectionDatePipe],
   templateUrl: './document-ledger.html'
 })
 export class DocumentLedger implements OnInit {

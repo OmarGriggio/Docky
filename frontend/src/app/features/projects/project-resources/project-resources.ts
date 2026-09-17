@@ -14,7 +14,7 @@ import { ResourceService } from '../../resources/resource.service';
 import { Project } from '../../../shared/models/project';
 import { Resource } from '../../../shared/models/resource';
 import { DocumentLineType } from '../../../shared/models/document-line';
-import { calendarDateFromIso, calendarDateToIso } from '../../../shared/utils/display';
+import { hasTimeComponent } from '../../../shared/utils/display';
 
 interface DraftLine {
   id: number;
@@ -31,11 +31,9 @@ interface DraftSection {
   title: string;
   description: string | null;
   // Kept as Date (not the raw ISO string) so p-datepicker can bind to it
-  // directly - see calendarDateFromIso/calendarDateToIso's own comment
-  // (shared/utils/display.ts) for why a plain `new Date(iso)`/`.toISOString()`
-  // round-trip would silently shift the calendar date by the local UTC
-  // offset (the exact bug hit and fixed in project-list.ts's own section
-  // date pickers).
+  // directly - a real local instant now (see hasTimeComponent's own
+  // comment in display.ts), not a pure calendar date, so a plain
+  // `new Date(iso)`/`.toISOString()` round-trip is exactly right here.
   date_start: Date | null;
   date_end: Date | null;
   lines: DraftLine[];
@@ -115,8 +113,8 @@ export class ProjectResources implements OnInit {
             id: nextId++,
             title: section.title,
             description: section.description,
-            date_start: section.date_start ? calendarDateFromIso(section.date_start) : null,
-            date_end: section.date_end ? calendarDateFromIso(section.date_end) : null,
+            date_start: section.date_start ? new Date(section.date_start) : null,
+            date_end: section.date_end ? new Date(section.date_end) : null,
             lines: lines
               .filter(line => line.section_id === section.id)
               .sort((a, b) => a.position - b.position)
@@ -166,6 +164,15 @@ export class ProjectResources implements OnInit {
     this.sections.update(sections =>
       sections.map(s => s.id === sectionId ? { ...s, [field]: value } : s)
     );
+  }
+
+  // Both pickers show a time field only once one's actually set on either
+  // date (see hasTimeComponent's own comment in display.ts) - otherwise an
+  // untouched all-day section would show a misleading "00:00" the moment
+  // you open its picker.
+  sectionHasTime(section: DraftSection): boolean {
+    return (!!section.date_start && hasTimeComponent(section.date_start))
+      || (!!section.date_end && hasTimeComponent(section.date_end));
   }
 
   // Starts at quantity 0 - nothing's been used on site yet for a resource
@@ -241,8 +248,8 @@ export class ProjectResources implements OnInit {
           document_id: documentId,
           title: section.title || 'Ressources',
           description: section.description,
-          date_start: section.date_start ? calendarDateToIso(section.date_start) : null,
-          date_end: section.date_end ? calendarDateToIso(section.date_end) : null,
+          date_start: section.date_start ? section.date_start.toISOString() : null,
+          date_end: section.date_end ? section.date_end.toISOString() : null,
         }));
 
         for (const line of section.lines) {

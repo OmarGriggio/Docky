@@ -20,19 +20,17 @@ import { AddressService } from '../../addresses/address.service';
 import { Project, ProjectType } from '../../../shared/models/project';
 import { Client } from '../../../shared/models/client';
 import { Document } from '../../../shared/models/document';
-import { DocumentSection } from '../../../shared/models/document-section';
 import { Address } from '../../../shared/models/address';
 import { ProjectForm } from '../project-form/project-form';
 import { ProjectAttachments } from '../project-attachments/project-attachments';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { DocumentLedger } from '../../../shared/components/document-ledger/document-ledger';
-import { AppDatePipe } from '../../../shared/pipes/app-date.pipe';
-import { calendarDateFromIso, calendarDateToIso } from '../../../shared/utils/display';
+import { SectionDatePipe } from '../../../shared/pipes/section-date.pipe';
 
 @Component({
   selector: 'app-project-list',
   standalone: true,
-  imports: [TableModule, TagModule, Toolbar, Menu, Button, Dialog, Checkbox, InputText, Select, DatePicker, FormsModule, AppDatePipe, ProjectForm, ProjectAttachments, ConfirmDialogComponent, DocumentLedger],
+  imports: [TableModule, TagModule, Toolbar, Menu, Button, Dialog, Checkbox, InputText, Select, DatePicker, FormsModule, SectionDatePipe, ProjectForm, ProjectAttachments, ConfirmDialogComponent, DocumentLedger],
   templateUrl: './project-list.html'
 })
 export class ProjectListComponent implements OnInit {
@@ -325,19 +323,18 @@ export class ProjectListComponent implements OnInit {
 
   onRowEditInit(project: Project): void {
     this.clonedProjects[project.id] = { ...project };
-    this.editingDates[project.id] = project.closest_section_date ? calendarDateFromIso(project.closest_section_date) : null;
+    this.editingDates[project.id] = project.closest_section_date ? new Date(project.closest_section_date) : null;
   }
 
   onRowEditSave(project: Project): void {
     const original = this.clonedProjects[project.id];
     const newDate = this.editingDates[project.id] ?? null;
-    const newDateIso = newDate ? calendarDateToIso(newDate) : null;
-    // Compared as calendar dates (both run through calendarDateFromIso),
-    // not as raw ISO strings - the original's own stored value isn't
-    // necessarily exact UTC midnight (see calendarDateToIso's own comment),
-    // so a plain string comparison would see a "change" on every save even
-    // when the date picker was never touched.
-    const originalDate = original?.closest_section_date ? calendarDateFromIso(original.closest_section_date) : null;
+    const newDateIso = newDate ? newDate.toISOString() : null;
+    // Compared as parsed dates, not as raw ISO strings - two different ISO
+    // strings can still represent the exact same instant, which would
+    // otherwise read as "changed" on every save even when the date picker
+    // was never touched.
+    const originalDate = original?.closest_section_date ? new Date(original.closest_section_date) : null;
     const dateChanged = (newDate?.getTime() ?? null) !== (originalDate?.getTime() ?? null);
 
     if (!dateChanged) {
@@ -407,63 +404,6 @@ export class ProjectListComponent implements OnInit {
     }
     delete this.editingDates[project.id];
     this.projects.update(projects => [...projects]);
-  }
-
-  // p-datepicker needs a Date (or null), but date_start/date_end are stored
-  // as ISO strings (see shared/models/document-section.ts). Memoized per
-  // section object (not just re-parsed on every call): p-datepicker is
-  // always mounted here (not just while editing a cell), so its own
-  // [ngModel] gets re-evaluated on every change detection cycle - handing
-  // it a freshly-allocated `new Date(...)` each time made PrimeNG treat it
-  // as an external value change on every single cycle, which itself
-  // triggers another cycle, and so on: a real infinite loop that froze the
-  // tab the moment a chantier row was expanded. <app-document-ledger>
-  // replaces a section wholesale (new object reference) on refresh(), which
-  // is exactly when this cache should stop being valid too - a WeakMap
-  // keyed by the section object does that for free.
-  private sectionDates = new WeakMap<DocumentSection, { start: Date | null; end: Date | null }>();
-
-  private datesFor(section: DocumentSection): { start: Date | null; end: Date | null } {
-    let dates = this.sectionDates.get(section);
-    if (!dates) {
-      dates = {
-        start: section.date_start ? calendarDateFromIso(section.date_start) : null,
-        end: section.date_end ? calendarDateFromIso(section.date_end) : null,
-      };
-      this.sectionDates.set(section, dates);
-    }
-    return dates;
-  }
-
-  sectionDateStart(section: DocumentSection): Date | null {
-    return this.datesFor(section).start;
-  }
-
-  sectionDateEnd(section: DocumentSection): Date | null {
-    return this.datesFor(section).end;
-  }
-
-  // Picking a date saves right away (no separate "Enregistrer" step). The
-  // ledger instance is passed in directly (project-list.html's own
-  // #sectionHeader template is projected into <app-document-ledger #ledger>,
-  // so `ledger` is in scope there) rather than looked up via a class-level
-  // viewChild - a project row's own <app-document-ledger> only exists while
-  // that row is expanded, and more than one can be expanded at once, so
-  // there's no single static view to query from the component class itself.
-  updateSectionDate(section: DocumentSection, field: 'date_start' | 'date_end', value: Date | null, ledger: DocumentLedger): void {
-    const iso = value ? calendarDateToIso(value) : null;
-    const data = {
-      date_start: field === 'date_start' ? iso : section.date_start,
-      date_end: field === 'date_end' ? iso : section.date_end,
-    };
-
-    this.documentSectionService.updateSection(section.id, data).subscribe({
-      next: () => ledger.refresh(),
-      error: err => {
-        console.error('project-list : ' + err);
-        ledger.refresh();
-      }
-    });
   }
 
 }

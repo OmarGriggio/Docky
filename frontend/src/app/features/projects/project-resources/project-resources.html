@@ -24,14 +24,14 @@
           <p-datepicker
             [ngModel]="section.date_start"
             (ngModelChange)="updateSectionDate(section.id, 'date_start', $event)"
-            dateFormat="dd.mm.yy" size="small" appendTo="body"
+            dateFormat="dd.mm.yy" [showTime]="sectionHasTime(section)" hourFormat="24" size="small" appendTo="body"
             [disabled]="readonly()"
           />
           <span class="text-xs text-surface-500">Fin</span>
           <p-datepicker
             [ngModel]="section.date_end"
             (ngModelChange)="updateSectionDate(section.id, 'date_end', $event)"
-            dateFormat="dd.mm.yy" size="small" appendTo="body"
+            dateFormat="dd.mm.yy" [showTime]="sectionHasTime(section)" hourFormat="24" size="small" appendTo="body"
             [disabled]="readonly()"
           />
           @if (!readonly()) {

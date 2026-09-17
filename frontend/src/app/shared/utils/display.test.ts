@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { clientDisplayName, archiveActionLabel, formatFileSize, calendarDateFromIso, calendarDateToIso, addressLabel } from './display';
+import { clientDisplayName, archiveActionLabel, formatFileSize, formatSectionDate, addressLabel } from './display';
 
 describe('clientDisplayName', () => {
 
@@ -62,32 +62,21 @@ describe('addressLabel', () => {
 
 });
 
-describe('calendarDateFromIso', () => {
+describe('formatSectionDate', () => {
 
-  it('reads the calendar date from the ISO string\'s UTC components, not the local ones', () => {
-    // Shaped like a real stored value (seed data uses this exact shape) -
-    // 22:00 UTC, i.e. local midnight in a UTC+2 offset appearing "the day
-    // before" in UTC terms for the time-of-day, but the calendar date this
-    // represents is still the 20th, not the 19th.
-    const date = calendarDateFromIso('2026-09-20T22:00:00.000Z');
-    expect(date.getFullYear()).toBe(2026);
-    expect(date.getMonth()).toBe(8);
-    expect(date.getDate()).toBe(20);
+  it('shows only the date when there is no time component', () => {
+    const date = new Date(2026, 8, 20, 0, 0);
+    expect(formatSectionDate(date)).toBe('20.09.2026');
   });
 
-});
-
-describe('calendarDateToIso', () => {
-
-  it('encodes the given local calendar date as UTC midnight for that same day', () => {
-    const iso = calendarDateToIso(new Date(2026, 8, 20));
-    expect(iso).toBe('2026-09-20T00:00:00.000Z');
+  it('shows the time too once one is set', () => {
+    const date = new Date(2026, 8, 20, 14, 5);
+    expect(formatSectionDate(date)).toBe('20.09.2026 14:05');
   });
 
-  it('round-trips through calendarDateFromIso without shifting the day', () => {
-    const original = '2026-09-16T22:00:00.000Z';
-    const roundTripped = calendarDateToIso(calendarDateFromIso(original));
-    expect(new Date(roundTripped).getUTCDate()).toBe(new Date(original).getUTCDate());
+  it('accepts an ISO string the same way', () => {
+    const date = new Date(2026, 8, 20, 9, 30);
+    expect(formatSectionDate(date.toISOString())).toBe('20.09.2026 09:30');
   });
 
 });

@@ -18,7 +18,7 @@
             </div>
             @if (section.date_start || section.date_end) {
               <span class="text-xs text-surface-500">
-                {{ section.date_start | appDate }} – {{ section.date_end | appDate }}
+                {{ section.date_start | sectionDate }} – {{ section.date_end | sectionDate }}
               </span>
             }
           }

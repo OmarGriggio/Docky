@@ -93,7 +93,7 @@
             <p-datepicker [(ngModel)]="editingDates[project.id]" dateFormat="dd.mm.yy" [fluid]="true" appendTo="body" />
           </ng-template>
           <ng-template #output>
-            {{ date(project) ? (date(project) | appDate) : '—' }}
+            {{ date(project) ? (date(project) | sectionDate) : '—' }}
           </ng-template>
         </p-cellEditor>
       </td>
@@ -150,35 +150,12 @@
   <ng-template #expandedrow let-project>
     <tr>
       <td colspan="9">
-        <!-- #sectionHeader replaces <app-document-ledger>'s own default
-             read-only header with editable date pickers - see
-             shared/components/document-ledger. #ledger is referenced from
-             inside that projected template further down (updateSectionDate
-             needs it to refresh once a date is saved). -->
-        <app-document-ledger #ledger [documentId]="project.document_id" [columns]="2">
-          <ng-template #sectionHeader let-section>
-            <div>
-              <span class="font-semibold">{{ section.title }}</span>
-              @if (section.description) {
-                <span class="text-sm text-surface-500"> — {{ section.description }}</span>
-              }
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="text-xs text-surface-500">Début</span>
-              <p-datepicker
-                [ngModel]="sectionDateStart(section)"
-                (ngModelChange)="updateSectionDate(section, 'date_start', $event, ledger)"
-                dateFormat="dd.mm.yy" size="small" appendTo="body"
-              />
-              <span class="text-xs text-surface-500">Fin</span>
-              <p-datepicker
-                [ngModel]="sectionDateEnd(section)"
-                (ngModelChange)="updateSectionDate(section, 'date_end', $event, ledger)"
-                dateFormat="dd.mm.yy" size="small" appendTo="body"
-              />
-            </div>
-          </ng-template>
-        </app-document-ledger>
+        <!-- Read-only period now - dates live on the calendar page instead
+             (see calendar.ts) once a section's schedule is set that way;
+             editing them here would silently fight that. Plain default
+             header from shared/components/document-ledger (no
+             #sectionHeader override anymore). -->
+        <app-document-ledger [documentId]="project.document_id" [columns]="2" />
       </td>
     </tr>
   </ng-template>

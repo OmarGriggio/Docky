@@ -52,26 +52,38 @@ export const documentStatusSeverity = (status: DocumentStatus): 'secondary' | 'i
   return DOCUMENT_STATUS_SEVERITIES[status];
 };
 
-// A date_start/date_end value (document_sections) is a pure calendar date
-// with no real time-of-day meaning, but stored as a genuine TIMESTAMP -
-// app-date.pipe.ts already reads it via UTC getters to treat it as such
-// (its own "UTC-only calendar-date semantics"). A p-datepicker, though,
-// always displays/picks in the browser's LOCAL timezone: round-tripping a
-// stored ISO string through a plain `new Date(iso)` (unchanged) into one of
-// those, or a locally-picked Date straight through `.toISOString()` back
-// into storage, silently shifts the calendar date by the local UTC offset -
-// a real bug hit in project-list.ts (a date picked as the 20th got stored
-// and redisplayed as the 19th). These two keep the calendar date itself
-// stable across that round-trip, at the cost of the Date objects they touch
-// technically holding the wrong *instant* - fine, since nothing here ever
-// reads their time-of-day.
-export const calendarDateFromIso = (iso: string): Date => {
-  const parsed = new Date(iso);
-  return new Date(parsed.getUTCFullYear(), parsed.getUTCMonth(), parsed.getUTCDate());
+// document_sections.date_start/date_end used to be treated as a pure
+// calendar date with no real time-of-day meaning - not true anymore now
+// that the calendar page (calendar.ts) can drop a section onto an exact
+// time slot, so this field genuinely carries a real local instant these
+// days, sometimes with a meaningful time, sometimes not (an all-day drop
+// lands on local midnight). Read with plain `new Date(iso)`/write with
+// plain `date.toISOString()` everywhere this field is touched - both
+// naturally round-trip the *actual* local instant, time included, which
+// is what every consumer (project-list.ts, project-resources.ts,
+// calendar.ts) now expects. Used below to decide whether that instant is
+// worth showing a time for at all.
+export const hasTimeComponent = (date: Date): boolean => {
+  return date.getHours() !== 0 || date.getMinutes() !== 0;
 };
 
-export const calendarDateToIso = (date: Date): string => {
-  return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())).toISOString();
+// document_sections' own date_start/date_end (see hasTimeComponent above) -
+// shows the time too, but only when one was actually set, so a plain
+// all-day date doesn't read as "00:00" for no reason. Local getters
+// throughout (not app-date.pipe.ts's UTC ones) - see hasTimeComponent.
+export const formatSectionDate = (value: string | Date): string => {
+  const date = value instanceof Date ? value : new Date(value);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+
+  if (!hasTimeComponent(date)) {
+    return `${day}.${month}.${year}`;
+  }
+
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${day}.${month}.${year} ${hours}:${minutes}`;
 };
 
 export interface LabelableAddress {
