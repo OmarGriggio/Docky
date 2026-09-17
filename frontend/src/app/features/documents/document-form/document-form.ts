@@ -26,11 +26,10 @@ import { Client } from '../../../shared/models/client';
 import { Address } from '../../../shared/models/address';
 import { Project } from '../../../shared/models/project';
 import { Resource } from '../../../shared/models/resource';
-import { DocumentLine } from '../../../shared/models/document-line';
 import { Company } from '../../../shared/models/company';
 import { DocumentStatus, DocumentType } from '../../../shared/models/document';
 import { DocumentComplete } from '../../../shared/models/document-complete';
-import { clientDisplayName } from '../../../shared/utils/display';
+import { clientDisplayName, addressLabel } from '../../../shared/utils/display';
 
 // PROJECT never actually reaches this page (a chantier is never created or
 // edited here - see zz_docs/Project Definition.md) but DocumentType still
@@ -64,8 +63,8 @@ interface DraftLine {
   // hand-typed line) - sent to the backend (document_lines.resource_id), so
   // an accepted quote can turn it into a project_resources row (see
   // document.service.ts's acceptQuoteServ). Also used locally to keep an
-  // already-used resource out of the "add a resource" pickers below (see
-  // availableCatalogResourceOptions/availableProjectResourceOptions).
+  // already-used resource out of the "add a resource" picker below (see
+  // availableCatalogResourceOptions).
   resource_id: number | null;
 }
 
@@ -128,52 +127,53 @@ export class DocumentForm implements OnInit {
   );
 
   projects = signal<Project[]>([]);
-  // Only the selected client's own COMPLETED projects make sense to invoice
-  // - an in-progress one's quantities aren't final yet (see
-  // document.service.ts's addDocumentServ, which rejects it server-side
-  // too). Only ever shown for an INVOICE - a QUOTE can never target a
-  // project at all (see zz_docs/Decisions.md: a project is born from an
-  // accepted quote, never the other way around).
-  projectOptions = computed(() => {
-    const clientId = this.selectedClientId();
-    if (clientId === null) {
-      return [];
-    }
-    return this.projects()
-      .filter(project => project.client_id === clientId && project.status === 'COMPLETED')
-      .map(project => ({ label: project.name, value: project.id }));
-  });
 
   selectedClientId = signal<number | null>(null);
-  selectedClientAddress = signal<Address | null>(null);
-  selectedProjectId: number | null = null;
+  // The selected client's own saved addresses - source for both addresses
+  // below: where the document itself is billed to/sent (always the
+  // client's own primary one, read-only - see selectedClientAddress) is a
+  // different thing from "Lieu/Bâtiment" (addressId/addressOptions), the
+  // work site a chantier's own resource ledger belongs to, freely pickable
+  // among the same list.
+  private clientAddresses = signal<Address[]>([]);
+  // Billing address - read-only, purely informational (where this
+  // document itself is sent), unrelated to addressId below.
+  selectedClientAddress = computed(() =>
+    this.clientAddresses().find(a => a.is_primary) ?? this.clientAddresses()[0] ?? null
+  );
+  addressOptions = computed(() =>
+    this.clientAddresses().map(address => ({ label: addressLabel(address), value: address.id }))
+  );
+  // No manual "Chantier" picker in the UI (an invoice is always linked to
+  // its chantier the other way around - project-list.ts's own "Facturer",
+  // see applyFromProject) - selectedProjectId/selectedProjectDocumentId
+  // exist purely for that, never surfaced or picked here.
+  private selectedProjectId: number | null = null;
   // A chantier is no longer a flat "resource + quantity" list
   // (project_resources is gone) - it's a real PROJECT-type document, whose
   // own document_sections/document_lines ARE its resource ledger. This is
   // that document's id, resolved from the picked Project's own document_id
-  // (see onProjectChange) - what "Charger chantier" and the per-section
-  // picker below actually read from.
+  // (see onProjectChange) - what loadProjectResources below and submit()'s
+  // own parent_document_id actually read from.
   private selectedProjectDocumentId: number | null = null;
 
   // The company's full resource catalog - source for the "Ajouter depuis le
-  // catalogue" picker (QUOTE: this is how the need actually gets defined,
-  // see zz_docs/Decisions.md).
+  // catalogue"/"Ajouter une ressource" picker (see zz_docs/Decisions.md: a
+  // QUOTE has no project to pull from yet, it's how the need gets defined in
+  // the first place; an INVOICE could offer the project's own resource
+  // ledger instead, but picking from the full catalog the same way keeps
+  // both types consistent and doesn't block a correction that ledger
+  // didn't anticipate).
   resources = signal<Resource[]>([]);
-  // The selected project's own PROJECT document lines (its resource ledger,
-  // flattened across all its sections) - fetched as soon as a project is
-  // picked, feeding the per-section "Ajouter une ressource du chantier"
-  // picker (INVOICE only). Each line's own quantity/unit_price (the
-  // project's real, adjusted amounts) is what gets copied onto the new line,
-  // not a fixed "1 at catalog price" default.
-  chantierLines = signal<DocumentLine[]>([]);
-  // Ids of sections that came from "Charger chantier" - tracked so a
-  // re-selection (or clearing the project) replaces exactly these, never a
+  // Ids of sections that came from "Charger chantier" (applyFromProject's
+  // own loadProjectResources call, see "Facturer" above) - tracked so
+  // re-running it (or clearing the project) replaces exactly these, never a
   // section the user built by hand.
   private importedSectionIds = new Set<number>();
 
   // A resource already used as a line anywhere in the document (however it
-  // got there - catalog picker, bulk import, or the per-section chantier
-  // picker) no longer makes sense to offer again.
+  // got there - catalog picker or bulk import) no longer makes sense to
+  // offer again.
   private usedResourceIds = computed(() =>
     new Set(
       this.sections()
@@ -188,13 +188,6 @@ export class DocumentForm implements OnInit {
       .filter(resource => !this.usedResourceIds().has(resource.id))
       .map(resource => ({ label: resource.name, value: resource.id }))
   );
-
-  availableProjectResourceOptions = computed(() => {
-    const usedIds = this.usedResourceIds();
-    return this.chantierLines()
-      .filter(line => line.resource_id === null || !usedIds.has(line.resource_id))
-      .map(line => ({ label: line.label, value: line.id }));
-  });
 
   // Decided by which list (Offres/Factures) "Ajouter" was clicked from - see
   // document-list.ts's createDocument() - not editable here. Defaults to
@@ -226,10 +219,13 @@ export class DocumentForm implements OnInit {
   }
 
   date = new Date();
-  // No picker for this yet - always null on a fresh/duplicated draft, and
-  // preserved as-is (not reset) when editing an existing document (see
-  // loadForEdit) so a PUT never silently wipes a value this page can't show.
-  private addressId: number | null = null;
+  // "Lieu/Bâtiment" picker (see addressOptions below) - defaults to the
+  // selected client's own primary address (onClientChange), or the
+  // chantier's own one when coming from "Facturer" (applyFromProject passes
+  // its own preferredAddressId), always still changeable by hand afterwards.
+  // Preserved as-is (not reset) when editing an existing document (see
+  // loadForEdit).
+  addressId: number | null = null;
   // The client's own reference/PO number - INVOICE only (see the template),
   // a QUOTE has no field for it. Bound directly via ngModel like the other
   // plain text fields below (paymentTerms etc.), so it has to be public.
@@ -321,10 +317,19 @@ export class DocumentForm implements OnInit {
             // own introduction/conclusion should win regardless of which
             // resolves first).
             const duplicateFromParam = params.get('duplicateFrom');
+            // "Facturer" (project-list.ts, a COMPLETED chantier only) -
+            // unlike "Dupliquer", this one still wants the type's own
+            // default introduction/conclusion (a chantier has none of its
+            // own) - only the client/project/resource-ledger prefill below
+            // is skipped for the type's default handling.
+            const fromProjectParam = params.get('fromProject');
             if (duplicateFromParam) {
               this.applyDuplicateFrom(Number(duplicateFromParam));
             } else {
               this.loadTemplate(this.type);
+              if (fromProjectParam) {
+                this.applyFromProject(Number(fromProjectParam));
+              }
             }
           });
         }
@@ -348,6 +353,37 @@ export class DocumentForm implements OnInit {
     });
   }
 
+  // "Facturer" (project-list.ts) - picks this chantier's own client and
+  // project (exactly as if the user had picked them by hand, see
+  // onClientChange/onProjectChange below) then runs the same "Charger
+  // chantier" import loadProjectResources() does, so invoicing a completed
+  // chantier is a review-and-submit instead of rebuilding it from scratch.
+  private applyFromProject(projectId: number): void {
+    const project = this.projects().find(p => p.id === projectId);
+    if (!project) {
+      return;
+    }
+
+    // The chantier's own address (see project.service.ts's acceptQuoteServ -
+    // it lives on the chantier's own backing document, not duplicated on
+    // the Project row) - fetched first so it's ready to pass as
+    // onClientChange's own preferredAddressId, rather than set separately
+    // afterwards and risk losing a race against that method's own default.
+    this.documentService.getDocument(project.document_id).subscribe({
+      next: chantierDocument => {
+        this.onClientChange(project.client_id, chantierDocument.address_id);
+        this.onProjectChange(project.id);
+        this.loadProjectResources();
+      },
+      error: err => {
+        console.error('document-form : ' + err);
+        this.onClientChange(project.client_id);
+        this.onProjectChange(project.id);
+        this.loadProjectResources();
+      }
+    });
+  }
+
   // "Dupliquer" (document-list.ts) - copies a source quote's client,
   // intro/conclusion/payment terms/discount/VAT and its full sections+lines
   // into this page's local draft state, as a starting point for a new one.
@@ -358,7 +394,7 @@ export class DocumentForm implements OnInit {
   private applyDuplicateFrom(sourceId: number): void {
     this.documentCompleteService.getDocumentComplete(sourceId).subscribe({
       next: source => {
-        this.onClientChange(source.client_id);
+        this.onClientChange(source.client_id, source.address_id);
 
         this.introduction = source.introduction ?? '';
         this.conclusion = source.conclusion ?? '';
@@ -388,10 +424,9 @@ export class DocumentForm implements OnInit {
         // either way, though nothing currently routes one here.
         this.locked.set(source.status === null || !EDITABLE_STATUSES.includes(source.status));
         this.date = new Date(source.date);
-        this.addressId = source.address_id;
         this.referenceClient = source.reference_client ?? '';
 
-        this.onClientChange(source.client_id);
+        this.onClientChange(source.client_id, source.address_id);
 
         this.introduction = source.introduction ?? '';
         this.conclusion = source.conclusion ?? '';
@@ -471,7 +506,25 @@ export class DocumentForm implements OnInit {
     });
   }
 
-  onClientChange(clientId: number | null): void {
+  // "Ajouter une adresse" (the "Lieu/Bâtiment" picker's own footer) - this
+  // page has no address form of its own, client-detail.ts already does
+  // (its own addresses table). Navigating away loses whatever draft is
+  // filled in here, same trade-off as "Annuler" - acceptable since adding
+  // a missing address is expected to be rare, not a normal step.
+  goToClientAddresses(): void {
+    const clientId = this.selectedClientId();
+    if (clientId === null) {
+      return;
+    }
+    this.router.navigate(['/clients', clientId]);
+  }
+
+  // preferredAddressId: "Facturer" (applyFromProject below) already knows
+  // which address it wants (the chantier's own one) before this client's
+  // addresses have even loaded - passed through here instead of set
+  // separately afterwards, since setting it after would race this method's
+  // own async default (whichever HTTP call resolved last would win).
+  onClientChange(clientId: number | null, preferredAddressId: number | null = null): void {
     this.selectedClientId.set(clientId);
     // A project picked for a previous client no longer makes sense - and
     // neither does whatever it had imported (onProjectChange(null) already
@@ -479,46 +532,37 @@ export class DocumentForm implements OnInit {
     this.onProjectChange(null);
 
     if (clientId === null) {
-      this.selectedClientAddress.set(null);
+      this.clientAddresses.set([]);
+      this.addressId = null;
       return;
     }
 
     this.clientService.getClient(clientId).subscribe({
       next: client => {
-        const address = client.addresses.find(a => a.is_primary) ?? client.addresses[0] ?? null;
-        this.selectedClientAddress.set(address);
+        this.clientAddresses.set(client.addresses);
+        const fallback = client.addresses.find(a => a.is_primary) ?? client.addresses[0] ?? null;
+        this.addressId = preferredAddressId ?? fallback?.id ?? null;
       },
       error: err => {
         console.error('document-form : ' + err);
-        this.selectedClientAddress.set(null);
+        this.clientAddresses.set([]);
+        this.addressId = null;
       }
     });
   }
 
   // Picking a project doesn't prefill any section/line by itself - only
   // invalidates whatever the previous project had bulk-imported (if any),
-  // since it no longer applies. It does fetch the chantier's own PROJECT
-  // document's lines right away though (flattened across all its sections -
-  // see chantierLines), so each section's "Ajouter une ressource du
-  // chantier" picker (and "Charger chantier") has something to offer as soon
-  // as a project is picked, with no extra step required. INVOICE only - a
-  // QUOTE never has a project to pick from.
-  onProjectChange(projectId: number | null): void {
+  // since it no longer applies (see clearImportedSections). Called by
+  // onClientChange(null) to reset both, and by applyFromProject ("Facturer"
+  // - see below) to set them from a specific chantier; there's no UI
+  // control that calls this directly anymore.
+  private onProjectChange(projectId: number | null): void {
     this.selectedProjectId = projectId;
     this.clearImportedSections();
 
     const project = this.projects().find(p => p.id === projectId);
     this.selectedProjectDocumentId = project?.document_id ?? null;
-
-    if (this.selectedProjectDocumentId === null) {
-      this.chantierLines.set([]);
-      return;
-    }
-
-    this.documentLineService.getLines(this.selectedProjectDocumentId).subscribe({
-      next: lines => this.chantierLines.set(lines),
-      error: err => console.error('document-form : ' + err)
-    });
   }
 
   // "Charger chantier" - copies the selected project's own PROJECT document
@@ -556,38 +600,10 @@ export class DocumentForm implements OnInit {
     });
   }
 
-  // Adds a single line from the selected project's own resource ledger as a
-  // new line at the end of the given section - the "Ajouter une ressource du
-  // chantier" picker inside each section (INVOICE only).
-  addResourceLine(sectionId: number, chantierLineId: number | null): void {
-    if (chantierLineId === null) {
-      return;
-    }
-
-    const line = this.chantierLines().find(l => l.id === chantierLineId);
-    if (!line) {
-      return;
-    }
-
-    const draftLine: DraftLine = {
-      id: nextId++,
-      type: line.type,
-      label: line.label,
-      quantity: line.quantity,
-      unit: line.unit,
-      unit_price: line.unit_price,
-      discount: 0,
-      resource_id: line.resource_id,
-    };
-    this.sections.update(sections =>
-      sections.map(s => s.id === sectionId ? { ...s, lines: [...s.lines, draftLine] } : s)
-    );
-  }
-
   // Adds a single resource from the company's full catalog as a new line at
-  // the end of the given section - the "Ajouter depuis le catalogue" picker
-  // inside each section (QUOTE: the only way to add a priced line at all,
-  // since there's no project to pull from yet).
+  // the end of the given section - the per-section catalog picker, used by
+  // both types now ("Ajouter depuis le catalogue"/"Ajouter une ressource",
+  // see document-form.html).
   addCatalogResourceLine(sectionId: number, resourceId: number | null): void {
     if (resourceId === null) {
       return;
@@ -743,8 +759,6 @@ export class DocumentForm implements OnInit {
       if (editingId !== null) {
         await firstValueFrom(this.documentService.updateDocument(editingId, {
           client_id: clientId,
-          // address_id has no picker yet, preserved as-is (see the comment
-          // above); reference_client has one, INVOICE only (see template).
           address_id: this.addressId,
           reference_client: this.referenceClient.trim() || null,
           date: this.date.toISOString(),
