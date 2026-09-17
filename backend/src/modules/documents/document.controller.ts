@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { addDocumentServ, updateDocumentServ, archiveDocumentServ, unarchiveDocumentServ, getAllDocumentsServ, getDocumentsByTypeServ, getDocumentByIdServ, acceptQuoteServ } from "./document.service";
+import { addDocumentServ, updateDocumentServ, archiveDocumentServ, unarchiveDocumentServ, getAllDocumentsServ, getDocumentsByTypeServ, getDocumentByIdServ, acceptQuoteServ, updateDocumentStatusServ } from "./document.service";
 import { CreateDocumentData, UpdateDocumentData } from "./document.types";
 
 export const getDocuments = async (req: Request, res: Response) => {
@@ -45,4 +45,9 @@ export const unarchiveDocument = async (req: Request, res: Response) => {
 export const acceptQuote = async (req: Request, res: Response) => {
   const documentAccepted = await acceptQuoteServ(Number(req.params.id), req.user.company_id);
   res.json(documentAccepted);
+};
+
+export const updateDocumentStatus = async (req: Request, res: Response) => {
+  const documentUpdated = await updateDocumentStatusServ(Number(req.params.id), req.user.company_id, req.body.status);
+  res.json(documentUpdated);
 };

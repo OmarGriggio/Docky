@@ -9,7 +9,8 @@ import {
   archiveDocumentInDB,
   unarchiveDocumentInDB,
   updateDocumentTotalsInDB,
-  acceptDocumentInDB
+  acceptDocumentInDB,
+  updateDocumentStatusInDB
 } from "./document.repository";
 import { getLinesByDocumentIdFromDB, createLineInDB } from "./document_line.repository";
 import { getSectionsByDocumentIdFromDB, createSectionInDB } from "./document_section.repository";
@@ -142,6 +143,25 @@ export const updateDocumentServ = async (id: number, company_id: number, documen
   // computed against the old ones, so the row just written back isn't the
   // final one; recomputeDocumentTotalsServ's own result is.
   return await recomputeDocumentTotalsServ(id, company_id);
+};
+
+// A plain DRAFT<->SENT toggle - editable straight from the list (see
+// document-list.ts's own onStatusChange). Every other transition
+// (ACCEPTED/REJECTED/PAID/CANCELLED) has its own dedicated flow
+// (acceptQuoteServ, archive/unarchive) and stays out of this one on
+// purpose - both the document's current status and the requested one must
+// be in EDITABLE_STATUSES, so this can never be used to jump straight to
+// or out of one of those.
+export const updateDocumentStatusServ = async (id: number, company_id: number, status: DocumentStatus) => {
+  const document = await getDocumentByIdFromDB(id, company_id);
+  if (!document) {
+    throw new NotFoundError("Document not found");
+  }
+  if (document.status === null || !EDITABLE_STATUSES.includes(document.status) || !EDITABLE_STATUSES.includes(status)) {
+    throw new ConflictError("This document's status can't be changed this way");
+  }
+
+  return await updateDocumentStatusInDB(id, company_id, status);
 };
 
 // Turns an accepted quote into a chantier: creates a brand new PROJECT

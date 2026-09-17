@@ -1,5 +1,5 @@
 import { pool } from "../../shared/config/database";
-import { Document, UpdateDocumentData } from "./document.types";
+import { Document, UpdateDocumentData, DocumentStatus } from "./document.types";
 
 // client_id is an optional extra narrowing on top of company_id - used by
 // client-detail.ts's own expandable rows (a client's own documents), kept
@@ -109,6 +109,17 @@ export const acceptDocumentInDB = async (id: number, company_id: number): Promis
   `;
 
   const result = await pool.query(query, [id, company_id]);
+  return result.rows[0];
+};
+
+export const updateDocumentStatusInDB = async (id: number, company_id: number, status: DocumentStatus): Promise<Document> => {
+  const query = `
+    UPDATE documents SET status = $1
+      WHERE id = $2 AND company_id = $3
+    RETURNING *;
+  `;
+
+  const result = await pool.query(query, [status, id, company_id]);
   return result.rows[0];
 };
 
