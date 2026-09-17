@@ -11,7 +11,7 @@
   </ng-template>
 </p-toolbar>
 
-<p-table [value]="documents()" dataKey="id" showGridlines [expandedRowKeys]="expandedRowKeys">
+<p-table [value]="documents()" dataKey="id" showGridlines size="small" [expandedRowKeys]="expandedRowKeys">
   <ng-template #header>
     <tr>
       <th style="width: 3rem"></th>
@@ -50,7 +50,7 @@
       </td>
       <td>
         <p-menu #menu [popup]="true" [model]="menuItems" appendTo="body"></p-menu>
-        <p-button icon="pi pi-ellipsis-v" (click)="openActionsMenu(menu, $event, document)"></p-button>
+        <p-button icon="pi pi-ellipsis-v" [outlined]="true" (click)="openActionsMenu(menu, $event, document)"></p-button>
       </td>
     </tr>
   </ng-template>

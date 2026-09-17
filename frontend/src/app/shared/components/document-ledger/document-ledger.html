@@ -27,7 +27,7 @@
         @if (linesFor(section).length === 0) {
           <p class="text-xs text-surface-500 m-0">Aucune ligne.</p>
         } @else {
-          <table class="w-full text-sm">
+          <table class="w-full text-xs">
             <thead>
               <tr class="text-left text-xs text-surface-500 uppercase">
                 <th class="font-normal pb-1">Désignation</th>
@@ -38,11 +38,11 @@
             </thead>
             <tbody>
               @for (line of linesFor(section); track line.id) {
-                <tr>
-                  <td>{{ line.label }}</td>
-                  <td>{{ line.quantity }}</td>
-                  <td>{{ line.unit }}</td>
-                  <td>{{ line.unit_price }}</td>
+                <tr class="bg-gray-100">
+                  <td class="py-1">{{ line.label }}</td>
+                  <td class="py-1">{{ line.quantity }}</td>
+                  <td class="py-1">{{ line.unit }}</td>
+                  <td class="py-1">{{ line.unit_price }}</td>
                 </tr>
               }
             </tbody>
