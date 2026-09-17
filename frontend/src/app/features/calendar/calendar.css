@@ -1,0 +1,8 @@
+:host {
+  --fc-button-bg-color: var(--p-primary-color, #3B82F6);
+  --fc-button-border-color: var(--p-primary-color, #3B82F6);
+  --fc-button-hover-bg-color: color-mix(in srgb, var(--p-primary-color, #3B82F6) 85%, black);
+  --fc-button-hover-border-color: color-mix(in srgb, var(--p-primary-color, #3B82F6) 85%, black);
+  --fc-button-active-bg-color: color-mix(in srgb, var(--p-primary-color, #3B82F6) 70%, black);
+  --fc-button-active-border-color: color-mix(in srgb, var(--p-primary-color, #3B82F6) 70%, black);
+}

@@ -1,3 +1,25 @@
 <h1>Calendrier</h1>
 
-<full-calendar [options]="calendarOptions" />
+<div class="flex gap-4 items-start flex-wrap">
+  <div class="flex-1 min-w-80">
+    <full-calendar #fullCalendar [options]="calendarOptions" />
+  </div>
+
+  <div class="w-64 shrink-0 flex flex-col gap-2">
+    <h2 class="text-sm font-semibold text-gray-500 uppercase m-0">Sections à planifier</h2>
+    @if (unscheduledSections().length === 0) {
+      <p class="text-sm text-gray-500">Aucune section à planifier.</p>
+    }
+    <div #unscheduledList class="flex flex-col gap-2">
+      @for (section of unscheduledSections(); track section.id) {
+        <div
+          class="fc-event cursor-move border border-gray-200 rounded-md p-2 text-sm bg-white shadow-sm"
+          [attr.data-event]="eventDataFor(section)"
+        >
+          <div class="font-medium">{{ section.project_name }}</div>
+          <div class="text-gray-500">{{ section.title }}</div>
+        </div>
+      }
+    </div>
+  </div>
+</div>

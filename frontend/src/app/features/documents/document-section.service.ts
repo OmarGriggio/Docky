@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { DocumentSection } from '../../shared/models/document-section';
+import { DocumentSection, SectionWithProject } from '../../shared/models/document-section';
 import { environment } from '../../../environments/environment';
 
 const API_BASE = environment.apiUrl;
@@ -19,6 +19,18 @@ export class DocumentSectionService {
         ...(includeArchived ? { includeArchived: 'true' } : {})
       }
     });
+  }
+
+  // The calendar's own "drag onto a date" sidebar (calendar.ts) - every
+  // section still with no schedule, across every IN_PROGRESS chantier.
+  getUnscheduledSections() {
+    return this.http.get<SectionWithProject[]>(`${API_BASE}/document-section/unscheduled`);
+  }
+
+  // The calendar's own initial load (calendar.ts) - every already-scheduled
+  // section, any chantier status.
+  getScheduledSections() {
+    return this.http.get<SectionWithProject[]>(`${API_BASE}/document-section/scheduled`);
   }
 
   createSection(section: Omit<DocumentSection, 'id' | 'company_id' | 'position' | 'is_active'>) {
