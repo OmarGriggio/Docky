@@ -1,5 +1,5 @@
 import { buffer } from "stream/consumers";
-import { PdfWriter } from "./core/pdf-writer";
+import { PdfWriter, mm } from "./core/pdf-writer";
 import { InvoiceTemplate } from "./templates/invoice.template";
 import { QuoteTemplate } from "./templates/quote.template";
 import { getDocumentCompleteServ } from "../modules/documents/document_complete.service";
@@ -27,6 +27,13 @@ const readLogoBytes = async (logo: string | null): Promise<Buffer | null> => {
     return await buffer(file.body);
 };
 
+// The Swiss QR-bill always needs the bottom 105mm of whatever page it ends
+// up on entirely to itself (it's drawn by absolute position, not the
+// flowing cursor - see swiss-qr-bill.template.ts) - a small buffer on top
+// of that so the details table's own last line doesn't visually touch its
+// top separator.
+const QR_BILL_MIN_REMAINING_HEIGHT = mm(105) + 20;
+
 export const generateInvoicePdfServ = async (documentId: number, company_id: number): Promise<Uint8Array> => {
     const document = await getDocumentCompleteServ(documentId, company_id);
     const client = await getClientByIdServ(document.client_id, company_id);
@@ -38,9 +45,16 @@ export const generateInvoicePdfServ = async (documentId: number, company_id: num
     const logoBytes = await readLogoBytes(company.logo);
 
     const pdf = await PdfWriter.create();
-    await InvoiceTemplate.render(pdf, invoice, logoBytes);
+    await InvoiceTemplate.renderRecap(pdf, invoice, logoBytes);
 
     pdf.newPage();
+    InvoiceTemplate.renderDetails(pdf, invoice);
+
+    // Onto the same page as the details if there's still room below them,
+    // otherwise a fresh one just for the QR-bill.
+    if (pdf.remainingHeight() < QR_BILL_MIN_REMAINING_HEIGHT) {
+        pdf.newPage();
+    }
     await SwissQrBillTemplate.render(pdf, qrBill, qrImageBytes);
 
     return pdf.save();

@@ -1,3 +1,4 @@
+import { Address } from "../../../modules/clients/address.types";
 import { ClientWithAddresses } from "../../../modules/clients/client.types";
 import { DocumentComplete } from "../../../modules/documents/document_complete.types";
 import { Company } from "../../../modules/companies/company.types";
@@ -28,22 +29,34 @@ const buildSections = (document: DocumentComplete): InvoiceSectionDto[] => {
         .filter(section => section.lines.length > 0);
 };
 
-// documents.address_id picks a specific one of the client's addresses (set
-// when the document was created/edited); falls back to the client's own
-// primary address if unset, same rule the column's own comment in
-// zz_migrations/000_base.sql describes.
-const resolveAddress = (document: DocumentComplete, client: ClientWithAddresses) => {
-    if (document.address_id !== null) {
-        const chosen = client.addresses.find(a => a.id === document.address_id);
-        if (chosen) {
-            return chosen;
-        }
-    }
+// The client's own billing address - always their primary one (or their
+// first, if none is marked primary), same rule document-form.ts's own
+// read-only address block uses on the frontend. Never documents.address_id
+// - that's a separate, independently-picked "Lieu/Bâtiment" (see
+// resolveLocation below), not necessarily the same address at all.
+const resolveBillingAddress = (client: ClientWithAddresses) => {
     return client.addresses.find(a => a.is_primary) ?? client.addresses[0];
 };
 
+// null unless documents.address_id was actually picked - same
+// "Attention : Street, NPA City" shape as the frontend's own addressLabel
+// (shared/utils/display.ts), duplicated here rather than shared across
+// front/back (different languages, no shared package between them).
+const resolveLocation = (document: DocumentComplete, client: ClientWithAddresses): string | null => {
+    if (document.address_id === null) {
+        return null;
+    }
+    const address: Address | undefined = client.addresses.find(a => a.id === document.address_id);
+    if (!address) {
+        return null;
+    }
+
+    const prefix = address.attention ? `${address.attention} : ` : "";
+    return `${prefix}${address.street}, ${address.postal_code} ${address.city}`;
+};
+
 export const createInvoiceDto = (document: DocumentComplete, client: ClientWithAddresses, company: Company): InvoiceDto => {
-    const address = resolveAddress(document, client);
+    const address = resolveBillingAddress(client);
 
     const data: InvoiceDto = {
         number: document.number,
@@ -58,13 +71,18 @@ export const createInvoiceDto = (document: DocumentComplete, client: ClientWithA
         client: {
             name: client.company_name ?? `${client.first_name ?? ""} ${client.last_name ?? ""}`.trim(),
             street: address ? `${address.street}` : "",
-            city: address.city ?? "",
-            postalCodeCity: `${address.postal_code ?? ""} ${address.city ?? ""}`,
+            city: address?.city ?? "",
+            postalCodeCity: address ? `${address.postal_code ?? ""} ${address.city ?? ""}` : "",
             title: client.title ?? "",
         },
+        location: resolveLocation(document, client),
+        referenceClient: document.reference_client,
         sections: buildSections(document),
         amountExclVat: document.amount_excl_vat,
         amountInclVat: document.amount_incl_vat,
+        vatRate: document.vat_rate,
+        discount: document.discount,
+        paymentTerms: document.payment_terms,
         introduction: document.introduction ?? "",
         conclusion: document.conclusion ?? ""
     };

@@ -155,6 +155,20 @@ export class PdfWriter {
         return this.page.getWidth();
     }
 
+    /** How far above the very bottom of the current page the flowing text cursor still is - lets a caller decide whether a fixed-height block (e.g. the Swiss QR-bill's own 105mm) still fits below it without a new page. */
+    remainingHeight(): number {
+        return this.cursorY;
+    }
+
+    /** Moves the flowing cursor down to at least this Y, never back up - for after drawing something via an absolute-position primitive (e.g. a logo placed by hand), so text resumes safely below it instead of overlapping. */
+    lowerCursorTo(y: number) {
+        this.cursorY = Math.min(this.cursorY, y);
+    }
+
+    marginValue(): number {
+        return this.options.margin;
+    }
+
     pageHeight(): number {
         return this.page.getHeight();
     }
