@@ -47,7 +47,7 @@
         <div class="ui-form__full profile-logo">
           <div
             class="profile-logo__dropzone"
-            [class.profile-logo__dropzone--dragging]="isDraggingOver()"
+            [class.profile-logo__dropzone--dragging]="isDraggingOverLogo()"
             [class.profile-logo__dropzone--disabled]="!canManageCompany()"
             (click)="onDropzoneClick(logoInput)"
             (dragover)="onDragOver($event)"
