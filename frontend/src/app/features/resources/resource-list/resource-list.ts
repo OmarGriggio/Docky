@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { TableModule, TableEditCompleteEvent } from 'primeng/table';
+import { TableModule } from 'primeng/table';
 import { InputText } from 'primeng/inputtext';
 import { InputNumber } from 'primeng/inputnumber';
 import { Toolbar } from 'primeng/toolbar';
@@ -148,16 +148,17 @@ export class ResourceListComponent implements OnInit {
     });
   }
 
-  // Resolved via event.index (the row), not event.data: [pEditableColumn]
-  // is bound to each cell's own value (e.g. resource.name), matching
-  // PrimeNG's own docs/internal cancel-path logic - see client-list.ts's
-  // own onCellEditComplete for the same reasoning.
-  onCellEditComplete(event: TableEditCompleteEvent): void {
-    const resource = event.index !== undefined ? this.resources()[event.index] : undefined;
-    if (!resource) {
-      return;
-    }
+  // Row edit mode (see resource-list.html's editMode="row" and
+  // [pEditableRow]) - a snapshot of each resource currently being edited,
+  // taken on onRowEditInit, so onRowEditCancel (or a failed save) can
+  // restore it. Keyed by id, not held on the resource object itself.
+  private clonedResources: Record<number, Resource> = {};
 
+  onRowEditInit(resource: Resource): void {
+    this.clonedResources[resource.id] = { ...resource };
+  }
+
+  onRowEditSave(resource: Resource): void {
     this.resourceService.updateResource(resource.id, {
       code: resource.code,
       name: resource.name,
@@ -166,17 +167,27 @@ export class ResourceListComponent implements OnInit {
       purchase_price: resource.purchase_price,
     }).subscribe({
       // Mutate the *same* resource object in place (see client-list.ts's
-      // own onCellEditComplete for why a new object - even id-equal -
-      // breaks clicking straight into another cell of that same row).
+      // own onRowEditSave for why a new object - even id-equal - matters
+      // here).
       next: updated => {
         Object.assign(resource, updated);
         this.resources.update(resources => [...resources]);
+        delete this.clonedResources[resource.id];
       },
       error: err => {
         console.error('resource-list : ' + err);
-        this.loadResources();
+        this.onRowEditCancel(resource);
       }
     });
+  }
+
+  onRowEditCancel(resource: Resource): void {
+    const original = this.clonedResources[resource.id];
+    if (original) {
+      Object.assign(resource, original);
+      delete this.clonedResources[resource.id];
+    }
+    this.resources.update(resources => [...resources]);
   }
 
 }

@@ -22,7 +22,7 @@
   }
 </p-dialog>
 
-<p-table [value]="resources()" dataKey="id" showGridlines editMode="cell" (onEditComplete)="onCellEditComplete($event)">
+<p-table [value]="resources()" dataKey="id" showGridlines size="small" editMode="row">
   <ng-template #header>
     <tr>
       <th>Code</th>
@@ -31,12 +31,13 @@
       <th>Prix de vente</th>
       <th>Prix d'achat</th>
       <th></th>
+      <th></th>
     </tr>
   </ng-template>
 
-  <ng-template #body let-item let-rowIndex="rowIndex">
-    <tr>
-      <td [pEditableColumn]="item.code" pEditableColumnField="code" [pEditableColumnRowIndex]="rowIndex">
+  <ng-template #body let-item let-editing="editing">
+    <tr [pEditableRow]="item">
+      <td>
         <p-cellEditor>
           <ng-template #input>
             <input pInputText [(ngModel)]="item.code" [fluid]="true" />
@@ -47,7 +48,7 @@
         </p-cellEditor>
       </td>
 
-      <td [pEditableColumn]="item.name" pEditableColumnField="name" [pEditableColumnRowIndex]="rowIndex">
+      <td>
         <p-cellEditor>
           <ng-template #input>
             <input pInputText [(ngModel)]="item.name" [fluid]="true" />
@@ -58,7 +59,7 @@
         </p-cellEditor>
       </td>
 
-      <td [pEditableColumn]="item.unit" pEditableColumnField="unit" [pEditableColumnRowIndex]="rowIndex">
+      <td>
         <p-cellEditor>
           <ng-template #input>
             <input pInputText [(ngModel)]="item.unit" [fluid]="true" />
@@ -69,7 +70,7 @@
         </p-cellEditor>
       </td>
 
-      <td [pEditableColumn]="item.selling_price" pEditableColumnField="selling_price" [pEditableColumnRowIndex]="rowIndex">
+      <td>
         <p-cellEditor>
           <ng-template #input>
             <p-inputnumber [(ngModel)]="item.selling_price" mode="decimal" [minFractionDigits]="2" [fluid]="true" />
@@ -80,7 +81,7 @@
         </p-cellEditor>
       </td>
 
-      <td [pEditableColumn]="item.purchase_price" pEditableColumnField="purchase_price" [pEditableColumnRowIndex]="rowIndex">
+      <td>
         <p-cellEditor>
           <ng-template #input>
             <p-inputnumber [(ngModel)]="item.purchase_price" mode="decimal" [minFractionDigits]="2" [fluid]="true" />
@@ -92,8 +93,19 @@
       </td>
 
       <td>
+        <div class="flex gap-1">
+          @if (!editing) {
+            <p-button type="button" pInitEditableRow icon="pi pi-pencil" [text]="true" severity="secondary" (click)="onRowEditInit(item)" />
+          } @else {
+            <p-button type="button" pSaveEditableRow icon="pi pi-check" [text]="true" severity="success" (click)="onRowEditSave(item)" />
+            <p-button type="button" pCancelEditableRow icon="pi pi-times" [text]="true" severity="danger" (click)="onRowEditCancel(item)" />
+          }
+        </div>
+      </td>
+
+      <td>
         <p-menu #menu [popup]="true" [model]="menuItems" appendTo="body"></p-menu>
-        <p-button icon="pi pi-ellipsis-v" (click)="openActionsMenu(menu, $event, item)"></p-button>
+        <p-button icon="pi pi-ellipsis-v" [outlined]="true" (click)="openActionsMenu(menu, $event, item)"></p-button>
       </td>
     </tr>
   </ng-template>
