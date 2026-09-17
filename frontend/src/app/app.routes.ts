@@ -20,13 +20,12 @@ export const routes: Routes = [
     data: { roles: ['ADMIN', 'PLATFORM_ADMIN'] }
   },
   {
-    // PLATFORM_ADMIN only for now - the page itself is just a shell so far
-    // (see calendar.ts), narrowed down once there's an actual feature to
-    // gate.
+    // ADMIN/PLATFORM_ADMIN, same as dashboard above - a plain USER
+    // (employee) doesn't plan chantiers.
     path: 'calendar',
     loadComponent: () => import('./features/calendar/calendar').then(m => m.CalendarPage),
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['PLATFORM_ADMIN'] }
+    data: { roles: ['ADMIN', 'PLATFORM_ADMIN'] }
   },
   {
     path: 'clients',

@@ -5,7 +5,7 @@
 } @else {
   <div [class]="columns() === 2 ? 'grid grid-cols-1 md:grid-cols-2 gap-3' : 'flex flex-col gap-3'">
     @for (section of sections(); track section.id) {
-      <div class="border border-surface-200 rounded-lg p-3">
+      <div class="border border-gray-200 rounded-lg p-3">
         <div class="flex items-center justify-between gap-4 flex-wrap mb-2">
           @if (sectionHeader(); as header) {
             <ng-container [ngTemplateOutlet]="header" [ngTemplateOutletContext]="{ $implicit: section }" />

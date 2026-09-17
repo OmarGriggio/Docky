@@ -157,6 +157,16 @@ export class NavBar {
       roles: ['ADMIN', 'PLATFORM_ADMIN']
     },
     {
+      // Matches app.routes.ts's own restriction - a plain USER (employee)
+      // doesn't plan chantiers.
+      label: 'Calendrier',
+      icon: 'pi pi-calendar',
+      links: [
+        { label: 'Calendrier', path: '/calendar' }
+      ],
+      roles: ['ADMIN', 'PLATFORM_ADMIN']
+    },
+    {
       label: 'Clients',
       icon: 'pi pi-address-book',
       links: [
@@ -185,16 +195,6 @@ export class NavBar {
       links: [
         { label: 'Liste', path: '/projects' }
       ]
-    },
-    {
-      // PLATFORM_ADMIN only for now - matches app.routes.ts's own
-      // restriction (see calendar.ts, still just a page shell).
-      label: 'Calendrier',
-      icon: 'pi pi-calendar',
-      links: [
-        { label: 'Calendrier', path: '/calendar' }
-      ],
-      roles: ['PLATFORM_ADMIN']
     }
   ];
 
