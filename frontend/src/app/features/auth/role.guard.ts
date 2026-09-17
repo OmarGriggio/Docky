@@ -14,5 +14,10 @@ export const roleGuard: CanActivateFn = (route) => {
     return true;
   }
 
-  return router.createUrlTree(['/']);
+  // Not '/' - it redirects to /dashboard (app.routes.ts), which a plain
+  // USER (denied here) can't reach either since restricting it to ADMIN/
+  // PLATFORM_ADMIN - that would loop right back through this same guard.
+  // /clients has no role restriction at all, safe for every authenticated
+  // role.
+  return router.createUrlTree(['/clients']);
 };

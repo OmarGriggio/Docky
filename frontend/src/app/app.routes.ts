@@ -12,9 +12,12 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/register/register').then(m => m.Register)
   },
   {
+    // ADMIN/PLATFORM_ADMIN only - a plain USER (employee) has no
+    // company-wide figures to look at here.
     path: 'dashboard',
     loadComponent: () => import('./features/dashboard/dashboard').then(m => m.Dashboard),
-    canActivate: [authGuard]
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ADMIN', 'PLATFORM_ADMIN'] }
   },
   {
     path: 'clients',

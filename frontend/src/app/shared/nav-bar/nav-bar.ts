@@ -151,7 +151,10 @@ export class NavBar {
       icon: 'pi pi-home',
       links: [
         { label: 'Dashboard', path: '/dashboard' }
-      ]
+      ],
+      // Matches app.routes.ts's own restriction - a plain USER (employee)
+      // has no company-wide figures to look at here.
+      roles: ['ADMIN', 'PLATFORM_ADMIN']
     },
     {
       label: 'Clients',
