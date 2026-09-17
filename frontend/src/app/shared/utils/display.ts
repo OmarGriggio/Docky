@@ -52,6 +52,42 @@ export const documentStatusSeverity = (status: DocumentStatus): 'secondary' | 'i
   return DOCUMENT_STATUS_SEVERITIES[status];
 };
 
+// A date_start/date_end value (document_sections) is a pure calendar date
+// with no real time-of-day meaning, but stored as a genuine TIMESTAMP -
+// app-date.pipe.ts already reads it via UTC getters to treat it as such
+// (its own "UTC-only calendar-date semantics"). A p-datepicker, though,
+// always displays/picks in the browser's LOCAL timezone: round-tripping a
+// stored ISO string through a plain `new Date(iso)` (unchanged) into one of
+// those, or a locally-picked Date straight through `.toISOString()` back
+// into storage, silently shifts the calendar date by the local UTC offset -
+// a real bug hit in project-list.ts (a date picked as the 20th got stored
+// and redisplayed as the 19th). These two keep the calendar date itself
+// stable across that round-trip, at the cost of the Date objects they touch
+// technically holding the wrong *instant* - fine, since nothing here ever
+// reads their time-of-day.
+export const calendarDateFromIso = (iso: string): Date => {
+  const parsed = new Date(iso);
+  return new Date(parsed.getUTCFullYear(), parsed.getUTCMonth(), parsed.getUTCDate());
+};
+
+export const calendarDateToIso = (date: Date): string => {
+  return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())).toISOString();
+};
+
+export interface LabelableAddress {
+  attention: string | null;
+  street: string;
+  postal_code: string;
+  city: string;
+}
+
+// Used for the "Lieu/Bâtiment" picker (document-form.ts) - "Attention : "
+// only shown when set, since not every address has one.
+export const addressLabel = (address: LabelableAddress): string => {
+  const prefix = address.attention ? `${address.attention} : ` : '';
+  return `${prefix}${address.street}, ${address.postal_code} ${address.city}`;
+};
+
 // Used for project attachments' size column - Ko/Mo, not KB/MB (French UI).
 export const formatFileSize = (bytes: number): string => {
   if (bytes < 1024) {
