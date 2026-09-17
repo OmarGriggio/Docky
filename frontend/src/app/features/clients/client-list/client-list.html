@@ -22,7 +22,7 @@
   }
 </p-dialog>
 
-<p-table [value]="clients()" dataKey="id" showGridlines editMode="cell" (onEditComplete)="onCellEditComplete($event)" [expandedRowKeys]="expandedRowKeys" (onRowExpand)="onRowExpand($event)">
+<p-table [value]="clients()" dataKey="id" showGridlines editMode="row" size="small" [expandedRowKeys]="expandedRowKeys" (onRowExpand)="onRowExpand($event)">
   <ng-template #header>
     <tr>
       <th style="width: 3rem"></th>
@@ -34,11 +34,12 @@
       <th>Email</th>
       <th>Téléphone</th>
       <th></th>
+      <th></th>
     </tr>
   </ng-template>
 
-  <ng-template #body let-client let-rowIndex="rowIndex">
-    <tr>
+  <ng-template #body let-client let-editing="editing" let-rowIndex="rowIndex">
+    <tr [pEditableRow]="client">
       <td>
         <p-button
           type="button" [text]="true" size="small"
@@ -49,7 +50,7 @@
       <!-- Not editable - the client's stable business key. -->
       <td>{{ client.client_number }}</td>
 
-      <td [pEditableColumn]="client.type" pEditableColumnField="type" [pEditableColumnRowIndex]="rowIndex">
+      <td>
         <p-cellEditor>
           <ng-template #input>
             <p-select [(ngModel)]="client.type" [options]="typeOptions" optionLabel="label" optionValue="value" [fluid]="true" appendTo="body" />
@@ -60,7 +61,7 @@
         </p-cellEditor>
       </td>
 
-      <td [pEditableColumn]="client.company_name" pEditableColumnField="company_name" [pEditableColumnRowIndex]="rowIndex">
+      <td>
         <p-cellEditor>
           <ng-template #input>
             <input pInputText [(ngModel)]="client.company_name" [fluid]="true" />
@@ -71,7 +72,7 @@
         </p-cellEditor>
       </td>
 
-      <td [pEditableColumn]="client.first_name" pEditableColumnField="first_name" [pEditableColumnRowIndex]="rowIndex">
+      <td>
         <p-cellEditor>
           <ng-template #input>
             <input pInputText [(ngModel)]="client.first_name" [fluid]="true" />
@@ -82,7 +83,7 @@
         </p-cellEditor>
       </td>
 
-      <td [pEditableColumn]="client.last_name" pEditableColumnField="last_name" [pEditableColumnRowIndex]="rowIndex">
+      <td>
         <p-cellEditor>
           <ng-template #input>
             <input pInputText [(ngModel)]="client.last_name" [fluid]="true" />
@@ -93,7 +94,7 @@
         </p-cellEditor>
       </td>
 
-      <td [pEditableColumn]="client.email" pEditableColumnField="email" [pEditableColumnRowIndex]="rowIndex">
+      <td>
         <p-cellEditor>
           <ng-template #input>
             <input pInputText [(ngModel)]="client.email" [fluid]="true" />
@@ -104,7 +105,7 @@
         </p-cellEditor>
       </td>
 
-      <td [pEditableColumn]="client.phone" pEditableColumnField="phone" [pEditableColumnRowIndex]="rowIndex">
+      <td>
         <p-cellEditor>
           <ng-template #input>
             <input pInputText [(ngModel)]="client.phone" [fluid]="true" />
@@ -116,40 +117,48 @@
       </td>
 
       <td>
+        <div class="flex gap-1">
+          @if (!editing) {
+            <p-button type="button" pInitEditableRow icon="pi pi-pencil" [text]="true" severity="secondary" (click)="onRowEditInit(client)" />
+          } @else {
+            <p-button type="button" pSaveEditableRow icon="pi pi-check" [text]="true" severity="success" (click)="onRowEditSave(client)" />
+            <p-button type="button" pCancelEditableRow icon="pi pi-times" [text]="true" severity="danger" (click)="onRowEditCancel(client)" />
+          }
+        </div>
+      </td>
+
+      <td>
         <p-menu #menu [popup]="true" [model]="menuItems" appendTo="body"></p-menu>
-        <p-button icon="pi pi-ellipsis-v" (click)="openActionsMenu(menu, $event, client)"></p-button>
+        <p-button icon="pi pi-ellipsis-v" [outlined]="true" (click)="openActionsMenu(menu, $event, client)"></p-button>
       </td>
     </tr>
   </ng-template>
 
   <ng-template #expandedrow let-client>
     <tr>
-      <td colspan="9">
+      <!-- !-prefixed: overrides PrimeNG's own default cell padding
+           (higher-specificity descendant selector on p-table's own td),
+           which a plain Tailwind utility class wouldn't win against. -->
+      <td colspan="10" class="p-0!">
         @if (isLoadingDocuments(client)) {
           <p>Chargement...</p>
         } @else if (documentsFor(client).length === 0) {
           <p>Aucune offre ni facture pour ce client.</p>
         } @else {
-          <p-table [value]="documentsFor(client)" dataKey="id" showGridlines>
-            <ng-template #header>
-              <tr>
-                <th>Numéro</th>
-                <th>Type</th>
-                <th>Date</th>
-                <th>Montant TTC</th>
-                <th>Statut</th>
-                <th></th>
-              </tr>
-            </ng-template>
+          <p-table [value]="documentsFor(client)" dataKey="id" size="small">
             <ng-template #body let-document>
-              <tr>
-                <td>{{ document.number }}</td>
-                <td>{{ document.type === 'QUOTE' ? 'Offre' : 'Facture' }}</td>
-                <td>{{ document.date | appDate }}</td>
-                <td>{{ document.amount_incl_vat }}</td>
-                <td><p-tag [value]="statusLabel(document)" [severity]="statusSeverity(document)" /></td>
-                <td>
-                  <p-button label="" icon="pi pi-arrow-right" [text]="true" (click)="openDocument(document)" />
+              <!-- py-1!/text-xs!: go smaller than size="small" still allows -
+                   both need !important, same reasoning as the parent td's
+                   own p-0! above (PrimeNG's own cell padding/font-size rules
+                   outrank a plain Tailwind class here). -->
+              <tr class="bg-gray-100!">
+                <td class="py-1! text-xs!">{{ document.number }}</td>
+                <td class="py-1! text-xs!">{{ document.type === 'QUOTE' ? 'Offre' : 'Facture' }}</td>
+                <td class="py-1! text-xs!">{{ document.date | appDate }}</td>
+                <td class="py-1! text-xs!">{{ document.amount_incl_vat }}</td>
+                <td class="py-1! text-xs!"><p-tag [value]="statusLabel(document)" [severity]="statusSeverity(document)" /></td>
+                <td class="py-1! text-xs!">
+                  <p-button label="" icon="pi pi-arrow-right" [text]="true" size="small" (click)="openDocument(document)" />
                 </td>
               </tr>
             </ng-template>

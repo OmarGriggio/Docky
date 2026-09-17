@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { TableModule, TableEditCompleteEvent, TableRowExpandEvent } from 'primeng/table';
+import { TableModule, TableRowExpandEvent } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { Toolbar } from 'primeng/toolbar';
 import { Menu } from 'primeng/menu';
@@ -135,10 +135,6 @@ export class ClientListComponent implements OnInit {
         command: () => this.duplicateClient(client)
       },
       {
-        label: 'Modifier',
-        command: () => console.log("Modifier")
-      },
-      {
         label: 'Détail',
         command: () => this.router.navigate(['/clients', client.id])
       },
@@ -168,22 +164,20 @@ export class ClientListComponent implements OnInit {
     });
   }
 
-  // PrimeNG's p-table only swaps the cell between text/input and updates
-  // `client` in place via ngModel (see client-list.html's [pEditableColumn]
-  // bindings) - persisting it is on us. Sends the client's full editable
-  // field set (not just the one cell that changed), same "PUT the whole
-  // editable shape" convention as document-form.ts's own updateDocument.
-  //
-  // Resolved via event.index (the row), not event.data: [pEditableColumn]
-  // is bound to each cell's own value (e.g. client.email), matching how
-  // PrimeNG's own docs/internal cancel-path logic expect it to be used -
-  // event.data is that one field's value, not the whole row.
-  onCellEditComplete(event: TableEditCompleteEvent): void {
-    const client = event.index !== undefined ? this.clients()[event.index] : undefined;
-    if (!client) {
-      return;
-    }
+  // Row edit mode (see client-list.html's editMode="row" and [pEditableRow])
+  // - a snapshot of each client currently being edited, taken on
+  // onRowEditInit, so onRowEditCancel (or a failed save) can restore it.
+  // Keyed by id, not held on the client object itself.
+  private clonedClients: Record<number, Client> = {};
 
+  onRowEditInit(client: Client): void {
+    this.clonedClients[client.id] = { ...client };
+  }
+
+  // Sends the client's full editable field set (not just whatever changed),
+  // same "PUT the whole editable shape" convention as document-form.ts's own
+  // updateDocument.
+  onRowEditSave(client: Client): void {
     this.clientService.updateClient(client.id, {
       type: client.type,
       company_name: client.company_name,
@@ -197,23 +191,29 @@ export class ClientListComponent implements OnInit {
     }).subscribe({
       // Mutate the *same* client object in place with the server's
       // canonical values, rather than swapping in a new object (or
-      // reloading the whole list) - PrimeNG ties "which cell is being
-      // edited" to a row's own object identity (dataKey="id" tracks the
-      // id, but a changed reference still recreates the row), so replacing
-      // it - even with an id-equal object - while you're clicking straight
-      // into another cell of that *same* row wipes out that cell's own
-      // just-opened editor. Still bumping the array reference (a shallow
-      // copy) so the clients() signal formally changes for anything else
-      // watching it.
+      // reloading the whole list) - see resource-list.ts's own
+      // onCellEditComplete for why a changed reference is worth avoiding
+      // even here. Still bumping the array reference (a shallow copy) so
+      // the clients() signal formally changes for anything else watching it.
       next: updated => {
         Object.assign(client, updated);
         this.clients.update(clients => [...clients]);
+        delete this.clonedClients[client.id];
       },
       error: err => {
         console.error('client-list : ' + err);
-        this.loadClients();
+        this.onRowEditCancel(client);
       }
     });
+  }
+
+  onRowEditCancel(client: Client): void {
+    const original = this.clonedClients[client.id];
+    if (original) {
+      Object.assign(client, original);
+      delete this.clonedClients[client.id];
+    }
+    this.clients.update(clients => [...clients]);
   }
 
   private unarchiveClient(client: Client): void {
