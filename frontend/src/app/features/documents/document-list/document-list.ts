@@ -1,15 +1,16 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { TableModule } from 'primeng/table';
+import { TableModule, TableEditCompleteEvent } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { Toolbar } from 'primeng/toolbar';
 import { Button } from 'primeng/button';
 import { Menu } from 'primeng/menu';
 import { Checkbox } from 'primeng/checkbox';
+import { Select } from 'primeng/select';
 import { MenuItem } from 'primeng/api';
 import { DocumentService } from '../document.service';
-import { Document, DocumentType } from '../../../shared/models/document';
+import { Document, DocumentType, DocumentStatus } from '../../../shared/models/document';
 import { documentStatusLabel, documentStatusSeverity } from '../../../shared/utils/display';
 import { ClientService } from '../../clients/client.service';
 import { Client } from '../../../shared/models/client';
@@ -31,7 +32,7 @@ const TYPE_LABELS: Record<DocumentType, string> = {
 @Component({
   selector: 'app-document-list',
   standalone: true,
-  imports: [TableModule, TagModule, Toolbar, Button, Menu, Checkbox, FormsModule, AppDatePipe, ConfirmDialogComponent, DocumentLedger],
+  imports: [TableModule, TagModule, Toolbar, Button, Menu, Checkbox, Select, FormsModule, AppDatePipe, ConfirmDialogComponent, DocumentLedger],
   templateUrl: './document-list.html'
 })
 export class DocumentListComponent implements OnInit {
@@ -156,9 +157,45 @@ export class DocumentListComponent implements OnInit {
 
   // A document past DRAFT/SENT is a frozen record (see
   // zz_docs/Project Definition.md's lifecycle) - matches document-form.ts's
-  // own EDITABLE_STATUSES/document.service.ts's on the backend.
-  private isEditable(document: Document): boolean {
+  // own EDITABLE_STATUSES/document.service.ts's on the backend. Also gates
+  // the Statut column's own editability (see statusOptions/onStatusChange
+  // below) - public for the template.
+  isEditable(document: Document): boolean {
     return document.status === 'DRAFT' || document.status === 'SENT';
+  }
+
+  // The only two statuses a document can be switched between straight from
+  // the list (see onStatusChange) - every other one (ACCEPTED/REJECTED/PAID/
+  // CANCELLED) has its own dedicated action instead ("Valider l'offre" etc.)
+  // and is rejected server-side if sent through this endpoint anyway.
+  statusOptions: { label: string; value: DocumentStatus }[] = [
+    { label: 'Brouillon', value: 'DRAFT' },
+    { label: 'Envoyée', value: 'SENT' },
+  ];
+
+  // Resolved via event.index (the row), not event.data: [pEditableColumn]
+  // is bound to document.status itself, matching PrimeNG's own docs/
+  // internal cancel-path logic - see client-list.ts's own (former)
+  // onCellEditComplete for the same reasoning.
+  onStatusEditComplete(event: TableEditCompleteEvent): void {
+    const document = event.index !== undefined ? this.documents()[event.index] : undefined;
+    if (!document || document.status === null) {
+      return;
+    }
+
+    this.documentService.updateStatus(document.id, document.status).subscribe({
+      // Mutate the *same* document object in place with the server's
+      // canonical value, rather than swapping in a new object - same
+      // reasoning as every other list's own row-identity fix this session.
+      next: updated => {
+        Object.assign(document, updated);
+        this.documents.update(documents => [...documents]);
+      },
+      error: err => {
+        console.error('document-list : ' + err);
+        this.loadDocuments();
+      }
+    });
   }
 
   getActions(document: Document): MenuItem[] {

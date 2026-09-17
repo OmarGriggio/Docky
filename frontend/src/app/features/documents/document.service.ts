@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Document, DocumentType } from '../../shared/models/document';
+import { Document, DocumentType, DocumentStatus } from '../../shared/models/document';
 import { environment } from '../../../environments/environment';
 
 const API_BASE = environment.apiUrl;
@@ -52,6 +52,13 @@ export class DocumentService {
   // the backend (acceptQuoteServ) for what this actually does server-side.
   acceptQuote(id: number) {
     return this.http.post<Document>(`${API_BASE}/document/${id}/accept`, {});
+  }
+
+  // A plain DRAFT<->SENT toggle - every other status has its own dedicated
+  // flow (acceptQuote above, archive/unarchive) and is rejected server-side
+  // if sent here (see document.service.ts's updateDocumentStatusServ).
+  updateStatus(id: number, status: DocumentStatus) {
+    return this.http.patch<Document>(`${API_BASE}/document/${id}/status`, { status });
   }
 
   getInvoicePdf(id: number) {

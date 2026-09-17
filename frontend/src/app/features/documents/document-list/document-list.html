@@ -11,7 +11,7 @@
   </ng-template>
 </p-toolbar>
 
-<p-table [value]="documents()" dataKey="id" showGridlines size="small" [expandedRowKeys]="expandedRowKeys">
+<p-table [value]="documents()" dataKey="id" showGridlines size="small" editMode="cell" (onEditComplete)="onStatusEditComplete($event)" [expandedRowKeys]="expandedRowKeys">
   <ng-template #header>
     <tr>
       <th style="width: 3rem"></th>
@@ -28,7 +28,7 @@
     </tr>
   </ng-template>
 
-  <ng-template #body let-document>
+  <ng-template #body let-document let-rowIndex="rowIndex">
     <tr>
       <td>
         <p-button
@@ -44,9 +44,28 @@
       <td>{{ document.amount_excl_vat }}</td>
       <td>{{ document.amount_incl_vat }}</td>
       <td>{{ document.discount }}</td>
-      <td><p-tag [value]="statusLabel(document)" [severity]="statusSeverity(document)" /></td>
+      <td
+        [pEditableColumn]="document.status" pEditableColumnField="status" [pEditableColumnRowIndex]="rowIndex"
+        [pEditableColumnDisabled]="!isEditable(document)"
+      >
+        <p-cellEditor>
+          <ng-template #input>
+            <p-select
+              size="small"
+              [options]="statusOptions"
+              optionLabel="label"
+              optionValue="value"
+              [(ngModel)]="document.status"
+              appendTo="body"
+            />
+          </ng-template>
+          <ng-template #output>
+            <p-tag [value]="statusLabel(document)" [severity]="statusSeverity(document)" />
+          </ng-template>
+        </p-cellEditor>
+      </td>
       <td>
-        <p-button label="" icon="pi pi-file-pdf" (click)="openPdf(document)" />
+        <p-button label="" icon="pi pi-file-pdf" [outlined]="true" (click)="openPdf(document)" />
       </td>
       <td>
         <p-menu #menu [popup]="true" [model]="menuItems" appendTo="body"></p-menu>
