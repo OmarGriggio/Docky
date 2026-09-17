@@ -5,6 +5,7 @@ import { InvoiceDto, InvoiceSectionDto } from "./invoice.types";
 
 const LOGO_MAX_WIDTH = 120;
 const LOGO_MAX_HEIGHT = 60;
+const HEADER_IMAGE_MAX_HEIGHT = 90;
 
 // Page 1: a recap only - who/what/when, one line per section's own total,
 // the grand totals, payment terms/conclusion/signature. Page 2+: the full
@@ -13,7 +14,13 @@ const LOGO_MAX_HEIGHT = 60;
 // where the Swiss QR-bill lands after that).
 export class InvoiceTemplate {
 
-    static async renderRecap(pdf: PdfWriter, invoice: InvoiceDto, logoBytes: Buffer | null) {
+    static async renderRecap(pdf: PdfWriter, invoice: InvoiceDto, logoBytes: Buffer | null, headerImageBytes: Buffer | null) {
+        // The company's own document header image, if it has one - always
+        // first, above even the title, per how this was asked for.
+        if (headerImageBytes) {
+            await this.drawHeaderImage(pdf, headerImageBytes);
+        }
+
         const date = new Date(invoice.date).toLocaleDateString("fr-CH", {
             day: "numeric",
             month: "long",
@@ -140,7 +147,7 @@ export class InvoiceTemplate {
 
     /** Draws the logo at the top-right corner (not centered) and returns the Y of its own bottom edge, so the caller can lower the flowing cursor past it. */
     private static async drawLogoTopRight(pdf: PdfWriter, logoBytes: Buffer, topY: number): Promise<number> {
-        const image = await this.embedLogo(pdf, logoBytes);
+        const image = await this.embedImage(pdf, logoBytes);
         if (!image) return topY;
 
         const scale = Math.min(LOGO_MAX_WIDTH / image.width, LOGO_MAX_HEIGHT / image.height, 1);
@@ -153,13 +160,26 @@ export class InvoiceTemplate {
         return y;
     }
 
-    /** The logo file may be a JPEG or a PNG; try both embedders rather than trusting the file extension. */
-    private static async embedLogo(pdf: PdfWriter, logoBytes: Buffer): Promise<PDFImage | null> {
+    /** Draws the company's document header image, full content width (scaled down to fit the height cap), centered, advancing the flowing cursor below it - the very first thing on the recap page. */
+    private static async drawHeaderImage(pdf: PdfWriter, headerImageBytes: Buffer) {
+        const image = await this.embedImage(pdf, headerImageBytes);
+        if (!image) return;
+
+        const maxWidth = pdf.pageWidth() - pdf.marginValue() * 2;
+        const scale = Math.min(maxWidth / image.width, HEADER_IMAGE_MAX_HEIGHT / image.height, 1);
+        const width = image.width * scale;
+        const height = image.height * scale;
+
+        pdf.drawImageCentered(image, width, height, 15);
+    }
+
+    /** The image file may be a JPEG or a PNG; try both embedders rather than trusting the file extension. */
+    private static async embedImage(pdf: PdfWriter, imageBytes: Buffer): Promise<PDFImage | null> {
         try {
-            return await pdf.embedJpg(logoBytes);
+            return await pdf.embedJpg(imageBytes);
         } catch {
             try {
-                return await pdf.embedPng(logoBytes);
+                return await pdf.embedPng(imageBytes);
             } catch {
                 return null;
             }

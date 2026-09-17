@@ -12,16 +12,17 @@ import { SwissQrBillTemplate } from "./templates/swiss-qr-bill.template";
 import { generateSwissQrBillImage } from "./swiss-qr-bill/swiss-qr-bill.generator";
 import { getFileServ } from "../shared/storage/storage.service";
 
-// Logos live in MinIO/S3 now (see shared/storage/storage.service.ts), not on
-// local disk - this used to read from an "uploads/" folder that stopped
-// being written to once company.controller.ts moved to S3, so every PDF's
-// logo silently stopped rendering (readLogoBytes always fell through to the
-// catch and returned null). No file, not just no logo set, comes back the
-// same way (null) - a PDF should still render without one either way.
-const readLogoBytes = async (logo: string | null): Promise<Buffer | null> => {
-    if (!logo) return null;
+// Logos (and the invoice header image, same storage) live in MinIO/S3 now
+// (see shared/storage/storage.service.ts), not on local disk - this used to
+// read from an "uploads/" folder that stopped being written to once
+// company.controller.ts moved to S3, so every PDF's logo silently stopped
+// rendering (this always fell through to the catch and returned null). No
+// file, not just none set, comes back the same way (null) - a PDF should
+// still render without one either way.
+const readCompanyImageBytes = async (path: string | null): Promise<Buffer | null> => {
+    if (!path) return null;
 
-    const file = await getFileServ(logo);
+    const file = await getFileServ(path);
     if (!file) return null;
 
     return await buffer(file.body);
@@ -42,10 +43,11 @@ export const generateInvoicePdfServ = async (documentId: number, company_id: num
     const invoice = createInvoiceDto(document, client, company);
     const qrBill = createSwissQrBillDto(document, client, company);
     const qrImageBytes = await generateSwissQrBillImage(qrBill);
-    const logoBytes = await readLogoBytes(company.logo);
+    const logoBytes = await readCompanyImageBytes(company.logo);
+    const headerImageBytes = await readCompanyImageBytes(company.header_image);
 
     const pdf = await PdfWriter.create();
-    await InvoiceTemplate.renderRecap(pdf, invoice, logoBytes);
+    await InvoiceTemplate.renderRecap(pdf, invoice, logoBytes, headerImageBytes);
 
     pdf.newPage();
     InvoiceTemplate.renderDetails(pdf, invoice);
@@ -68,7 +70,7 @@ export const generateQuotePdfServ = async (documentId: number, company_id: numbe
     const company = await getCompanyByIdServ(client.company_id);
 
     const quote = createQuoteDto(document, client, company);
-    const logoBytes = await readLogoBytes(company.logo);
+    const logoBytes = await readCompanyImageBytes(company.logo);
 
     const pdf = await PdfWriter.create();
     await QuoteTemplate.render(pdf, quote, logoBytes);
