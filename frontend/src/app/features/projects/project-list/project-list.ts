@@ -1,7 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { TableModule, TableEditCompleteEvent } from 'primeng/table';
+import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { Toolbar } from 'primeng/toolbar';
 import { Menu } from 'primeng/menu';
@@ -27,6 +27,7 @@ import { ProjectAttachments } from '../project-attachments/project-attachments';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { DocumentLedger } from '../../../shared/components/document-ledger/document-ledger';
 import { AppDatePipe } from '../../../shared/pipes/app-date.pipe';
+import { calendarDateFromIso, calendarDateToIso } from '../../../shared/utils/display';
 
 @Component({
   selector: 'app-project-list',
@@ -218,8 +219,18 @@ export class ProjectListComponent implements OnInit {
       },
       ...(project.status === 'IN_PROGRESS'
         ? [{ label: 'Clôturer', command: () => this.completeProject(project) }]
-        : [])
+        : [{ label: 'Facturer', command: () => this.invoiceProject(project) }])
     ];
+  }
+
+  // Only reachable once COMPLETED (the only other status - see
+  // shared/models/project.ts's ProjectStatus). Lands on a blank invoice
+  // pre-filled from this chantier (document-form.ts's own fromProject query
+  // param - same client/project/resource-ledger prefill "Charger chantier"
+  // does by hand) rather than creating it directly here - the user still
+  // reviews/corrects it before it's actually submitted.
+  private invoiceProject(project: Project): void {
+    this.router.navigate(['/documents/new'], { queryParams: { type: 'INVOICE', fromProject: project.id } });
   }
 
   openAttachmentsDialog(project: Project): void {
@@ -300,32 +311,102 @@ export class ProjectListComponent implements OnInit {
     });
   }
 
-  // Resolved via event.index (the row), not event.data: [pEditableColumn]
-  // is bound to each cell's own value (e.g. project.name), matching
-  // PrimeNG's own docs/internal cancel-path logic - see client-list.ts's
-  // own onCellEditComplete for the same reasoning.
-  onCellEditComplete(event: TableEditCompleteEvent): void {
-    const project = event.index !== undefined ? this.projects()[event.index] : undefined;
-    if (!project) {
+  // Row edit mode (see project-list.html's editMode="row" and
+  // [pEditableRow]) - a snapshot of each project currently being edited,
+  // taken on onRowEditInit, so onRowEditCancel (or a failed save) can
+  // restore it. Keyed by id, not held on the project object itself.
+  private clonedProjects: Record<number, Project> = {};
+
+  // The "Date" column edits the project's own first section's date_start
+  // (see onRowEditSave below), not a real Project field - p-datepicker
+  // needs a Date, so this is kept separately rather than repurposing
+  // closest_section_date (a string) for two-way binding.
+  editingDates: Record<number, Date | null> = {};
+
+  onRowEditInit(project: Project): void {
+    this.clonedProjects[project.id] = { ...project };
+    this.editingDates[project.id] = project.closest_section_date ? calendarDateFromIso(project.closest_section_date) : null;
+  }
+
+  onRowEditSave(project: Project): void {
+    const original = this.clonedProjects[project.id];
+    const newDate = this.editingDates[project.id] ?? null;
+    const newDateIso = newDate ? calendarDateToIso(newDate) : null;
+    // Compared as calendar dates (both run through calendarDateFromIso),
+    // not as raw ISO strings - the original's own stored value isn't
+    // necessarily exact UTC midnight (see calendarDateToIso's own comment),
+    // so a plain string comparison would see a "change" on every save even
+    // when the date picker was never touched.
+    const originalDate = original?.closest_section_date ? calendarDateFromIso(original.closest_section_date) : null;
+    const dateChanged = (newDate?.getTime() ?? null) !== (originalDate?.getTime() ?? null);
+
+    if (!dateChanged) {
+      this.saveProjectFields(project, false);
       return;
     }
 
+    // Writes to the first section (by position) of the project's own
+    // backing document - a chantier's sections aren't loaded here
+    // otherwise (only <app-document-ledger> loads them, once a row is
+    // expanded), so this fetches them just for this one write.
+    this.documentSectionService.getSections(project.document_id).subscribe({
+      next: sections => {
+        const first = sections[0];
+        if (!first) {
+          this.saveProjectFields(project, true);
+          return;
+        }
+        this.documentSectionService.updateSection(first.id, { date_start: newDateIso, date_end: first.date_end }).subscribe({
+          next: () => this.saveProjectFields(project, true),
+          error: err => {
+            console.error('project-list : ' + err);
+            this.onRowEditCancel(project);
+          }
+        });
+      },
+      error: err => {
+        console.error('project-list : ' + err);
+        this.onRowEditCancel(project);
+      }
+    });
+  }
+
+  // name/project_type_id are always sent (same "PUT the whole editable
+  // shape" convention as elsewhere) - reloadForDate is true once the
+  // section's own date_start has already been written above, since that
+  // changes closest_section_date/the list's own sort order (see
+  // project.repository.ts's getProjectsFromDB) in a way a plain in-place
+  // mutation of `project` wouldn't reflect.
+  private saveProjectFields(project: Project, reloadForDate: boolean): void {
     this.projectService.updateProject(project.id, {
       name: project.name,
       project_type_id: project.project_type_id,
     }).subscribe({
-      // Mutate the *same* project object in place (see client-list.ts's own
-      // onCellEditComplete for why a new object - even id-equal - breaks
-      // clicking straight into another cell of that same row).
       next: updated => {
         Object.assign(project, updated);
-        this.projects.update(projects => [...projects]);
+        delete this.clonedProjects[project.id];
+        delete this.editingDates[project.id];
+        if (reloadForDate) {
+          this.loadProjects();
+        } else {
+          this.projects.update(projects => [...projects]);
+        }
       },
       error: err => {
         console.error('project-list : ' + err);
-        this.loadProjects();
+        this.onRowEditCancel(project);
       }
     });
+  }
+
+  onRowEditCancel(project: Project): void {
+    const original = this.clonedProjects[project.id];
+    if (original) {
+      Object.assign(project, original);
+      delete this.clonedProjects[project.id];
+    }
+    delete this.editingDates[project.id];
+    this.projects.update(projects => [...projects]);
   }
 
   // p-datepicker needs a Date (or null), but date_start/date_end are stored
@@ -346,8 +427,8 @@ export class ProjectListComponent implements OnInit {
     let dates = this.sectionDates.get(section);
     if (!dates) {
       dates = {
-        start: section.date_start ? new Date(section.date_start) : null,
-        end: section.date_end ? new Date(section.date_end) : null,
+        start: section.date_start ? calendarDateFromIso(section.date_start) : null,
+        end: section.date_end ? calendarDateFromIso(section.date_end) : null,
       };
       this.sectionDates.set(section, dates);
     }
@@ -370,7 +451,7 @@ export class ProjectListComponent implements OnInit {
   // that row is expanded, and more than one can be expanded at once, so
   // there's no single static view to query from the component class itself.
   updateSectionDate(section: DocumentSection, field: 'date_start' | 'date_end', value: Date | null, ledger: DocumentLedger): void {
-    const iso = value ? value.toISOString() : null;
+    const iso = value ? calendarDateToIso(value) : null;
     const data = {
       date_start: field === 'date_start' ? iso : section.date_start,
       date_end: field === 'date_end' ? iso : section.date_end,

@@ -37,8 +37,8 @@
 </p-dialog>
 
 <p-table
-  [value]="projects()" dataKey="id" showGridlines [tableStyle]="{ 'min-width': '50rem' }"
-  editMode="cell" (onEditComplete)="onCellEditComplete($event)"
+  [value]="projects()" dataKey="id" showGridlines size="small" [tableStyle]="{ 'min-width': '50rem' }"
+  editMode="row"
   [expandedRowKeys]="expandedRowKeys"
 >
   <ng-template #header>
@@ -51,11 +51,12 @@
       <th>Type</th>
       <th>Statut</th>
       <th></th>
+      <th></th>
     </tr>
   </ng-template>
 
-  <ng-template #body let-project let-rowIndex="rowIndex">
-    <tr>
+  <ng-template #body let-project let-editing="editing" let-rowIndex="rowIndex">
+    <tr [pEditableRow]="project">
       <td>
         <p-button
           type="button" [text]="true" size="small"
@@ -63,7 +64,7 @@
           [pRowToggler]="project"
         />
       </td>
-      <td [pEditableColumn]="project.name" pEditableColumnField="name" [pEditableColumnRowIndex]="rowIndex">
+      <td>
         <p-cellEditor>
           <ng-template #input>
             <input pInputText [(ngModel)]="project.name" [fluid]="true" />
@@ -82,12 +83,22 @@
            (address_id), same as document-list.ts's own "Lieu" column. -->
       <td>{{ location(project) }}</td>
 
-      <!-- Not editable here either - the date_start closest to today among
-           this chantier's own sections (see project-list.ts's date()); edit
-           it by expanding the row instead. -->
-      <td>{{ date(project) ? (date(project) | appDate) : '—' }}</td>
+      <!-- Editing this writes to the project's own first section's
+           date_start (see project-list.ts's onRowEditSave) - display still
+           reads the "closest to today across all sections" value, which
+           may differ from that first section once there's more than one. -->
+      <td>
+        <p-cellEditor>
+          <ng-template #input>
+            <p-datepicker [(ngModel)]="editingDates[project.id]" dateFormat="dd.mm.yy" [fluid]="true" appendTo="body" />
+          </ng-template>
+          <ng-template #output>
+            {{ date(project) ? (date(project) | appDate) : '—' }}
+          </ng-template>
+        </p-cellEditor>
+      </td>
 
-      <td [pEditableColumn]="project.project_type_id" pEditableColumnField="project_type_id" [pEditableColumnRowIndex]="rowIndex">
+      <td>
         <p-cellEditor>
           <ng-template #input>
             <p-select [(ngModel)]="project.project_type_id" [options]="typeOptions()" optionLabel="label" optionValue="value" [fluid]="true" appendTo="body">
@@ -116,16 +127,29 @@
       <!-- Not editable - see "Clôturer" in the row menu below instead. -->
       <td><p-tag [value]="statusLabel(project)" [severity]="statusSeverity(project)" /></td>
 
+      <!-- No pencil at all once COMPLETED - quantities are locked, nothing
+           left to edit here (see "Facturer" in the row menu instead). -->
+      <td>
+        <div class="flex gap-1">
+          @if (!editing && project.status !== 'COMPLETED') {
+            <p-button type="button" pInitEditableRow icon="pi pi-pencil" [text]="true" severity="secondary" (click)="onRowEditInit(project)" />
+          } @else if (editing) {
+            <p-button type="button" pSaveEditableRow icon="pi pi-check" [text]="true" severity="success" (click)="onRowEditSave(project)" />
+            <p-button type="button" pCancelEditableRow icon="pi pi-times" [text]="true" severity="danger" (click)="onRowEditCancel(project)" />
+          }
+        </div>
+      </td>
+
       <td>
         <p-menu #menu [popup]="true" [model]="menuItems" appendTo="body"></p-menu>
-        <p-button icon="pi pi-ellipsis-v" (click)="openActionsMenu(menu, $event, project)"></p-button>
+        <p-button icon="pi pi-ellipsis-v" [outlined]="true" (click)="openActionsMenu(menu, $event, project)"></p-button>
       </td>
     </tr>
   </ng-template>
 
   <ng-template #expandedrow let-project>
     <tr>
-      <td colspan="8">
+      <td colspan="9">
         <!-- #sectionHeader replaces <app-document-ledger>'s own default
              read-only header with editable date pickers - see
              shared/components/document-ledger. #ledger is referenced from
