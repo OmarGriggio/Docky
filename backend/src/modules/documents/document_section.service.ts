@@ -1,6 +1,8 @@
 import { DocumentSection, UpdateDocumentSectionData } from "./document_section.types";
 import {
   getSectionsByDocumentIdFromDB,
+  getUnscheduledSectionsFromDB,
+  getScheduledSectionsFromDB,
   getSectionByIdFromDB,
   getNextPositionForDocumentFromDB,
   createSectionInDB,
@@ -17,6 +19,14 @@ export const getSectionsForDocumentServ = async (document_id: number, company_id
     throw new NotFoundError("Document not found");
   }
   return await getSectionsByDocumentIdFromDB(document_id, includeArchived);
+};
+
+export const getUnscheduledSectionsServ = async (company_id: number) => {
+  return await getUnscheduledSectionsFromDB(company_id);
+};
+
+export const getScheduledSectionsServ = async (company_id: number) => {
+  return await getScheduledSectionsFromDB(company_id);
 };
 
 export const addSectionServ = async (

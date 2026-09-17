@@ -1,11 +1,56 @@
 import { pool } from "../../shared/config/database";
-import { DocumentSection, UpdateDocumentSectionData } from "./document_section.types";
+import { DocumentSection, UpdateDocumentSectionData, SectionWithProject } from "./document_section.types";
 
 export const getSectionsByDocumentIdFromDB = async (document_id: number, includeArchived = false) => {
   const query = includeArchived
     ? "SELECT * FROM document_sections WHERE document_id = $1 ORDER BY position"
     : "SELECT * FROM document_sections WHERE document_id = $1 AND is_active = true ORDER BY position";
   const result = await pool.query(query, [document_id]);
+  return result.rows;
+};
+
+// The calendar's own "drag onto a date" sidebar (see calendar.ts on the
+// frontend) - a section still has no schedule, but its chantier is
+// actively being worked on (a COMPLETED one's quantities are locked, an
+// archived one is done for good). Joins projects via documents.id =
+// projects.document_id (a chantier's own PROJECT document), not
+// document_sections.document_id directly to project_id - there's no such
+// column, a section only ever points at its own document.
+export const getUnscheduledSectionsFromDB = async (company_id: number): Promise<SectionWithProject[]> => {
+  const query = `
+    SELECT ds.*, p.id AS project_id, p.name AS project_name
+    FROM document_sections ds
+    JOIN documents d ON d.id = ds.document_id
+    JOIN projects p ON p.document_id = d.id
+    WHERE ds.company_id = $1
+      AND ds.is_active = true
+      AND ds.date_start IS NULL
+      AND p.status = 'IN_PROGRESS'
+      AND p.is_active = true
+    ORDER BY p.name, ds.position;
+  `;
+  const result = await pool.query(query, [company_id]);
+  return result.rows;
+};
+
+// The calendar's own initial load (calendar.ts) - every already-scheduled
+// section, any chantier status (a COMPLETED one's own past work is still
+// worth showing, just not draggable-onto anymore - see
+// getUnscheduledSectionsFromDB above for that side).
+export const getScheduledSectionsFromDB = async (company_id: number): Promise<SectionWithProject[]> => {
+  const query = `
+    SELECT ds.*, p.id AS project_id, p.name AS project_name
+    FROM document_sections ds
+    JOIN documents d ON d.id = ds.document_id
+    JOIN projects p ON p.document_id = d.id
+    WHERE ds.company_id = $1
+      AND ds.is_active = true
+      AND ds.date_start IS NOT NULL
+      AND ds.date_end IS NOT NULL
+      AND p.is_active = true
+    ORDER BY ds.date_start;
+  `;
+  const result = await pool.query(query, [company_id]);
   return result.rows;
 };
 

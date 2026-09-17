@@ -21,3 +21,13 @@ export interface DocumentSection {
 // caller's own archive-and-recreate pattern - see document-form.ts and
 // project-resources.ts on the frontend).
 export type UpdateDocumentSectionData = Pick<DocumentSection, "date_start" | "date_end">;
+
+// A section joined with its own chantier's identity - project_id/
+// project_name aren't real columns, purely so the calendar (calendar.ts on
+// the frontend) can show/label which chantier each one belongs to, whether
+// still unscheduled (getUnscheduledSectionsFromDB) or already on the
+// calendar (getScheduledSectionsFromDB).
+export interface SectionWithProject extends DocumentSection {
+  project_id: number;
+  project_name: string;
+}

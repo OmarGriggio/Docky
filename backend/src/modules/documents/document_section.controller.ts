@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { getSectionsForDocumentServ, addSectionServ, updateSectionServ, archiveSectionServ, unarchiveSectionServ } from "./document_section.service";
+import { getSectionsForDocumentServ, getUnscheduledSectionsServ, getScheduledSectionsServ, addSectionServ, updateSectionServ, archiveSectionServ, unarchiveSectionServ } from "./document_section.service";
 import { DocumentSection, UpdateDocumentSectionData } from "./document_section.types";
 
 export const getSections = async (req: Request, res: Response) => {
@@ -7,6 +7,16 @@ export const getSections = async (req: Request, res: Response) => {
   const includeArchived = req.query.includeArchived === "true";
 
   const sections = await getSectionsForDocumentServ(document_id, req.user.company_id, includeArchived);
+  res.json(sections);
+};
+
+export const getUnscheduledSections = async (req: Request, res: Response) => {
+  const sections = await getUnscheduledSectionsServ(req.user.company_id);
+  res.json(sections);
+};
+
+export const getScheduledSections = async (req: Request, res: Response) => {
+  const sections = await getScheduledSectionsServ(req.user.company_id);
   res.json(sections);
 };
 
