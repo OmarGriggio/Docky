@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { TableModule, TableEditCompleteEvent } from 'primeng/table';
+import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
@@ -58,18 +58,17 @@ export class ClientDetail implements OnInit {
     this.loadClient();
   }
 
-  // Resolved via event.index (the row) into c.addresses, and the response
-  // is merged into the *same* address object rather than swapping it out -
-  // see client-list.ts's own onCellEditComplete for why both of those
-  // matter (PrimeNG's own cancel-path logic, and not breaking a same-row
-  // edit started right after this one resolves).
-  onCellEditComplete(event: TableEditCompleteEvent): void {
-    const addresses = this.client()?.addresses;
-    const address = addresses && event.index !== undefined ? addresses[event.index] : undefined;
-    if (!address) {
-      return;
-    }
+  // Row edit mode (see client-detail.html's editMode="row" and
+  // [pEditableRow]) - same pattern as client-list.ts's own
+  // onRowEditInit/Save/Cancel: a snapshot per address, keyed by id, taken on
+  // init so a cancel (or a failed save) can restore it.
+  private clonedAddresses: Record<number, Address> = {};
 
+  onRowEditInit(address: Address): void {
+    this.clonedAddresses[address.id] = { ...address };
+  }
+
+  onRowEditSave(address: Address): void {
     this.addressService.updateAddress(address.id, {
       attention: address.attention,
       street: address.street,
@@ -80,12 +79,22 @@ export class ClientDetail implements OnInit {
       next: updated => {
         Object.assign(address, updated);
         this.client.update(c => c ? { ...c } : c);
+        delete this.clonedAddresses[address.id];
       },
       error: err => {
         console.error('client-detail : ' + err);
-        this.loadClient();
+        this.onRowEditCancel(address);
       }
     });
+  }
+
+  onRowEditCancel(address: Address): void {
+    const original = this.clonedAddresses[address.id];
+    if (original) {
+      Object.assign(address, original);
+      delete this.clonedAddresses[address.id];
+    }
+    this.client.update(c => c ? { ...c } : c);
   }
 
   deleteAddress(address: Address): void {

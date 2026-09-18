@@ -48,7 +48,7 @@
     <p-button label="Ajouter une adresse" icon="pi pi-plus" (onClick)="addAddressDialogVisible.set(true)" />
   </div>
 
-  <p-table [value]="c.addresses" dataKey="id" editMode="cell" (onEditComplete)="onCellEditComplete($event)">
+  <p-table [value]="c.addresses" dataKey="id" showGridlines size="small" editMode="row">
     <ng-template #header>
       <tr>
         <th>Attention</th>
@@ -58,11 +58,12 @@
         <th>Pays</th>
         <th></th>
         <th></th>
+        <th></th>
       </tr>
     </ng-template>
-    <ng-template #body let-address let-rowIndex="rowIndex">
-      <tr>
-        <td [pEditableColumn]="address.attention" pEditableColumnField="attention" [pEditableColumnRowIndex]="rowIndex">
+    <ng-template #body let-address let-editing="editing">
+      <tr [pEditableRow]="address">
+        <td>
           <p-cellEditor>
             <ng-template #input>
               <input pInputText [(ngModel)]="address.attention" [fluid]="true" />
@@ -73,7 +74,7 @@
           </p-cellEditor>
         </td>
 
-        <td [pEditableColumn]="address.street" pEditableColumnField="street" [pEditableColumnRowIndex]="rowIndex">
+        <td>
           <p-cellEditor>
             <ng-template #input>
               <input pInputText [(ngModel)]="address.street" [fluid]="true" />
@@ -84,7 +85,7 @@
           </p-cellEditor>
         </td>
 
-        <td [pEditableColumn]="address.postal_code" pEditableColumnField="postal_code" [pEditableColumnRowIndex]="rowIndex">
+        <td>
           <p-cellEditor>
             <ng-template #input>
               <input pInputText [(ngModel)]="address.postal_code" [fluid]="true" />
@@ -95,7 +96,7 @@
           </p-cellEditor>
         </td>
 
-        <td [pEditableColumn]="address.city" pEditableColumnField="city" [pEditableColumnRowIndex]="rowIndex">
+        <td>
           <p-cellEditor>
             <ng-template #input>
               <input pInputText [(ngModel)]="address.city" [fluid]="true" />
@@ -106,7 +107,7 @@
           </p-cellEditor>
         </td>
 
-        <td [pEditableColumn]="address.country" pEditableColumnField="country" [pEditableColumnRowIndex]="rowIndex">
+        <td>
           <p-cellEditor>
             <ng-template #input>
               <input pInputText [(ngModel)]="address.country" [fluid]="true" />
@@ -121,6 +122,17 @@
           @if (address.is_primary) {
             <p-tag value="Principale" severity="success" />
           }
+        </td>
+
+        <td>
+          <div class="flex gap-1">
+            @if (!editing) {
+              <p-button type="button" pInitEditableRow icon="pi pi-pencil" [text]="true" severity="secondary" (click)="onRowEditInit(address)" />
+            } @else {
+              <p-button type="button" pSaveEditableRow icon="pi pi-check" [text]="true" severity="success" (click)="onRowEditSave(address)" />
+              <p-button type="button" pCancelEditableRow icon="pi pi-times" [text]="true" severity="danger" (click)="onRowEditCancel(address)" />
+            }
+          </div>
         </td>
         <td>
           <p-button icon="pi pi-trash" severity="danger" [text]="true" (onClick)="deleteAddress(address)" />
