@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, input, output } from '@angular/core';
+import { Component, OnInit, inject, input, output, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { InputText } from 'primeng/inputtext';
 import { InputNumber } from 'primeng/inputnumber';
@@ -31,6 +32,8 @@ export class ResourceForm implements OnInit {
 
   saved = output<void>();
   cancelled = output<void>();
+
+  errorMessage = signal<string | null>(null);
 
   typeOptions = TYPE_OPTIONS;
 
@@ -65,6 +68,8 @@ export class ResourceForm implements OnInit {
       return;
     }
 
+    this.errorMessage.set(null);
+
     this.resourceService.createResource({
       ...this.form.getRawValue(),
       parent_resource_id: null,
@@ -72,8 +77,11 @@ export class ResourceForm implements OnInit {
       next: () => {
         this.saved.emit();
       },
-      error: err => {
+      error: (err: HttpErrorResponse) => {
         console.error('resource-form : ' + err);
+        this.errorMessage.set(
+          err.status === 409 ? 'Ce code existe déjà.' : 'Impossible de créer la ressource.'
+        );
       }
     });
   }

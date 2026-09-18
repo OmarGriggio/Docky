@@ -33,6 +33,10 @@
     <label for="purchase_price">Prix d'achat</label>
   </p-floatlabel>
 
+  @if (errorMessage()) {
+    <p class="ui-form__full text-sm text-red-600">{{ errorMessage() }}</p>
+  }
+
   <div class="ui-form__actions">
     <p-button type="button" label="Annuler" severity="secondary" (onClick)="cancel()" />
     <p-button type="submit" label="Créer" />

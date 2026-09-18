@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, input, output } from '@angular/core';
+import { Component, OnInit, inject, input, output, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { InputText } from 'primeng/inputtext';
 import { Textarea } from 'primeng/textarea';
@@ -27,6 +28,8 @@ export class ClientForm implements OnInit {
 
   saved = output<void>();
   cancelled = output<void>();
+
+  errorMessage = signal<string | null>(null);
 
   form = this.fb.nonNullable.group({
     client_number: ['', Validators.required],
@@ -84,6 +87,8 @@ export class ClientForm implements OnInit {
       return;
     }
 
+    this.errorMessage.set(null);
+
     const { isProfessional, ...client } = this.form.getRawValue();
 
     this.clientService.createClient({
@@ -93,10 +98,27 @@ export class ClientForm implements OnInit {
       next: () => {
         this.saved.emit();
       },
-      error: err => {
+      error: (err: HttpErrorResponse) => {
         console.error('client-form : ' + err);
+        this.errorMessage.set(this.conflictMessage(err) ?? 'Impossible de créer le client.');
       }
     });
+  }
+
+  // The backend distinguishes which field actually conflicted (see
+  // client.service.ts's addClientServ) - reflected here so the message
+  // points at the right one instead of a generic "something's taken".
+  private conflictMessage(err: HttpErrorResponse): string | null {
+    if (err.status !== 409) {
+      return null;
+    }
+    if (err.error?.message === 'Client email already exists') {
+      return 'Cet email est déjà utilisé par un autre client.';
+    }
+    if (err.error?.message === 'Client number already exists') {
+      return 'Ce numéro de client existe déjà.';
+    }
+    return 'Ce client existe déjà.';
   }
 
 }
