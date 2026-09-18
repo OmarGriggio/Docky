@@ -25,6 +25,9 @@ export interface QuoteDto {
         postalCodeCity: string;
         logo: string | null;
     };
+    // Always the client's own billing address (primary, or its first one if
+    // none is marked primary) - see quote.dto.ts's resolveBillingAddress. A
+    // quote has no Lieu/Bâtiment concept (that's an invoice-only field).
     client: {
         name: string;
         street: string;
@@ -33,8 +36,6 @@ export interface QuoteDto {
         title: string;
     };
     sections: QuoteSectionDto[];
-    amountExclVat: number;
-    amountInclVat: number;
     introduction: string;
     conclusion: string;
 }

@@ -62,8 +62,10 @@ export const generateInvoicePdfServ = async (documentId: number, company_id: num
     return pdf.save();
 };
 
-// No Swiss QR-bill page here - there's nothing to pay yet on a quote, that
-// only makes sense once it's become an invoice.
+// Same page 1 recap/page 2 detail split as the invoice (see
+// generateInvoicePdfServ above) - no Swiss QR-bill page here though, there's
+// nothing to pay yet on a quote, that only makes sense once it's become an
+// invoice.
 export const generateQuotePdfServ = async (documentId: number, company_id: number): Promise<Uint8Array> => {
     const document = await getDocumentCompleteServ(documentId, company_id);
     const client = await getClientByIdServ(document.client_id, company_id);
@@ -73,7 +75,10 @@ export const generateQuotePdfServ = async (documentId: number, company_id: numbe
     const logoBytes = await readCompanyImageBytes(company.logo);
 
     const pdf = await PdfWriter.create();
-    await QuoteTemplate.render(pdf, quote, logoBytes);
+    await QuoteTemplate.renderRecap(pdf, quote, logoBytes);
+
+    pdf.newPage();
+    QuoteTemplate.renderDetails(pdf, quote);
 
     return pdf.save();
 };

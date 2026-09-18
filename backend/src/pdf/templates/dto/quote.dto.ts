@@ -26,20 +26,15 @@ const buildSections = (document: DocumentComplete): QuoteSectionDto[] => {
         .filter(section => section.lines.length > 0);
 };
 
-// Same rule as invoice.dto.ts's resolveAddress - documents.address_id picks
-// a specific one of the client's addresses, falling back to their primary.
-const resolveAddress = (document: DocumentComplete, client: ClientWithAddresses) => {
-    if (document.address_id !== null) {
-        const chosen = client.addresses.find(a => a.id === document.address_id);
-        if (chosen) {
-            return chosen;
-        }
-    }
+// Same rule as invoice.dto.ts's own resolveBillingAddress - always the
+// client's primary address (or their first, if none is marked primary).
+// Never documents.address_id - a quote has no Lieu/Bâtiment concept.
+const resolveBillingAddress = (client: ClientWithAddresses) => {
     return client.addresses.find(a => a.is_primary) ?? client.addresses[0];
 };
 
 export const createQuoteDto = (document: DocumentComplete, client: ClientWithAddresses, company: Company): QuoteDto => {
-    const address = resolveAddress(document, client);
+    const address = resolveBillingAddress(client);
 
     return {
         number: document.number,
@@ -55,13 +50,11 @@ export const createQuoteDto = (document: DocumentComplete, client: ClientWithAdd
         client: {
             name: client.company_name ?? `${client.first_name ?? ""} ${client.last_name ?? ""}`.trim(),
             street: address ? `${address.street}` : "",
-            city: address.city ?? "",
-            postalCodeCity: `${address.postal_code ?? ""} ${address.city ?? ""}`,
+            city: address?.city ?? "",
+            postalCodeCity: address ? `${address.postal_code ?? ""} ${address.city ?? ""}` : "",
             title: client.title ?? "",
         },
         sections: buildSections(document),
-        amountExclVat: document.amount_excl_vat,
-        amountInclVat: document.amount_incl_vat,
         introduction: document.introduction ?? "",
         conclusion: document.conclusion ?? ""
     };
