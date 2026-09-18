@@ -15,7 +15,7 @@ import { Project, ProjectListItem, CreateProjectData, UpdateProjectData } from "
 // which reads as the table shuffling itself.
 export const getProjectsFromDB = async (company_id: number, includeArchived = false): Promise<ProjectListItem[]> => {
   const query = includeArchived
-    ? `SELECT p.*, pt.label AS project_type, closest.date_start AS closest_section_date
+    ? `SELECT p.*, pt.label AS project_type, closest.date_start AS closest_section_date, quote.number AS quote_number
        FROM projects p
        LEFT JOIN project_types pt ON pt.id = p.project_type_id
        LEFT JOIN LATERAL (
@@ -25,9 +25,11 @@ export const getProjectsFromDB = async (company_id: number, includeArchived = fa
          ORDER BY ABS(EXTRACT(EPOCH FROM (ds.date_start - NOW())))
          LIMIT 1
        ) closest ON true
+       LEFT JOIN documents pd ON pd.id = p.document_id
+       LEFT JOIN documents quote ON quote.id = pd.parent_document_id
        WHERE p.company_id = $1
        ORDER BY (p.status = 'COMPLETED'), closest.date_start IS NULL, ABS(EXTRACT(EPOCH FROM (closest.date_start - NOW()))), p.id`
-    : `SELECT p.*, pt.label AS project_type, closest.date_start AS closest_section_date
+    : `SELECT p.*, pt.label AS project_type, closest.date_start AS closest_section_date, quote.number AS quote_number
        FROM projects p
        LEFT JOIN project_types pt ON pt.id = p.project_type_id
        LEFT JOIN LATERAL (
@@ -37,6 +39,8 @@ export const getProjectsFromDB = async (company_id: number, includeArchived = fa
          ORDER BY ABS(EXTRACT(EPOCH FROM (ds.date_start - NOW())))
          LIMIT 1
        ) closest ON true
+       LEFT JOIN documents pd ON pd.id = p.document_id
+       LEFT JOIN documents quote ON quote.id = pd.parent_document_id
        WHERE p.company_id = $1 AND p.is_active = true
        ORDER BY (p.status = 'COMPLETED'), closest.date_start IS NULL, ABS(EXTRACT(EPOCH FROM (closest.date_start - NOW()))), p.id`;
   const result = await pool.query(query, [company_id]);

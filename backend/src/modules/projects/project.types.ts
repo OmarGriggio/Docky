@@ -29,6 +29,11 @@ export interface ProjectWithType extends Omit<Project, "project_type_id"> {
 // chantier's sections has a date_start set yet.
 export interface ProjectListItem extends ProjectWithType {
   closest_section_date: string | null;
+  // The number of the quote this chantier was accepted from (see
+  // document.service.ts's acceptQuoteServ, which sets the backing PROJECT
+  // document's own parent_document_id to that quote's id) - null for a
+  // chantier with no such quote.
+  quote_number: string | null;
 }
 
 export interface CreateProjectData {
