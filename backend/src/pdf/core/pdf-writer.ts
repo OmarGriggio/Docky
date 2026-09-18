@@ -216,8 +216,9 @@ export class PdfWriter {
         return this.doc.embedJpg(imageBytes);
     }
 
-    drawImage(image: PDFImage, x: number, y: number, width: number, height: number) {
-        this.page.drawImage(image, { x, y, width, height });
+    /** opacity defaults to fully opaque (1) - pdf-lib's own drawImage option, passed straight through. */
+    drawImage(image: PDFImage, x: number, y: number, width: number, height: number, opacity = 1) {
+        this.page.drawImage(image, { x, y, width, height, opacity });
     }
 
     /** Draws an image centered horizontally on the page, advancing the flowing text cursor below it. */

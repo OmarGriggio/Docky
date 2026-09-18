@@ -20,6 +20,9 @@ export interface InvoiceDto {
         city: string;
         postalCodeCity: string;
         logo: string | null;
+        // Null if not VAT-registered - see invoice.template.ts's own
+        // renderRecap for how that's handled.
+        vatNumber: string | null;
     };
     // Always the client's own billing address (primary, or its first one if
     // none is marked primary) - never documents.address_id, that's a

@@ -5,7 +5,9 @@ import { InvoiceDto, InvoiceSectionDto } from "./invoice.types";
 
 const LOGO_MAX_WIDTH = 120;
 const LOGO_MAX_HEIGHT = 60;
-const HEADER_IMAGE_MAX_HEIGHT = 90;
+// Applied to the logo and the header image - a soft watermark-like look
+// rather than flat, opaque artwork.
+const IMAGE_OPACITY = 0.65;
 
 // Page 1: a recap only - who/what/when, one line per section's own total,
 // the grand totals, payment terms/conclusion/signature. Page 2+: the full
@@ -15,8 +17,10 @@ const HEADER_IMAGE_MAX_HEIGHT = 90;
 export class InvoiceTemplate {
 
     static async renderRecap(pdf: PdfWriter, invoice: InvoiceDto, logoBytes: Buffer | null, headerImageBytes: Buffer | null) {
-        // The company's own document header image, if it has one - always
-        // first, above even the title, per how this was asked for.
+        // The company's own document header image, if it has one - drawn
+        // into the page's own top margin band (an absolute position, not
+        // the flowing cursor), so it doesn't push the rest of the recap
+        // down or shrink its usable space.
         if (headerImageBytes) {
             await this.drawHeaderImage(pdf, headerImageBytes);
         }
@@ -27,7 +31,9 @@ export class InvoiceTemplate {
             year: "numeric",
         });
 
-        pdf.title(`Facture ${invoice.number}`);
+        // No page title here - "Facture N° ..." below already says what
+        // this document is, a lone "Facture" heading above it said nothing
+        // new.
 
         // Company address (left) and logo (right), side by side - drawn
         // independently (the logo via an absolute position, not the
@@ -37,6 +43,9 @@ export class InvoiceTemplate {
         pdf.text(invoice.company.name, { bold: true });
         pdf.text(invoice.company.street);
         pdf.text(invoice.company.postalCodeCity);
+        if (invoice.company.vatNumber) {
+            pdf.text(`N° TVA : ${invoice.company.vatNumber}`);
+        }
 
         if (logoBytes) {
             const logoBottomY = await this.drawLogoTopRight(pdf, logoBytes, topY);
@@ -156,21 +165,24 @@ export class InvoiceTemplate {
         const x = pdf.pageWidth() - pdf.marginValue() - width;
         const y = topY - height;
 
-        pdf.drawImage(image, x, y, width, height);
+        pdf.drawImage(image, x, y, width, height, IMAGE_OPACITY);
         return y;
     }
 
-    /** Draws the company's document header image, full content width (scaled down to fit the height cap), centered, advancing the flowing cursor below it - the very first thing on the recap page. */
+    /** Draws the company's document header image flush against the page's top edge, sized to fit within the default top margin (never taller than it), centered horizontally - an absolute position, entirely independent of the flowing cursor. */
     private static async drawHeaderImage(pdf: PdfWriter, headerImageBytes: Buffer) {
         const image = await this.embedImage(pdf, headerImageBytes);
         if (!image) return;
 
-        const maxWidth = pdf.pageWidth() - pdf.marginValue() * 2;
-        const scale = Math.min(maxWidth / image.width, HEADER_IMAGE_MAX_HEIGHT / image.height, 1);
+        const margin = pdf.marginValue();
+        const maxWidth = pdf.pageWidth() - margin * 2;
+        const scale = Math.min(maxWidth / image.width, margin / image.height, 1);
         const width = image.width * scale;
         const height = image.height * scale;
+        const x = (pdf.pageWidth() - width) / 2;
+        const y = pdf.pageHeight() - height;
 
-        pdf.drawImageCentered(image, width, height, 15);
+        pdf.drawImage(image, x, y, width, height, IMAGE_OPACITY);
     }
 
     /** The image file may be a JPEG or a PNG; try both embedders rather than trusting the file extension. */

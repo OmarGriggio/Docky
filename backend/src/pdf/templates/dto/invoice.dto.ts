@@ -67,6 +67,7 @@ export const createInvoiceDto = (document: DocumentComplete, client: ClientWithA
             city: company.city ?? "",
             postalCodeCity: `${company.postal_code ?? ""} ${company.city ?? ""}`,
             logo: company.logo,
+            vatNumber: company.vat_number,
         },
         client: {
             name: client.company_name ?? `${client.first_name ?? ""} ${client.last_name ?? ""}`.trim(),
