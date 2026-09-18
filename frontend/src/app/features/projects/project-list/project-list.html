@@ -46,6 +46,7 @@
       <th style="width: 3rem"></th>
       <th>Nom</th>
       <th>Client</th>
+      <th>N° Offre</th>
       <th>Lieu</th>
       <th>Date</th>
       <th>Type</th>
@@ -78,6 +79,10 @@
       <!-- Not editable - which client/document a chantier is for never
            changes once created. -->
       <td>{{ clientName(project) }}</td>
+
+      <!-- Not editable - the quote this chantier was accepted from, if
+           any. -->
+      <td>{{ project.quote_number ?? '—' }}</td>
 
       <!-- Not editable - lives on the chantier's own backing document
            (address_id), same as document-list.ts's own "Lieu" column. -->
@@ -149,7 +154,7 @@
 
   <ng-template #expandedrow let-project>
     <tr>
-      <td colspan="9">
+      <td colspan="10">
         <!-- Read-only period now - dates live on the calendar page instead
              (see calendar.ts) once a section's schedule is set that way;
              editing them here would silently fight that. Plain default

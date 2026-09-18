@@ -29,6 +29,10 @@ export interface Project {
   // how it's computed and used to order the list. null when none of the
   // chantier's sections has a date_start set yet.
   closest_section_date: string | null;
+  // The number of the quote this chantier was accepted from - null for a
+  // chantier with no such quote. See project.types.ts's own comment on the
+  // backend.
+  quote_number: string | null;
 }
 
 export interface CreateProjectPayload {

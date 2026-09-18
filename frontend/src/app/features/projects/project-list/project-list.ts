@@ -109,6 +109,7 @@ export class ProjectListComponent implements OnInit {
     return documents;
   });
 
+
   ngOnInit(): void {
     this.loadProjects();
 
