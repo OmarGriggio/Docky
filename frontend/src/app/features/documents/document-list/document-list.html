@@ -52,7 +52,7 @@
           <ng-template #input>
             <p-select
               size="small"
-              [options]="statusOptions"
+              [options]="statusOptionsFor(document)"
               optionLabel="label"
               optionValue="value"
               [(ngModel)]="document.status"

@@ -164,14 +164,24 @@ export class DocumentListComponent implements OnInit {
     return document.status === 'DRAFT' || document.status === 'SENT';
   }
 
-  // The only two statuses a document can be switched between straight from
-  // the list (see onStatusChange) - every other one (ACCEPTED/REJECTED/PAID/
-  // CANCELLED) has its own dedicated action instead ("Valider l'offre" etc.)
-  // and is rejected server-side if sent through this endpoint anyway.
-  statusOptions: { label: string; value: DocumentStatus }[] = [
+  // Statuses settable straight from the list, per type (mirrors
+  // document.service.ts's SETTABLE_STATUSES on the backend, which enforces
+  // it). A quote's ACCEPTED/REJECTED have their own dedicated action
+  // ("Valider l'offre"); an invoice can also be marked paid or cancelled -
+  // both final, the row is no longer editable afterwards (see isEditable).
+  private quoteStatusOptions: { label: string; value: DocumentStatus }[] = [
     { label: 'Brouillon', value: 'DRAFT' },
     { label: 'Envoyée', value: 'SENT' },
   ];
+  private invoiceStatusOptions: { label: string; value: DocumentStatus }[] = [
+    ...this.quoteStatusOptions,
+    { label: 'Payée', value: 'PAID' },
+    { label: 'Annulée', value: 'CANCELLED' },
+  ];
+
+  statusOptionsFor(document: Document): { label: string; value: DocumentStatus }[] {
+    return document.type === 'INVOICE' ? this.invoiceStatusOptions : this.quoteStatusOptions;
+  }
 
   // Resolved via event.index (the row), not event.data: [pEditableColumn]
   // is bound to document.status itself, matching PrimeNG's own docs/
