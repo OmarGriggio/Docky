@@ -58,5 +58,11 @@ export const unarchiveResourceServ = async (id: number, company_id: number) => {
   if (!resource) {
     throw new NotFoundError("Resource not found");
   }
+
+  // Its code may have been reused by a new active resource while it was
+  // archived (see zz_migrations/004) - restoring it would now collide.
+  if (resource.code && await getResourceByCodeFromDB(resource.code, company_id)) {
+    throw new ConflictError("Resource code already exists");
+  }
   return await unarchiveResourceInDB(id, company_id);
 };

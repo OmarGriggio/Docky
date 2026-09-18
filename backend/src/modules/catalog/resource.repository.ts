@@ -25,9 +25,12 @@ export const getResourceByIdFromDB = async (id: number, company_id: number) => {
   return result.rows[0] ?? null;
 };
 
+// Active only - matches the partial unique index from
+// zz_migrations/004_resource_code_unique_when_active.sql: an archived
+// resource's code is free to reuse.
 export const getResourceByCodeFromDB = async (code: string, company_id: number) => {
   const result = await pool.query(
-    "SELECT * FROM resources WHERE code = $1 AND company_id = $2",
+    "SELECT * FROM resources WHERE code = $1 AND company_id = $2 AND is_active = true",
     [code, company_id]
   );
   return result.rows[0] ?? null;
