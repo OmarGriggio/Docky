@@ -47,6 +47,10 @@ services:
     volumes:
       - ./backend:/app
       - /app/node_modules
+      # Read-only - server.ts's runMigrationsServ() only reads these, the
+      # actual bootstrap (000_base.sql/001_data.sql) stays Postgres' own job
+      # above, not this container's.
+      - ./zz_migrations:/app/zz_migrations:ro
 
 
   minio:

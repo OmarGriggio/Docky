@@ -42,6 +42,11 @@ services:
       minio:
         condition: service_healthy
 
+    # Read-only - server.ts's runMigrationsServ() applies any new
+    # zz_migrations/*.sql file automatically on every redeploy, same as dev.
+    volumes:
+      - ./zz_migrations:/app/zz_migrations:ro
+
     # No port published either - only nginx (below) is reachable from
     # outside the host.
 
