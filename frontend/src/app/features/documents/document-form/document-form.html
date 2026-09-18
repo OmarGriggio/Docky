@@ -375,6 +375,18 @@
           />
           <label for="discount">Rabais document</label>
         </p-floatlabel>
+
+        <p-floatlabel variant="on">
+          <p-inputnumber
+            pSize="small"
+            inputId="vatRate"
+            [(ngModel)]="vatRate"
+            mode="decimal"
+            [minFractionDigits]="1"
+            suffix=" %"
+          />
+          <label for="vatRate">TVA</label>
+        </p-floatlabel>
       }
       <p-panel
         header="Conclusion"

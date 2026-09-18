@@ -234,6 +234,8 @@ export class DocumentForm implements OnInit {
   conclusion = '';
   paymentTerms = '';
   discount = 0;
+  // Defaults to the company's own rate once it loads (see ngOnInit) - a
+  // fallback here only matters if that fetch fails outright.
   vatRate = 8.1;
 
   sections = signal<DraftSection[]>([]);
@@ -265,7 +267,7 @@ export class DocumentForm implements OnInit {
     round2(this.documentTotalAfterDiscount() * (1 + this.vatRate / 100))
   );
 
-  ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     this.clientService.getClients().subscribe({
       next: data => this.clients.set(data),
       error: err => console.error('document-form : ' + err)
@@ -276,12 +278,21 @@ export class DocumentForm implements OnInit {
       error: err => console.error('document-form : ' + err)
     });
 
+    // Awaited (not a plain subscribe) so it resolves before the
+    // create-vs-edit-vs-duplicate branch below: vatRate's own default here
+    // is only ever the *fresh-document* case (a real edit/duplicate
+    // overwrites it afterwards with the source document's own rate) - a
+    // parallel fetch could otherwise lose that race and leave the fresh
+    // default in place instead.
     const companyId = this.authService.currentUser()?.company_id;
     if (companyId) {
-      this.companyService.getCompany(companyId).subscribe({
-        next: company => this.company.set(company),
-        error: err => console.error('document-form : ' + err)
-      });
+      try {
+        const company = await firstValueFrom(this.companyService.getCompany(companyId));
+        this.company.set(company);
+        this.vatRate = company.vat_rate;
+      } catch (err) {
+        console.error('document-form : ' + err);
+      }
     }
 
     // Loaded before deciding create-vs-edit below (not in parallel with it):
