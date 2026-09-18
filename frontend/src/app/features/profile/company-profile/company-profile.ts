@@ -2,6 +2,7 @@ import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { InputText } from 'primeng/inputtext';
+import { InputNumber } from 'primeng/inputnumber';
 import { Textarea } from 'primeng/textarea';
 import { FloatLabel } from 'primeng/floatlabel';
 import { Button } from 'primeng/button';
@@ -15,7 +16,7 @@ const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png'];
 @Component({
   selector: 'app-company-profile',
   standalone: true,
-  imports: [ReactiveFormsModule, InputText, Textarea, FloatLabel, Button, Card],
+  imports: [ReactiveFormsModule, InputText, InputNumber, Textarea, FloatLabel, Button, Card],
   templateUrl: './company-profile.html',
   styleUrl: './company-profile.css',
 })
@@ -35,6 +36,8 @@ export class CompanyProfile implements OnInit, OnDestroy {
     postal_code: [''],
     city: [''],
     country: [''],
+    vat_rate: [8.1, Validators.required],
+    vat_number: [''],
   });
 
   // Default introduction/conclusion text applied when that type is picked
@@ -123,6 +126,8 @@ export class CompanyProfile implements OnInit, OnDestroy {
           postal_code: company.postal_code ?? '',
           city: company.city ?? '',
           country: company.country ?? '',
+          vat_rate: company.vat_rate,
+          vat_number: company.vat_number ?? '',
         });
         this.logoPath.set(company.logo);
         this.headerImagePath.set(company.header_image);

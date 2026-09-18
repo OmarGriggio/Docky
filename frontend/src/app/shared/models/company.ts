@@ -10,4 +10,6 @@ export interface Company {
   country: string | null;
   logo: string | null;
   header_image: string | null;
+  vat_rate: number;
+  vat_number: string | null;
 }

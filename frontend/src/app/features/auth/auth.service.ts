@@ -94,6 +94,8 @@ export class AuthService {
       country: null,
       logo: null,
       header_image: null,
+      vat_rate: 8.1,
+      vat_number: null,
     };
 
     return this.http.post<Company>(`${API_BASE}/company`, company).pipe(
