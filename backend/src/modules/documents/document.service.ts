@@ -145,19 +145,28 @@ export const updateDocumentServ = async (id: number, company_id: number, documen
   return await recomputeDocumentTotalsServ(id, company_id);
 };
 
-// A plain DRAFT<->SENT toggle - editable straight from the list (see
-// document-list.ts's own onStatusChange). Every other transition
-// (ACCEPTED/REJECTED/PAID/CANCELLED) has its own dedicated flow
-// (acceptQuoteServ, archive/unarchive) and stays out of this one on
-// purpose - both the document's current status and the requested one must
-// be in EDITABLE_STATUSES, so this can never be used to jump straight to
-// or out of one of those.
+// Statuses settable straight from the list (see document-list.ts's own
+// onStatusEditComplete), per document type. A quote only toggles
+// DRAFT<->SENT (ACCEPTED/REJECTED have their own dedicated flow,
+// acceptQuoteServ); an invoice can additionally be marked PAID or
+// CANCELLED. Both are terminal: the document's *current* status must still
+// be in EDITABLE_STATUSES, so once PAID/CANCELLED it can't be changed back
+// this way (a frozen record, see the comment on EDITABLE_STATUSES above).
+const SETTABLE_STATUSES: Record<string, DocumentStatus[]> = {
+  QUOTE: ["DRAFT", "SENT"],
+  INVOICE: ["DRAFT", "SENT", "PAID", "CANCELLED"],
+};
+
 export const updateDocumentStatusServ = async (id: number, company_id: number, status: DocumentStatus) => {
   const document = await getDocumentByIdFromDB(id, company_id);
   if (!document) {
     throw new NotFoundError("Document not found");
   }
-  if (document.status === null || !EDITABLE_STATUSES.includes(document.status) || !EDITABLE_STATUSES.includes(status)) {
+  if (
+    document.status === null ||
+    !EDITABLE_STATUSES.includes(document.status) ||
+    !(SETTABLE_STATUSES[document.type] ?? []).includes(status)
+  ) {
     throw new ConflictError("This document's status can't be changed this way");
   }
 
