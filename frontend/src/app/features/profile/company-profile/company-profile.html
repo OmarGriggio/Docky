@@ -65,7 +65,7 @@
             (drop)="onDrop($event)"
           >
             @if (displayedLogoUrl()) {
-              <img [src]="displayedLogoUrl()" alt="Logo de l'entreprise" class="profile-logo__preview" />
+              <img [src]="displayedLogoUrl()" alt="Logo de l'entreprise" class="profile-logo__preview max-h-24 max-w-48 object-contain" />
             } @else {
               <i class="pi pi-image profile-logo__placeholder"></i>
             }
@@ -104,7 +104,7 @@
             (drop)="onHeaderImageDrop($event)"
           >
             @if (displayedHeaderImageUrl()) {
-              <img [src]="displayedHeaderImageUrl()" alt="Image d'en-tête des factures" class="profile-logo__preview" />
+              <img [src]="displayedHeaderImageUrl()" alt="Image d'en-tête des factures" class="profile-logo__preview max-h-24 max-w-full object-contain" />
             } @else {
               <i class="pi pi-image profile-logo__placeholder"></i>
             }
