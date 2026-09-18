@@ -16,9 +16,9 @@ export const createCompanyInDB = async (
 ): Promise<Company> => {
     const query = `
     INSERT INTO companies (
-      name, email, phone, iban, street, postal_code, city, country, logo, header_image
+      name, email, phone, iban, street, postal_code, city, country, logo, header_image, vat_rate, vat_number
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
     RETURNING *;
   `;
     const values = [
@@ -31,7 +31,9 @@ export const createCompanyInDB = async (
       company.city,
       company.country,
       company.logo,
-      company.header_image
+      company.header_image,
+      company.vat_rate,
+      company.vat_number
     ];
     const result = await pool.query(query, values);
     return result.rows[0];
@@ -53,8 +55,10 @@ export const updateCompanyInDB = async (
       city = $7,
       country = $8,
       logo = $9,
-      header_image = $10
-    WHERE id = $11
+      header_image = $10,
+      vat_rate = $11,
+      vat_number = $12
+    WHERE id = $13
     RETURNING *;
   `;
     const values = [
@@ -68,6 +72,8 @@ export const updateCompanyInDB = async (
       company.country,
       company.logo,
       company.header_image,
+      company.vat_rate,
+      company.vat_number,
       id
     ];
     const result = await pool.query(query, values);
