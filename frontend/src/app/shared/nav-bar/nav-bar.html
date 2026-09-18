@@ -1,7 +1,7 @@
 @if (isAuthenticated()) {
   <nav
     class="flex flex-row flex-wrap items-center gap-1 w-full h-auto py-2 px-2 border-b border-gray-200
-           md:flex-col md:h-screen md:sticky md:top-0 md:z-[1] md:border-b-0 md:border-r md:py-4 transition-[width] duration-150"
+           md:flex-col md:h-screen md:sticky md:top-0 md:z-20 md:border-b-0 md:border-r md:py-4 transition-[width] duration-150"
     [class]="navWidthClasses()"
   >
     <button type="button" [class]="linkClasses()" (click)="toggleExpanded()">
