@@ -54,81 +54,67 @@
           <label for="vat_number">N° TVA</label>
         </p-floatlabel>
 
-        <div class="ui-form__full profile-logo">
-          <div
-            class="profile-logo__dropzone"
-            [class.profile-logo__dropzone--dragging]="isDraggingOverLogo()"
-            [class.profile-logo__dropzone--disabled]="!canManageCompany()"
-            (click)="onDropzoneClick(logoInput)"
-            (dragover)="onDragOver($event)"
-            (dragleave)="onDragLeave($event)"
-            (drop)="onDrop($event)"
-          >
-            @if (displayedLogoUrl()) {
-              <img [src]="displayedLogoUrl()" alt="Logo de l'entreprise" class="profile-logo__preview max-h-24 max-w-48 object-contain" />
-            } @else {
-              <i class="pi pi-image profile-logo__placeholder"></i>
-            }
-
-            @if (canManageCompany()) {
-              <p class="profile-logo__hint">Glissez-déposez une image ici, ou cliquez pour parcourir</p>
-            }
-
-            <input
-              #logoInput
-              type="file"
-              accept="image/jpeg,image/png"
-              class="profile-logo__input"
-              [disabled]="!canManageCompany()"
-              (change)="onFileInputChange($event)"
-            />
-          </div>
-
-          @if (canManageCompany() && selectedLogoFile()) {
-            <p-button type="button" label="Uploader le logo" [loading]="uploadingLogo()" (onClick)="uploadLogo()" />
+        <div class="ui-form__full flex flex-col gap-2">
+          <span class="text-sm font-medium">Logo</span>
+          @if (logoUrl()) {
+            <img [src]="logoUrl()" alt="Logo de l'entreprise" class="max-h-24 max-w-48 object-contain self-start" />
           }
-
+          @if (canManageCompany()) {
+            <p-fileupload
+              #logoUpload
+              mode="advanced"
+              name="logo"
+              accept="image/jpeg,image/png"
+              [maxFileSize]="5000000"
+              [multiple]="false"
+              [auto]="true"
+              [customUpload]="true"
+              chooseLabel="Choisir un logo"
+              invalidFileTypeMessageSummary="Type de fichier invalide : "
+              invalidFileTypeMessageDetail="types autorisés : {0}."
+              invalidFileSizeMessageSummary="Fichier trop volumineux : "
+              invalidFileSizeMessageDetail="taille maximale : {0}."
+              (uploadHandler)="uploadLogo($event, logoUpload)"
+            >
+              <ng-template #empty>
+                <p class="m-0 text-sm text-gray-500">Glissez-déposez une image ici (JPG ou PNG, 5 Mo max).</p>
+              </ng-template>
+            </p-fileupload>
+          }
           @if (logoErrorMessage()) {
-            <p class="profile-error">{{ logoErrorMessage() }}</p>
+            <p class="text-sm text-red-600 m-0">{{ logoErrorMessage() }}</p>
           }
         </div>
 
-        <div class="ui-form__full profile-logo">
-          <div
-            class="profile-logo__dropzone"
-            [class.profile-logo__dropzone--dragging]="isDraggingOverHeaderImage()"
-            [class.profile-logo__dropzone--disabled]="!canManageCompany()"
-            (click)="onHeaderImageDropzoneClick(headerImageInput)"
-            (dragover)="onHeaderImageDragOver($event)"
-            (dragleave)="onHeaderImageDragLeave($event)"
-            (drop)="onHeaderImageDrop($event)"
-          >
-            @if (displayedHeaderImageUrl()) {
-              <img [src]="displayedHeaderImageUrl()" alt="Image d'en-tête des factures" class="profile-logo__preview max-h-24 max-w-full object-contain" />
-            } @else {
-              <i class="pi pi-image profile-logo__placeholder"></i>
-            }
-
-            @if (canManageCompany()) {
-              <p class="profile-logo__hint">Image affichée tout en haut des factures - glissez-déposez, ou cliquez pour parcourir</p>
-            }
-
-            <input
-              #headerImageInput
-              type="file"
-              accept="image/jpeg,image/png"
-              class="profile-logo__input"
-              [disabled]="!canManageCompany()"
-              (change)="onHeaderImageFileInputChange($event)"
-            />
-          </div>
-
-          @if (canManageCompany() && selectedHeaderImageFile()) {
-            <p-button type="button" label="Uploader l'image d'en-tête" [loading]="uploadingHeaderImage()" (onClick)="uploadHeaderImage()" />
+        <div class="ui-form__full flex flex-col gap-2">
+          <span class="text-sm font-medium">Image d'en-tête des factures (affichée tout en haut)</span>
+          @if (headerImageUrl()) {
+            <img [src]="headerImageUrl()" alt="Image d'en-tête des factures" class="max-h-24 max-w-full object-contain self-start" />
           }
-
+          @if (canManageCompany()) {
+            <p-fileupload
+              #headerImageUpload
+              mode="advanced"
+              name="header_image"
+              accept="image/jpeg,image/png"
+              [maxFileSize]="5000000"
+              [multiple]="false"
+              [auto]="true"
+              [customUpload]="true"
+              chooseLabel="Choisir une image d'en-tête"
+              invalidFileTypeMessageSummary="Type de fichier invalide : "
+              invalidFileTypeMessageDetail="types autorisés : {0}."
+              invalidFileSizeMessageSummary="Fichier trop volumineux : "
+              invalidFileSizeMessageDetail="taille maximale : {0}."
+              (uploadHandler)="uploadHeaderImage($event, headerImageUpload)"
+            >
+              <ng-template #empty>
+                <p class="m-0 text-sm text-gray-500">Glissez-déposez une image ici (JPG ou PNG, 5 Mo max).</p>
+              </ng-template>
+            </p-fileupload>
+          }
           @if (headerImageErrorMessage()) {
-            <p class="profile-error">{{ headerImageErrorMessage() }}</p>
+            <p class="text-sm text-red-600 m-0">{{ headerImageErrorMessage() }}</p>
           }
         </div>
 
@@ -153,7 +139,7 @@
     }
   </p-card>
 
-  <p-card header="Modèles de documents" styleClass="ui-card--elevated profile-card">
+  <p-card header="Modèles de documents" class="ui-card--elevated profile-card mt-5">
     @if (templatesLoading()) {
       <p>Chargement...</p>
     } @else {
