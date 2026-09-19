@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { UIChart } from 'primeng/chart';
 import { DashboardService } from './dashboard.service';
 import { PaidAmountByClient } from '../../shared/models/dashboard';
+import { formatPrice } from '../../shared/utils/display';
 
 interface BarChartData {
   labels: string[];
@@ -22,13 +23,13 @@ export class Dashboard implements OnInit {
   chartData = signal<BarChartData | null>(null);
 
   // Formats each bar's tooltip the same way the rest of the app shows a
-  // money amount (document-form.html's own "1'234.50 CHF").
+  // money amount (formatPrice - "1234.50 CHF").
   chartOptions = {
     plugins: {
       legend: { display: false },
       tooltip: {
         callbacks: {
-          label: (context: { raw: number }) => `${context.raw.toLocaleString('fr-CH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} CHF`
+          label: (context: { raw: number }) => `${formatPrice(context.raw)} CHF`
         }
       }
     },
