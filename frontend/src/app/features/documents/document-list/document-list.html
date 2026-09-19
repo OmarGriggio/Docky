@@ -1,4 +1,4 @@
-<p-toolbar class="pt-2! pb-2!">
+<p-toolbar class="pt-2! pb-2! rounded-b-none!">
   <ng-template #start>
     <h3>Documents @if (currentTypeLabel()) { — {{ currentTypeLabel() }} }</h3>
   </ng-template>
@@ -77,7 +77,7 @@
   <ng-template #expandedrow let-document>
     <tr>
       <td colspan="11">
-        <app-document-ledger [documentId]="document.id" [columns]="2" />
+        <app-document-ledger [documentId]="document.id" [columns]="1" />
       </td>
     </tr>
   </ng-template>

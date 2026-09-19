@@ -1,4 +1,4 @@
-<p-toolbar class="pt-2! pb-2!">
+<p-toolbar class="pt-2! pb-2! rounded-b-none!">
   <ng-template #start>
     <h3>Clients</h3>
   </ng-template>
@@ -152,12 +152,13 @@
                    own p-0! above (PrimeNG's own cell padding/font-size rules
                    outrank a plain Tailwind class here). -->
               <tr class="bg-gray-100!">
+                <td class="w-12"></td>
                 <td class="py-1! text-xs!">{{ document.number }}</td>
                 <td class="py-1! text-xs!">{{ document.type === 'QUOTE' ? 'Offre' : 'Facture' }}</td>
                 <td class="py-1! text-xs!">{{ document.date | appDate }}</td>
                 <td class="py-1! text-xs!">{{ document.amount_incl_vat }}</td>
                 <td class="py-1! text-xs!"><p-tag [value]="statusLabel(document)" [severity]="statusSeverity(document)" /></td>
-                <td class="py-1! text-xs!">
+                <td class="py-1! text-xs! w-12">
                   <p-button label="" icon="pi pi-arrow-right" [text]="true" size="small" (click)="openDocument(document)" />
                 </td>
               </tr>

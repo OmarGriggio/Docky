@@ -1,4 +1,4 @@
-<p-toolbar>
+<p-toolbar class="rounded-b-none!">
   <ng-template #start>
     <h3>Chantiers</h3>
   </ng-template>
@@ -155,12 +155,7 @@
   <ng-template #expandedrow let-project>
     <tr>
       <td colspan="10">
-        <!-- Read-only period now - dates live on the calendar page instead
-             (see calendar.ts) once a section's schedule is set that way;
-             editing them here would silently fight that. Plain default
-             header from shared/components/document-ledger (no
-             #sectionHeader override anymore). -->
-        <app-document-ledger [documentId]="project.document_id" [columns]="2" />
+        <app-document-ledger [documentId]="project.document_id" [columns]="1" />
       </td>
     </tr>
   </ng-template>
