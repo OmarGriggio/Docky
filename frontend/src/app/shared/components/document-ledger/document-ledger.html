@@ -5,7 +5,7 @@
 } @else {
   <div [class]="columns() === 2 ? 'grid grid-cols-1 md:grid-cols-2 gap-3' : 'flex flex-col gap-3'">
     @for (section of sections(); track section.id) {
-      <div class="border border-gray-200 rounded-lg p-3">
+      <div class="bg-gray-100 border border-gray-200 rounded-lg p-3">
         <div class="flex items-center justify-between gap-4 flex-wrap mb-2">
           @if (sectionHeader(); as header) {
             <ng-container [ngTemplateOutlet]="header" [ngTemplateOutletContext]="{ $implicit: section }" />
@@ -38,7 +38,7 @@
             </thead>
             <tbody>
               @for (line of linesFor(section); track line.id) {
-                <tr class="bg-gray-100">
+                <tr>
                   <td class="py-1">{{ line.label }}</td>
                   <td class="py-1">{{ line.quantity }}</td>
                   <td class="py-1">{{ line.unit }}</td>
