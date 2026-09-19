@@ -19,6 +19,7 @@ import { archiveActionLabel, documentStatusLabel, documentStatusSeverity } from 
 import { DocumentService } from '../../documents/document.service';
 import { Document } from '../../../shared/models/document';
 import { AppDatePipe } from '../../../shared/pipes/app-date.pipe';
+import { PricePipe } from '../../../shared/pipes/price.pipe';
 
 // Stable shared reference for "no documents yet" - see document-list.ts's
 // own EMPTY_LINES for why (a freshly-allocated [] on every template check
@@ -28,7 +29,7 @@ const EMPTY_DOCUMENTS: Document[] = [];
 @Component({
   selector: 'app-client-list',
   standalone: true,
-  imports: [TableModule, TagModule, Toolbar, Menu, Button, Dialog, Checkbox, InputText, Select, FormsModule, AppDatePipe, ClientForm, ConfirmDialogComponent],
+  imports: [TableModule, TagModule, Toolbar, Menu, Button, Dialog, Checkbox, InputText, Select, FormsModule, AppDatePipe, PricePipe, ClientForm, ConfirmDialogComponent],
   templateUrl: './client-list.html',
   // Tried ChangeDetectionStrategy.OnPush here as an experiment - reverted.
   // It broke switching directly from one cell's edit mode to another

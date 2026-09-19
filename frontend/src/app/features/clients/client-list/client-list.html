@@ -156,7 +156,7 @@
                 <td class="py-1! text-xs!">{{ document.number }}</td>
                 <td class="py-1! text-xs!">{{ document.type === 'QUOTE' ? 'Offre' : 'Facture' }}</td>
                 <td class="py-1! text-xs!">{{ document.date | appDate }}</td>
-                <td class="py-1! text-xs!">{{ document.amount_incl_vat }}</td>
+                <td class="py-1! text-xs!">{{ document.amount_incl_vat | price }}</td>
                 <td class="py-1! text-xs!"><p-tag [value]="statusLabel(document)" [severity]="statusSeverity(document)" /></td>
                 <td class="py-1! text-xs! w-12">
                   <p-button label="" icon="pi pi-arrow-right" [text]="true" size="small" (click)="openDocument(document)" />
