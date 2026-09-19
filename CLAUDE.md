@@ -94,4 +94,5 @@ Solo learning project (SaaS for small construction companies). See [README.md](R
 - [zz_docs/Data Definition.md](zz_docs/Data%20Definition.md) — entities, fields, relations.
 - [zz_docs/Architecture.md](zz_docs/Architecture.md) — architecture decisions (why no ORM, folder conventions).
 - [zz_docs/Decisions.md](zz_docs/Decisions.md) — trade-off log for choices with more than one reasonable option — what was picked *and* what was turned down, with why. Check here before re-opening a decision that's already been made.
+- [zz_docs/Difficulties.md](zz_docs/Difficulties.md) — problems actually hit while building this (business, architecture, security, infra, frontend, process), how they were diagnosed and fixed. Distinct from Decisions.md: a decision compares options in hand, a difficulty is something that broke or turned out wrong only once real use exposed it.
 - [zz_docs/note/](zz_docs/note/) — Omar's personal learning notes — background only, not authoritative spec.
