@@ -1,0 +1,62 @@
+@import '@fontsource/poppins/300.css';
+@import '@fontsource/poppins/400.css';
+@import '@fontsource/poppins/500.css';
+@import '@fontsource/poppins/600.css';
+@import '@fontsource/poppins/700.css';
+
+:root {
+  --font-family-app: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+
+  --text-body-size: 0.9375rem;
+  --text-body-weight: 400;
+  --text-body-line-height: 1.5;
+  --text-color-body: #4b5563;
+  --text-color-heading: #374151;
+
+  --text-h1-size: 1.75rem;
+  --text-h1-weight: 600;
+  --text-h2-size: 1.375rem;
+  --text-h2-weight: 600;
+  --text-h3-size: 1.125rem;
+  --text-h3-weight: 500;
+  --text-h4-size: 1rem;
+  --text-h4-weight: 500;
+  --text-h5-size: 0.9375rem;
+  --text-h5-weight: 500;
+  --text-h6-size: 0.875rem;
+  --text-h6-weight: 500;
+  --text-heading-line-height: 1.25;
+}
+
+/* PrimeNG's own theme sets --p-text-color on :root (Aura: slate-700), and
+   everything inside its components - table cells included - reads it.
+   html:root outranks that. */
+html:root {
+  --p-text-color: var(--text-color-body);
+}
+
+@theme {
+  --font-sans: var(--font-family-app);
+}
+
+@layer base {
+  body {
+    font-family: var(--font-family-app);
+    font-size: var(--text-body-size);
+    font-weight: var(--text-body-weight);
+    line-height: var(--text-body-line-height);
+    color: var(--text-color-body);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    line-height: var(--text-heading-line-height);
+    color: var(--text-color-heading);
+  }
+
+  h1 { font-size: var(--text-h1-size); font-weight: var(--text-h1-weight); }
+  h2 { font-size: var(--text-h2-size); font-weight: var(--text-h2-weight); }
+  h3 { font-size: var(--text-h3-size); font-weight: var(--text-h3-weight); }
+  h4 { font-size: var(--text-h4-size); font-weight: var(--text-h4-weight); }
+  h5 { font-size: var(--text-h5-size); font-weight: var(--text-h5-weight); }
+  h6 { font-size: var(--text-h6-size); font-weight: var(--text-h6-weight); }
+}

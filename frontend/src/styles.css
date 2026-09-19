@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 @import 'primeicons/primeicons.css';
 @import './app/shared/ui/ui.css';
+@import './app/shared/ui/typography.css';
 
 body {
   margin: 0;
