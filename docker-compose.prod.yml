@@ -52,7 +52,9 @@ services:
 
 
   minio:
-    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+    # Docker Hub cut off public pulls for minio/minio (even :latest) - same
+    # image, same tag, still pullable from MinIO's other registry.
+    image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z
 
     container_name: docky-minio
 
