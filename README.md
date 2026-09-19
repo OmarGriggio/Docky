@@ -4,6 +4,8 @@ A SaaS platform that helps small construction companies manage clients, supplier
 
 This is a personal project I'm building end-to-end to practice full-stack development with Angular, Node.js/Express and PostgreSQL, and to get comfortable with SaaS architecture (multi-company data, auth, layered backend design).
 
+*Last updated: 10.09.2026*
+
 ## Live demo
 
 🔗 **[https://179-237-86-113.sslip.io](https://179-237-86-113.sslip.io)**
