@@ -1,18 +1,32 @@
 @if (isAuthenticated()) {
   <nav
-    class="flex flex-row flex-wrap items-center gap-1 w-full h-auto py-2 px-2 border-b border-gray-200
+    class="flex flex-row flex-wrap items-center gap-1 w-full h-auto py-2 px-2 bg-white border-b border-gray-200
            md:flex-col md:h-screen md:sticky md:top-0 md:z-20 md:border-b-0 md:border-r md:py-4 transition-[width] duration-150"
     [class]="navWidthClasses()"
   >
-    <button type="button" [class]="linkClasses()" (click)="toggleExpanded()">
-      <i [class]="expanded() ? 'pi pi-angle-double-left' : 'pi pi-angle-double-right'"></i>
-      <span [class]="labelClasses()">{{ expanded() ? 'Réduire' : 'Agrandir' }}</span>
+  
+    <button
+      type="button"
+      class="flex items-center justify-center w-6 h-6 rounded-full bg-(--p-primary-color) text-white shadow-md hover:opacity-90 transition-opacity cursor-pointer border-0
+             md:absolute md:top-5 md:-right-3.5 md:z-10"
+      [attr.aria-label]="expanded() ? 'Réduire' : 'Agrandir'"
+      [attr.title]="expanded() ? 'Réduire' : 'Agrandir'"
+      (click)="toggleExpanded()"
+    >
+      <i [class]="expanded() ? 'pi pi-angle-left' : 'pi pi-angle-right'" class="text-sm"></i>
     </button>
 
-    <button type="button" [class]="linkClasses() + ' mb-2 pb-2 border-b border-gray-200'" (click)="goBack()">
-      <i class="pi pi-arrow-left"></i>
-      <span [class]="labelClasses()">Retour</span>
-    </button>
+    <!-- The app's identity, not a control (the header's breadcrumb trail
+         replaced the old "Retour" button). -->
+    <div
+      class="flex items-center h-10 mb-2 pb-2 border-b border-gray-200 select-none"
+      [class]="expanded() ? 'gap-3 px-3 md:w-full' : 'justify-center w-10'"
+    >
+      <img src="favicon.png" alt="" class="w-7 h-7 shrink-0" />
+      @if (expanded()) {
+        <span class="text-lg font-semibold text-gray-800 truncate">Docky</span>
+      }
+    </div>
 
     @for (item of visibleNavItems(); track item.label) {
       @if (item.links.length > 1) {

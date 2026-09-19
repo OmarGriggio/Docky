@@ -1,5 +1,4 @@
 import { Component, computed, ElementRef, HostListener, inject, signal } from '@angular/core';
-import { Location } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../features/auth/auth.service';
 import { UserRole } from '../models/auth';
@@ -32,7 +31,6 @@ const NAV_EXPANDED_KEY = 'docky_nav_expanded';
 export class NavBar {
 
   private authService = inject(AuthService);
-  private location = inject(Location);
   private router = inject(Router);
   private elementRef = inject(ElementRef);
 
@@ -135,14 +133,6 @@ export class NavBar {
     return this.expanded()
       ? 'md:w-56 md:items-stretch md:px-3'
       : 'md:w-16 md:items-center md:px-2';
-  }
-
-  // One global "Retour" in the nav-bar (itself present on every page,
-  // being part of the app shell - see app.ts) rather than a button
-  // repeated on each individual page template. Plain browser-history back,
-  // not a fixed route - it goes wherever the user actually came from.
-  goBack(): void {
-    this.location.back();
   }
 
   navItems: NavItem[] = [
