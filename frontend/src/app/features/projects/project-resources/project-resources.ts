@@ -1,5 +1,5 @@
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
+import { PricePipe } from '../../../shared/pipes/price.pipe';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { Button } from 'primeng/button';
@@ -52,7 +52,7 @@ let nextId = 1;
 @Component({
   selector: 'app-project-resources',
   standalone: true,
-  imports: [FormsModule, DecimalPipe, Button, Select, InputText, InputNumber, Textarea, DatePicker],
+  imports: [FormsModule, PricePipe, Button, Select, InputText, InputNumber, Textarea, DatePicker],
   templateUrl: './project-resources.html',
 })
 export class ProjectResources implements OnInit {

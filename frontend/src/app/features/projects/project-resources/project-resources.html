@@ -104,10 +104,9 @@
                         [ngModel]="line.unit_price"
                         (ngModelChange)="updateLine(section.id, line.id, { unit_price: $event })"
                         mode="decimal" [minFractionDigits]="2"
-                        [disabled]="readonly()"
-                      />
+                        [disabled]="readonly()" [useGrouping]="false" [maxFractionDigits]="2" />
                     </td>
-                    <td class="py-[0.3rem] px-[0.2rem] align-middle">{{ lineTotal(line) | number: '1.2-2' }}</td>
+                    <td class="py-[0.3rem] px-[0.2rem] align-middle">{{ lineTotal(line) | price }}</td>
                     <td class="py-[0.3rem] px-[0.2rem] align-middle">
                       @if (!readonly()) {
                         <p-button size="small" type="button" icon="pi pi-trash" severity="danger" [text]="true" (onClick)="removeLine(section.id, line.id)" />
