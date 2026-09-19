@@ -35,7 +35,7 @@
             <i [class]="item.icon"></i>
             <span [class]="labelClasses()">{{ item.label }}</span>
           </summary>
-          <div class="absolute left-[calc(100%+0.5rem)] top-0 min-w-[140px] bg-white border border-gray-200 rounded-md shadow-lg p-1 z-[1]">
+          <div class="absolute left-[calc(100%+0.5rem)] top-0 min-w-35 bg-white border border-gray-200 rounded-md shadow-lg p-1 z-1">
             @for (link of item.links; track link.label) {
               <a [routerLink]="link.path" [queryParams]="link.queryParams" class="block px-3 py-2 rounded text-gray-800 no-underline text-sm whitespace-nowrap hover:bg-gray-100" (click)="group.open = false">{{ link.label }}</a>
             }
