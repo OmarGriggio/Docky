@@ -110,3 +110,13 @@ export const formatFileSize = (bytes: number): string => {
   }
   return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
 };
+
+// The one format for any price/amount on screen (unit price, line/section/
+// document totals, amounts): always two decimals, a plain dot, no thousands
+// separator - "1234.50", never "1'234.5". Used through the `price` pipe.
+export const formatPrice = (value: number | null | undefined): string => {
+  if (value === null || value === undefined || isNaN(value)) {
+    return '';
+  }
+  return value.toFixed(2);
+};

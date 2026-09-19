@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { clientDisplayName, archiveActionLabel, formatFileSize, formatSectionDate, addressLabel } from './display';
+import { clientDisplayName, archiveActionLabel, formatFileSize, formatSectionDate, addressLabel, formatPrice } from './display';
 
 describe('clientDisplayName', () => {
 
@@ -79,4 +79,21 @@ describe('formatSectionDate', () => {
     expect(formatSectionDate(date.toISOString())).toBe('20.09.2026 09:30');
   });
 
+});
+
+describe('formatPrice', () => {
+  it('always shows two decimals with a plain dot', () => {
+    expect(formatPrice(15)).toBe('15.00');
+    expect(formatPrice(4.5)).toBe('4.50');
+    expect(formatPrice(19.499)).toBe('19.50');
+  });
+
+  it('has no thousands separator', () => {
+    expect(formatPrice(1234567.8)).toBe('1234567.80');
+  });
+
+  it('is empty for a missing value', () => {
+    expect(formatPrice(null)).toBe('');
+    expect(formatPrice(undefined)).toBe('');
+  });
 });
