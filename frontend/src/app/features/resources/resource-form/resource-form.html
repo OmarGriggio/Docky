@@ -24,12 +24,12 @@
   </p-floatlabel>
 
   <p-floatlabel variant="on">
-    <p-inputnumber inputId="selling_price" formControlName="selling_price" mode="decimal" [minFractionDigits]="2" />
+    <p-inputnumber inputId="selling_price" formControlName="selling_price" mode="decimal" [minFractionDigits]="2" [useGrouping]="false" [maxFractionDigits]="2" />
     <label for="selling_price">Prix de vente</label>
   </p-floatlabel>
 
   <p-floatlabel variant="on">
-    <p-inputnumber inputId="purchase_price" formControlName="purchase_price" mode="decimal" [minFractionDigits]="2" />
+    <p-inputnumber inputId="purchase_price" formControlName="purchase_price" mode="decimal" [minFractionDigits]="2" [useGrouping]="false" [maxFractionDigits]="2" />
     <label for="purchase_price">Prix d'achat</label>
   </p-floatlabel>
 

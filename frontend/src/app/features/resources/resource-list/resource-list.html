@@ -73,10 +73,10 @@
       <td>
         <p-cellEditor>
           <ng-template #input>
-            <p-inputnumber [(ngModel)]="item.selling_price" mode="decimal" [minFractionDigits]="2" [fluid]="true" />
+            <p-inputnumber [(ngModel)]="item.selling_price" mode="decimal" [minFractionDigits]="2" [fluid]="true" [useGrouping]="false" [maxFractionDigits]="2" />
           </ng-template>
           <ng-template #output>
-            {{ item.selling_price }}
+            {{ item.selling_price | price }}
           </ng-template>
         </p-cellEditor>
       </td>
@@ -84,10 +84,10 @@
       <td>
         <p-cellEditor>
           <ng-template #input>
-            <p-inputnumber [(ngModel)]="item.purchase_price" mode="decimal" [minFractionDigits]="2" [fluid]="true" />
+            <p-inputnumber [(ngModel)]="item.purchase_price" mode="decimal" [minFractionDigits]="2" [fluid]="true" [useGrouping]="false" [maxFractionDigits]="2" />
           </ng-template>
           <ng-template #output>
-            {{ item.purchase_price }}
+            {{ item.purchase_price | price }}
           </ng-template>
         </p-cellEditor>
       </td>

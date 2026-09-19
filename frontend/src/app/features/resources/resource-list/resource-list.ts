@@ -12,6 +12,7 @@ import { Checkbox } from 'primeng/checkbox';
 import { MenuItem } from 'primeng/api';
 import { ResourceService } from '../resource.service';
 import { Resource, ResourceType } from '../../../shared/models/resource';
+import { PricePipe } from '../../../shared/pipes/price.pipe';
 import { ResourceForm } from '../resource-form/resource-form';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 
@@ -23,7 +24,7 @@ const TYPE_LABELS: Record<ResourceType, string> = {
 @Component({
   selector: 'app-resource-list',
   standalone: true,
-  imports: [TableModule, InputText, InputNumber, Toolbar, Menu, Button, Dialog, Checkbox, FormsModule, ResourceForm, ConfirmDialogComponent],
+  imports: [TableModule, InputText, InputNumber, Toolbar, Menu, Button, Dialog, Checkbox, FormsModule, PricePipe, ResourceForm, ConfirmDialogComponent],
   templateUrl: './resource-list.html'
 })
 export class ResourceListComponent implements OnInit {
