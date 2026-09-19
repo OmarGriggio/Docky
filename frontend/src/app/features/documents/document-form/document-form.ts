@@ -1,5 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
+import { PricePipe } from '../../../shared/pipes/price.pipe';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -99,7 +99,7 @@ let nextId = 1;
 @Component({
   selector: 'app-document-form',
   standalone: true,
-  imports: [FormsModule, DecimalPipe, InputText, InputNumber, Textarea, FloatLabel, Select, DatePicker, Button, Card, Panel],
+  imports: [FormsModule, PricePipe, InputText, InputNumber, Textarea, FloatLabel, Select, DatePicker, Button, Card, Panel],
   templateUrl: './document-form.html',
   styleUrl: './document-form.css',
 })

@@ -37,7 +37,7 @@
   </p-floatlabel>
 
   <p-floatlabel variant="on">
-    <p-inputnumber inputId="unit_price" formControlName="unit_price" mode="decimal" [minFractionDigits]="2" />
+    <p-inputnumber inputId="unit_price" formControlName="unit_price" mode="decimal" [minFractionDigits]="2" [useGrouping]="false" [maxFractionDigits]="2" />
     <label for="unit_price">Prix unitaire</label>
   </p-floatlabel>
 

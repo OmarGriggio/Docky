@@ -19,6 +19,7 @@ import { Address } from '../../../shared/models/address';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { DocumentLedger } from '../../../shared/components/document-ledger/document-ledger';
 import { AppDatePipe } from '../../../shared/pipes/app-date.pipe';
+import { PricePipe } from '../../../shared/pipes/price.pipe';
 
 // PROJECT documents never appear in this list (see document-list.html's own
 // GET /document?type=QUOTE|INVOICE calls) but DocumentType still includes
@@ -32,7 +33,7 @@ const TYPE_LABELS: Record<DocumentType, string> = {
 @Component({
   selector: 'app-document-list',
   standalone: true,
-  imports: [TableModule, TagModule, Toolbar, Button, Menu, Checkbox, Select, FormsModule, AppDatePipe, ConfirmDialogComponent, DocumentLedger],
+  imports: [TableModule, TagModule, Toolbar, Button, Menu, Checkbox, Select, FormsModule, AppDatePipe, PricePipe, ConfirmDialogComponent, DocumentLedger],
   templateUrl: './document-list.html'
 })
 export class DocumentListComponent implements OnInit {

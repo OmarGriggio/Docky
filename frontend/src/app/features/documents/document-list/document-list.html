@@ -41,8 +41,8 @@
       <td>{{ clientName(document) }}</td>
       <td>{{ location(document) }}</td>
       <td>{{ document.date | appDate }}</td>
-      <td>{{ document.amount_excl_vat }}</td>
-      <td>{{ document.amount_incl_vat }}</td>
+      <td>{{ document.amount_excl_vat | price }}</td>
+      <td>{{ document.amount_incl_vat | price }}</td>
       <td>{{ document.discount }}</td>
       <td
         [pEditableColumn]="document.status" pEditableColumnField="status" [pEditableColumnRowIndex]="rowIndex"

@@ -247,11 +247,10 @@
                         [ngModel]="line.unit_price"
                         (ngModelChange)="updateLine(section.id, line.id, { unit_price: $event })"
                         mode="decimal"
-                        [minFractionDigits]="2"
-                      />
+                        [minFractionDigits]="2" [useGrouping]="false" [maxFractionDigits]="2" />
                     </td>
                     <td class="py-[0.3rem] px-[0.2rem] align-middle">
-                      {{ lineTotal(line) | number: '1.2-2' }}
+                      {{ lineTotal(line) | price }}
                     </td>
                     <td class="py-[0.3rem] px-[0.2rem] align-middle">
                       <p-button
@@ -317,8 +316,7 @@
                       [fluid]="true"
                       [(ngModel)]="draft.unit_price"
                       mode="decimal"
-                      [minFractionDigits]="2"
-                    />
+                      [minFractionDigits]="2" [useGrouping]="false" [maxFractionDigits]="2" />
                   </td>
                   <td class="py-[0.3rem] px-[0.2rem] align-middle"></td>
                   <td class="py-[0.3rem] px-[0.2rem] align-middle">
@@ -338,7 +336,7 @@
                     Sous-total section
                   </td>
                   <td class="font-semibold border-t border-[#eee] pt-2">
-                    {{ sectionTotal(section) | number: '1.2-2' }}
+                    {{ sectionTotal(section) | price }}
                   </td>
                   <td class="font-semibold border-t border-[#eee] pt-2"></td>
                 </tr>
@@ -422,16 +420,16 @@
 
     <div class="flex flex-col items-end gap-[0.35rem] mb-6 text-[0.95rem]">
       <div class="flex gap-6 min-w-65 justify-between">
-        <span>Sous-total</span><span>{{ documentSubtotal() | number: '1.2-2' }} CHF</span>
+        <span>Sous-total</span><span>{{ documentSubtotal() | price }} CHF</span>
       </div>
       <div class="flex gap-6 min-w-65 justify-between">
         <span>Total HT (après rabais)</span
-        ><span>{{ documentTotalAfterDiscount() | number: '1.2-2' }} CHF</span>
+        ><span>{{ documentTotalAfterDiscount() | price }} CHF</span>
       </div>
       <div
         class="flex gap-6 min-w-65 justify-between font-bold text-[1.1rem] border-t border-[#ddd] pt-[0.35rem]"
       >
-        <span>Total TTC</span><span>{{ documentTotalInclVat() | number: '1.2-2' }} CHF</span>
+        <span>Total TTC</span><span>{{ documentTotalInclVat() | price }} CHF</span>
       </div>
     </div>
 
