@@ -1,13 +1,13 @@
-<p-toolbar>
+<p-toolbar class="pt-2! pb-2!">
   <ng-template #start>
-    <h1>Documents @if (currentTypeLabel()) { — {{ currentTypeLabel() }} }</h1>
+    <h3>Documents @if (currentTypeLabel()) { — {{ currentTypeLabel() }} }</h3>
   </ng-template>
   <ng-template #end>
     <label class="ui-toolbar__archived">
       <p-checkbox [binary]="true" [ngModel]="showArchived()" (ngModelChange)="onShowArchivedChange($event)" />
       Afficher les archivés
     </label>
-    <p-button label="" icon="pi pi-plus" (onClick)="createDocument()" />
+    <p-button size="small" label="" icon="pi pi-plus" (onClick)="createDocument()" />
   </ng-template>
 </p-toolbar>
 
@@ -64,12 +64,12 @@
           </ng-template>
         </p-cellEditor>
       </td>
-      <td>
-        <p-button label="" icon="pi pi-file-pdf" [outlined]="true" (click)="openPdf(document)" />
+      <td class="w-12">
+        <p-button size="small" label="" icon="pi pi-file-pdf" [outlined]="true" (click)="openPdf(document)" />
       </td>
-      <td>
+      <td class="w-12">
         <p-menu #menu [popup]="true" [model]="menuItems" appendTo="body"></p-menu>
-        <p-button icon="pi pi-ellipsis-v" [outlined]="true" (click)="openActionsMenu(menu, $event, document)"></p-button>
+        <p-button size="small" icon="pi pi-ellipsis-v" [outlined]="true" (click)="openActionsMenu(menu, $event, document)"></p-button>
       </td>
     </tr>
   </ng-template>

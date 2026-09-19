@@ -1,13 +1,13 @@
-<p-toolbar>
+<p-toolbar class="pt-2! pb-2!">
   <ng-template #start>
-    <h1>Clients</h1>
+    <h3>Clients</h3>
   </ng-template>
   <ng-template #end>
     <label class="ui-toolbar__archived">
       <p-checkbox [binary]="true" [ngModel]="showArchived()" (ngModelChange)="onShowArchivedChange($event)" />
       Afficher les archivés
     </label>
-    <p-button label="" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+    <p-button size="small" label="" icon="pi pi-plus" (onClick)="openCreateDialog()" />
   </ng-template>
 </p-toolbar>
 
@@ -116,7 +116,7 @@
         </p-cellEditor>
       </td>
 
-      <td>
+      <td class="w-14">
         <div class="flex gap-1">
           @if (!editing) {
             <p-button type="button" pInitEditableRow icon="pi pi-pencil" [text]="true" severity="secondary" (click)="onRowEditInit(client)" />
@@ -127,9 +127,9 @@
         </div>
       </td>
 
-      <td>
+      <td class="w-12">
         <p-menu #menu [popup]="true" [model]="menuItems" appendTo="body"></p-menu>
-        <p-button icon="pi pi-ellipsis-v" [outlined]="true" (click)="openActionsMenu(menu, $event, client)"></p-button>
+        <p-button size="small" icon="pi pi-ellipsis-v" [outlined]="true" (click)="openActionsMenu(menu, $event, client)"></p-button>
       </td>
     </tr>
   </ng-template>
