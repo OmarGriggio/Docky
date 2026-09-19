@@ -1,5 +1,6 @@
 import { Component, contentChild, inject, input, OnInit, signal, TemplateRef } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
+import { PricePipe } from '../../pipes/price.pipe';
 import { forkJoin } from 'rxjs';
 import { DocumentSectionService } from '../../../features/documents/document-section.service';
 import { DocumentLineService } from '../../../features/documents/document-line.service';
@@ -27,7 +28,7 @@ const EMPTY_LINES: DocumentLine[] = [];
 @Component({
   selector: 'app-document-ledger',
   standalone: true,
-  imports: [NgTemplateOutlet, SectionDatePipe],
+  imports: [PricePipe, NgTemplateOutlet, SectionDatePipe],
   templateUrl: './document-ledger.html'
 })
 export class DocumentLedger implements OnInit {
