@@ -27,20 +27,20 @@
         @if (linesFor(section).length === 0) {
           <p class="text-xs text-surface-500 m-0">Aucune ligne.</p>
         } @else {
-          <table class="w-full text-xs">
+          <table class="w-full table-fixed text-xs">
             <thead>
               <tr class="text-left text-xs text-surface-500 uppercase">
-                <th class="font-semibold pb-1">Désignation</th>
-                <th class="font-semibold pb-1">Quantité</th>
-                <th class="font-semibold pb-1">Unité</th>
-                <th class="font-semibold pb-1">Prix unitaire</th>
-                <th class="font-semibold pb-1">Total</th>
+                <th class="font-semibold pb-1 w-[40%]">Désignation</th>
+                <th class="font-semibold pb-1 w-[15%]">Quantité</th>
+                <th class="font-semibold pb-1 w-[15%]">Unité</th>
+                <th class="font-semibold pb-1 w-[15%]">Prix unitaire</th>
+                <th class="font-semibold pb-1 w-[15%]">Total</th>
               </tr>
             </thead>
             <tbody>
               @for (line of linesFor(section); track line.id) {
                 <tr>
-                  <td class="py-1">{{ line.label }}</td>
+                  <td class="py-1 break-words">{{ line.label }}</td>
                   <td class="py-1">{{ line.quantity }}</td>
                   <td class="py-1">{{ line.unit }}</td>
                   <td class="py-1">{{ line.unit_price | price }}</td>
