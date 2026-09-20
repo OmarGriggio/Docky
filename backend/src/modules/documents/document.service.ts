@@ -240,6 +240,7 @@ export const acceptQuoteServ = async (id: number, company_id: number) => {
       description: section.description,
       date_start: null,
       date_end: null,
+      note: null,
       is_active: true,
     });
 

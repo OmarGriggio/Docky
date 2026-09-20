@@ -1,4 +1,4 @@
-import { DocumentSection, UpdateDocumentSectionData } from "./document_section.types";
+import { DocumentSection, UpdateDocumentSectionData, UpdateDocumentSectionNoteData } from "./document_section.types";
 import {
   getSectionsByDocumentIdFromDB,
   getUnscheduledSectionsFromDB,
@@ -7,6 +7,7 @@ import {
   getNextPositionForDocumentFromDB,
   createSectionInDB,
   updateSectionInDB,
+  updateSectionNoteInDB,
   archiveSectionInDB,
   unarchiveSectionInDB
 } from "./document_section.repository";
@@ -50,6 +51,14 @@ export const updateSectionServ = async (id: number, company_id: number, data: Up
     throw new NotFoundError("Section not found");
   }
   return await updateSectionInDB(id, company_id, data);
+};
+
+export const updateSectionNoteServ = async (id: number, company_id: number, data: UpdateDocumentSectionNoteData) => {
+  const section = await getSectionByIdFromDB(id, company_id);
+  if (!section) {
+    throw new NotFoundError("Section not found");
+  }
+  return await updateSectionNoteInDB(id, company_id, data);
 };
 
 export const archiveSectionServ = async (id: number, company_id: number) => {

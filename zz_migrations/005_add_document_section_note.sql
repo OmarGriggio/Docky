@@ -1,0 +1,1 @@
+ALTER TABLE document_sections ADD COLUMN IF NOT EXISTS note TEXT;

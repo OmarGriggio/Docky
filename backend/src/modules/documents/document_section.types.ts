@@ -11,6 +11,11 @@ export interface DocumentSection {
   // null when not scheduled yet.
   date_start: Date | null;
   date_end: Date | null;
+  // Free-form note a user can jot on a section from wherever it shows up
+  // (starting with the calendar dialog) - distinct from description, which
+  // is set once when the section is created and isn't meant to be a running
+  // notepad.
+  note: string | null;
 
   is_active: boolean;
 }
@@ -21,6 +26,11 @@ export interface DocumentSection {
 // caller's own archive-and-recreate pattern - see document-form.ts and
 // project-resources.ts on the frontend).
 export type UpdateDocumentSectionData = Pick<DocumentSection, "date_start" | "date_end">;
+
+// The note has its own dedicated PATCH (see document_section.routes.ts),
+// same shape as archive/unarchive - one concern per endpoint, edited
+// independently of the schedule above.
+export type UpdateDocumentSectionNoteData = Pick<DocumentSection, "note">;
 
 // A section joined with its own chantier's identity - project_id/
 // project_name aren't real columns, purely so the calendar (calendar.ts on

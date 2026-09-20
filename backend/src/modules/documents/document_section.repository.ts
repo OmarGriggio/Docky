@@ -1,5 +1,5 @@
 import { pool } from "../../shared/config/database";
-import { DocumentSection, UpdateDocumentSectionData, SectionWithProject } from "./document_section.types";
+import { DocumentSection, UpdateDocumentSectionData, UpdateDocumentSectionNoteData, SectionWithProject } from "./document_section.types";
 
 export const getSectionsByDocumentIdFromDB = async (document_id: number, includeArchived = false) => {
   const query = includeArchived
@@ -82,9 +82,10 @@ export const createSectionInDB = async (
       description,
       date_start,
       date_end,
+      note,
       is_active
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
     RETURNING *;
   `;
 
@@ -96,6 +97,7 @@ export const createSectionInDB = async (
     section.description,
     section.date_start,
     section.date_end,
+    section.note,
     section.is_active
   ];
 
@@ -115,6 +117,21 @@ export const updateSectionInDB = async (
   `;
 
   const result = await pool.query(query, [data.date_start, data.date_end, id, company_id]);
+  return result.rows[0];
+};
+
+export const updateSectionNoteInDB = async (
+  id: number,
+  company_id: number,
+  data: UpdateDocumentSectionNoteData
+): Promise<DocumentSection> => {
+  const query = `
+    UPDATE document_sections SET note = $1
+      WHERE id = $2 AND company_id = $3
+    RETURNING *;
+  `;
+
+  const result = await pool.query(query, [data.note, id, company_id]);
   return result.rows[0];
 };
 
