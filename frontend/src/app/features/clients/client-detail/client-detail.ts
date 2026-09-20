@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
@@ -24,7 +24,6 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
 export class ClientDetail implements OnInit {
 
   private route = inject(ActivatedRoute);
-  private router = inject(Router);
   private clientService = inject(ClientService);
   private addressService = inject(AddressService);
 
@@ -118,10 +117,6 @@ export class ClientDetail implements OnInit {
         console.error('client-detail : ' + err);
       }
     });
-  }
-
-  back(): void {
-    this.router.navigate(['/clients']);
   }
 
 }

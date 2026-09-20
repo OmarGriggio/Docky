@@ -1,8 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { Card } from 'primeng/card';
 import { Tag } from 'primeng/tag';
-import { Button } from 'primeng/button';
 import { ProjectService } from '../project.service';
 import { ClientService } from '../../clients/client.service';
 import { DocumentService } from '../../documents/document.service';
@@ -20,13 +19,12 @@ import { clientDisplayName } from '../../../shared/utils/display';
 @Component({
   selector: 'app-project-detail',
   standalone: true,
-  imports: [Card, Tag, Button, ProjectResources],
+  imports: [Card, Tag, ProjectResources],
   templateUrl: './project-detail.html',
 })
 export class ProjectDetail implements OnInit {
 
   private route = inject(ActivatedRoute);
-  private router = inject(Router);
   private projectService = inject(ProjectService);
   private clientService = inject(ClientService);
   private documentService = inject(DocumentService);
@@ -75,10 +73,6 @@ export class ProjectDetail implements OnInit {
 
   statusSeverity(project: Project): 'success' | 'info' {
     return project.status === 'COMPLETED' ? 'success' : 'info';
-  }
-
-  back(): void {
-    this.router.navigate(['/projects']);
   }
 
 }

@@ -1,7 +1,6 @@
 @if (client(); as c) {
   <div class="flex justify-between items-center mb-4">
     <h1 class="m-0">{{ c.company_name || (c.first_name + ' ' + c.last_name) }}</h1>
-    <p-button label="Retour" icon="pi pi-arrow-left" severity="secondary" (onClick)="back()" />
   </div>
 
   <p-card styleClass="ui-card--elevated mb-6">
