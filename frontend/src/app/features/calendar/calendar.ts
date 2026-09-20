@@ -1,22 +1,31 @@
 import { AfterViewInit, Component, ElementRef, inject, OnInit, signal, ViewChild } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { FullCalendarComponent, FullCalendarModule } from '@fullcalendar/angular';
-import { CalendarOptions, EventDropArg, EventInput } from '@fullcalendar/core';
+import { CalendarOptions, EventClickArg, EventDropArg, EventHoveringArg, EventInput } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin, { Draggable, EventReceiveArg, EventResizeDoneArg } from '@fullcalendar/interaction';
+import { Dialog } from 'primeng/dialog';
+import { Button } from 'primeng/button';
+import { Textarea } from 'primeng/textarea';
 import { DocumentSectionService } from '../documents/document-section.service';
+import { DocumentLineService } from '../documents/document-line.service';
 import { SectionWithProject } from '../../shared/models/document-section';
+import { DocumentLine } from '../../shared/models/document-line';
+import { PricePipe } from '../../shared/pipes/price.pipe';
 
 @Component({
   selector: 'app-calendar',
   standalone: true,
-  imports: [FullCalendarModule],
+  imports: [FullCalendarModule, Dialog, Button, Textarea, RouterLink, FormsModule, PricePipe],
   templateUrl: './calendar.html',
   styleUrl: './calendar.css',
 })
 export class CalendarPage implements OnInit, AfterViewInit {
 
   private documentSectionService = inject(DocumentSectionService);
+  private documentLineService = inject(DocumentLineService);
 
   @ViewChild('fullCalendar') fullCalendar!: FullCalendarComponent;
   @ViewChild('unscheduledList') unscheduledListRef!: ElementRef<HTMLElement>;
@@ -27,10 +36,33 @@ export class CalendarPage implements OnInit, AfterViewInit {
   // left to plan).
   unscheduledSections = signal<SectionWithProject[]>([]);
 
+  // Keyed by section id - every section ever put on the calendar (from
+  // loadScheduledSections or dropped via onEventReceive), so eventClick
+  // below can show full details (description, chantier...) without a
+  // round-trip: FullCalendar's own event only carries what toEventInput put
+  // in extendedProps, which is just the id.
+  private sectionsById = new Map<number, SectionWithProject>();
+
+  detailDialogVisible = signal(false);
+  selectedSection = signal<SectionWithProject | null>(null);
+  selectedSectionLines = signal<DocumentLine[]>([]);
+  // Bound to the dialog's textarea - kept separate from selectedSection so
+  // typing doesn't imply it's saved; only saveNote() below persists it.
+  noteDraft = signal('');
+
+  // The hover preview (chantier/titre/description) shown while the mouse is
+  // over an event - a lighter-weight peek than the click dialog above,
+  // which also loads the section's lines. Positioned off the hovered
+  // event's own bounding rect (see onEventMouseEnter), not the cursor -
+  // steadier while moving across a short event block.
+  hoveredSection = signal<SectionWithProject | null>(null);
+  hoverPosition = signal({ top: 0, left: 0 });
+
   calendarOptions: CalendarOptions = {
     plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
     initialView: 'dayGridMonth',
     locale: 'fr',
+    firstDay: 1,
     height: 'auto',
     headerToolbar: {
       left: 'prev,next today',
@@ -50,6 +82,9 @@ export class CalendarPage implements OnInit, AfterViewInit {
     eventReceive: info => this.onEventReceive(info),
     eventDrop: info => this.onEventDropOrResize(info),
     eventResize: info => this.onEventDropOrResize(info),
+    eventClick: info => this.onEventClick(info),
+    eventMouseEnter: info => this.onEventMouseEnter(info),
+    eventMouseLeave: () => this.hoveredSection.set(null),
   };
 
   ngOnInit(): void {
@@ -87,8 +122,57 @@ export class CalendarPage implements OnInit, AfterViewInit {
       next: sections => {
         const calendarApi = this.fullCalendar.getApi();
         for (const section of sections) {
+          this.sectionsById.set(section.id, section);
           calendarApi.addEvent(this.toEventInput(section));
         }
+      },
+      error: err => console.error('calendar : ' + err)
+    });
+  }
+
+  private onEventClick(info: EventClickArg): void {
+    const sectionId = info.event.extendedProps['sectionId'] as number;
+    const section = this.sectionsById.get(sectionId);
+    if (!section) {
+      return;
+    }
+
+    this.hoveredSection.set(null);
+    this.selectedSection.set(section);
+    this.selectedSectionLines.set([]);
+    this.noteDraft.set(section.note ?? '');
+    this.detailDialogVisible.set(true);
+
+    this.documentLineService.getLines(section.document_id).subscribe({
+      next: lines => this.selectedSectionLines.set(lines.filter(l => l.section_id === section.id)),
+      error: err => console.error('calendar : ' + err)
+    });
+  }
+
+  private onEventMouseEnter(info: EventHoveringArg): void {
+    const sectionId = info.event.extendedProps['sectionId'] as number;
+    const section = this.sectionsById.get(sectionId);
+    if (!section) {
+      return;
+    }
+
+    const rect = info.el.getBoundingClientRect();
+    this.hoverPosition.set({ top: rect.bottom + window.scrollY + 4, left: rect.left + window.scrollX });
+    this.hoveredSection.set(section);
+  }
+
+  saveNote(): void {
+    const section = this.selectedSection();
+    if (!section) {
+      return;
+    }
+
+    const note = this.noteDraft().trim() || null;
+    this.documentSectionService.updateSectionNote(section.id, note).subscribe({
+      next: () => {
+        const updatedSection = { ...section, note };
+        this.sectionsById.set(section.id, updatedSection);
+        this.selectedSection.set(updatedSection);
       },
       error: err => console.error('calendar : ' + err)
     });
@@ -108,7 +192,7 @@ export class CalendarPage implements OnInit, AfterViewInit {
 
     return {
       id: `section-${section.id}`,
-      title: `${section.project_name} — ${section.title}`,
+      title: `${section.title} — ${section.project_name}`,
       start,
       end,
       allDay,
@@ -120,7 +204,7 @@ export class CalendarPage implements OnInit, AfterViewInit {
   // ngAfterViewInit's own Draggable(eventData) above once dropped.
   eventDataFor(section: SectionWithProject): string {
     return JSON.stringify({
-      title: `${section.project_name} — ${section.title}`,
+      title: `${section.title} — ${section.project_name}`,
       extendedProps: { sectionId: section.id },
     });
   }
@@ -165,11 +249,9 @@ export class CalendarPage implements OnInit, AfterViewInit {
     }).subscribe({
       next: () => {
         this.unscheduledSections.update(sections => sections.filter(s => s.id !== sectionId));
-        this.fullCalendar.getApi().addEvent(this.toEventInput({
-          ...section,
-          date_start: dateStartIso,
-          date_end: dateEndIso,
-        }));
+        const scheduledSection = { ...section, date_start: dateStartIso, date_end: dateEndIso };
+        this.sectionsById.set(sectionId, scheduledSection);
+        this.fullCalendar.getApi().addEvent(this.toEventInput(scheduledSection));
       },
       error: err => console.error('calendar : ' + err)
     });
@@ -192,10 +274,19 @@ export class CalendarPage implements OnInit, AfterViewInit {
       return;
     }
 
+    const dateStartIso = start.toISOString();
+    const dateEndIso = (end ?? start).toISOString();
+
     this.documentSectionService.updateSection(sectionId, {
-      date_start: start.toISOString(),
-      date_end: (end ?? start).toISOString(),
+      date_start: dateStartIso,
+      date_end: dateEndIso,
     }).subscribe({
+      next: () => {
+        const section = this.sectionsById.get(sectionId);
+        if (section) {
+          this.sectionsById.set(sectionId, { ...section, date_start: dateStartIso, date_end: dateEndIso });
+        }
+      },
       error: err => {
         console.error('calendar : ' + err);
         info.revert();

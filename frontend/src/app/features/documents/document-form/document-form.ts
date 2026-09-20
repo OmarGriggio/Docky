@@ -830,6 +830,7 @@ export class DocumentForm implements OnInit {
         // one, only a chantier's might, handled separately).
         date_start: null,
         date_end: null,
+        note: null,
       }));
 
       for (const line of section.lines) {

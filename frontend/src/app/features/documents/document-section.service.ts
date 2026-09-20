@@ -41,6 +41,10 @@ export class DocumentSectionService {
     return this.http.put<DocumentSection>(`${API_BASE}/document-section/${id}`, section);
   }
 
+  updateSectionNote(id: number, note: string | null) {
+    return this.http.patch<DocumentSection>(`${API_BASE}/document-section/${id}/note`, { note });
+  }
+
   archiveSection(id: number) {
     return this.http.patch<DocumentSection>(`${API_BASE}/document-section/${id}/archive`, {});
   }

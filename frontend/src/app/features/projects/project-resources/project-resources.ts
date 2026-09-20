@@ -250,6 +250,7 @@ export class ProjectResources implements OnInit {
           description: section.description,
           date_start: section.date_start ? section.date_start.toISOString() : null,
           date_end: section.date_end ? section.date_end.toISOString() : null,
+          note: null,
         }));
 
         for (const line of section.lines) {
