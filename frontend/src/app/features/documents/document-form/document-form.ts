@@ -20,12 +20,14 @@ import { DocumentTemplateService } from '../document-template.service';
 import { ClientService } from '../../clients/client.service';
 import { ProjectService } from '../../projects/project.service';
 import { ResourceService } from '../../resources/resource.service';
+import { ResourceUnitService } from '../../resources/resource-unit.service';
 import { CompanyService } from '../../profile/company.service';
 import { AuthService } from '../../auth/auth.service';
 import { Client } from '../../../shared/models/client';
 import { Address } from '../../../shared/models/address';
 import { Project } from '../../../shared/models/project';
 import { Resource } from '../../../shared/models/resource';
+import { ResourceUnit } from '../../../shared/models/resource-unit';
 import { Company } from '../../../shared/models/company';
 import { DocumentStatus, DocumentType } from '../../../shared/models/document';
 import { DocumentComplete } from '../../../shared/models/document-complete';
@@ -115,6 +117,7 @@ export class DocumentForm implements OnInit {
   private clientService = inject(ClientService);
   private projectService = inject(ProjectService);
   private resourceService = inject(ResourceService);
+  private resourceUnitService = inject(ResourceUnitService);
   private companyService = inject(CompanyService);
   private authService = inject(AuthService);
 
@@ -165,6 +168,18 @@ export class DocumentForm implements OnInit {
   // both types consistent and doesn't block a correction that ledger
   // didn't anticipate).
   resources = signal<Resource[]>([]);
+
+  // The company's own customizable unit list (see zz_migrations/
+  // 006_create_resource_units.sql) - source for the "unit" picker on every
+  // line below (unitOptions/onUnitPicked). Loaded once in ngOnInit like
+  // resources above.
+  private resourceUnits = signal<ResourceUnit[]>([]);
+  // Current text typed into a unit p-select's own search bar (onFilter) -
+  // read by unitOptions to offer a "+ Ajouter ..." entry when it doesn't
+  // match anything yet. Shared across every unit picker on the page since
+  // only one can be open (thus filtering) at a time.
+  unitFilterQuery = signal('');
+  private readonly ADD_UNIT_PREFIX = '__add_unit__:';
   // Ids of sections that came from "Charger chantier" (applyFromProject's
   // own loadProjectResources call, see "Facturer" above) - tracked so
   // re-running it (or clearing the project) replaces exactly these, never a
@@ -275,6 +290,11 @@ export class DocumentForm implements OnInit {
 
     this.resourceService.getResources().subscribe({
       next: data => this.resources.set(data),
+      error: err => console.error('document-form : ' + err)
+    });
+
+    this.resourceUnitService.getUnits().subscribe({
+      next: data => this.resourceUnits.set(data),
       error: err => console.error('document-form : ' + err)
     });
 
@@ -711,6 +731,67 @@ export class DocumentForm implements OnInit {
     );
 
     this.newLineDrafts.set(sectionId, this.emptyLine());
+  }
+
+  // Plain method (not a computed signal) since it also has to reflect
+  // newLineDrafts's own mutable Map, which isn't itself reactive - same
+  // reasoning as newLineFor above, re-run on every change-detection pass
+  // instead. Options are every label the company already has, plus
+  // whatever's currently sitting in a line/draft's own unit (covers a
+  // pre-existing free-text value that predates this picker, so it still
+  // shows as selected instead of going blank), plus a synthetic
+  // "+ Ajouter ..." entry when the current search text matches nothing.
+  unitOptions(): { label: string; value: string }[] {
+    const labels = new Set<string>();
+    for (const unit of this.resourceUnits()) {
+      labels.add(unit.label);
+    }
+    for (const section of this.sections()) {
+      for (const line of section.lines) {
+        if (line.unit) {
+          labels.add(line.unit);
+        }
+      }
+    }
+    for (const draft of this.newLineDrafts.values()) {
+      if (draft.unit) {
+        labels.add(draft.unit);
+      }
+    }
+
+    const options = Array.from(labels)
+      .sort((a, b) => a.localeCompare(b))
+      .map(label => ({ label, value: label }));
+
+    const query = this.unitFilterQuery().trim();
+    if (query && !options.some(o => o.value.toLowerCase() === query.toLowerCase())) {
+      options.push({ label: `+ Ajouter "${query}"`, value: `${this.ADD_UNIT_PREFIX}${query}` });
+    }
+    return options;
+  }
+
+  // Wired to every unit p-select's own (ngModelChange) - `apply` is
+  // whatever setter that particular select needs (updateLine's patch for an
+  // already-added line, or a plain draft.unit assignment for the inline
+  // add-row). A plain pick just applies the label; picking the synthetic
+  // "+ Ajouter ..." entry from unitOptions above applies the typed label
+  // right away too (so the select doesn't sit blank while the request is
+  // in flight) and persists it as a real resource_units row in the
+  // background (get-or-create - see resource_unit.service.ts).
+  onUnitPicked(value: string, apply: (unit: string) => void): void {
+    if (!value.startsWith(this.ADD_UNIT_PREFIX)) {
+      apply(value);
+      return;
+    }
+
+    const label = value.slice(this.ADD_UNIT_PREFIX.length);
+    apply(label);
+    this.unitFilterQuery.set('');
+
+    this.resourceUnitService.createUnit(label).subscribe({
+      next: unit => this.resourceUnits.update(units => [...units, unit]),
+      error: err => console.error('document-form : ' + err)
+    });
   }
 
   // Edits an already-added line in place (type/label/quantity/unit/price) -

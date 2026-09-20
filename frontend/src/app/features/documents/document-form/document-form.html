@@ -1,5 +1,5 @@
 <div class="flex justify-center py-8 px-4">
-  <p-card styleClass="ui-card--elevated w-full max-w-250">
+  <p-card styleClass="ui-card--elevated w-full max-w-280">
     <div class="flex justify-between gap-8 flex-wrap mb-6">
       <div class="flex flex-col gap-1 text-[#555] text-[0.9rem]">
         @if (companyLogoUrl()) {
@@ -161,12 +161,12 @@
           <div class="overflow-x-auto">
             <table class="w-full min-w-160 border-collapse table-fixed">
               <colgroup>
-                <col style="width: 8%" />
-                <col style="width: 28%" />
+                <col style="width: 13%" />
+                <col style="width: 29%" />
                 <col style="width: 12%" />
                 <col style="width: 10%" />
-                <col style="width: 13%" />
-                <col style="width: 14%" />
+                <col style="width: 10%" />
+                <col style="width: 11%" />
                 <col style="width: 8%" />
               </colgroup>
               <thead>
@@ -231,13 +231,19 @@
                       />
                     </td>
                     <td class="py-[0.3rem] px-[0.2rem] align-middle">
-                      <input
-                        pInputText
-                        pSize="small"
+                      <p-select
+                        size="small"
                         [fluid]="true"
-                        class="block"
+                        [options]="unitOptions()"
+                        optionLabel="label"
+                        optionValue="value"
+                        [filter]="true"
+                        filterPlaceholder="Rechercher ou ajouter..."
                         [ngModel]="line.unit"
-                        (ngModelChange)="updateLine(section.id, line.id, { unit: $event })"
+                        (ngModelChange)="onUnitPicked($event, u => updateLine(section.id, line.id, { unit: u }))"
+                        (onFilter)="unitFilterQuery.set($event.filter)"
+                        (onHide)="unitFilterQuery.set('')"
+                        appendTo="body"
                       />
                     </td>
                     <td class="py-[0.3rem] px-[0.2rem] align-middle">
@@ -301,13 +307,20 @@
                     />
                   </td>
                   <td class="py-[0.3rem] px-[0.2rem] align-middle">
-                    <input
-                      pInputText
-                      pSize="small"
+                    <p-select
+                      size="small"
                       [fluid]="true"
-                      class="block"
-                      [(ngModel)]="draft.unit"
+                      [options]="unitOptions()"
+                      optionLabel="label"
+                      optionValue="value"
+                      [filter]="true"
+                      filterPlaceholder="Rechercher ou ajouter..."
                       placeholder="Unité"
+                      [ngModel]="draft.unit"
+                      (ngModelChange)="onUnitPicked($event, u => draft.unit = u)"
+                      (onFilter)="unitFilterQuery.set($event.filter)"
+                      (onHide)="unitFilterQuery.set('')"
+                      appendTo="body"
                     />
                   </td>
                   <td class="py-[0.3rem] px-[0.2rem] align-middle">
