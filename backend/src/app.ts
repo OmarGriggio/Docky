@@ -6,6 +6,7 @@ import userRoutes from "./modules/users/user.routes";
 import authRoutes from "./modules/auth/auth.routes";
 import loginHistoryRoutes from "./modules/auth/login_history.routes";
 import resourceRoutes from "./modules/catalog/resource.routes";
+import resourceUnitRoutes from "./modules/catalog/resource_unit.routes";
 import documentRoutes from "./modules/documents/document.routes";
 import documentCompleteRoutes from "./modules/documents/document_complete.routes";
 import documentLineRoutes from "./modules/documents/document_line.routes";
@@ -59,6 +60,8 @@ app.use("/client", clientRoutes);
 app.use("/address", addressRoutes);
 
 app.use("/resource", resourceRoutes);
+
+app.use("/resource-unit", resourceUnitRoutes);
 
 app.use("/document", documentRoutes);
 
