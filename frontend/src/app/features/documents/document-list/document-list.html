@@ -11,7 +11,7 @@
   </ng-template>
 </p-toolbar>
 
-<p-table [value]="documents()" dataKey="id" showGridlines size="small" editMode="cell" (onEditComplete)="onStatusEditComplete($event)" [expandedRowKeys]="expandedRowKeys">
+<p-table [value]="documents()" dataKey="id" showGridlines size="small" editMode="cell" (onEditInit)="onStatusEditInit($event)" (onEditComplete)="onStatusEditComplete($event)" [expandedRowKeys]="expandedRowKeys">
   <ng-template #header>
     <tr>
       <th style="width: 3rem"></th>
@@ -96,4 +96,5 @@
   message="Valider cette offre va créer un chantier et y reporter les ressources utilisées. Continuer ?"
   confirmLabel="Valider"
   (confirmed)="onAcceptConfirmed()"
+  (cancelled)="onAcceptCancelled()"
 />

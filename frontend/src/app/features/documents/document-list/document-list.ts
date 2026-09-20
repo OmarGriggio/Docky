@@ -1,7 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { TableModule, TableEditCompleteEvent } from 'primeng/table';
+import { TableModule, TableEditCompleteEvent, TableEditInitEvent } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { Toolbar } from 'primeng/toolbar';
 import { Button } from 'primeng/button';
@@ -167,21 +167,36 @@ export class DocumentListComponent implements OnInit {
 
   // Statuses settable straight from the list, per type (mirrors
   // document.service.ts's SETTABLE_STATUSES on the backend, which enforces
-  // it). A quote's ACCEPTED/REJECTED have their own dedicated action
-  // ("Valider l'offre"); an invoice can also be marked paid or cancelled -
-  // both final, the row is no longer editable afterwards (see isEditable).
+  // it). Picking ACCEPTED still goes through the confirm dialog below
+  // (onStatusEditComplete/onAcceptConfirmed) rather than saving right away -
+  // it creates a chantier and carries resources over, not a plain status
+  // write. Kept as two separate lists (not one shared array) so ACCEPTED
+  // never leaks into an invoice's own options.
   private quoteStatusOptions: { label: string; value: DocumentStatus }[] = [
     { label: 'Brouillon', value: 'DRAFT' },
     { label: 'Envoyée', value: 'SENT' },
+    { label: 'Acceptée', value: 'ACCEPTED' },
   ];
   private invoiceStatusOptions: { label: string; value: DocumentStatus }[] = [
-    ...this.quoteStatusOptions,
+    { label: 'Brouillon', value: 'DRAFT' },
+    { label: 'Envoyée', value: 'SENT' },
     { label: 'Payée', value: 'PAID' },
     { label: 'Annulée', value: 'CANCELLED' },
   ];
 
   statusOptionsFor(document: Document): { label: string; value: DocumentStatus }[] {
     return document.type === 'INVOICE' ? this.invoiceStatusOptions : this.quoteStatusOptions;
+  }
+
+  // Snapshotted right as a cell enters edit mode (before the select's own
+  // ngModel can touch document.status) - onStatusEditComplete needs it to
+  // tell an actual change into ACCEPTED apart from picking it again, and
+  // onAcceptCancelled needs it to put the select back where it was.
+  private statusBeforeEdit: DocumentStatus | null = null;
+
+  onStatusEditInit(event: TableEditInitEvent): void {
+    const document = event.index !== undefined ? this.documents()[event.index] : undefined;
+    this.statusBeforeEdit = document?.status ?? null;
   }
 
   // Resolved via event.index (the row), not event.data: [pEditableColumn]
@@ -191,6 +206,11 @@ export class DocumentListComponent implements OnInit {
   onStatusEditComplete(event: TableEditCompleteEvent): void {
     const document = event.index !== undefined ? this.documents()[event.index] : undefined;
     if (!document || document.status === null) {
+      return;
+    }
+
+    if (document.status === 'ACCEPTED' && this.statusBeforeEdit !== 'ACCEPTED') {
+      this.confirmAcceptQuote(document);
       return;
     }
 
@@ -223,9 +243,6 @@ export class DocumentListComponent implements OnInit {
       // accepted quote (see zz_docs/Decisions.md), never a copy of another.
       ...(document.type === 'QUOTE'
         ? [{ label: 'Dupliquer', command: () => this.duplicateDocument(document) }]
-        : []),
-      ...(document.type === 'QUOTE' && this.isEditable(document)
-        ? [{ label: "Valider l'offre", command: () => this.confirmAcceptQuote(document) }]
         : [])
     ];
   }
@@ -239,6 +256,17 @@ export class DocumentListComponent implements OnInit {
     this.acceptConfirmVisible.set(true);
   }
 
+  // The select already flipped document.status to ACCEPTED in memory (two-
+  // way bound) the moment it was picked - put it back so the row doesn't
+  // show "Acceptée" for a quote that was never actually validated.
+  onAcceptCancelled(): void {
+    const document = this.documentPendingAccept;
+    if (document) {
+      document.status = this.statusBeforeEdit;
+    }
+    this.documentPendingAccept = null;
+  }
+
   onAcceptConfirmed(): void {
     const document = this.documentPendingAccept;
     if (!document) {
@@ -248,7 +276,10 @@ export class DocumentListComponent implements OnInit {
 
     this.documentService.acceptQuote(document.id).subscribe({
       next: () => this.loadDocuments(),
-      error: err => console.error('document-list : ' + err)
+      error: err => {
+        console.error('document-list : ' + err);
+        document.status = this.statusBeforeEdit;
+      }
     });
   }
 
