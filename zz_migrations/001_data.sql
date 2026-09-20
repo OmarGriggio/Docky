@@ -126,19 +126,26 @@ VALUES
 -- these by id further down - ids run 1-10 here (not 1-8), in insertion
 -- order: 1 (doc 1), 2-3 (doc 2), 4-5 (doc 3), 6 (doc 4), 7 (doc 5),
 -- 8 (doc 6), 9 (doc 7), 10 (doc 8).
+-- date_start/date_end carry a time (TIMESTAMP, not DATE) - each work window
+-- below uses a plain 08:00-17:00 workday. Sections 7/8 (docs 5/6, the two
+-- IN_PROGRESS - not yet COMPLETED - chantiers with no quote behind them)
+-- are left with no schedule (NULL): a still-open chantier's own dates
+-- aren't known yet here, only closed ones and the quotes/invoices around
+-- them carry a fixed work window. getProjectsFromDB sorts those without one
+-- after those with (see CLAUDE.md's Backend section).
 INSERT INTO document_sections
-(company_id, document_id, position, title, description)
+(company_id, document_id, position, title, description, date_start, date_end)
 VALUES
-(1, 1, 1, 'Pos 1', NULL),
-(1, 2, 1, 'Pos 1', NULL),
-(1, 2, 2, 'Pos 2', 'Finitions et raccordement électrique'),
-(1, 3, 1, 'Pos 1', NULL),
-(1, 3, 2, 'Pos 2', 'Peinture et finitions'),
-(1, 4, 1, 'Pos 1', NULL),
-(1, 5, 1, 'Pos 1', NULL),
-(1, 6, 1, 'Pos 1', NULL),
-(1, 7, 1, 'Pos 1', NULL),
-(1, 8, 1, 'Pos 1', NULL);
+(1, 1, 1, 'Pos 1', NULL, '2026-07-14 08:00:00', '2026-07-14 17:00:00'),
+(1, 2, 1, 'Pos 1', NULL, '2026-07-21 08:00:00', '2026-07-21 17:00:00'),
+(1, 2, 2, 'Pos 2', 'Finitions et raccordement électrique', '2026-07-26 08:00:00', '2026-07-26 17:00:00'),
+(1, 3, 1, 'Pos 1', NULL, '2026-07-14 08:00:00', '2026-07-14 16:30:00'),
+(1, 3, 2, 'Pos 2', 'Peinture et finitions', '2026-07-15 08:00:00', '2026-07-15 15:00:00'),
+(1, 4, 1, 'Pos 1', NULL, '2026-07-21 08:00:00', '2026-07-21 17:00:00'),
+(1, 5, 1, 'Pos 1', NULL, NULL, NULL),
+(1, 6, 1, 'Pos 1', NULL, NULL, NULL),
+(1, 7, 1, 'Pos 1', NULL, '2026-07-26 08:00:00', '2026-07-26 17:00:00'),
+(1, 8, 1, 'Pos 1', NULL, '2026-07-15 08:00:00', '2026-07-15 16:00:00');
 
 -- ==========================================
 -- DOCUMENT LINES
@@ -384,19 +391,25 @@ VALUES
 -- One "Travaux" section per document above (ids 11-20, same order - company
 -- 1 now seeds 10 sections of its own, not 8, so company 2's own start two
 -- higher than the document ids alone would suggest).
+-- date_start/date_end match each section's underlying job: quote (11-13)
+-- and invoice (18-20) sections mirror the actual project window they
+-- propose/bill, project sections (14-16) are that same window since that's
+-- when the work happened. Section 17 (doc 15, company 2's only IN_PROGRESS
+-- - not yet COMPLETED - chantier) is left with no schedule (NULL), same as
+-- company 1's own open chantiers above.
 INSERT INTO document_sections
-(company_id, document_id, position, title)
+(company_id, document_id, position, title, date_start, date_end)
 VALUES
-(2, 9, 1, 'Travaux'),
-(2, 10, 1, 'Travaux'),
-(2, 11, 1, 'Travaux'),
-(2, 12, 1, 'Travaux'),
-(2, 13, 1, 'Travaux'),
-(2, 14, 1, 'Travaux'),
-(2, 15, 1, 'Travaux'),
-(2, 16, 1, 'Travaux'),
-(2, 17, 1, 'Travaux'),
-(2, 18, 1, 'Travaux');
+(2, 9, 1, 'Travaux', '2026-09-15 07:00:00', '2026-09-15 17:00:00'),
+(2, 10, 1, 'Travaux', '2026-09-22 07:00:00', '2026-09-22 11:00:00'),
+(2, 11, 1, 'Travaux', '2026-09-26 08:00:00', '2026-09-26 17:00:00'),
+(2, 12, 1, 'Travaux', '2026-09-14 07:00:00', '2026-09-14 11:00:00'),
+(2, 13, 1, 'Travaux', '2026-09-22 07:00:00', '2026-09-22 17:00:00'),
+(2, 14, 1, 'Travaux', '2026-09-26 08:00:00', '2026-09-26 17:00:00'),
+(2, 15, 1, 'Travaux', NULL, NULL),
+(2, 16, 1, 'Travaux', '2026-09-15 07:00:00', '2026-09-15 17:00:00'),
+(2, 17, 1, 'Travaux', '2026-09-22 07:00:00', '2026-09-22 11:00:00'),
+(2, 18, 1, 'Travaux', '2026-09-27 08:00:00', '2026-09-27 17:00:00');
 
 -- ==========================================
 -- DOCUMENT LINES
@@ -623,15 +636,18 @@ VALUES
 
 -- One "Travaux" section per document above that has lines (not document 19,
 -- the still-empty DRAFT quote) - ids 21-26, same order as documents 20-25.
+-- Section 26 (doc 25, the suspended chantier - IN_PROGRESS, not COMPLETED,
+-- see its own "à reprendre" note) is left with no schedule (NULL), same as
+-- every other still-open chantier above.
 INSERT INTO document_sections
-(company_id, document_id, position, title)
+(company_id, document_id, position, title, date_start, date_end)
 VALUES
-(1, 20, 1, 'Travaux'),
-(1, 21, 1, 'Travaux'),
-(1, 22, 1, 'Travaux'),
-(1, 23, 1, 'Travaux'),
-(1, 24, 1, 'Travaux'),
-(1, 25, 1, 'Travaux');
+(1, 20, 1, 'Travaux', '2026-09-19 08:00:00', '2026-09-19 17:00:00'),
+(1, 21, 1, 'Travaux', '2026-09-20 08:00:00', '2026-09-20 15:00:00'),
+(1, 22, 1, 'Travaux', '2026-09-14 08:00:00', '2026-09-14 12:00:00'),
+(1, 23, 1, 'Travaux', '2026-09-25 08:00:00', '2026-09-25 14:00:00'),
+(1, 24, 1, 'Travaux', '2026-09-18 08:00:00', '2026-09-18 17:00:00'),
+(1, 25, 1, 'Travaux', NULL, NULL);
 
 -- ==========================================
 -- DOCUMENT LINES
@@ -705,10 +721,10 @@ VALUES
 	Avec nos meilleures salutations.');
 
 INSERT INTO document_sections
-(company_id, document_id, position, title)
+(company_id, document_id, position, title, date_start, date_end)
 VALUES
-(1, 26, 1, 'Travaux'),
-(1, 27, 1, 'Travaux');
+(1, 26, 1, 'Travaux', '2026-08-20 08:00:00', '2026-08-21 17:00:00'),
+(1, 27, 1, 'Travaux', '2026-08-24 08:00:00', '2026-08-24 16:00:00');
 
 INSERT INTO document_lines
 (company_id, document_id, section_id, type, position, label, quantity, unit, unit_price, discount, resource_id)
