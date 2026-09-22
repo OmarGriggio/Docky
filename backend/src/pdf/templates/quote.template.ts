@@ -73,6 +73,32 @@ export class QuoteTemplate {
         // No real signature yet - just the company's own name, standing in
         // for one (same as the invoice).
         pdf.text(quote.company.name, { indent: 250, marginTop: 20 });
+
+        // The client's own acceptance, distinct from the company's own
+        // signature above - blank date/signature lines for them to fill in
+        // by hand once printed (no real e-signature yet), side by side on
+        // one row. Both labels use drawTextAt (an absolute position, not
+        // the flowing cursor) so they land on the exact same Y - the
+        // flowing pdf.text() can't do that for a second, indented label:
+        // it always advances the cursor down after drawing, and
+        // lowerCursorTo only ever moves it further down, never back up to
+        // realign a second label with the first.
+        pdf.text("Bon pour accord", { bold: true, marginTop: 30, marginBottom: 25 });
+
+        const rowY = pdf.remainingHeight();
+        const margin = pdf.marginValue();
+        pdf.drawTextAt("Date :", margin, rowY);
+        this.drawSignatureLine(pdf, margin + 35, rowY - 3, 140);
+
+        pdf.drawTextAt("Signature :", margin + 250, rowY);
+        this.drawSignatureLine(pdf, margin + 250 + 62, rowY - 3, 160);
+
+        pdf.lowerCursorTo(rowY - 15);
+    }
+
+    /** A short blank line to sign/date on, drawn by absolute position - independent of the flowing cursor, which the caller is responsible for advancing past afterwards. */
+    private static drawSignatureLine(pdf: PdfWriter, x: number, y: number, width: number) {
+        pdf.drawLineAt({ x, y }, { x: x + width, y }, 0.5);
     }
 
     // The full itemized breakdown - every section's own lines, in a table,
