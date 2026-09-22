@@ -12,4 +12,5 @@ export interface Company {
   header_image: string | null;
   vat_rate: number;
   vat_number: string | null;
+  payment_terms: string | null;
 }

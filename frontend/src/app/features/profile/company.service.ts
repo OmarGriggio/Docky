@@ -38,6 +38,10 @@ export class CompanyService {
     return this.http.post<Company>(`${API_BASE}/company/${id}/header-image`, formData);
   }
 
+  updatePaymentTerms(id: number, paymentTerms: string | null) {
+    return this.http.patch<Company>(`${API_BASE}/company/${id}/payment-terms`, { payment_terms: paymentTerms });
+  }
+
   // Generic - both the logo and the header image are served the same way
   // (see app.ts's /uploads/*splat), just stored under a different key.
   getFileUrl(path: string | null): string | null {

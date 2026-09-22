@@ -166,6 +166,11 @@
           <label for="invoice_conclusion">Facture - Conclusion</label>
         </p-floatlabel>
 
+        <p-floatlabel variant="on" class="ui-form__full">
+          <textarea pTextarea id="payment_terms" formControlName="payment_terms" rows="3"></textarea>
+          <label for="payment_terms">Conditions de paiement par défaut</label>
+        </p-floatlabel>
+
         @if (!canManageCompany()) {
           <p class="ui-form__full">Seul un administrateur peut modifier les modèles de documents.</p>
         }

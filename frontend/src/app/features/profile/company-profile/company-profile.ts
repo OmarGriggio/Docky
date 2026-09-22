@@ -39,14 +39,18 @@ export class CompanyProfile implements OnInit {
     vat_number: [''],
   });
 
-  // Default introduction/conclusion text applied when that type is picked
-  // on a new document (see document-form.ts) - one document_templates row
-  // per (company, type), edited together here.
+  // Default introduction/conclusion/payment terms applied when that type is
+  // picked on a new document (see document-form.ts) - introduction/
+  // conclusion are one document_templates row per (company, type);
+  // payment_terms is company-wide (not per type, unlike the other two -
+  // see updateCompanyPaymentTermsServ on the backend), edited together here
+  // since it's the same "default for a new document" idea.
   templatesForm = this.fb.nonNullable.group({
     quote_introduction: [''],
     quote_conclusion: [''],
     invoice_introduction: [''],
     invoice_conclusion: [''],
+    payment_terms: [''],
   });
 
   templatesLoading = signal(true);
@@ -66,6 +70,13 @@ export class CompanyProfile implements OnInit {
   headerImagePath = signal<string | null>(null);
   headerImageUrl = computed(() => this.companyService.getFileUrl(this.headerImagePath()));
   headerImageErrorMessage = signal<string | null>(null);
+
+  // Edited in the "Modèles de documents" card below (templatesForm), not
+  // this component's own `form` - kept here (not just inside templatesForm)
+  // so submit() below can still send the *current* value on the main
+  // form's own full-row PUT, same reasoning as logoPath/headerImagePath
+  // above for a field with its own independent save path.
+  paymentTerms = signal<string | null>(null);
 
   private companyId: number | null = null;
 
@@ -112,6 +123,8 @@ export class CompanyProfile implements OnInit {
         });
         this.logoPath.set(company.logo);
         this.headerImagePath.set(company.header_image);
+        this.paymentTerms.set(company.payment_terms);
+        this.templatesForm.patchValue({ payment_terms: company.payment_terms ?? '' });
         this.loading.set(false);
 
         if (!this.canManageCompany()) {
@@ -134,7 +147,12 @@ export class CompanyProfile implements OnInit {
     this.successMessage.set(null);
     this.errorMessage.set(null);
 
-    this.companyService.updateCompany(this.companyId, { ...this.form.getRawValue(), logo: this.logoPath(), header_image: this.headerImagePath() }).subscribe({
+    this.companyService.updateCompany(this.companyId, {
+      ...this.form.getRawValue(),
+      logo: this.logoPath(),
+      header_image: this.headerImagePath(),
+      payment_terms: this.paymentTerms(),
+    }).subscribe({
       next: () => {
         this.successMessage.set('Les données de l\'entreprise ont été mises à jour.');
       },
@@ -174,16 +192,22 @@ export class CompanyProfile implements OnInit {
   }
 
   submitTemplates(): void {
+    if (this.companyId === null) {
+      return;
+    }
+
     this.templatesSuccessMessage.set(null);
     this.templatesErrorMessage.set(null);
 
-    const { quote_introduction, quote_conclusion, invoice_introduction, invoice_conclusion } = this.templatesForm.getRawValue();
+    const { quote_introduction, quote_conclusion, invoice_introduction, invoice_conclusion, payment_terms } = this.templatesForm.getRawValue();
 
     forkJoin({
       quote: this.documentTemplateService.upsertTemplate('QUOTE', { introduction: quote_introduction, conclusion: quote_conclusion }),
       invoice: this.documentTemplateService.upsertTemplate('INVOICE', { introduction: invoice_introduction, conclusion: invoice_conclusion }),
+      company: this.companyService.updatePaymentTerms(this.companyId, payment_terms.trim() || null),
     }).subscribe({
-      next: () => {
+      next: ({ company }) => {
+        this.paymentTerms.set(company.payment_terms);
         this.templatesSuccessMessage.set('Les modèles de documents ont été mis à jour.');
       },
       error: err => {
