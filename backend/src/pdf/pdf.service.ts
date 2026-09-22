@@ -58,7 +58,12 @@ export const generateInvoicePdfServ = async (documentId: number, company_id: num
         pdf.newPage();
     }
     await SwissQrBillTemplate.render(pdf, qrBill, qrImageBytes);
+    // Whichever page the QR-bill ended up on (fresh or shared with the
+    // details' own tail) - its strict official layout has no room for a
+    // page number too.
+    pdf.excludeCurrentPageFromNumbering();
 
+    pdf.drawPageNumbers();
     return pdf.save();
 };
 
@@ -80,5 +85,6 @@ export const generateQuotePdfServ = async (documentId: number, company_id: numbe
     pdf.newPage();
     QuoteTemplate.renderDetails(pdf, quote);
 
+    pdf.drawPageNumbers();
     return pdf.save();
 };

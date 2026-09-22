@@ -16,6 +16,17 @@ export class PdfWriter {
     private page: PDFPage;
     private cursorY: number;
 
+    // Every page ever created, in order - drawPageNumbers() below needs the
+    // full set (not just the current one) once everything else is drawn, to
+    // know each page's own position and the final total. excludedPages
+    // holds pages left out of that numbering entirely (the Swiss QR-bill's
+    // own page, which has no room for extra printed content) - identity-
+    // based (a PDFPage is a real object, one instance per page), not by
+    // index, since a page can be excluded from the flowing side of the API
+    // without this writer otherwise tracking "which index is that".
+    private allPages: PDFPage[];
+    private excludedPages = new Set<PDFPage>();
+
     private constructor(
         private readonly doc: PDFDocument,
         private readonly regularFont: PDFFont,
@@ -24,6 +35,7 @@ export class PdfWriter {
     ) {
         this.page = doc.addPage(options.pageSize);
         this.cursorY = this.page.getHeight() - options.margin;
+        this.allPages = [this.page];
     }
 
     static async create(options: PdfDocumentOptions = {}): Promise<PdfWriter> {
@@ -142,6 +154,7 @@ export class PdfWriter {
         if (this.cursorY < this.options.margin) {
             this.page = this.doc.addPage(this.options.pageSize);
             this.cursorY = this.page.getHeight() - this.options.margin;
+            this.allPages.push(this.page);
         }
     }
 
@@ -149,6 +162,7 @@ export class PdfWriter {
     newPage(size: [number, number] = this.options.pageSize) {
         this.page = this.doc.addPage(size);
         this.cursorY = this.page.getHeight() - this.options.margin;
+        this.allPages.push(this.page);
     }
 
     pageWidth(): number {
@@ -229,6 +243,31 @@ export class PdfWriter {
         this.cursorY -= height;
         this.page.drawImage(image, { x, y: this.cursorY, width, height });
         this.cursorY -= marginBottom;
+    }
+
+    /** Leaves the *current* page out of drawPageNumbers() below - e.g. right after drawing the Swiss QR-bill, whose own official layout has no room for extra printed content. */
+    excludeCurrentPageFromNumbering() {
+        this.excludedPages.add(this.page);
+    }
+
+    /** Draws "Page X/Y" centered in the bottom margin of every page not excluded via excludeCurrentPageFromNumbering() - X/Y only count those pages, so an excluded page (the QR-bill's own) doesn't shift or inflate the numbering of the rest. Call once, after all content is drawn: the total isn't known until then. */
+    drawPageNumbers() {
+        const numberedPages = this.allPages.filter(page => !this.excludedPages.has(page));
+        const total = numberedPages.length;
+        const size = 9;
+
+        numberedPages.forEach((page, index) => {
+            const label = `Page ${index + 1}/${total}`;
+            const width = this.regularFont.widthOfTextAtSize(label, size);
+
+            page.drawText(label, {
+                x: (page.getWidth() - width) / 2,
+                y: this.options.margin / 2 - size / 2,
+                size,
+                font: this.regularFont,
+                color: rgb(0.5, 0.5, 0.5),
+            });
+        });
     }
 
     async save(): Promise<Uint8Array> {
