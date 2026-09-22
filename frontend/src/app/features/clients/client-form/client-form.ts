@@ -8,11 +8,12 @@ import { SelectButton } from 'primeng/selectbutton';
 import { Button } from 'primeng/button';
 import { ClientService } from '../client.service';
 import { Client } from '../../../shared/models/client';
+import { TabIndentDirective } from '../../../shared/directives/tab-indent.directive';
 
 @Component({
   selector: 'app-client-form',
   standalone: true,
-  imports: [ReactiveFormsModule, InputText, Textarea, FloatLabel, SelectButton, Button],
+  imports: [ReactiveFormsModule, InputText, Textarea, FloatLabel, SelectButton, Button, TabIndentDirective],
   templateUrl: './client-form.html',
   styleUrl: './client-form.css',
 })

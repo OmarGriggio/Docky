@@ -14,6 +14,7 @@ import { ToggleButton } from 'primeng/togglebutton';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog';
 import { HelpButton } from '../../shared/components/help-button/help-button';
 import { SelectButton } from 'primeng/selectbutton';
+import { TabIndentDirective } from '../../shared/directives/tab-indent.directive';
 
 @Component({
   selector: 'app-uitest',
@@ -32,7 +33,8 @@ import { SelectButton } from 'primeng/selectbutton';
     Textarea,
     ToggleButton,
     ConfirmDialogComponent,
-    HelpButton
+    HelpButton,
+    TabIndentDirective
   ],
   templateUrl: './uitest.html',
   styleUrl: './uitest.css'

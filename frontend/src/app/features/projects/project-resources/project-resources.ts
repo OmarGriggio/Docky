@@ -15,6 +15,7 @@ import { Project } from '../../../shared/models/project';
 import { Resource } from '../../../shared/models/resource';
 import { DocumentLineType } from '../../../shared/models/document-line';
 import { hasTimeComponent } from '../../../shared/utils/display';
+import { TabIndentDirective } from '../../../shared/directives/tab-indent.directive';
 
 interface DraftLine {
   id: number;
@@ -52,7 +53,7 @@ let nextId = 1;
 @Component({
   selector: 'app-project-resources',
   standalone: true,
-  imports: [FormsModule, PricePipe, Button, Select, InputText, InputNumber, Textarea, DatePicker],
+  imports: [FormsModule, PricePipe, Button, Select, InputText, InputNumber, Textarea, DatePicker, TabIndentDirective],
   templateUrl: './project-resources.html',
 })
 export class ProjectResources implements OnInit {

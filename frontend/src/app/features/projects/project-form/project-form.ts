@@ -9,6 +9,7 @@ import { ProjectService } from '../project.service';
 import { ClientService } from '../../clients/client.service';
 import { Client } from '../../../shared/models/client';
 import { Project, ProjectType } from '../../../shared/models/project';
+import { TabIndentDirective } from '../../../shared/directives/tab-indent.directive';
 
 // A chantier's own address now lives on its backing PROJECT document
 // (documents.address_id - see shared/models/document.ts), not duplicated
@@ -18,7 +19,7 @@ import { Project, ProjectType } from '../../../shared/models/project';
 @Component({
   selector: 'app-project-form',
   standalone: true,
-  imports: [ReactiveFormsModule, InputText, Textarea, FloatLabel, Select, Button],
+  imports: [ReactiveFormsModule, InputText, Textarea, FloatLabel, Select, Button, TabIndentDirective],
   templateUrl: './project-form.html',
   styleUrl: './project-form.css',
 })

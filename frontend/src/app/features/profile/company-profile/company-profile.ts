@@ -11,11 +11,12 @@ import { FileUpload, FileUploadHandlerEvent } from 'primeng/fileupload';
 import { CompanyService } from '../company.service';
 import { AuthService } from '../../auth/auth.service';
 import { DocumentTemplateService } from '../../documents/document-template.service';
+import { TabIndentDirective } from '../../../shared/directives/tab-indent.directive';
 
 @Component({
   selector: 'app-company-profile',
   standalone: true,
-  imports: [ReactiveFormsModule, InputText, InputNumber, Textarea, FloatLabel, Button, Card, FileUpload],
+  imports: [ReactiveFormsModule, InputText, InputNumber, Textarea, FloatLabel, Button, Card, FileUpload, TabIndentDirective],
   templateUrl: './company-profile.html',
   styleUrl: './company-profile.css',
 })

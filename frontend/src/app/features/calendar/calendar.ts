@@ -19,6 +19,7 @@ import { SectionWithProject } from '../../shared/models/document-section';
 import { DocumentLine } from '../../shared/models/document-line';
 import { CalendarNote } from '../../shared/models/calendar-note';
 import { PricePipe } from '../../shared/pipes/price.pipe';
+import { TabIndentDirective } from '../../shared/directives/tab-indent.directive';
 
 // Plain calendar entries (this file's own notesById below), not tied to any
 // chantier/section - shown in a flat neutral grey so they read as distinct
@@ -28,7 +29,7 @@ const NOTE_COLOR = '#9ca3af';
 @Component({
   selector: 'app-calendar',
   standalone: true,
-  imports: [FullCalendarModule, Dialog, Button, Textarea, InputText, DatePicker, FloatLabel, RouterLink, FormsModule, PricePipe],
+  imports: [FullCalendarModule, Dialog, Button, Textarea, InputText, DatePicker, FloatLabel, RouterLink, FormsModule, PricePipe, TabIndentDirective],
   templateUrl: './calendar.html',
   styleUrl: './calendar.css',
 })

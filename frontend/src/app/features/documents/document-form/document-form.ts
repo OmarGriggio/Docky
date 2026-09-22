@@ -34,6 +34,7 @@ import { Company } from '../../../shared/models/company';
 import { DocumentStatus, DocumentType } from '../../../shared/models/document';
 import { DocumentComplete } from '../../../shared/models/document-complete';
 import { clientDisplayName, addressLabel } from '../../../shared/utils/display';
+import { TabIndentDirective } from '../../../shared/directives/tab-indent.directive';
 
 // PROJECT never actually reaches this page (a chantier is never created or
 // edited here - see zz_docs/Project Definition.md) but DocumentType still
@@ -103,7 +104,7 @@ let nextId = 1;
 @Component({
   selector: 'app-document-form',
   standalone: true,
-  imports: [FormsModule, PricePipe, InputText, InputNumber, Textarea, FloatLabel, Select, DatePicker, Button, Card, Dialog, ConfirmDialogComponent, ClientForm],
+  imports: [FormsModule, PricePipe, InputText, InputNumber, Textarea, FloatLabel, Select, DatePicker, Button, Card, Dialog, ConfirmDialogComponent, ClientForm, TabIndentDirective],
   templateUrl: './document-form.html',
   styleUrl: './document-form.css',
 })
