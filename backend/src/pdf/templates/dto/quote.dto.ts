@@ -56,6 +56,7 @@ export const createQuoteDto = (document: DocumentComplete, client: ClientWithAdd
         },
         sections: buildSections(document),
         introduction: document.introduction ?? "",
-        conclusion: document.conclusion ?? ""
+        conclusion: document.conclusion ?? "",
+        paymentTerms: company.payment_terms,
     };
 }

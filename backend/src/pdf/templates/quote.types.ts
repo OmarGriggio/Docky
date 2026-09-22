@@ -38,4 +38,10 @@ export interface QuoteDto {
     sections: QuoteSectionDto[];
     introduction: string;
     conclusion: string;
+    // The company's own default payment terms (companies.payment_terms,
+    // see company.types.ts) - a quote has no payment_terms of its own
+    // (that's an invoice-only document field, set once accepted), shown
+    // here purely so the client knows them upfront. Null if the company
+    // hasn't set one.
+    paymentTerms: string | null;
 }

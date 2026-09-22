@@ -116,6 +116,13 @@ export class QuoteTemplate {
             pdf.table(this.createSectionTable(section));
             pdf.text(`Total ${section.title} : ${this.sectionTotal(section).toFixed(2)} CHF`, { bold: true, marginTop: 4 });
         }
+
+        // The company's own default payment terms (see quote.dto.ts) -
+        // informational only, a quote has no payment obligation of its own
+        // yet, but the client should still know them upfront.
+        if (quote.paymentTerms) {
+            pdf.text(quote.paymentTerms, { marginTop: 20 });
+        }
     }
 
     private static sectionTotal(section: QuoteSectionDto): number {
