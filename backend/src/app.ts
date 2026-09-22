@@ -17,6 +17,7 @@ import projectRoutes from "./modules/projects/project.routes";
 import projectTypeRoutes from "./modules/projects/project_type.routes";
 import projectAttachmentRoutes from "./modules/projects/project_attachment.routes";
 import dashboardRoutes from "./modules/dashboard/dashboard.routes";
+import calendarNoteRoutes from "./modules/calendar/calendar_note.routes";
 import pdfRoutes from "./pdf/pdf.routes";
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -84,6 +85,8 @@ app.use("/project-type", projectTypeRoutes);
 app.use("/project-attachment", projectAttachmentRoutes);
 
 app.use("/dashboard", dashboardRoutes);
+
+app.use("/calendar-note", calendarNoteRoutes);
 
 app.use("/pdf", pdfRoutes);
 
