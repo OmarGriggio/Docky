@@ -11,7 +11,9 @@ import { Select } from 'primeng/select';
 import { DatePicker } from 'primeng/datepicker';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
+import { Dialog } from 'primeng/dialog';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
+import { ClientForm } from '../../clients/client-form/client-form';
 import { DocumentService } from '../document.service';
 import { DocumentSectionService } from '../document-section.service';
 import { DocumentLineService } from '../document-line.service';
@@ -101,7 +103,7 @@ let nextId = 1;
 @Component({
   selector: 'app-document-form',
   standalone: true,
-  imports: [FormsModule, PricePipe, InputText, InputNumber, Textarea, FloatLabel, Select, DatePicker, Button, Card, ConfirmDialogComponent],
+  imports: [FormsModule, PricePipe, InputText, InputNumber, Textarea, FloatLabel, Select, DatePicker, Button, Card, Dialog, ConfirmDialogComponent, ClientForm],
   templateUrl: './document-form.html',
   styleUrl: './document-form.css',
 })
@@ -129,6 +131,18 @@ export class DocumentForm implements OnInit {
     this.clients().map(client => ({ label: clientDisplayName(client), value: client.id }))
   );
 
+  // "Ajouter un client" (the client p-select's own footer, see the
+  // template) - for when the client being invoiced/quoted doesn't exist
+  // yet. The newly created client is added to the list and selected right
+  // away, same as picking an existing one by hand.
+  createClientDialogVisible = signal(false);
+
+  onClientCreated(client: Client): void {
+    this.clients.update(clients => [...clients, client]);
+    this.createClientDialogVisible.set(false);
+    this.onClientChange(client.id);
+  }
+
   projects = signal<Project[]>([]);
 
   selectedClientId = signal<number | null>(null);
@@ -147,6 +161,16 @@ export class DocumentForm implements OnInit {
   addressOptions = computed(() =>
     this.clientAddresses().map(address => ({ label: addressLabel(address), value: address.id }))
   );
+  // The selected client's own civility ("Monsieur,"/"Madame,") - shown
+  // right-aligned above the introduction (same line the PDF templates
+  // already print there, see invoice.template.ts/quote.template.ts's own
+  // client.title). Derived from the already-loaded `clients` list rather
+  // than a separate fetch - it's the same data selectedClientAddress reads
+  // through clientAddresses, just a different field of the same client.
+  selectedClientTitle = computed(() => {
+    const clientId = this.selectedClientId();
+    return this.clients().find(client => client.id === clientId)?.title ?? null;
+  });
   // No manual "Chantier" picker in the UI (an invoice is always linked to
   // its chantier the other way around - project-list.ts's own "Facturer",
   // see applyFromProject) - selectedProjectId/selectedProjectDocumentId
@@ -245,8 +269,16 @@ export class DocumentForm implements OnInit {
   // a QUOTE has no field for it. Bound directly via ngModel like the other
   // plain text fields below (paymentTerms etc.), so it has to be public.
   referenceClient = '';
-  introduction = '';
-  conclusion = '';
+  // Signals, not plain properties - this app is zoneless (no zone.js, see
+  // package.json), so a plain property mutated from an HTTP subscribe
+  // callback (loadTemplate/loadForEdit/etc. below) never schedules a
+  // change-detection tick on its own; the template stayed stale until some
+  // unrelated Angular-bound event (any click) happened to trigger one.
+  // Same underlying issue as discount/vatRate above, just surfacing as "the
+  // default text doesn't show up until I click something" instead of "the
+  // total doesn't update".
+  introduction = signal('');
+  conclusion = signal('');
   paymentTerms = '';
   // Signals, not plain properties like the fields above - documentTotalAfterDiscount/
   // documentTotalInclVat below are computed() from these, which only
@@ -403,8 +435,8 @@ export class DocumentForm implements OnInit {
   private loadTemplate(type: DocumentType): void {
     this.documentTemplateService.getTemplate(type).subscribe({
       next: template => {
-        this.introduction = template?.introduction ?? '';
-        this.conclusion = template?.conclusion ?? '';
+        this.introduction.set(template?.introduction ?? '');
+        this.conclusion.set(template?.conclusion ?? '');
       },
       error: err => console.error('document-form : ' + err)
     });
@@ -453,8 +485,8 @@ export class DocumentForm implements OnInit {
       next: source => {
         this.onClientChange(source.client_id, source.address_id);
 
-        this.introduction = source.introduction ?? '';
-        this.conclusion = source.conclusion ?? '';
+        this.introduction.set(source.introduction ?? '');
+        this.conclusion.set(source.conclusion ?? '');
         this.paymentTerms = source.payment_terms ?? '';
         this.discount.set(source.discount);
         this.vatRate.set(source.vat_rate);
@@ -485,8 +517,8 @@ export class DocumentForm implements OnInit {
 
         this.onClientChange(source.client_id, source.address_id);
 
-        this.introduction = source.introduction ?? '';
-        this.conclusion = source.conclusion ?? '';
+        this.introduction.set(source.introduction ?? '');
+        this.conclusion.set(source.conclusion ?? '');
         this.paymentTerms = source.payment_terms ?? '';
         this.discount.set(source.discount);
         this.vatRate.set(source.vat_rate);
@@ -540,11 +572,20 @@ export class DocumentForm implements OnInit {
   }
 
   startEditIntroduction(): void {
-    this.introductionDraft.set(this.introduction);
+    this.introductionDraft.set(this.introduction());
     this.editingIntroduction.set(true);
   }
 
   cancelEditIntroduction(): void {
+    this.editingIntroduction.set(false);
+  }
+
+  // "Appliquer" - unlike confirmSaveIntroduction below, only affects this
+  // document (no API call, no confirmation): the draft becomes this
+  // document's own introduction and the field goes back to read-only,
+  // nothing is promoted to the company's own default template.
+  applyIntroduction(): void {
+    this.introduction.set(this.introductionDraft());
     this.editingIntroduction.set(false);
   }
 
@@ -553,11 +594,16 @@ export class DocumentForm implements OnInit {
   }
 
   startEditConclusion(): void {
-    this.conclusionDraft.set(this.conclusion);
+    this.conclusionDraft.set(this.conclusion());
     this.editingConclusion.set(true);
   }
 
   cancelEditConclusion(): void {
+    this.editingConclusion.set(false);
+  }
+
+  applyConclusion(): void {
+    this.conclusion.set(this.conclusionDraft());
     this.editingConclusion.set(false);
   }
 
@@ -586,16 +632,16 @@ export class DocumentForm implements OnInit {
       return;
     }
 
-    const introduction = field === 'introduction' ? this.introductionDraft() : this.introduction;
-    const conclusion = field === 'conclusion' ? this.conclusionDraft() : this.conclusion;
+    const introduction = field === 'introduction' ? this.introductionDraft() : this.introduction();
+    const conclusion = field === 'conclusion' ? this.conclusionDraft() : this.conclusion();
 
     this.savingTemplate.set(true);
     this.templateSaveError.set(null);
 
     this.documentTemplateService.upsertTemplate(this.type, { introduction, conclusion }).subscribe({
       next: () => {
-        this.introduction = introduction;
-        this.conclusion = conclusion;
+        this.introduction.set(introduction);
+        this.conclusion.set(conclusion);
         this.savingTemplate.set(false);
         this.editingIntroduction.set(false);
         this.editingConclusion.set(false);
@@ -927,8 +973,8 @@ export class DocumentForm implements OnInit {
           vat_rate: this.vatRate(),
           payment_terms: this.paymentTerms,
           due_date: null,
-          introduction: this.introduction,
-          conclusion: this.conclusion,
+          introduction: this.introduction(),
+          conclusion: this.conclusion(),
         }));
 
         await this.replaceSectionsAndLines(editingId);
@@ -951,8 +997,8 @@ export class DocumentForm implements OnInit {
         vat_rate: this.vatRate(),
         payment_terms: this.paymentTerms,
         due_date: null,
-        introduction: this.introduction,
-        conclusion: this.conclusion,
+        introduction: this.introduction(),
+        conclusion: this.conclusion(),
         // Every document starts as a draft - status changes happen
         // afterwards, not at creation.
         status: 'DRAFT',

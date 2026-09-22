@@ -26,7 +26,7 @@ export class ClientForm implements OnInit {
   // unique and would fail on submit if duplicated as-is.
   duplicateFrom = input<Client | null>(null);
 
-  saved = output<void>();
+  saved = output<Client>();
   cancelled = output<void>();
 
   errorMessage = signal<string | null>(null);
@@ -95,8 +95,8 @@ export class ClientForm implements OnInit {
       ...client,
       type: isProfessional ? 'PROFESSIONAL' : 'INDIVIDUAL',
     }).subscribe({
-      next: () => {
-        this.saved.emit();
+      next: client => {
+        this.saved.emit(client);
       },
       error: (err: HttpErrorResponse) => {
         console.error('client-form : ' + err);

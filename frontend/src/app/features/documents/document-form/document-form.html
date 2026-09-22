@@ -46,7 +46,17 @@
             [ngModel]="selectedClientId()"
             (ngModelChange)="onClientChange($event)"
             [fluid]="true"
-          />
+          >
+            <ng-template #footer>
+              <div class="p-2 border-t border-surface-200">
+                <p-button
+                  type="button" label="Ajouter un client" icon="pi pi-plus"
+                  size="small" [text]="true" [fluid]="true"
+                  (onClick)="createClientDialogVisible.set(true)"
+                />
+              </div>
+            </ng-template>
+          </p-select>
           <label for="client_id">Client</label>
         </p-floatlabel>
 
@@ -95,9 +105,25 @@
       </div>
     </div>
 
+    <p-dialog
+      [(visible)]="createClientDialogVisible"
+      header="Nouveau client"
+      [modal]="true"
+      [style]="{ width: '32rem' }"
+    >
+      @if (createClientDialogVisible()) {
+        <app-client-form (saved)="onClientCreated($event)" (cancelled)="createClientDialogVisible.set(false)" />
+      }
+    </p-dialog>
+
+    @if (selectedClientTitle()) {
+      <p class="text-left text-[0.9rem] text-[#555] m-0 mb-4">{{ selectedClientTitle() }},</p>
+    } @else {
+      <p class="text-left text-[0.9rem] text-[#555] m-0 mb-4">Madame, Monsieur,</p>
+    }
+
     <div class="mb-6">
-      <span class="block text-sm font-medium text-[#555] mb-1">Introduction</span>
-      @if (editingIntroduction()) {
+      @if (editingIntroduction() || !introduction()) {
         <textarea
           pTextarea
           pSize="small"
@@ -105,14 +131,15 @@
           (ngModelChange)="introductionDraft.set($event)"
           rows="4"
           class="w-full"
+          placeholder="Introduction du document..."
         ></textarea>
         <div class="flex justify-end items-center gap-3 mt-2">
           <a class="text-sm text-[#666] hover:underline cursor-pointer" (click)="cancelEditIntroduction()">Annuler</a>
+          <p-button label="Appliquer" size="small" severity="secondary" [text]="true" (onClick)="applyIntroduction()" />
           <p-button label="Sauvegarder" size="small" [loading]="savingTemplate()" (onClick)="confirmSaveIntroduction()" />
         </div>
       } @else {
-        <p class="text-sm text-[#333] m-0 line-clamp-2">{{ introduction || 'Aucune introduction.' }}</p>
-        <a class="text-sm hover:underline cursor-pointer" (click)="startEditIntroduction()">Modifier</a>
+        <p class="text-sm text-[#333] m-0 whitespace-pre-line">{{ introduction() }} ... <a class="text-sm hover:underline cursor-pointer text-green-700" (click)="startEditIntroduction()">Modifier le texte</a></p>
       }
     </div>
 
@@ -413,8 +440,7 @@
         </p-floatlabel>
       }
       <div class="ui-form__full">
-        <span class="block text-sm font-medium text-[#555] mb-1">Conclusion</span>
-        @if (editingConclusion()) {
+        @if (editingConclusion() || !conclusion()) {
           <textarea
             pTextarea
             pSize="small"
@@ -422,15 +448,16 @@
             (ngModelChange)="conclusionDraft.set($event)"
             rows="4"
             class="w-full"
+            placeholder="Conclusion du document..."
           ></textarea>
           <div class="flex justify-end items-center gap-3 mt-2">
             <a class="text-sm text-[#666] hover:underline cursor-pointer" (click)="cancelEditConclusion()">Annuler</a>
+            <p-button label="Appliquer" size="small" severity="secondary" [text]="true" (onClick)="applyConclusion()" />
             <p-button label="Sauvegarder" size="small" [loading]="savingTemplate()" (onClick)="confirmSaveConclusion()" />
           </div>
         } @else {
-          <p class="text-sm text-[#333] m-0 line-clamp-2">{{ conclusion || 'Aucune conclusion.' }}</p>
-          <a class="text-sm hover:underline cursor-pointer" (click)="startEditConclusion()">Modifier</a>
-        }
+          <p class="text-sm text-[#333] m-0 whitespace-pre-line">{{ conclusion() }} ... <a class="text-sm hover:underline cursor-pointer text-green-700" (click)="startEditConclusion()">Modifier le texte</a></p>
+          }
       </div>
     </div>
 
