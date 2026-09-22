@@ -5,20 +5,30 @@ import { FullCalendarComponent, FullCalendarModule } from '@fullcalendar/angular
 import { CalendarOptions, EventClickArg, EventDropArg, EventHoveringArg, EventInput } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
-import interactionPlugin, { Draggable, EventReceiveArg, EventResizeDoneArg } from '@fullcalendar/interaction';
+import interactionPlugin, { DateClickArg, Draggable, EventReceiveArg, EventResizeDoneArg } from '@fullcalendar/interaction';
 import { Dialog } from 'primeng/dialog';
 import { Button } from 'primeng/button';
 import { Textarea } from 'primeng/textarea';
+import { InputText } from 'primeng/inputtext';
+import { DatePicker } from 'primeng/datepicker';
+import { FloatLabel } from 'primeng/floatlabel';
 import { DocumentSectionService } from '../documents/document-section.service';
 import { DocumentLineService } from '../documents/document-line.service';
+import { CalendarNoteService } from './calendar-note.service';
 import { SectionWithProject } from '../../shared/models/document-section';
 import { DocumentLine } from '../../shared/models/document-line';
+import { CalendarNote } from '../../shared/models/calendar-note';
 import { PricePipe } from '../../shared/pipes/price.pipe';
+
+// Plain calendar entries (this file's own notesById below), not tied to any
+// chantier/section - shown in a flat neutral grey so they read as distinct
+// from a section's own (future: per-chantier) color.
+const NOTE_COLOR = '#9ca3af';
 
 @Component({
   selector: 'app-calendar',
   standalone: true,
-  imports: [FullCalendarModule, Dialog, Button, Textarea, RouterLink, FormsModule, PricePipe],
+  imports: [FullCalendarModule, Dialog, Button, Textarea, InputText, DatePicker, FloatLabel, RouterLink, FormsModule, PricePipe],
   templateUrl: './calendar.html',
   styleUrl: './calendar.css',
 })
@@ -26,6 +36,7 @@ export class CalendarPage implements OnInit, AfterViewInit {
 
   private documentSectionService = inject(DocumentSectionService);
   private documentLineService = inject(DocumentLineService);
+  private calendarNoteService = inject(CalendarNoteService);
 
   @ViewChild('fullCalendar') fullCalendar!: FullCalendarComponent;
   @ViewChild('unscheduledList') unscheduledListRef!: ElementRef<HTMLElement>;
@@ -58,6 +69,22 @@ export class CalendarPage implements OnInit, AfterViewInit {
   hoveredSection = signal<SectionWithProject | null>(null);
   hoverPosition = signal({ top: 0, left: 0 });
 
+  // Free-standing calendar notes (see calendar-note.service.ts) - separate
+  // from the chantier sections above, keyed the same way (by id, so
+  // onEventClick/save/delete below can look one up from the FullCalendar
+  // event's own extendedProps).
+  private notesById = new Map<number, CalendarNote>();
+
+  noteDialogVisible = signal(false);
+  // null while creating a brand new note (see onDateClick) - the id of the
+  // note being edited otherwise (see openNoteDialog). Also what the
+  // template checks to show the "Supprimer" button only when editing.
+  editingNoteId = signal<number | null>(null);
+  noteTitleDraft = signal('');
+  noteDescriptionDraft = signal('');
+  noteStartDraft = signal<Date | null>(null);
+  noteEndDraft = signal<Date | null>(null);
+
   calendarOptions: CalendarOptions = {
     plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
     initialView: 'dayGridMonth',
@@ -85,6 +112,7 @@ export class CalendarPage implements OnInit, AfterViewInit {
     eventClick: info => this.onEventClick(info),
     eventMouseEnter: info => this.onEventMouseEnter(info),
     eventMouseLeave: () => this.hoveredSection.set(null),
+    dateClick: info => this.onDateClick(info),
   };
 
   ngOnInit(): void {
@@ -104,6 +132,7 @@ export class CalendarPage implements OnInit, AfterViewInit {
     });
 
     this.loadScheduledSections();
+    this.loadNotes();
   }
 
   private loadUnscheduledSections(): void {
@@ -130,7 +159,119 @@ export class CalendarPage implements OnInit, AfterViewInit {
     });
   }
 
+  // Every already-created note, shown in grey (see NOTE_COLOR) alongside the
+  // chantier sections loaded above.
+  private loadNotes(): void {
+    this.calendarNoteService.getNotes().subscribe({
+      next: notes => {
+        const calendarApi = this.fullCalendar.getApi();
+        for (const note of notes) {
+          this.notesById.set(note.id, note);
+          calendarApi.addEvent(this.toNoteEventInput(note));
+        }
+      },
+      error: err => console.error('calendar : ' + err)
+    });
+  }
+
+  private toNoteEventInput(note: CalendarNote): EventInput {
+    return {
+      id: `note-${note.id}`,
+      title: note.title,
+      start: new Date(note.date_start),
+      end: new Date(note.date_end),
+      backgroundColor: NOTE_COLOR,
+      borderColor: NOTE_COLOR,
+      extendedProps: { noteId: note.id },
+    };
+  }
+
+  // Clicking an empty date/slot - month view gives a bare date (allDay),
+  // week/day view an exact time. Opens the note dialog pre-filled with that
+  // as a starting point (still freely editable before saving), same "drop
+  // defaults to +1h in timed views, stays a bare date in month view"
+  // convention as onEventReceive below for a dropped section.
+  private onDateClick(info: DateClickArg): void {
+    const start = new Date(info.date);
+    const end = info.allDay ? start : new Date(start.getTime() + 60 * 60 * 1000);
+
+    this.editingNoteId.set(null);
+    this.noteTitleDraft.set('');
+    this.noteDescriptionDraft.set('');
+    this.noteStartDraft.set(start);
+    this.noteEndDraft.set(end);
+    this.noteDialogVisible.set(true);
+  }
+
+  private openNoteDialog(noteId: number): void {
+    const note = this.notesById.get(noteId);
+    if (!note) {
+      return;
+    }
+
+    this.editingNoteId.set(noteId);
+    this.noteTitleDraft.set(note.title);
+    this.noteDescriptionDraft.set(note.description ?? '');
+    this.noteStartDraft.set(new Date(note.date_start));
+    this.noteEndDraft.set(new Date(note.date_end));
+    this.noteDialogVisible.set(true);
+  }
+
+  saveNoteDialog(): void {
+    const title = this.noteTitleDraft().trim();
+    const start = this.noteStartDraft();
+    const end = this.noteEndDraft();
+    if (!title || !start || !end) {
+      return;
+    }
+
+    const data = {
+      title,
+      description: this.noteDescriptionDraft().trim() || null,
+      date_start: start.toISOString(),
+      date_end: end.toISOString(),
+    };
+
+    const editingId = this.editingNoteId();
+    const request = editingId !== null
+      ? this.calendarNoteService.updateNote(editingId, data)
+      : this.calendarNoteService.createNote(data);
+
+    request.subscribe({
+      next: note => {
+        this.notesById.set(note.id, note);
+        const calendarApi = this.fullCalendar.getApi();
+        calendarApi.getEventById(`note-${note.id}`)?.remove();
+        calendarApi.addEvent(this.toNoteEventInput(note));
+        this.noteDialogVisible.set(false);
+      },
+      error: err => console.error('calendar : ' + err)
+    });
+  }
+
+  deleteNoteDialog(): void {
+    const editingId = this.editingNoteId();
+    if (editingId === null) {
+      return;
+    }
+
+    this.calendarNoteService.deleteNote(editingId).subscribe({
+      next: () => {
+        this.notesById.delete(editingId);
+        this.fullCalendar.getApi().getEventById(`note-${editingId}`)?.remove();
+        this.noteDialogVisible.set(false);
+      },
+      error: err => console.error('calendar : ' + err)
+    });
+  }
+
   private onEventClick(info: EventClickArg): void {
+    const noteId = info.event.extendedProps['noteId'] as number | undefined;
+    if (noteId !== undefined) {
+      this.openNoteDialog(noteId);
+      return;
+    }
+
     const sectionId = info.event.extendedProps['sectionId'] as number;
     const section = this.sectionsById.get(sectionId);
     if (!section) {
@@ -257,15 +398,14 @@ export class CalendarPage implements OnInit, AfterViewInit {
     });
   }
 
-  // Moving or resizing a section already on the calendar (as opposed to a
+  // Moving or resizing an event already on the calendar (as opposed to a
   // fresh drop from the sidebar - see onEventReceive above) only updates
   // the calendar's own in-memory event by itself; [editable]="true" makes
   // that possible but was never actually wired to persist it, which is
-  // exactly why a refresh silently undid it. sectionId comes from
-  // toEventInput's own extendedProps - every event on this calendar was
-  // put there by this page in the first place, so it's always present.
+  // exactly why a refresh silently undid it. Branches on noteId vs
+  // sectionId (see toNoteEventInput/toEventInput's own extendedProps) -
+  // both kinds of event live on this same calendar and are both draggable.
   private onEventDropOrResize(info: EventDropArg | EventResizeDoneArg): void {
-    const sectionId = info.event.extendedProps['sectionId'] as number;
     const start = info.event.start;
     const end = info.event.end;
 
@@ -277,6 +417,29 @@ export class CalendarPage implements OnInit, AfterViewInit {
     const dateStartIso = start.toISOString();
     const dateEndIso = (end ?? start).toISOString();
 
+    const noteId = info.event.extendedProps['noteId'] as number | undefined;
+    if (noteId !== undefined) {
+      const note = this.notesById.get(noteId);
+      if (!note) {
+        info.revert();
+        return;
+      }
+      this.calendarNoteService.updateNote(noteId, {
+        title: note.title,
+        description: note.description,
+        date_start: dateStartIso,
+        date_end: dateEndIso,
+      }).subscribe({
+        next: updated => this.notesById.set(noteId, updated),
+        error: err => {
+          console.error('calendar : ' + err);
+          info.revert();
+        }
+      });
+      return;
+    }
+
+    const sectionId = info.event.extendedProps['sectionId'] as number;
     this.documentSectionService.updateSection(sectionId, {
       date_start: dateStartIso,
       date_end: dateEndIso,
