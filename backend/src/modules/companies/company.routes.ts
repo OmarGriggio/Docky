@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction } from "express";
-import { createCompany, getCompany, getCompanies, updateCompany, uploadCompanyLogo, uploadCompanyHeaderImage } from "./company.controller";
+import { createCompany, getCompany, getCompanies, updateCompany, uploadCompanyLogo, uploadCompanyHeaderImage, updateCompanyPaymentTerms } from "./company.controller";
 import { uploadLogo, uploadHeaderImage } from "./company.upload";
 import { authenticate } from "../../shared/middlewares/auth.middleware";
 import { requireRole } from "../../shared/middlewares/role.middleware";
@@ -33,5 +33,6 @@ router.post("/", createCompany);
 router.put("/:id", authenticate, requireCompanyAdminOrPlatformAdmin, updateCompany);
 router.post("/:id/logo", authenticate, requireCompanyAdminOrPlatformAdmin, uploadLogo, uploadCompanyLogo);
 router.post("/:id/header-image", authenticate, requireCompanyAdminOrPlatformAdmin, uploadHeaderImage, uploadCompanyHeaderImage);
+router.patch("/:id/payment-terms", authenticate, requireCompanyAdminOrPlatformAdmin, updateCompanyPaymentTerms);
 
 export default router;

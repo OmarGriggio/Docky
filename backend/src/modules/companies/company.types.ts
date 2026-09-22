@@ -19,4 +19,9 @@ export interface Company {
   vat_rate: number;
   // The company's own VAT/UID number - null if not VAT-registered.
   vat_number: string | null;
+  // Default payment terms for a new document (documents.payment_terms is
+  // the one actually used/shown - this is only its starting value, same
+  // "default vs. frozen-per-document" split as vat_rate above). TEXT, not
+  // VARCHAR - free text, multi-line.
+  payment_terms: string | null;
 }

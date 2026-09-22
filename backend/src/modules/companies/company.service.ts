@@ -1,5 +1,5 @@
 import { Company } from "./company.types";
-import { createCompanyInDB, getCompanyByIdFromDB, getCompaniesFromDB, updateCompanyInDB, updateCompanyLogoInDB, updateCompanyHeaderImageInDB } from "./company.repository";
+import { createCompanyInDB, getCompanyByIdFromDB, getCompaniesFromDB, updateCompanyInDB, updateCompanyLogoInDB, updateCompanyHeaderImageInDB, updateCompanyPaymentTermsInDB } from "./company.repository";
 import { NotFoundError } from "../../shared/types/errors";
 
 export const getAllCompaniesServ = async () => {
@@ -36,6 +36,14 @@ export const updateCompanyLogoServ = async (id: number, logo: string): Promise<C
 
 export const updateCompanyHeaderImageServ = async (id: number, headerImage: string): Promise<Company> => {
   const company = await updateCompanyHeaderImageInDB(id, headerImage);
+  if (!company) {
+    throw new NotFoundError("Company not found");
+  }
+  return company;
+};
+
+export const updateCompanyPaymentTermsServ = async (id: number, paymentTerms: string | null): Promise<Company> => {
+  const company = await updateCompanyPaymentTermsInDB(id, paymentTerms);
   if (!company) {
     throw new NotFoundError("Company not found");
   }

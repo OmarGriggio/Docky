@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import path from "path";
-import { addCompanyServ, getAllCompaniesServ, getCompanyByIdServ, updateCompanyServ, updateCompanyLogoServ, updateCompanyHeaderImageServ } from "./company.service";
+import { addCompanyServ, getAllCompaniesServ, getCompanyByIdServ, updateCompanyServ, updateCompanyLogoServ, updateCompanyHeaderImageServ, updateCompanyPaymentTermsServ } from "./company.service";
 import { Company } from "./company.types";
 import { EXTENSION_BY_MIME } from "./company.upload";
 import { uploadFileServ, deleteFileServ } from "../../shared/storage/storage.service";
@@ -73,5 +73,12 @@ export const uploadCompanyHeaderImage = async (req: Request, res: Response) => {
     await uploadFileServ(headerImage, req.file.buffer, req.file.mimetype);
 
     const company = await updateCompanyHeaderImageServ(companyId, headerImage);
+    res.json(company);
+};
+
+export const updateCompanyPaymentTerms = async (req: Request, res: Response) => {
+    const { payment_terms }: { payment_terms: string | null } = req.body;
+
+    const company = await updateCompanyPaymentTermsServ(Number(req.params.id), payment_terms);
     res.json(company);
 };
