@@ -11,7 +11,7 @@ import { Select } from 'primeng/select';
 import { DatePicker } from 'primeng/datepicker';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
-import { Panel } from 'primeng/panel';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { DocumentService } from '../document.service';
 import { DocumentSectionService } from '../document-section.service';
 import { DocumentLineService } from '../document-line.service';
@@ -101,7 +101,7 @@ let nextId = 1;
 @Component({
   selector: 'app-document-form',
   standalone: true,
-  imports: [FormsModule, PricePipe, InputText, InputNumber, Textarea, FloatLabel, Select, DatePicker, Button, Card, Panel],
+  imports: [FormsModule, PricePipe, InputText, InputNumber, Textarea, FloatLabel, Select, DatePicker, Button, Card, ConfirmDialogComponent],
   templateUrl: './document-form.html',
   styleUrl: './document-form.css',
 })
@@ -248,10 +248,15 @@ export class DocumentForm implements OnInit {
   introduction = '';
   conclusion = '';
   paymentTerms = '';
-  discount = 0;
+  // Signals, not plain properties like the fields above - documentTotalAfterDiscount/
+  // documentTotalInclVat below are computed() from these, which only
+  // re-evaluates on a tracked *signal* read; a plain property mutated by
+  // ngModel wouldn't invalidate that cache, so the total would only catch up
+  // whenever something else happened to force a recompute (e.g. on save).
+  discount = signal(0);
   // Defaults to the company's own rate once it loads (see ngOnInit) - a
   // fallback here only matters if that fetch fails outright.
-  vatRate = 8.1;
+  vatRate = signal(8.1);
 
   sections = signal<DraftSection[]>([]);
 
@@ -267,19 +272,39 @@ export class DocumentForm implements OnInit {
   errorMessage = signal<string | null>(null);
   submitting = signal(false);
 
+  // Introduction/conclusion: a 2-line read-only preview + "Modifier" by
+  // default (see document-form.html) - clicking it swaps to an editable
+  // textarea, pre-filled with the *current* value (introductionDraft/
+  // conclusionDraft), independent of `introduction`/`conclusion` above
+  // until actually saved. "Sauvegarder" doesn't just apply the draft to
+  // this document - see the confirm dialog below, it also overwrites the
+  // company's own default template for every future document of this type
+  // (saveAsDefaultTemplate below sends the whole introduction+conclusion
+  // pair together, same as before - not a per-field patch). Cancelling
+  // (or never clicking Sauvegarder at all) discards the draft - nothing is
+  // applied to this document either.
+  editingIntroduction = signal(false);
+  introductionDraft = signal('');
+  editingConclusion = signal(false);
+  conclusionDraft = signal('');
+
   savingTemplate = signal(false);
-  templateSaveMessage = signal<string | null>(null);
+  templateSaveError = signal<string | null>(null);
+
+  templateConfirmVisible = signal(false);
+  templateConfirmMessage = signal('');
+  private pendingTemplateField: 'introduction' | 'conclusion' | null = null;
 
   documentSubtotal = computed(() =>
     round2(this.sections().reduce((sum, section) => sum + this.sectionTotal(section), 0))
   );
 
   documentTotalAfterDiscount = computed(() =>
-    round2(this.documentSubtotal() * (1 - this.discount / 100))
+    round2(this.documentSubtotal() * (1 - this.discount() / 100))
   );
 
   documentTotalInclVat = computed(() =>
-    round2(this.documentTotalAfterDiscount() * (1 + this.vatRate / 100))
+    round2(this.documentTotalAfterDiscount() * (1 + this.vatRate() / 100))
   );
 
   async ngOnInit(): Promise<void> {
@@ -299,17 +324,18 @@ export class DocumentForm implements OnInit {
     });
 
     // Awaited (not a plain subscribe) so it resolves before the
-    // create-vs-edit-vs-duplicate branch below: vatRate's own default here
-    // is only ever the *fresh-document* case (a real edit/duplicate
-    // overwrites it afterwards with the source document's own rate) - a
-    // parallel fetch could otherwise lose that race and leave the fresh
-    // default in place instead.
+    // create-vs-edit-vs-duplicate branch below: vatRate/paymentTerms' own
+    // defaults here are only ever the *fresh-document* case (a real edit/
+    // duplicate overwrites them afterwards with the source document's own
+    // values, see loadForEdit/applyDuplicateFrom) - a parallel fetch could
+    // otherwise lose that race and leave the fresh default in place instead.
     const companyId = this.authService.currentUser()?.company_id;
     if (companyId) {
       try {
         const company = await firstValueFrom(this.companyService.getCompany(companyId));
         this.company.set(company);
-        this.vatRate = company.vat_rate;
+        this.vatRate.set(company.vat_rate);
+        this.paymentTerms = company.payment_terms ?? '';
       } catch (err) {
         console.error('document-form : ' + err);
       }
@@ -430,8 +456,8 @@ export class DocumentForm implements OnInit {
         this.introduction = source.introduction ?? '';
         this.conclusion = source.conclusion ?? '';
         this.paymentTerms = source.payment_terms ?? '';
-        this.discount = source.discount;
-        this.vatRate = source.vat_rate;
+        this.discount.set(source.discount);
+        this.vatRate.set(source.vat_rate);
 
         this.sections.set(this.buildDraftSections(source));
       },
@@ -462,8 +488,8 @@ export class DocumentForm implements OnInit {
         this.introduction = source.introduction ?? '';
         this.conclusion = source.conclusion ?? '';
         this.paymentTerms = source.payment_terms ?? '';
-        this.discount = source.discount;
-        this.vatRate = source.vat_rate;
+        this.discount.set(source.discount);
+        this.vatRate.set(source.vat_rate);
 
         // Populates the "ressource du chantier" picker/"Charger chantier"
         // with the already-linked project's data - editing never changes
@@ -513,26 +539,71 @@ export class DocumentForm implements OnInit {
       }));
   }
 
-  // Promotes this document's current introduction/conclusion to be the
-  // saved default for its type (QUOTE/INVOICE) - the same PUT the Profile
-  // page's "Modèles de documents" card uses, just triggered inline while
-  // writing a document instead of from a separate settings page.
-  saveAsDefaultTemplate(): void {
-    this.savingTemplate.set(true);
-    this.templateSaveMessage.set(null);
+  startEditIntroduction(): void {
+    this.introductionDraft.set(this.introduction);
+    this.editingIntroduction.set(true);
+  }
 
-    this.documentTemplateService.upsertTemplate(this.type, {
-      introduction: this.introduction,
-      conclusion: this.conclusion,
-    }).subscribe({
+  cancelEditIntroduction(): void {
+    this.editingIntroduction.set(false);
+  }
+
+  confirmSaveIntroduction(): void {
+    this.openTemplateConfirm('introduction');
+  }
+
+  startEditConclusion(): void {
+    this.conclusionDraft.set(this.conclusion);
+    this.editingConclusion.set(true);
+  }
+
+  cancelEditConclusion(): void {
+    this.editingConclusion.set(false);
+  }
+
+  confirmSaveConclusion(): void {
+    this.openTemplateConfirm('conclusion');
+  }
+
+  private openTemplateConfirm(field: 'introduction' | 'conclusion'): void {
+    this.pendingTemplateField = field;
+    const noun = this.type === 'INVOICE' ? 'factures' : 'offres';
+    this.templateConfirmMessage.set(
+      `Ce texte deviendra le nouveau texte par défaut pour toutes les prochaines ${noun}. Continuer ?`
+    );
+    this.templateConfirmVisible.set(true);
+  }
+
+  // Promotes the edited field's draft to be the new saved default for this
+  // document's type (QUOTE/INVOICE) - same PUT the Profile page's "Modèles
+  // de documents" card uses. Both this document's own field and the
+  // company-wide default are only actually updated once this resolves -
+  // confirming the dialog is what commits both together, never before.
+  onTemplateConfirmed(): void {
+    const field = this.pendingTemplateField;
+    this.pendingTemplateField = null;
+    if (!field) {
+      return;
+    }
+
+    const introduction = field === 'introduction' ? this.introductionDraft() : this.introduction;
+    const conclusion = field === 'conclusion' ? this.conclusionDraft() : this.conclusion;
+
+    this.savingTemplate.set(true);
+    this.templateSaveError.set(null);
+
+    this.documentTemplateService.upsertTemplate(this.type, { introduction, conclusion }).subscribe({
       next: () => {
+        this.introduction = introduction;
+        this.conclusion = conclusion;
         this.savingTemplate.set(false);
-        this.templateSaveMessage.set(`Modèle ${this.typeLabel} par défaut mis à jour.`);
+        this.editingIntroduction.set(false);
+        this.editingConclusion.set(false);
       },
       error: err => {
         console.error('document-form : ' + err);
         this.savingTemplate.set(false);
-        this.templateSaveMessage.set('Impossible d\'enregistrer le modèle.');
+        this.templateSaveError.set('Impossible d\'enregistrer le modèle par défaut.');
       }
     });
   }
@@ -852,8 +923,8 @@ export class DocumentForm implements OnInit {
           address_id: this.addressId,
           reference_client: this.referenceClient.trim() || null,
           date: this.date.toISOString(),
-          discount: this.discount,
-          vat_rate: this.vatRate,
+          discount: this.discount(),
+          vat_rate: this.vatRate(),
           payment_terms: this.paymentTerms,
           due_date: null,
           introduction: this.introduction,
@@ -876,8 +947,8 @@ export class DocumentForm implements OnInit {
         // the Project row's id (see selectedProjectDocumentId).
         parent_document_id: this.type === 'INVOICE' ? this.selectedProjectDocumentId : null,
         date: this.date.toISOString(),
-        discount: this.discount,
-        vat_rate: this.vatRate,
+        discount: this.discount(),
+        vat_rate: this.vatRate(),
         payment_terms: this.paymentTerms,
         due_date: null,
         introduction: this.introduction,

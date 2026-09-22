@@ -95,15 +95,26 @@
       </div>
     </div>
 
-    <p-panel header="Introduction" [toggleable]="true" [collapsed]="true" styleClass="block mb-6">
-      <textarea
-        pTextarea
-        pSize="small"
-        [(ngModel)]="introduction"
-        rows="3"
-        class="w-full"
-      ></textarea>
-    </p-panel>
+    <div class="mb-6">
+      <span class="block text-sm font-medium text-[#555] mb-1">Introduction</span>
+      @if (editingIntroduction()) {
+        <textarea
+          pTextarea
+          pSize="small"
+          [ngModel]="introductionDraft()"
+          (ngModelChange)="introductionDraft.set($event)"
+          rows="4"
+          class="w-full"
+        ></textarea>
+        <div class="flex justify-end items-center gap-3 mt-2">
+          <a class="text-sm text-[#666] hover:underline cursor-pointer" (click)="cancelEditIntroduction()">Annuler</a>
+          <p-button label="Sauvegarder" size="small" [loading]="savingTemplate()" (onClick)="confirmSaveIntroduction()" />
+        </div>
+      } @else {
+        <p class="text-sm text-[#333] m-0 line-clamp-2">{{ introduction || 'Aucune introduction.' }}</p>
+        <a class="text-sm hover:underline cursor-pointer" (click)="startEditIntroduction()">Modifier</a>
+      }
+    </div>
 
     <div class="border-t border-b border-dashed border-[#ddd] py-6 mb-6">
       <div class="flex items-center justify-between mb-4">
@@ -379,7 +390,8 @@
           <p-inputnumber
             pSize="small"
             inputId="discount"
-            [(ngModel)]="discount"
+            [ngModel]="discount()"
+            (ngModelChange)="discount.set($event)"
             mode="decimal"
             [minFractionDigits]="2"
             suffix=" %"
@@ -391,7 +403,8 @@
           <p-inputnumber
             pSize="small"
             inputId="vatRate"
-            [(ngModel)]="vatRate"
+            [ngModel]="vatRate()"
+            (ngModelChange)="vatRate.set($event)"
             mode="decimal"
             [minFractionDigits]="1"
             suffix=" %"
@@ -399,37 +412,39 @@
           <label for="vatRate">TVA</label>
         </p-floatlabel>
       }
-      <p-panel
-        header="Conclusion"
-        [toggleable]="true"
-        [collapsed]="true"
-        styleClass="ui-form__full block mb-6"
-      >
-        <div>
-          <div class="ui-form__full flex items-center gap-3 -mt-2">
-            <p-button
-              size="small"
-              type="button"
-              icon="pi pi-save"
-              severity="secondary"
-              [text]="true"
-              [loading]="savingTemplate()"
-              (onClick)="saveAsDefaultTemplate()"
-            />
-            @if (templateSaveMessage()) {
-              <span class="text-[0.85rem] text-[#666]">{{ templateSaveMessage() }}</span>
-            }
-          </div>
+      <div class="ui-form__full">
+        <span class="block text-sm font-medium text-[#555] mb-1">Conclusion</span>
+        @if (editingConclusion()) {
           <textarea
             pTextarea
             pSize="small"
-            [(ngModel)]="conclusion"
-            rows="3"
-            class="ui-form__full"
+            [ngModel]="conclusionDraft()"
+            (ngModelChange)="conclusionDraft.set($event)"
+            rows="4"
+            class="w-full"
           ></textarea>
-        </div>
-      </p-panel>
+          <div class="flex justify-end items-center gap-3 mt-2">
+            <a class="text-sm text-[#666] hover:underline cursor-pointer" (click)="cancelEditConclusion()">Annuler</a>
+            <p-button label="Sauvegarder" size="small" [loading]="savingTemplate()" (onClick)="confirmSaveConclusion()" />
+          </div>
+        } @else {
+          <p class="text-sm text-[#333] m-0 line-clamp-2">{{ conclusion || 'Aucune conclusion.' }}</p>
+          <a class="text-sm hover:underline cursor-pointer" (click)="startEditConclusion()">Modifier</a>
+        }
+      </div>
     </div>
+
+    @if (templateSaveError()) {
+      <p class="text-sm text-[#d32f2f] mb-6 -mt-4">{{ templateSaveError() }}</p>
+    }
+
+    <app-confirm-dialog
+      [(visible)]="templateConfirmVisible"
+      title="Enregistrer comme valeur par défaut"
+      [message]="templateConfirmMessage()"
+      confirmLabel="Enregistrer"
+      (confirmed)="onTemplateConfirmed()"
+    />
 
     <div class="flex flex-col items-end gap-[0.35rem] mb-6 text-[0.95rem]">
       <div class="flex gap-6 min-w-65 justify-between">
