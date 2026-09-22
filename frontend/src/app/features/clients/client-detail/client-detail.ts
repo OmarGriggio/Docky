@@ -3,6 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { Tag } from 'primeng/tag';
+import { Toolbar } from 'primeng/toolbar';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Dialog } from 'primeng/dialog';
@@ -17,7 +18,7 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
 @Component({
   selector: 'app-client-detail',
   standalone: true,
-  imports: [TableModule, Tag, Button, InputText, Dialog, Card, FormsModule, AddressForm, ConfirmDialogComponent],
+  imports: [TableModule, Tag, Toolbar, Button, InputText, Dialog, Card, FormsModule, AddressForm, ConfirmDialogComponent],
   templateUrl: './client-detail.html',
   styleUrl: './client-detail.css'
 })

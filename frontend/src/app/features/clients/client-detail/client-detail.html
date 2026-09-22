@@ -42,10 +42,14 @@
     </div>
   </p-card>
 
-  <div class="detail-addresses-header">
-    <h2>Adresses</h2>
-    <p-button label="Ajouter une adresse" icon="pi pi-plus" (onClick)="addAddressDialogVisible.set(true)" />
-  </div>
+  <p-toolbar class="rounded-b-none!">
+    <ng-template #start>
+      <h3>Adresses</h3>
+    </ng-template>
+    <ng-template #end>
+      <p-button size="small" label="" icon="pi pi-plus" (onClick)="addAddressDialogVisible.set(true)" />
+    </ng-template>
+  </p-toolbar>
 
   <p-table [value]="c.addresses" dataKey="id" showGridlines size="small" editMode="row">
     <ng-template #header>
