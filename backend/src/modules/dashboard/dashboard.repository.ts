@@ -1,5 +1,5 @@
 import { pool } from "../../shared/config/database";
-import { PaidAmountByClient } from "./dashboard.types";
+import { OpenInvoicesTotal, PaidAmountByClient } from "./dashboard.types";
 
 // Sums amount_incl_vat (what the client actually paid, VAT included) across
 // every PAID invoice, grouped by client. is_active is deliberately not
@@ -20,4 +20,21 @@ export const getPaidAmountByClientFromDB = async (company_id: number): Promise<P
 
   const result = await pool.query(query, [company_id]);
   return result.rows;
+};
+
+// Sums amount_incl_vat across every INVOICE that's been sent but not yet
+// paid (status = 'SENT' - PAID/CANCELLED/DRAFT all don't belong here, and
+// ACCEPTED/REJECTED only ever apply to a QUOTE, never an INVOICE - see
+// document-list.ts's own invoiceStatusOptions on the frontend). Same
+// is_active reasoning as getPaidAmountByClientFromDB above - archiving is
+// a list-visibility toggle, it doesn't mean the client no longer owes it.
+export const getOpenInvoicesTotalFromDB = async (company_id: number): Promise<OpenInvoicesTotal> => {
+  const query = `
+    SELECT COALESCE(SUM(amount_incl_vat), 0) AS total_open, COUNT(*)::int AS count
+    FROM documents
+    WHERE company_id = $1 AND type = 'INVOICE' AND status = 'SENT';
+  `;
+
+  const result = await pool.query(query, [company_id]);
+  return result.rows[0];
 };

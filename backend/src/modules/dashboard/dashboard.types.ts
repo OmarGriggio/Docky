@@ -12,3 +12,10 @@ export interface PaidAmountByClient {
   last_name: string | null;
   total_paid: number;
 }
+
+// A single row, not per-client - "open" invoices (sent, not yet paid) are
+// a headline total for the dashboard's own stat tile, not a breakdown.
+export interface OpenInvoicesTotal {
+  total_open: number;
+  count: number;
+}

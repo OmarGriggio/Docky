@@ -1,7 +1,12 @@
 import { Request, Response } from "express";
-import { getPaidAmountByClientServ } from "./dashboard.service";
+import { getOpenInvoicesTotalServ, getPaidAmountByClientServ } from "./dashboard.service";
 
 export const getPaidAmountByClient = async (req: Request, res: Response) => {
   const result = await getPaidAmountByClientServ(req.user.company_id);
+  res.json(result);
+};
+
+export const getOpenInvoicesTotal = async (req: Request, res: Response) => {
+  const result = await getOpenInvoicesTotalServ(req.user.company_id);
   res.json(result);
 };
