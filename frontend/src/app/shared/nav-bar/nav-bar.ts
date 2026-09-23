@@ -53,6 +53,11 @@ export class NavBar {
   // methods returning whole literal class strings (not built up from
   // pieces) so Tailwind's own static-source scan can still find them.
   linkClasses(): string {
+    // cursor-pointer: an <a href> gets this from the browser's own UA
+    // stylesheet for free, but a <summary> (the Documents/Ressources flyout
+    // trigger, see nav-bar.html) doesn't reliably - it fell back to the
+    // default text cursor over its label. Declared explicitly here so both
+    // element kinds sharing this method match.
     return this.expanded()
       // md:w-full: items-stretch on the ancestor chain (nav > the auth
       // wrapper div) turned out not to be enough on its own - measured live,
@@ -65,8 +70,8 @@ export class NavBar {
       // override a flex item's own "never shrink below content size" floor,
       // which is what let a long label (e.g. "Retour vue plateforme" below)
       // keep forcing this button wider than that 100% in the first place.
-      ? 'group relative flex items-center gap-3 h-10 px-3 rounded-md text-[1.1rem] text-gray-500 hover:bg-gray-100 transition-colors min-w-0 md:w-full'
-      : 'group relative flex items-center justify-center w-10 h-10 rounded-md text-[1.1rem] text-gray-500 hover:bg-gray-100 transition-colors';
+      ? 'group relative flex items-center gap-3 h-10 px-3 rounded-md text-[1.1rem] text-gray-500 hover:bg-gray-100 transition-colors min-w-0 md:w-full cursor-pointer'
+      : 'group relative flex items-center justify-center w-10 h-10 rounded-md text-[1.1rem] text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer';
   }
 
   // Collapsed: an absolutely-positioned tooltip, hidden until the parent
