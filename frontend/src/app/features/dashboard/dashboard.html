@@ -1,9 +1,21 @@
-<div class="bg-white border border-gray-200 rounded-lg shadow-sm p-4 max-w-3xl">
-  <h2 class="text-lg font-medium mt-0 mb-2">Montant payé par client</h2>
-
-  @if (paidByClient().length === 0) {
-    <p class="text-sm text-gray-500">Aucune facture payée pour l'instant.</p>
-  } @else if (chartData(); as data) {
-    <p-chart type="bar" [data]="data" [options]="chartOptions" />
+<div class="flex flex-col gap-4 max-w-3xl">
+  @if (openInvoices(); as invoices) {
+    <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-4 max-w-xs">
+      <p class="text-sm text-gray-500 m-0 mb-1">Factures ouvertes</p>
+      <p class="text-2xl font-semibold m-0">{{ invoices.total_open | price }} CHF</p>
+      <p class="text-sm text-gray-500 m-0 mt-1">
+        {{ invoices.count }} facture{{ invoices.count > 1 ? 's' : '' }} envoyée{{ invoices.count > 1 ? 's' : '' }}, pas encore payée{{ invoices.count > 1 ? 's' : '' }}
+      </p>
+    </div>
   }
+
+  <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-4">
+    <h2 class="text-lg font-medium mt-0 mb-2">Montant payé par client</h2>
+
+    @if (paidByClient().length === 0) {
+      <p class="text-sm text-gray-500">Aucune facture payée pour l'instant.</p>
+    } @else if (chartData(); as data) {
+      <p-chart type="bar" [data]="data" [options]="chartOptions" />
+    }
+  </div>
 </div>

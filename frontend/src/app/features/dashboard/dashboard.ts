@@ -1,8 +1,9 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { UIChart } from 'primeng/chart';
 import { DashboardService } from './dashboard.service';
-import { PaidAmountByClient } from '../../shared/models/dashboard';
+import { OpenInvoicesTotal, PaidAmountByClient } from '../../shared/models/dashboard';
 import { formatPrice } from '../../shared/utils/display';
+import { PricePipe } from '../../shared/pipes/price.pipe';
 
 interface BarChartData {
   labels: string[];
@@ -12,7 +13,7 @@ interface BarChartData {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [UIChart],
+  imports: [UIChart, PricePipe],
   templateUrl: './dashboard.html',
 })
 export class Dashboard implements OnInit {
@@ -21,6 +22,7 @@ export class Dashboard implements OnInit {
 
   paidByClient = signal<PaidAmountByClient[]>([]);
   chartData = signal<BarChartData | null>(null);
+  openInvoices = signal<OpenInvoicesTotal | null>(null);
 
   // Formats each bar's tooltip the same way the rest of the app shows a
   // money amount (formatPrice - "1234.50 CHF").
@@ -44,6 +46,11 @@ export class Dashboard implements OnInit {
         this.paidByClient.set(data);
         this.chartData.set(this.buildChartData(data));
       },
+      error: err => console.error('dashboard : ' + err)
+    });
+
+    this.dashboardService.getOpenInvoicesTotal().subscribe({
+      next: data => this.openInvoices.set(data),
       error: err => console.error('dashboard : ' + err)
     });
   }

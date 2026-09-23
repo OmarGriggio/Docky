@@ -8,3 +8,10 @@ export interface PaidAmountByClient {
   last_name: string | null;
   total_paid: number;
 }
+
+// Mirrors the backend's dashboard.types.ts OpenInvoicesTotal - one row, not
+// per-client, since it's a stat-tile headline total.
+export interface OpenInvoicesTotal {
+  total_open: number;
+  count: number;
+}
