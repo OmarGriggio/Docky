@@ -30,7 +30,7 @@ export class ResourceForm implements OnInit {
   // and would fail on submit if duplicated as-is.
   duplicateFrom = input<Resource | null>(null);
 
-  saved = output<void>();
+  saved = output<Resource>();
   cancelled = output<void>();
 
   errorMessage = signal<string | null>(null);
@@ -74,8 +74,8 @@ export class ResourceForm implements OnInit {
       ...this.form.getRawValue(),
       parent_resource_id: null,
     }).subscribe({
-      next: () => {
-        this.saved.emit();
+      next: resource => {
+        this.saved.emit(resource);
       },
       error: (err: HttpErrorResponse) => {
         console.error('resource-form : ' + err);

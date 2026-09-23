@@ -116,6 +116,17 @@
       }
     </p-dialog>
 
+    <p-dialog
+      [(visible)]="createResourceDialogVisible"
+      header="Nouvelle ressource"
+      [modal]="true"
+      [style]="{ width: '32rem' }"
+    >
+      @if (createResourceDialogVisible()) {
+        <app-resource-form (saved)="onResourceCreated($event)" (cancelled)="createResourceDialogVisible.set(false)" />
+      }
+    </p-dialog>
+
     @if (selectedClientTitle()) {
       <p class="text-left text-[0.9rem] text-[#555] m-0 mb-4">{{ selectedClientTitle() }},</p>
     } @else {
@@ -405,7 +416,17 @@
               [ngModel]="null"
               (ngModelChange)="addCatalogResourceLine(section.id, $event)"
               [placeholder]="type === 'QUOTE' ? 'Ajouter depuis le catalogue' : 'Ajouter une ressource'"
-            />
+            >
+              <ng-template #footer>
+                <div class="p-2 border-t border-surface-200">
+                  <p-button
+                    type="button" label="Ajouter une ressource" icon="pi pi-plus"
+                    size="small" [text]="true" [fluid]="true"
+                    (onClick)="openCreateResourceDialog(section.id)"
+                  />
+                </div>
+              </ng-template>
+            </p-select>
           </div>
         </div>
       }

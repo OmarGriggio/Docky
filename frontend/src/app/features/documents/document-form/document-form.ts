@@ -14,6 +14,7 @@ import { Card } from 'primeng/card';
 import { Dialog } from 'primeng/dialog';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { ClientForm } from '../../clients/client-form/client-form';
+import { ResourceForm } from '../../resources/resource-form/resource-form';
 import { DocumentService } from '../document.service';
 import { DocumentSectionService } from '../document-section.service';
 import { DocumentLineService } from '../document-line.service';
@@ -104,7 +105,7 @@ let nextId = 1;
 @Component({
   selector: 'app-document-form',
   standalone: true,
-  imports: [FormsModule, PricePipe, InputText, InputNumber, Textarea, FloatLabel, Select, DatePicker, Button, Card, Dialog, ConfirmDialogComponent, ClientForm, TabIndentDirective],
+  imports: [FormsModule, PricePipe, InputText, InputNumber, Textarea, FloatLabel, Select, DatePicker, Button, Card, Dialog, ConfirmDialogComponent, ClientForm, ResourceForm, TabIndentDirective],
   templateUrl: './document-form.html',
   styleUrl: './document-form.css',
 })
@@ -765,6 +766,27 @@ export class DocumentForm implements OnInit {
     this.sections.update(sections =>
       sections.map(s => s.id === sectionId ? { ...s, lines: [...s.lines, line] } : s)
     );
+  }
+
+  // "Ajouter une ressource" (the catalog p-select's own footer, see the
+  // template) - for when the resource being added doesn't exist in the
+  // catalog yet. Remembers which section's picker it was opened from, so
+  // the newly created resource lands there as a line right away, same as
+  // picking an existing one by hand.
+  createResourceDialogVisible = signal(false);
+  private createResourceSectionId: number | null = null;
+
+  openCreateResourceDialog(sectionId: number): void {
+    this.createResourceSectionId = sectionId;
+    this.createResourceDialogVisible.set(true);
+  }
+
+  onResourceCreated(resource: Resource): void {
+    this.resources.update(resources => [...resources, resource]);
+    this.createResourceDialogVisible.set(false);
+    if (this.createResourceSectionId !== null) {
+      this.addCatalogResourceLine(this.createResourceSectionId, resource.id);
+    }
   }
 
   private clearImportedSections(): void {
