@@ -26,7 +26,7 @@ export const getResourceByIdFromDB = async (id: number, company_id: number) => {
 };
 
 // Active only - matches the partial unique index from
-// zz_migrations/004_resource_code_unique_when_active.sql: an archived
+// zz_migrations/000_base.sql (resources_company_id_code_active_key): an archived
 // resource's code is free to reuse.
 export const getResourceByCodeFromDB = async (code: string, company_id: number) => {
   const result = await pool.query(

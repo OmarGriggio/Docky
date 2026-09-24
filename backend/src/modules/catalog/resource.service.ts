@@ -60,7 +60,7 @@ export const unarchiveResourceServ = async (id: number, company_id: number) => {
   }
 
   // Its code may have been reused by a new active resource while it was
-  // archived (see zz_migrations/004) - restoring it would now collide.
+  // archived (see zz_migrations/000_base.sql) - restoring it would now collide.
   if (resource.code && await getResourceByCodeFromDB(resource.code, company_id)) {
     throw new ConflictError("Resource code already exists");
   }

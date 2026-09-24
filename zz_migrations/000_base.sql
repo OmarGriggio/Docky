@@ -15,7 +15,28 @@ CREATE TABLE companies (
     postal_code VARCHAR(20),
     city VARCHAR(100),
     country VARCHAR(100),
-    logo VARCHAR(255)
+    logo VARCHAR(255),
+
+    -- Shown at the very top of a generated invoice (see backend/src/pdf) -
+    -- distinct from the logo, which stays in its own top-right corner slot.
+    header_image VARCHAR(255),
+
+    -- Default VAT rate applied to a new document (see document.types.ts's
+    -- own vat_rate) - only a starting point, still freely editable per
+    -- document (and frozen there once set, so a later change here never
+    -- retroactively changes an already-issued invoice's own rate).
+    vat_rate NUMERIC(5,2) DEFAULT 8.1,
+
+    -- The company's own VAT/UID number (e.g. "CHE-123.456.789 TVA") -
+    -- nullable, a company under the small-business threshold has none.
+    -- Shown on an invoice next to the issuer's own address (see
+    -- backend/src/pdf) - same column shape as clients.vat_number.
+    vat_number VARCHAR(20),
+
+    -- Default payment terms for a new document (documents.payment_terms is
+    -- the one actually used - this is only its starting value, same pattern
+    -- as vat_rate). TEXT, not VARCHAR - free text, multi-line.
+    payment_terms TEXT
 );
 
 -- ==========================================
@@ -148,10 +169,32 @@ CREATE TABLE resources (
     purchase_price  NUMERIC(10,2),
     is_active BOOLEAN DEFAULT TRUE,
 
-    -- Scoped to the company, not table-wide - two different companies'
-    -- catalogs are independent, there's no reason company 2 owning "MAT001"
-    -- should block company 1 from using it too.
-    UNIQUE (company_id, code),
+    FOREIGN KEY (company_id)
+        REFERENCES companies(id)
+);
+
+-- A resource's code only needs to be unique among its company's ACTIVE
+-- resources: once archived (see the "archive instead of delete" convention),
+-- its code is free to reuse - a plain UNIQUE (company_id, code) would reject
+-- a new resource whose code matched an archived one, even though that one is
+-- hidden in the UI by default. Scoped to the company, not table-wide - two
+-- different companies' catalogs are independent.
+CREATE UNIQUE INDEX resources_company_id_code_active_key
+    ON resources (company_id, code)
+    WHERE is_active = true;
+
+-- The company's own customizable list of units ("Heure", "m²"...) the
+-- document form's unit picker reads from - a line's/resource's own "unit"
+-- column stays free text, this is only the list of suggestions. Removing one
+-- from the list archives it (is_active), it never touches what already uses
+-- it.
+CREATE TABLE resource_units (
+    id SERIAL PRIMARY KEY,
+    company_id INTEGER NOT NULL,
+    label VARCHAR(50) NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+
+    UNIQUE (company_id, label),
 
     FOREIGN KEY (company_id)
         REFERENCES companies(id)
@@ -214,6 +257,9 @@ CREATE TABLE document_sections (
     description TEXT,
     date_start TIMESTAMP, -- optional schedule for this section's work
     date_end TIMESTAMP,
+    -- Free-form note a user can jot on a section from wherever it shows up
+    -- (the calendar's section panel).
+    note TEXT,
     is_active BOOLEAN DEFAULT TRUE,
 
     FOREIGN KEY (document_id)
@@ -262,14 +308,28 @@ CREATE TABLE document_lines (
 -- DOCUMENT TEMPLATES
 -- ==========================================
 
--- Default introduction/conclusion per document type, applied client-side.
+-- Default introduction/conclusion per document type, applied client-side
+-- (copied into each new QUOTE/INVOICE, with {{placeholders}} filled in at PDF
+-- time - see backend/src/pdf/templates/document.placeholders.ts).
+--
+-- REMINDER is a third kind of default text, not a document type (a reminder
+-- isn't a documents row): the payment reminder PDF's own body, whose whole
+-- text lives in `introduction` (see reminder.placeholders.ts).
 CREATE TABLE document_templates (
     id SERIAL PRIMARY KEY,
     company_id INTEGER NOT NULL,
     type VARCHAR(20) NOT NULL
-        CHECK (type IN ('QUOTE', 'INVOICE')),
+        CHECK (type IN ('QUOTE', 'INVOICE', 'REMINDER')),
     introduction TEXT,
     conclusion TEXT,
+
+    -- Default due date offset (in days after the document date) for a new
+    -- document of this type - documents.due_date is the one actually used,
+    -- this is only its starting value, same pattern as
+    -- companies.payment_terms. For a QUOTE it means "valid for N days".
+    -- NULL = no default due date.
+    due_days INTEGER
+        CHECK (due_days IS NULL OR due_days >= 0),
 
     UNIQUE (company_id, type),
 
@@ -335,4 +395,19 @@ CREATE TABLE project_attachments (
         ON DELETE SET NULL,
     FOREIGN KEY (company_id)
         REFERENCES companies(id)
+);
+
+-- ==========================================
+-- CALENDAR NOTES
+-- ==========================================
+
+-- A free-standing calendar entry (title/description/date_start/date_end),
+-- not tied to a chantier/section - see backend/src/modules/calendar.
+CREATE TABLE calendar_notes (
+    id SERIAL PRIMARY KEY,
+    company_id INTEGER NOT NULL REFERENCES companies(id),
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    date_start TIMESTAMPTZ NOT NULL,
+    date_end TIMESTAMPTZ NOT NULL
 );
