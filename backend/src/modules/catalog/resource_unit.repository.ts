@@ -20,6 +20,16 @@ export const getUnitByLabelFromDB = async (label: string, company_id: number) =>
   return result.rows[0] ?? null;
 };
 
+// Scoped by company_id like every single-resource query - null when the
+// unit doesn't exist or isn't this company's.
+export const setUnitActiveInDB = async (id: number, company_id: number, is_active: boolean): Promise<ResourceUnit | null> => {
+  const result = await pool.query(
+    "UPDATE resource_units SET is_active = $1 WHERE id = $2 AND company_id = $3 RETURNING *",
+    [is_active, id, company_id]
+  );
+  return result.rows[0] ?? null;
+};
+
 export const createUnitInDB = async (unit: Omit<ResourceUnit, "id">): Promise<ResourceUnit> => {
   const query = `
     INSERT INTO resource_units (company_id, label, is_active)

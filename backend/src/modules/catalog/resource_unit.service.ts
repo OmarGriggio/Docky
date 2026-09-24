@@ -1,5 +1,5 @@
-import { getUnitsFromDB, getUnitByLabelFromDB, createUnitInDB } from "./resource_unit.repository";
-import { AppError } from "../../shared/types/errors";
+import { getUnitsFromDB, getUnitByLabelFromDB, createUnitInDB, setUnitActiveInDB } from "./resource_unit.repository";
+import { AppError, NotFoundError } from "../../shared/types/errors";
 
 export const getUnitsServ = async (company_id: number, includeArchived = false) => {
   return await getUnitsFromDB(company_id, includeArchived);
@@ -18,8 +18,25 @@ export const addUnitServ = async (label: string, company_id: number) => {
 
   const existing = await getUnitByLabelFromDB(trimmed, company_id);
   if (existing) {
+    // Typing a label that was removed from the list (archived) brings it
+    // back rather than leaving it invisible - it can't be re-created, the
+    // (company_id, label) pair is unique.
+    if (!existing.is_active) {
+      return (await setUnitActiveInDB(existing.id, company_id, true)) ?? existing;
+    }
     return existing;
   }
 
   return await createUnitInDB({ company_id, label: trimmed, is_active: true });
+};
+
+// "Removes" a unit from the company's list - archived, not deleted, like the
+// other lists (see CLAUDE.md). Nothing else references a unit: a line's or
+// resource's own "unit" is free text, so existing documents are untouched.
+export const archiveUnitServ = async (id: number, company_id: number) => {
+  const unit = await setUnitActiveInDB(id, company_id, false);
+  if (!unit) {
+    throw new NotFoundError("Unit not found");
+  }
+  return unit;
 };
