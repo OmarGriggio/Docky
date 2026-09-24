@@ -20,7 +20,7 @@ export class DocumentTemplateService {
     });
   }
 
-  upsertTemplate(type: DocumentTemplateType, template: { introduction: string | null; conclusion: string | null; due_days?: number | null }) {
+  upsertTemplate(type: DocumentTemplateType, template: Partial<Pick<DocumentTemplate, 'introduction' | 'conclusion' | 'due_days'>>) {
     return this.http.put<DocumentTemplate>(`${API_BASE}/document-template/${type}`, template);
   }
 

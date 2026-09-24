@@ -1,0 +1,328 @@
+<div class="border-t border-b border-dashed border-[#ddd] py-6 mb-6">
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="m-0">Détails</h2>
+    <div class="flex items-center gap-2 flex-wrap">
+      <p-button
+        size="small"
+        type="button"
+        label="Ajouter une section"
+        icon="pi pi-plus"
+        severity="secondary"
+        (onClick)="addSection()"
+      />
+    </div>
+  </div>
+
+  @if (sections().length === 0) {
+    <p class="m-0 text-[#888] italic">
+      Aucune section pour l'instant - clique sur "Ajouter une section" pour commencer (ex. "Gros
+      oeuvre", "Électricité"...).
+    </p>
+  }
+
+  @for (section of sections(); track section.id) {
+    <div class="border border-[#e0e0e0] rounded-lg p-4 mb-5">
+      <div class="flex items-center gap-2 mb-3">
+        <input
+          pInputText
+          pSize="small"
+          class="flex-1 font-semibold w-full md:w-18"
+          placeholder="Titre de la section (ex. Gros oeuvre)"
+          [ngModel]="section.title"
+          (ngModelChange)="updateSectionTitle(section.id, $event)"
+        />
+        <p-button
+          size="small"
+          type="button"
+          icon="pi pi-trash"
+          severity="danger"
+          [text]="true"
+          (onClick)="removeSection(section.id)"
+        />
+      </div>
+
+      <textarea
+        pTextarea
+        pSize="small"
+        class="w-full mb-3"
+        rows="2"
+        placeholder="Description de la section (optionnel)"
+        [ngModel]="section.description"
+        (ngModelChange)="updateSectionDescription(section.id, $event)"
+      ></textarea>
+
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-160 border-collapse table-fixed">
+          <colgroup>
+            <col style="width: 13%" />
+            <col style="width: 29%" />
+            <col style="width: 12%" />
+            <col style="width: 10%" />
+            <col style="width: 10%" />
+            <col style="width: 11%" />
+            <col style="width: 8%" />
+          </colgroup>
+          <thead>
+            <tr>
+              <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">
+                Type
+              </th>
+              <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">
+                Désignation
+              </th>
+              <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">
+                Qté / Temps
+              </th>
+              <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">
+                Unité
+              </th>
+              <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">
+                Prix
+              </th>
+              <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">
+                Total
+              </th>
+              <th
+                class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]"
+              ></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (line of section.lines; track line.id) {
+              <tr>
+                <td class="py-[0.3rem] px-[0.2rem] align-middle">
+                  <p-select
+                    size="small"
+                    [fluid]="true"
+                    [options]="lineTypeOptions"
+                    optionLabel="label"
+                    optionValue="value"
+                    [ngModel]="line.type"
+                    (ngModelChange)="updateLine(section.id, line.id, { type: $event })"
+                    appendTo="body"
+                  />
+                </td>
+                <td class="py-[0.3rem] px-[0.2rem] align-middle">
+                  <input
+                    pInputText
+                    pSize="small"
+                    [fluid]="true"
+                    class="block"
+                    [ngModel]="line.label"
+                    (ngModelChange)="updateLine(section.id, line.id, { label: $event })"
+                  />
+                </td>
+                <td class="py-[0.3rem] px-[0.2rem] align-middle">
+                  <p-inputnumber
+                    size="small"
+                    [fluid]="true"
+                    [ngModel]="line.quantity"
+                    (ngModelChange)="updateLine(section.id, line.id, { quantity: $event })"
+                    mode="decimal"
+                    [minFractionDigits]="2"
+                    [placeholder]="lineQuantityLabel(line.type)"
+                  />
+                </td>
+                <td class="py-[0.3rem] px-[0.2rem] align-middle">
+                  <p-select
+                    size="small"
+                    [fluid]="true"
+                    [options]="unitOptions()"
+                    optionLabel="label"
+                    optionValue="value"
+                    [ngModel]="line.unit"
+                    (ngModelChange)="updateLine(section.id, line.id, { unit: $event })"
+                    appendTo="body"
+                  >
+                    <ng-template #item let-option>
+                      <div class="flex items-center justify-between w-full gap-3">
+                        <span>{{ option.label }}</span>
+                        @if (option.unitId !== null) {
+                          <i class="pi pi-times text-[0.65rem] text-gray-400 hover:text-red-600 cursor-pointer" title="Retirer cette unité de la liste" (click)="archiveUnit(option.unitId, $event)"></i>
+                        }
+                      </div>
+                    </ng-template>
+                    <ng-template #footer>
+                      <div class="flex gap-2 p-2 border-t border-surface-200">
+                        <input
+                          pInputText size="small" [fluid]="true"
+                          placeholder="Nouvelle unité (ex. jour)"
+                          #newUnitInput
+                          (keydown.enter)="addUnit(newUnitInput.value, u => updateLine(section.id, line.id, { unit: u })); newUnitInput.value = ''"
+                        />
+                        <p-button
+                          type="button" icon="pi pi-plus" size="small"
+                          (onClick)="addUnit(newUnitInput.value, u => updateLine(section.id, line.id, { unit: u })); newUnitInput.value = ''"
+                        />
+                      </div>
+                    </ng-template>
+                  </p-select>
+                </td>
+                <td class="py-[0.3rem] px-[0.2rem] align-middle">
+                  <p-inputnumber
+                    size="small"
+                    [fluid]="true"
+                    [ngModel]="line.unit_price"
+                    (ngModelChange)="updateLine(section.id, line.id, { unit_price: $event })"
+                    mode="decimal"
+                    [minFractionDigits]="2" [useGrouping]="false" [maxFractionDigits]="2" />
+                </td>
+                <td class="py-[0.3rem] px-[0.2rem] align-middle">
+                  {{ lineTotal(line) | price }}
+                </td>
+                <td class="py-[0.3rem] px-[0.2rem] align-middle">
+                  <p-button
+                    size="small"
+                    type="button"
+                    icon="pi pi-trash"
+                    severity="danger"
+                    [text]="true"
+                    (onClick)="removeLine(section.id, line.id)"
+                  />
+                </td>
+              </tr>
+            }
+
+            <!-- Inline "add a line" row -->
+            <tr class="bg-[#fafafa]">
+              @let draft = newLineFor(section.id);
+              <td class="py-[0.3rem] px-[0.2rem] align-middle">
+                <p-select
+                  size="small"
+                  [fluid]="true"
+                  [options]="lineTypeOptions"
+                  optionLabel="label"
+                  optionValue="value"
+                  [ngModel]="draft.type"
+                  (ngModelChange)="draft.type = $event"
+                  appendTo="body"
+                />
+              </td>
+              <td class="py-[0.3rem] px-[0.2rem] align-middle">
+                <input
+                  pInputText
+                  pSize="small"
+                  [fluid]="true"
+                  class="block"
+                  [(ngModel)]="draft.label"
+                  placeholder="Désignation"
+                />
+              </td>
+              <td class="py-[0.3rem] px-[0.2rem] align-middle">
+                <p-inputnumber
+                  size="small"
+                  [fluid]="true"
+                  [(ngModel)]="draft.quantity"
+                  mode="decimal"
+                  [minFractionDigits]="2"
+                  [placeholder]="lineQuantityLabel(draft.type)"
+                />
+              </td>
+              <td class="py-[0.3rem] px-[0.2rem] align-middle">
+                <p-select
+                  size="small"
+                  [fluid]="true"
+                  [options]="unitOptions()"
+                  optionLabel="label"
+                  optionValue="value"
+                  placeholder="Unité"
+                  [ngModel]="draft.unit"
+                  (ngModelChange)="draft.unit = $event"
+                  appendTo="body"
+                >
+                  <ng-template #item let-option>
+                    <div class="flex items-center justify-between w-full gap-3">
+                      <span>{{ option.label }}</span>
+                      @if (option.unitId !== null) {
+                        <i class="pi pi-times text-[0.65rem] text-gray-400 hover:text-red-600 cursor-pointer" title="Retirer cette unité de la liste" (click)="archiveUnit(option.unitId, $event)"></i>
+                      }
+                    </div>
+                  </ng-template>
+                  <ng-template #footer>
+                    <div class="flex gap-2 p-2 border-t border-surface-200">
+                      <input
+                        pInputText size="small" [fluid]="true"
+                        placeholder="Nouvelle unité (ex. jour)"
+                        #newUnitInput
+                        (keydown.enter)="addUnit(newUnitInput.value, u => draft.unit = u); newUnitInput.value = ''"
+                      />
+                      <p-button
+                        type="button" icon="pi pi-plus" size="small"
+                        (onClick)="addUnit(newUnitInput.value, u => draft.unit = u); newUnitInput.value = ''"
+                      />
+                    </div>
+                  </ng-template>
+                </p-select>
+              </td>
+              <td class="py-[0.3rem] px-[0.2rem] align-middle">
+                <p-inputnumber
+                  size="small"
+                  [fluid]="true"
+                  [(ngModel)]="draft.unit_price"
+                  mode="decimal"
+                  [minFractionDigits]="2" [useGrouping]="false" [maxFractionDigits]="2" />
+              </td>
+              <td class="py-[0.3rem] px-[0.2rem] align-middle"></td>
+              <td class="py-[0.3rem] px-[0.2rem] align-middle">
+                <p-button
+                  size="small"
+                  type="button"
+                  icon="pi pi-plus"
+                  [text]="true"
+                  (onClick)="addLine(section.id)"
+                />
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="5" class="font-semibold border-t border-[#eee] pt-2">
+                Sous-total section
+              </td>
+              <td class="font-semibold border-t border-[#eee] pt-2">
+                {{ sectionTotal(section) | price }}
+              </td>
+              <td class="font-semibold border-t border-[#eee] pt-2"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div class="flex justify-end mt-3">
+        <p-select
+          size="small"
+          class="block w-65 max-w-full"
+          [options]="availableCatalogResourceOptions()"
+          optionLabel="label"
+          optionValue="value"
+          [ngModel]="null"
+          (ngModelChange)="addCatalogResourceLine(section.id, $event)"
+          [filter]="true"
+          filterPlaceholder="Rechercher une ressource..."
+          [placeholder]="type() === 'QUOTE' ? 'Ajouter depuis le catalogue' : 'Ajouter une ressource'"
+        >
+          <ng-template #footer>
+            <div class="p-2 border-t border-surface-200">
+              <p-button
+                type="button" label="Ajouter une ressource" icon="pi pi-plus"
+                size="small" [text]="true" [fluid]="true"
+                (onClick)="openCreateResourceDialog(section.id)"
+              />
+            </div>
+          </ng-template>
+        </p-select>
+      </div>
+    </div>
+  }
+</div>
+
+<p-dialog
+  [(visible)]="createResourceDialogVisible"
+  header="Nouvelle ressource"
+  [modal]="true"
+  [style]="{ width: '32rem' }"
+>
+  @if (createResourceDialogVisible()) {
+    <app-resource-form (saved)="onResourceCreated($event)" (cancelled)="createResourceDialogVisible.set(false)" />
+  }
+</p-dialog>

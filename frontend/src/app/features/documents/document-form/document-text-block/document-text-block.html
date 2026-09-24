@@ -1,0 +1,30 @@
+@if (editing() || !text()) {
+  <textarea
+    pTextarea
+    pSize="small"
+    [ngModel]="draft()"
+    (ngModelChange)="draft.set($event)"
+    rows="4"
+    class="w-full"
+    [placeholder]="placeholder()"
+  ></textarea>
+  <p class="m-0 mt-1 text-xs text-gray-500">{{ placeholdersHint }}</p>
+  <div class="flex justify-end items-center gap-3 mt-2">
+    <a class="text-sm text-[#666] hover:underline cursor-pointer" (click)="cancelEdit()">Annuler</a>
+    <p-button label="Appliquer" size="small" severity="secondary" [text]="true" (onClick)="apply()" />
+    <p-button label="Sauvegarder" size="small" [loading]="saving()" (onClick)="confirmSave()" />
+  </div>
+  @if (saveError()) {
+    <p class="m-0 mt-2 text-sm text-[#d32f2f]">{{ saveError() }}</p>
+  }
+} @else {
+  <p class="text-sm text-[#333] m-0 whitespace-pre-wrap">{{ resolve()(text()) }} ... <a class="text-sm hover:underline cursor-pointer text-green-700" (click)="startEdit()">Modifier le texte</a></p>
+}
+
+<app-confirm-dialog
+  [(visible)]="confirmVisible"
+  title="Enregistrer comme valeur par défaut"
+  [message]="confirmMessage()"
+  confirmLabel="Enregistrer"
+  (confirmed)="onConfirmed()"
+/>

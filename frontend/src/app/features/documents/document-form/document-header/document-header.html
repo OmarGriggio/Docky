@@ -1,0 +1,120 @@
+<div class="flex justify-between gap-8 flex-wrap mb-6">
+  <div class="flex flex-col gap-1 text-[#555] text-[0.9rem]">
+    @if (logoUrl()) {
+      <img [src]="logoUrl()" alt="Logo" class="max-w-30 max-h-15 object-contain mb-2" />
+    }
+    <div class="font-semibold text-[#222]">{{ company()?.name }}</div>
+    <div>{{ company()?.street }}</div>
+    <div>{{ company()?.postal_code }} {{ company()?.city }}</div>
+  </div>
+
+  <div class="flex flex-col items-start sm:items-end gap-3 min-w-55">
+    <h2 class="m-0">{{ pageTitle() }}</h2>
+
+    <p-floatlabel variant="on">
+      <p-datepicker inputId="date" [ngModel]="date()" (ngModelChange)="onDateChange($event)" dateFormat="dd.mm.yy" />
+      <label for="date">Date</label>
+    </p-floatlabel>
+
+    <p-floatlabel variant="on">
+      <p-datepicker inputId="due_date" [ngModel]="dueDate()" (ngModelChange)="dueDate.set($event)" dateFormat="dd.mm.yy" [showClear]="true" />
+      <label for="due_date">{{ type() === 'QUOTE' ? "Valable jusqu'au" : 'Échéance' }}</label>
+    </p-floatlabel>
+
+    <p class="m-0 text-[0.8rem] text-[#888] italic">
+      @if (documentNumber()) {
+        N° : {{ documentNumber() }}
+      } @else {
+        N° : généré automatiquement à la création
+      }
+    </p>
+  </div>
+</div>
+
+@if (locked()) {
+  <p class="m-0 mb-6 text-[#d32f2f]">
+    Ce document ne peut plus être modifié (offre déjà répondue ou facture déjà finalisée).
+  </p>
+}
+
+<div class="flex justify-start sm:justify-end mb-6">
+  <div class="flex flex-col gap-3 w-full max-w-70">
+    <p-floatlabel variant="on" class="w-full">
+      <p-select
+        pSize="small"
+        inputId="client_id"
+        [options]="clientOptions()"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="clientId()"
+        (ngModelChange)="clientChange.emit($event)"
+        [fluid]="true"
+      >
+        <ng-template #footer>
+          <div class="p-2 border-t border-surface-200">
+            <p-button
+              type="button" label="Ajouter un client" icon="pi pi-plus"
+              size="small" [text]="true" [fluid]="true"
+              (onClick)="createClientDialogVisible.set(true)"
+            />
+          </div>
+        </ng-template>
+      </p-select>
+      <label for="client_id">Client</label>
+    </p-floatlabel>
+
+    @if (selectedClientAddress(); as address) {
+      <div class="text-[0.9rem] text-[#555] px-3">
+        @if (address.attention) {
+          {{ address.attention }}<br />
+        }
+        {{ address.street }}<br />
+        {{ address.postal_code }} {{ address.city }}<br />
+        {{ address.country }}
+      </div>
+    }
+
+    <p-floatlabel variant="on" class="w-full">
+      <p-select
+        pSize="small"
+        inputId="address_id"
+        [options]="addressOptions()"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="addressId()" (ngModelChange)="addressId.set($event)"
+        [showClear]="true"
+        [disabled]="clientId() === null"
+        [fluid]="true"
+      >
+        <ng-template #footer>
+          <div class="p-2 border-t border-surface-200">
+            <p-button
+              type="button" label="Ajouter une adresse" icon="pi pi-plus"
+              size="small" [text]="true" [fluid]="true"
+              (onClick)="goToClientAddresses()"
+            />
+          </div>
+        </ng-template>
+      </p-select>
+      <label for="address_id">Lieu/Bâtiment</label>
+    </p-floatlabel>
+
+    @if (type() === 'INVOICE') {
+      <p-floatlabel variant="on" class="w-full">
+        <input pInputText pSize="small" id="reference_client" [ngModel]="referenceClient()" (ngModelChange)="referenceClient.set($event)" [fluid]="true" />
+        <label for="reference_client">Référence client</label>
+      </p-floatlabel>
+    }
+  </div>
+</div>
+
+<p-dialog
+  [(visible)]="createClientDialogVisible"
+  header="Nouveau client"
+  [modal]="true"
+  [style]="{ width: '32rem' }"
+>
+  @if (createClientDialogVisible()) {
+    <app-client-form (saved)="onClientCreated($event)" (cancelled)="createClientDialogVisible.set(false)" />
+  }
+</p-dialog>
