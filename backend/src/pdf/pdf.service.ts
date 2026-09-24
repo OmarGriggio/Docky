@@ -84,9 +84,9 @@ export const generateReminderPdfServ = async (documentId: number, company_id: nu
     const client = await getClientByIdServ(document.client_id, company_id);
     const company = await getCompanyByIdServ(client.company_id);
 
-    // Never null for a REMINDER - falls back to the default text.
+    // Falls back to the default text when the company has none.
     const template = await getTemplateServ("REMINDER", company_id);
-    const reminder = createReminderDto(document, client, company, template?.introduction ?? "");
+    const reminder = createReminderDto(document, client, company, template.introduction ?? "");
     const qrBill = createSwissQrBillDto(document, client, company);
     const qrImageBytes = await generateSwissQrBillImage(qrBill);
     const logoBytes = await readCompanyImageBytes(company.logo);

@@ -2,6 +2,8 @@ import { ClientWithAddresses } from "../../../modules/clients/client.types";
 import { DocumentComplete } from "../../../modules/documents/document_complete.types";
 import { Company } from "../../../modules/companies/company.types";
 import { QuoteDto, QuoteSectionDto } from "../quote.types";
+import { fillPlaceholders } from "../placeholders";
+import { buildDocumentValues } from "../document.placeholders";
 
 // Same shape/ordering rules as invoice.dto.ts's buildSections - document.sections/
 // lines aren't ordered by `position` from the DB, and an emptied-out section
@@ -35,6 +37,8 @@ const resolveBillingAddress = (client: ClientWithAddresses) => {
 
 export const createQuoteDto = (document: DocumentComplete, client: ClientWithAddresses, company: Company): QuoteDto => {
     const address = resolveBillingAddress(client);
+    // {{titre_client}}/{{date}}/{{montant}}/{{signature_entreprise}} in the introduction/conclusion.
+    const placeholders = buildDocumentValues(document, client.title, company.name);
 
     return {
         number: document.number,
@@ -52,11 +56,10 @@ export const createQuoteDto = (document: DocumentComplete, client: ClientWithAdd
             street: address ? `${address.street}` : "",
             city: address?.city ?? "",
             postalCodeCity: address ? `${address.postal_code ?? ""} ${address.city ?? ""}` : "",
-            title: client.title ?? "",
         },
         sections: buildSections(document),
-        introduction: document.introduction ?? "",
-        conclusion: document.conclusion ?? "",
+        introduction: fillPlaceholders(document.introduction ?? "", placeholders),
+        conclusion: fillPlaceholders(document.conclusion ?? "", placeholders),
         paymentTerms: company.payment_terms,
     };
 }

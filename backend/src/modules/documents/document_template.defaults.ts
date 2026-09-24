@@ -9,3 +9,12 @@ export const DEFAULT_REMINDER_TEXT =
     "au moyen du bulletin de versement en page 2.\n\n" +
     "Si votre paiement a été effectué entre-temps, nous vous prions de ne pas tenir compte de ce rappel.\n\n" +
     "Nous vous remercions de votre compréhension et vous adressons nos meilleures salutations.";
+
+// A QUOTE/INVOICE introduction when the company has no template saved for
+// that type yet (see getTemplateServ): just the greeting, with the client's
+// title filled in at PDF time - see pdf/templates/document.placeholders.ts.
+export const DEFAULT_DOCUMENT_INTRODUCTION = "{{titre_client}},\n\n";
+
+// Same, for the conclusion: just the company's signature (see
+// pdf/templates/document.placeholders.ts).
+export const DEFAULT_DOCUMENT_CONCLUSION = "{{signature_entreprise}}";

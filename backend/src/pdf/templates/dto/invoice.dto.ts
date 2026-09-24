@@ -3,6 +3,8 @@ import { ClientWithAddresses } from "../../../modules/clients/client.types";
 import { DocumentComplete } from "../../../modules/documents/document_complete.types";
 import { Company } from "../../../modules/companies/company.types";
 import { InvoiceDto, InvoiceSectionDto } from "../invoice.types";
+import { fillPlaceholders } from "../placeholders";
+import { buildDocumentValues } from "../document.placeholders";
 
 // document.sections/lines are already scoped to this document and active-only
 // (the repository queries default to is_active = true) - but neither comes
@@ -57,6 +59,8 @@ const resolveLocation = (document: DocumentComplete, client: ClientWithAddresses
 
 export const createInvoiceDto = (document: DocumentComplete, client: ClientWithAddresses, company: Company): InvoiceDto => {
     const address = resolveBillingAddress(client);
+    // {{titre_client}}/{{date}}/{{montant}}/{{signature_entreprise}} in the introduction/conclusion.
+    const placeholders = buildDocumentValues(document, client.title, company.name);
 
     const data: InvoiceDto = {
         number: document.number,
@@ -74,7 +78,6 @@ export const createInvoiceDto = (document: DocumentComplete, client: ClientWithA
             street: address ? `${address.street}` : "",
             city: address?.city ?? "",
             postalCodeCity: address ? `${address.postal_code ?? ""} ${address.city ?? ""}` : "",
-            title: client.title ?? "",
         },
         location: resolveLocation(document, client),
         referenceClient: document.reference_client,
@@ -85,8 +88,8 @@ export const createInvoiceDto = (document: DocumentComplete, client: ClientWithA
         discount: document.discount,
         dueDate: document.due_date,
         paymentTerms: document.payment_terms,
-        introduction: document.introduction ?? "",
-        conclusion: document.conclusion ?? ""
+        introduction: fillPlaceholders(document.introduction ?? "", placeholders),
+        conclusion: fillPlaceholders(document.conclusion ?? "", placeholders)
     };
 
     return data;

@@ -32,7 +32,6 @@ export interface InvoiceDto {
         street: string;
         city: string;
         postalCodeCity: string;
-        title: string;
     };
     // documents.address_id, formatted - null unless one was actually picked
     // (see resolveLocation in invoice.dto.ts). Distinct from client above:

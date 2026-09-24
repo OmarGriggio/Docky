@@ -2,7 +2,8 @@ import { ClientWithAddresses } from "../../../modules/clients/client.types";
 import { DocumentComplete } from "../../../modules/documents/document_complete.types";
 import { Company } from "../../../modules/companies/company.types";
 import { ReminderDto } from "../reminder.types";
-import { buildReminderValues, fillPlaceholders } from "../reminder.placeholders";
+import { buildReminderValues } from "../reminder.placeholders";
+import { fillPlaceholders } from "../placeholders";
 
 // Same billing-address rule as invoice.dto.ts - the client's primary address
 // (or its first), never documents.address_id.
@@ -33,6 +34,6 @@ export const createReminderDto = (document: DocumentComplete, client: ClientWith
             postalCodeCity: address ? `${address.postal_code ?? ""} ${address.city ?? ""}` : "",
             title: client.title ?? "",
         },
-        text: fillPlaceholders(templateText, buildReminderValues(document, clientName, today)),
+        text: fillPlaceholders(templateText, buildReminderValues(document, clientName, company.name ?? "", today)),
     };
 };

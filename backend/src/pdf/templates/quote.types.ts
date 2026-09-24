@@ -33,7 +33,6 @@ export interface QuoteDto {
         street: string;
         city: string;
         postalCodeCity: string;
-        title: string;
     };
     sections: QuoteSectionDto[];
     introduction: string;

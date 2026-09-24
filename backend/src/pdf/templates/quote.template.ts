@@ -46,8 +46,6 @@ export class QuoteTemplate {
 
         pdf.text(`Offre N° ${quote.number}`, { bold: true, marginBottom: 10 });
 
-        pdf.text(quote.client.title, { marginBottom: 5 });
-
         pdf.text(quote.introduction, { marginBottom: 15 });
 
         pdf.text("Récapitulatif", { bold: true, size: 12, marginTop: 10, marginBottom: 6 });
@@ -68,11 +66,10 @@ export class QuoteTemplate {
             pdf.text(`Offre valable jusqu'au ${validUntil}`, { marginBottom: 15 });
         }
 
+        // The company's own signature (for now just its name) is part of
+        // the conclusion text itself - {{signature_entreprise}}, see
+        // quote.dto.ts.
         pdf.text(quote.conclusion);
-
-        // No real signature yet - just the company's own name, standing in
-        // for one (same as the invoice).
-        pdf.text(quote.company.name, { indent: 250, marginTop: 20 });
 
         // The client's own acceptance, distinct from the company's own
         // signature above - blank date/signature lines for them to fill in

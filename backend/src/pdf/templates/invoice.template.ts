@@ -61,8 +61,6 @@ export class InvoiceTemplate {
 
         pdf.text(`Facture N° ${invoice.number}`, { bold: true, marginBottom: 10 });
 
-        pdf.text(invoice.client.title, { marginBottom: 5 });
-
         pdf.text(invoice.introduction, { marginBottom: 15 });
 
         if (invoice.referenceClient) {
@@ -101,11 +99,10 @@ export class InvoiceTemplate {
             pdf.text(invoice.paymentTerms, { marginBottom: 15 });
         }
 
+        // The signature (for now just the company's name) is part of the
+        // conclusion text itself now - {{signature_entreprise}}, see
+        // invoice.dto.ts.
         pdf.text(invoice.conclusion);
-
-        // No real signature yet (see the class comment) - just the
-        // company's own name, standing in for one.
-        pdf.text(invoice.company.name, { indent: 250, marginTop: 20 });
     }
 
     // The full itemized breakdown - every section's own lines, in a table.
