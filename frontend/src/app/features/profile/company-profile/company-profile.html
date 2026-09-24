@@ -144,51 +144,91 @@
       <p>Chargement...</p>
     } @else {
       <form [formGroup]="templatesForm" (ngSubmit)="submitTemplates()" class="ui-form">
-        <p class="ui-form__full">Texte d'introduction/conclusion appliqué automatiquement à la création d'une nouvelle offre ou facture.</p>
+        <p class="ui-form__full">Textes et échéance appliqués automatiquement à la création d'une nouvelle facture ou offre, et texte du PDF de rappel.</p>
 
-        <p-floatlabel variant="on" class="ui-form__full">
-          <textarea pTextarea id="quote_introduction" formControlName="quote_introduction" rows="3"></textarea>
-          <label for="quote_introduction">Offre - Introduction</label>
-        </p-floatlabel>
+        <p-tabs value="invoice" class="ui-form__full">
+          <p-tablist>
+            <p-tab value="invoice">Facture</p-tab>
+            <p-tab value="quote">Offre</p-tab>
+            <p-tab value="reminder">Rappel</p-tab>
+          </p-tablist>
 
-        <p-floatlabel variant="on" class="ui-form__full">
-          <textarea pTextarea id="quote_conclusion" formControlName="quote_conclusion" rows="3"></textarea>
-          <label for="quote_conclusion">Offre - Conclusion</label>
-        </p-floatlabel>
+          <p-tabpanels>
+            <p-tabpanel value="invoice">
+              <div class="ui-form pt-2">
+                <p-floatlabel variant="on" class="ui-form__full">
+                  <textarea pTextarea id="invoice_introduction" formControlName="invoice_introduction" rows="3"></textarea>
+                  <label for="invoice_introduction">Introduction</label>
+                </p-floatlabel>
 
-        <p-floatlabel variant="on" class="ui-form__full">
-          <textarea pTextarea id="invoice_introduction" formControlName="invoice_introduction" rows="3"></textarea>
-          <label for="invoice_introduction">Facture - Introduction</label>
-        </p-floatlabel>
+                <p-floatlabel variant="on" class="ui-form__full">
+                  <textarea pTextarea id="invoice_conclusion" formControlName="invoice_conclusion" rows="3"></textarea>
+                  <label for="invoice_conclusion">Conclusion</label>
+                </p-floatlabel>
 
-        <p-floatlabel variant="on" class="ui-form__full">
-          <textarea pTextarea id="invoice_conclusion" formControlName="invoice_conclusion" rows="3"></textarea>
-          <label for="invoice_conclusion">Facture - Conclusion</label>
-        </p-floatlabel>
+                <div class="ui-form__full text-sm text-gray-600 -mt-2">
+                  <p class="m-0 mb-1">Variables remplacées automatiquement dans le PDF (une variable inconnue reste telle quelle) :</p>
+                  <ul class="m-0 pl-5">
+                    @for (placeholder of documentPlaceholders; track placeholder.token) {
+                      <li><code>{{ placeholder.token }}</code> — {{ placeholder.label }}</li>
+                    }
+                  </ul>
+                </div>
 
-        <p-floatlabel variant="on">
-          <p-inputnumber inputId="quote_due_days" formControlName="quote_due_days" [min]="0" [useGrouping]="false" suffix=" jours" />
-          <label for="quote_due_days">Offre - Validité par défaut</label>
-        </p-floatlabel>
+                <p-floatlabel variant="on">
+                  <p-inputnumber inputId="invoice_due_days" formControlName="invoice_due_days" [min]="0" [useGrouping]="false" suffix=" jours" />
+                  <label for="invoice_due_days">Échéance par défaut</label>
+                </p-floatlabel>
+              </div>
+            </p-tabpanel>
 
-        <p-floatlabel variant="on">
-          <p-inputnumber inputId="invoice_due_days" formControlName="invoice_due_days" [min]="0" [useGrouping]="false" suffix=" jours" />
-          <label for="invoice_due_days">Facture - Échéance par défaut</label>
-        </p-floatlabel>
+            <p-tabpanel value="quote">
+              <div class="ui-form pt-2">
+                <p-floatlabel variant="on" class="ui-form__full">
+                  <textarea pTextarea id="quote_introduction" formControlName="quote_introduction" rows="3"></textarea>
+                  <label for="quote_introduction">Introduction</label>
+                </p-floatlabel>
 
-        <p-floatlabel variant="on" class="ui-form__full">
-          <textarea pTextarea id="reminder_text" formControlName="reminder_text" rows="8"></textarea>
-          <label for="reminder_text">Rappel - Texte</label>
-        </p-floatlabel>
+                <p-floatlabel variant="on" class="ui-form__full">
+                  <textarea pTextarea id="quote_conclusion" formControlName="quote_conclusion" rows="3"></textarea>
+                  <label for="quote_conclusion">Conclusion</label>
+                </p-floatlabel>
 
-        <div class="ui-form__full text-sm text-gray-600 -mt-2">
-          <p class="m-0 mb-1">Variables remplacées automatiquement dans le PDF de rappel (une variable inconnue reste telle quelle) :</p>
-          <ul class="m-0 pl-5">
-            @for (placeholder of reminderPlaceholders; track placeholder.token) {
-              <li><code>{{ placeholder.token }}</code> — {{ placeholder.label }}</li>
-            }
-          </ul>
-        </div>
+                <div class="ui-form__full text-sm text-gray-600 -mt-2">
+                  <p class="m-0 mb-1">Variables remplacées automatiquement dans le PDF (une variable inconnue reste telle quelle) :</p>
+                  <ul class="m-0 pl-5">
+                    @for (placeholder of documentPlaceholders; track placeholder.token) {
+                      <li><code>{{ placeholder.token }}</code> — {{ placeholder.label }}</li>
+                    }
+                  </ul>
+                </div>
+
+                <p-floatlabel variant="on">
+                  <p-inputnumber inputId="quote_due_days" formControlName="quote_due_days" [min]="0" [useGrouping]="false" suffix=" jours" />
+                  <label for="quote_due_days">Validité par défaut</label>
+                </p-floatlabel>
+              </div>
+            </p-tabpanel>
+
+            <p-tabpanel value="reminder">
+              <div class="ui-form pt-2">
+                <p-floatlabel variant="on" class="ui-form__full">
+                  <textarea pTextarea id="reminder_text" formControlName="reminder_text" rows="8"></textarea>
+                  <label for="reminder_text">Texte du rappel</label>
+                </p-floatlabel>
+
+                <div class="ui-form__full text-sm text-gray-600 -mt-2">
+                  <p class="m-0 mb-1">Variables remplacées automatiquement dans le PDF de rappel (une variable inconnue reste telle quelle) :</p>
+                  <ul class="m-0 pl-5">
+                    @for (placeholder of reminderPlaceholders; track placeholder.token) {
+                      <li><code>{{ placeholder.token }}</code> — {{ placeholder.label }}</li>
+                    }
+                  </ul>
+                </div>
+              </div>
+            </p-tabpanel>
+          </p-tabpanels>
+        </p-tabs>
 
         <p-floatlabel variant="on" class="ui-form__full">
           <textarea pTextarea id="payment_terms" formControlName="payment_terms" rows="3"></textarea>

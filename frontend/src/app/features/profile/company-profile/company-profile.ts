@@ -8,6 +8,7 @@ import { FloatLabel } from 'primeng/floatlabel';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { FileUpload, FileUploadHandlerEvent } from 'primeng/fileupload';
+import { Tabs, TabList, Tab, TabPanels, TabPanel } from 'primeng/tabs';
 import { CompanyService } from '../company.service';
 import { AuthService } from '../../auth/auth.service';
 import { DocumentTemplateService } from '../../documents/document-template.service';
@@ -16,7 +17,7 @@ import { TabIndentDirective } from '../../../shared/directives/tab-indent.direct
 @Component({
   selector: 'app-company-profile',
   standalone: true,
-  imports: [ReactiveFormsModule, InputText, InputNumber, Textarea, FloatLabel, Button, Card, FileUpload, TabIndentDirective],
+  imports: [ReactiveFormsModule, InputText, InputNumber, Textarea, FloatLabel, Button, Card, FileUpload, Tabs, TabList, Tab, TabPanels, TabPanel, TabIndentDirective],
   templateUrl: './company-profile.html',
   styleUrl: './company-profile.css',
 })
@@ -68,6 +69,16 @@ export class CompanyProfile implements OnInit {
     { token: '{{montant}}', label: 'Montant TTC, avec CHF' },
     { token: '{{jours_retard}}', label: 'Jours de retard' },
     { token: '{{client}}', label: 'Nom du client' },
+    { token: '{{signature_entreprise}}', label: 'Signature : le nom de l\'entreprise pour l\'instant' },
+  ];
+
+  // Same for an invoice's/quote's introduction and conclusion (see the
+  // backend's pdf/templates/document.placeholders.ts).
+  documentPlaceholders = [
+    { token: '{{titre_client}}', label: 'Titre du client (Madame, Monsieur s\'il n\'en a pas), sans virgule' },
+    { token: '{{date}}', label: 'Date du document' },
+    { token: '{{montant}}', label: 'Montant TTC, avec CHF' },
+    { token: '{{signature_entreprise}}', label: 'Signature : le nom de l\'entreprise pour l\'instant' },
   ];
 
   templatesLoading = signal(true);
