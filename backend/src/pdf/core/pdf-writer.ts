@@ -81,12 +81,18 @@ export class PdfWriter {
     }
 
     private wrapText(text: string, font: PDFFont, size: number, maxWidth: number): string[] {
-        const words = text.split(" ");
+        // Leading spaces are an indent the author typed on purpose (e.g. to
+        // push a signature to the right) - split(" ") alone would drop them:
+        // each empty "word" before the first real one lands on a still-empty
+        // line and just replaces it with another empty string. Kept on the
+        // first line only; a wrapped continuation line starts flush left.
+        const leading = /^ */.exec(text)![0];
+        const words = text.slice(leading.length).split(" ");
         const lines: string[] = [];
         let currentLine = "";
 
         for (const word of words) {
-            const candidate = currentLine ? `${currentLine} ${word}` : word;
+            const candidate = currentLine ? `${currentLine} ${word}` : (lines.length === 0 ? leading : "") + word;
 
             if (!currentLine || font.widthOfTextAtSize(candidate, size) <= maxWidth) {
                 currentLine = candidate;
