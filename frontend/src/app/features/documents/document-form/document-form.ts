@@ -34,7 +34,7 @@ import { ResourceUnit } from '../../../shared/models/resource-unit';
 import { Company } from '../../../shared/models/company';
 import { DocumentStatus, DocumentType } from '../../../shared/models/document';
 import { DocumentComplete } from '../../../shared/models/document-complete';
-import { clientDisplayName, addressLabel } from '../../../shared/utils/display';
+import { clientDisplayName, addressLabel, addDays, fromDateOnly, toDateOnly } from '../../../shared/utils/display';
 import { TabIndentDirective } from '../../../shared/directives/tab-indent.directive';
 
 // PROJECT never actually reaches this page (a chantier is never created or
@@ -260,6 +260,37 @@ export class DocumentForm implements OnInit {
   }
 
   date = new Date();
+
+  // Pre-filled from the type's template (due_days, see loadTemplate) and
+  // recomputed from `date` while the user hasn't picked one by hand - once
+  // they have (or it came from a saved document), it stays as they set it.
+  // A signal: it's set from an HTTP callback (zoneless, see introduction).
+  dueDate = signal<Date | null>(null);
+  private dueDays: number | null = null;
+  private dueDateTouched = false;
+
+  onDateChange(value: Date | null): void {
+    if (value) {
+      this.date = value;
+      this.applyDefaultDueDate();
+    }
+  }
+
+  onDueDateChange(value: Date | null): void {
+    this.dueDate.set(value);
+    this.dueDateTouched = true;
+  }
+
+  private applyDefaultDueDate(): void {
+    if (this.dueDays !== null && !this.dueDateTouched) {
+      this.dueDate.set(addDays(this.date, this.dueDays));
+    }
+  }
+
+  private dueDateForApi(): string | null {
+    const due = this.dueDate();
+    return due ? toDateOnly(due) : null;
+  }
   // "Lieu/Bâtiment" picker (see addressOptions below) - defaults to the
   // selected client's own primary address (onClientChange), or the
   // chantier's own one when coming from "Facturer" (applyFromProject passes
@@ -434,11 +465,15 @@ export class DocumentForm implements OnInit {
   // empty either way, no "only if already blank" check needed. Called from
   // the queryParamMap subscription above, both on first load and on a
   // reused-component navigation to the other type.
-  private loadTemplate(type: DocumentType): void {
+  private loadTemplate(type: DocumentType, applyText = true): void {
     this.documentTemplateService.getTemplate(type).subscribe({
       next: template => {
-        this.introduction.set(template?.introduction ?? '');
-        this.conclusion.set(template?.conclusion ?? '');
+        if (applyText) {
+          this.introduction.set(template?.introduction ?? '');
+          this.conclusion.set(template?.conclusion ?? '');
+        }
+        this.dueDays = template?.due_days ?? null;
+        this.applyDefaultDueDate();
       },
       error: err => console.error('document-form : ' + err)
     });
@@ -483,6 +518,10 @@ export class DocumentForm implements OnInit {
   // creates it from scratch on save (a fresh number, DRAFT status, no link
   // back to the source document).
   private applyDuplicateFrom(sourceId: number): void {
+    // Only for the due date default - the duplicate keeps its source's own
+    // introduction/conclusion, and the source's due date would be stale.
+    this.loadTemplate(this.type, false);
+
     this.documentCompleteService.getDocumentComplete(sourceId).subscribe({
       next: source => {
         this.onClientChange(source.client_id, source.address_id);
@@ -515,6 +554,8 @@ export class DocumentForm implements OnInit {
         // either way, though nothing currently routes one here.
         this.locked.set(source.status === null || !EDITABLE_STATUSES.includes(source.status));
         this.date = new Date(source.date);
+        this.dueDate.set(source.due_date ? fromDateOnly(source.due_date) : null);
+        this.dueDateTouched = true;
         this.referenceClient = source.reference_client ?? '';
 
         this.onClientChange(source.client_id, source.address_id);
@@ -995,7 +1036,7 @@ export class DocumentForm implements OnInit {
           discount: this.discount(),
           vat_rate: this.vatRate(),
           payment_terms: this.paymentTerms,
-          due_date: null,
+          due_date: this.dueDateForApi(),
           introduction: this.introduction(),
           conclusion: this.conclusion(),
         }));
@@ -1019,7 +1060,7 @@ export class DocumentForm implements OnInit {
         discount: this.discount(),
         vat_rate: this.vatRate(),
         payment_terms: this.paymentTerms,
-        due_date: null,
+        due_date: this.dueDateForApi(),
         introduction: this.introduction(),
         conclusion: this.conclusion(),
         // Every document starts as a draft - status changes happen

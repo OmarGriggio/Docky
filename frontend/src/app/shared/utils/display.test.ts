@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { clientDisplayName, archiveActionLabel, formatFileSize, formatSectionDate, addressLabel, formatPrice } from './display';
+import { clientDisplayName, archiveActionLabel, formatFileSize, formatSectionDate, addressLabel, formatPrice, toDateOnly, fromDateOnly, addDays, daysOverdue } from './display';
 
 describe('clientDisplayName', () => {
 
@@ -96,4 +96,46 @@ describe('formatPrice', () => {
     expect(formatPrice(null)).toBe('');
     expect(formatPrice(undefined)).toBe('');
   });
+});
+
+describe('date-only helpers', () => {
+
+  it('toDateOnly uses the local calendar day, not the UTC one', () => {
+    expect(toDateOnly(new Date(2026, 9, 5, 0, 30))).toBe('2026-10-05');
+  });
+
+  it('fromDateOnly reads a plain date and the backend ISO form alike', () => {
+    expect(toDateOnly(fromDateOnly('2026-10-24'))).toBe('2026-10-24');
+    expect(toDateOnly(fromDateOnly('2026-10-24T00:00:00.000Z'))).toBe('2026-10-24');
+  });
+
+  it('addDays rolls over month ends and drops the time of day', () => {
+    expect(toDateOnly(addDays(new Date(2026, 8, 24, 15, 40), 30))).toBe('2026-10-24');
+    expect(toDateOnly(addDays(new Date(2026, 0, 31), 1))).toBe('2026-02-01');
+  });
+
+});
+
+describe('daysOverdue', () => {
+
+  const today = new Date(2026, 8, 24, 15, 0);
+  const invoice = { type: 'INVOICE', status: 'SENT' as const, due_date: '2026-09-04T00:00:00.000Z' };
+
+  it('counts the days since the due date for a sent invoice', () => {
+    expect(daysOverdue(invoice, today)).toBe(20);
+  });
+
+  it('is not overdue on the due date itself, nor before it', () => {
+    expect(daysOverdue({ ...invoice, due_date: '2026-09-24' }, today)).toBeNull();
+    expect(daysOverdue({ ...invoice, due_date: '2026-09-30' }, today)).toBeNull();
+  });
+
+  it('never applies to a paid, cancelled or draft invoice, a quote, or one without a due date', () => {
+    expect(daysOverdue({ ...invoice, status: 'PAID' }, today)).toBeNull();
+    expect(daysOverdue({ ...invoice, status: 'CANCELLED' }, today)).toBeNull();
+    expect(daysOverdue({ ...invoice, status: 'DRAFT' }, today)).toBeNull();
+    expect(daysOverdue({ ...invoice, type: 'QUOTE' }, today)).toBeNull();
+    expect(daysOverdue({ ...invoice, due_date: null }, today)).toBeNull();
+  });
+
 });

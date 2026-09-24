@@ -1,6 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { Observable } from 'rxjs';
 import { TableModule, TableEditCompleteEvent, TableEditInitEvent } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { Toolbar } from 'primeng/toolbar';
@@ -11,7 +12,7 @@ import { Select } from 'primeng/select';
 import { MenuItem } from 'primeng/api';
 import { DocumentService } from '../document.service';
 import { Document, DocumentType, DocumentStatus } from '../../../shared/models/document';
-import { documentStatusLabel, documentStatusSeverity } from '../../../shared/utils/display';
+import { documentStatusLabel, documentStatusSeverity, daysOverdue } from '../../../shared/utils/display';
 import { ClientService } from '../../clients/client.service';
 import { Client } from '../../../shared/models/client';
 import { AddressService } from '../../addresses/address.service';
@@ -119,6 +120,10 @@ export class DocumentListComponent implements OnInit {
 
   statusSeverity(document: Document): 'secondary' | 'info' | 'success' | 'danger' {
     return document.status ? documentStatusSeverity(document.status) : 'secondary';
+  }
+
+  overdueDays(document: Document): number | null {
+    return daysOverdue(document);
   }
 
   // Same resolution as project-detail.ts's own: the document's own picked
@@ -238,6 +243,10 @@ export class DocumentListComponent implements OnInit {
         label: 'Modifier',
         command: () => this.router.navigate(['/documents', document.id])
       },
+      // Only an overdue invoice gets a payment reminder (see daysOverdue).
+      ...(this.overdueDays(document) !== null
+        ? [{ label: 'Rappel (PDF)', command: () => this.openReminderPdf(document) }]
+        : []),
       // Only an offer can be duplicated - a chantier is what would need
       // duplicating on an invoice, and a chantier only ever comes from an
       // accepted quote (see zz_docs/Decisions.md), never a copy of another.
@@ -318,8 +327,14 @@ export class DocumentListComponent implements OnInit {
   }
 
   openPdf(document: Document): void {
-    const pdf$ = document.type === 'INVOICE' ? this.documentService.getInvoicePdf(document.id) : this.documentService.getQuotePdf(document.id);
+    this.openBlob(document.type === 'INVOICE' ? this.documentService.getInvoicePdf(document.id) : this.documentService.getQuotePdf(document.id));
+  }
 
+  private openReminderPdf(document: Document): void {
+    this.openBlob(this.documentService.getReminderPdf(document.id));
+  }
+
+  private openBlob(pdf$: Observable<Blob>): void {
     pdf$.subscribe({
       next: blob => {
         const url = window.URL.createObjectURL(blob);

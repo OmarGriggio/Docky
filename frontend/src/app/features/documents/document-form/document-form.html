@@ -14,8 +14,13 @@
         <h2 class="m-0">{{ pageTitle }}</h2>
 
         <p-floatlabel variant="on">
-          <p-datepicker inputId="date" [(ngModel)]="date" dateFormat="dd.mm.yy" />
+          <p-datepicker inputId="date" [ngModel]="date" (ngModelChange)="onDateChange($event)" dateFormat="dd.mm.yy" />
           <label for="date">Date</label>
+        </p-floatlabel>
+
+        <p-floatlabel variant="on">
+          <p-datepicker inputId="due_date" [ngModel]="dueDate()" (ngModelChange)="onDueDateChange($event)" dateFormat="dd.mm.yy" [showClear]="true" />
+          <label for="due_date">{{ type === 'QUOTE' ? "Valable jusqu'au" : 'Échéance' }}</label>
         </p-floatlabel>
 
         <p class="m-0 text-[0.8rem] text-[#888] italic">

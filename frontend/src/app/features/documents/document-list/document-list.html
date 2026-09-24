@@ -19,6 +19,7 @@
       <th>Client</th>
       <th>Lieu</th>
       <th>Date</th>
+      <th>Échéance</th>
       <th>Montant HT</th>
       <th>Montant TTC</th>
       <th>Rabais</th>
@@ -41,6 +42,16 @@
       <td>{{ clientName(document) }}</td>
       <td>{{ location(document) }}</td>
       <td>{{ document.date | appDate }}</td>
+      <td>
+        @if (overdueDays(document); as days) {
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="font-semibold text-red-600">{{ document.due_date | appDate }}</span>
+            <i class="pi pi-exclamation-triangle text-red-600" [attr.title]="days + ' j de retard'"></i>
+          </div>
+        } @else {
+          {{ document.due_date | appDate }}
+        }
+      </td>
       <td>{{ document.amount_excl_vat | price }}</td>
       <td>{{ document.amount_incl_vat | price }}</td>
       <td>{{ document.discount }}</td>
@@ -76,7 +87,7 @@
 
   <ng-template #expandedrow let-document>
     <tr>
-      <td colspan="11">
+      <td colspan="12">
         <app-document-ledger [documentId]="document.id" [columns]="1" />
       </td>
     </tr>

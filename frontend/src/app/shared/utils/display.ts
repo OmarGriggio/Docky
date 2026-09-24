@@ -120,3 +120,45 @@ export const formatPrice = (value: number | null | undefined): string => {
   }
   return value.toFixed(2);
 };
+
+// documents.due_date is a Postgres DATE (a calendar day, no time - see
+// AppDatePipe's own UTC comment). Sent as a plain "YYYY-MM-DD" built from the
+// picked day's LOCAL parts - date.toISOString() would shift a local-midnight
+// pick back to the previous day for anyone east of UTC, i.e. here.
+export const toDateOnly = (date: Date): string => {
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${date.getFullYear()}-${month}-${day}`;
+};
+
+// Reverse of toDateOnly - also accepts the backend's own ISO form
+// ("2026-10-24T00:00:00.000Z") by reading only its leading "YYYY-MM-DD".
+export const fromDateOnly = (value: string): Date => {
+  const [year, month, day] = value.slice(0, 10).split('-').map(Number);
+  return new Date(year, month - 1, day);
+};
+
+export const addDays = (date: Date, days: number): Date => {
+  const result = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  result.setDate(result.getDate() + days);
+  return result;
+};
+
+// How many whole days past its due date an invoice is - null unless it
+// actually is overdue: a sent (SENT) invoice whose due_date (a calendar day,
+// see fromDateOnly) is before today. Derived on the spot, not a stored
+// status: PAID/CANCELLED/DRAFT are never overdue however old the date, and
+// nothing would have to flip a status every night. Due today isn't overdue
+// yet.
+export const daysOverdue = (
+  document: { type: string; status: DocumentStatus | null; due_date: string | null },
+  today: Date = new Date()
+): number | null => {
+  if (document.type !== 'INVOICE' || document.status !== 'SENT' || !document.due_date) {
+    return null;
+  }
+
+  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const days = Math.round((startOfToday.getTime() - fromDateOnly(document.due_date).getTime()) / 86400000);
+  return days > 0 ? days : null;
+};

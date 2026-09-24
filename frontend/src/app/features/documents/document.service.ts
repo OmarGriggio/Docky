@@ -68,4 +68,8 @@ export class DocumentService {
   getQuotePdf(id: number) {
     return this.http.get(`${API_BASE}/pdf/quote/${id}`, { responseType: 'blob' });
   }
+
+  getReminderPdf(id: number) {
+    return this.http.get(`${API_BASE}/pdf/reminder/${id}`, { responseType: 'blob' });
+  }
 }
