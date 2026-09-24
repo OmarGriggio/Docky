@@ -96,9 +96,10 @@ let nextId = 1;
 // Three entry points share this one page (no more separate detail/edit
 // pages - see zz_docs/Project Definition.md's lifecycle):
 //  - documents/new[?type=...]                    - blank draft.
-//  - documents/new?type=QUOTE&duplicateFrom=<id>  - pre-filled copy of an
-//                                                    existing quote, saved as
-//                                                    a brand new one.
+//  - documents/new?type=QUOTE|INVOICE&duplicateFrom=<id>
+//                                                  - pre-filled copy of an
+//                                                    existing quote/invoice,
+//                                                    saved as a brand new one.
 //  - documents/:id                                - editing that exact
 //                                                    document in place
 //                                                    (see loadForEdit).
@@ -522,13 +523,15 @@ export class DocumentForm implements OnInit {
     });
   }
 
-  // "Dupliquer" (document-list.ts) - copies a source quote's client,
-  // intro/conclusion/payment terms/discount/VAT and its full sections+lines
-  // into this page's local draft state, as a starting point for a new one.
+  // "Dupliquer" (document-list.ts) - copies a source quote's or invoice's
+  // client, intro/conclusion/payment terms/discount/VAT and its full
+  // sections+lines into this page's local draft state, as a starting point
+  // for a new one. An invoice also keeps its Lieu/Bâtiment, its client
+  // reference and the chantier it bills (same as loadForEdit resolves it).
   // Nothing is created server-side here - it's exactly as if the user had
   // built all of this by hand, still fully editable, and `submit()` below
-  // creates it from scratch on save (a fresh number, DRAFT status, no link
-  // back to the source document).
+  // creates it from scratch on save (a fresh number, date and due date,
+  // DRAFT status, no link back to the source document itself).
   private applyDuplicateFrom(sourceId: number): void {
     // Only for the due date default - the duplicate keeps its source's own
     // introduction/conclusion, and the source's due date would be stale.
@@ -543,6 +546,19 @@ export class DocumentForm implements OnInit {
         this.paymentTerms = source.payment_terms ?? '';
         this.discount.set(source.discount);
         this.vatRate.set(source.vat_rate);
+
+        if (this.type === 'INVOICE') {
+          this.referenceClient = source.reference_client ?? '';
+
+          // parent_document_id is the chantier's own PROJECT document -
+          // resolved back to which Project that is, same as loadForEdit.
+          if (source.parent_document_id !== null) {
+            const project = this.projects().find(p => p.document_id === source.parent_document_id);
+            if (project) {
+              this.onProjectChange(project.id);
+            }
+          }
+        }
 
         this.sections.set(this.buildDraftSections(source));
       },

@@ -289,17 +289,14 @@ export class DocumentListComponent implements OnInit {
       ...(this.overdueDays(document) !== null
         ? [{ label: 'Rappel (PDF)', command: () => this.openReminderPdf(document) }]
         : []),
-      // Only an offer can be duplicated - a chantier is what would need
-      // duplicating on an invoice, and a chantier only ever comes from an
-      // accepted quote (see zz_docs/Decisions.md), never a copy of another.
-      ...(document.type === 'QUOTE'
-        ? [{ label: 'Dupliquer', command: () => this.duplicateDocument(document) }]
-        : [])
+      // A quote or an invoice - a new draft pre-filled from this one (see
+      // document-form.ts's applyDuplicateFrom).
+      { label: 'Dupliquer', command: () => this.duplicateDocument(document) }
     ];
   }
 
   private duplicateDocument(document: Document): void {
-    this.router.navigate(['/documents/new'], { queryParams: { type: 'QUOTE', duplicateFrom: document.id } });
+    this.router.navigate(['/documents/new'], { queryParams: { type: document.type, duplicateFrom: document.id } });
   }
 
   private confirmAcceptQuote(document: Document): void {
