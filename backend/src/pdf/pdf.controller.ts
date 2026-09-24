@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { generateInvoicePdfServ, generateQuotePdfServ } from "./pdf.service";
+import { generateInvoicePdfServ, generateQuotePdfServ, generateReminderPdfServ } from "./pdf.service";
 
 export const getInvoicePdf = async (req: Request, res: Response) => {
   const bytes = await generateInvoicePdfServ(Number(req.params.id), req.user.company_id);
@@ -10,7 +10,16 @@ export const getInvoicePdf = async (req: Request, res: Response) => {
   res.send(Buffer.from(bytes));
 };
 
-export const getQuotePdf = async (req: Request, res: Response) => {
+export const getReminderPdf = async (req: Request, res: Response) => {
+  const bytes = await generateReminderPdfServ(Number(req.params.id), req.user.company_id);
+
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", "inline; filename=reminder.pdf");
+
+  res.send(Buffer.from(bytes));
+};
+
+export const getQuotePdf =async (req: Request, res: Response) => {
   const bytes = await generateQuotePdfServ(Number(req.params.id), req.user.company_id);
 
   res.setHeader("Content-Type", "application/pdf");

@@ -11,6 +11,10 @@ import { createSwissQrBillDto } from "./templates/dto/swiss-qr-bill.dto";
 import { SwissQrBillTemplate } from "./templates/swiss-qr-bill.template";
 import { generateSwissQrBillImage } from "./swiss-qr-bill/swiss-qr-bill.generator";
 import { getFileServ } from "../shared/storage/storage.service";
+import { getTemplateServ } from "../modules/documents/document_template.service";
+import { AppError } from "../shared/types/errors";
+import { ReminderTemplate } from "./templates/reminder.template";
+import { createReminderDto } from "./templates/dto/reminder.dto";
 
 // Logos (and the invoice header image, same storage) live in MinIO/S3 now
 // (see shared/storage/storage.service.ts), not on local disk - this used to
@@ -61,6 +65,38 @@ export const generateInvoicePdfServ = async (documentId: number, company_id: num
     // Whichever page the QR-bill ended up on (fresh or shared with the
     // details' own tail) - its strict official layout has no room for a
     // page number too.
+    pdf.excludeCurrentPageFromNumbering();
+
+    pdf.drawPageNumbers();
+    return pdf.save();
+};
+
+// Payment reminder for an invoice: a one-page letter, then the Swiss QR-bill
+// alone on page 2 (always a fresh page - unlike the invoice there's no
+// details table to share one with). Nothing here is stored: it's rebuilt from
+// the invoice each time, so it always shows its current amount/due date.
+export const generateReminderPdfServ = async (documentId: number, company_id: number): Promise<Uint8Array> => {
+    const document = await getDocumentCompleteServ(documentId, company_id);
+    if (document.type !== "INVOICE") {
+        throw new AppError("A reminder can only be generated for an invoice", 400);
+    }
+
+    const client = await getClientByIdServ(document.client_id, company_id);
+    const company = await getCompanyByIdServ(client.company_id);
+
+    // Never null for a REMINDER - falls back to the default text.
+    const template = await getTemplateServ("REMINDER", company_id);
+    const reminder = createReminderDto(document, client, company, template?.introduction ?? "");
+    const qrBill = createSwissQrBillDto(document, client, company);
+    const qrImageBytes = await generateSwissQrBillImage(qrBill);
+    const logoBytes = await readCompanyImageBytes(company.logo);
+
+    const pdf = await PdfWriter.create();
+    await ReminderTemplate.render(pdf, reminder, logoBytes);
+
+    pdf.newPage();
+    await SwissQrBillTemplate.render(pdf, qrBill, qrImageBytes);
+    // Same as the invoice: the QR-bill's own page carries no page number.
     pdf.excludeCurrentPageFromNumbering();
 
     pdf.drawPageNumbers();
