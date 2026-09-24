@@ -34,17 +34,23 @@ export const getTemplateServ = async (type: DocumentTemplateType, company_id: nu
   };
 };
 
-// due_days is optional: document-form.ts only ever edits introduction/
-// conclusion, so it doesn't send it - left out (undefined), the saved value
-// is kept instead of being wiped to null. An explicit null clears it.
+// Every field is optional: whatever is left out (undefined) keeps its saved
+// value instead of being wiped to null, an explicit null clears it. That's
+// what lets the document form's introduction/conclusion blocks each save
+// only their own text as the new default (and only the profile page's
+// "Modèles de documents" send everything, due_days included).
 export const upsertTemplateServ = async (
   type: DocumentTemplateType,
-  data: { introduction: string | null; conclusion: string | null; due_days?: number | null },
+  data: { introduction?: string | null; conclusion?: string | null; due_days?: number | null },
   company_id: number
 ) => {
-  const due_days = data.due_days !== undefined
-    ? data.due_days
-    : (await getTemplateByTypeFromDB(type, company_id))?.due_days ?? null;
+  const existing = await getTemplateByTypeFromDB(type, company_id);
 
-  return await upsertTemplateInDB({ introduction: data.introduction, conclusion: data.conclusion, due_days, type, company_id });
+  return await upsertTemplateInDB({
+    introduction: data.introduction !== undefined ? data.introduction : existing?.introduction ?? null,
+    conclusion: data.conclusion !== undefined ? data.conclusion : existing?.conclusion ?? null,
+    due_days: data.due_days !== undefined ? data.due_days : existing?.due_days ?? null,
+    type,
+    company_id,
+  });
 };
