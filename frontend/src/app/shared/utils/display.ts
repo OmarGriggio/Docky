@@ -162,3 +162,22 @@ export const daysOverdue = (
   const days = Math.round((startOfToday.getTime() - fromDateOnly(document.due_date).getTime()) / 86400000);
   return days > 0 ? days : null;
 };
+
+// What a client with no title (clients.title NULL) is greeted with - matches
+// the backend's own fallback (pdf/templates/document.placeholders.ts).
+export const DEFAULT_CLIENT_TITLE = 'Madame, Monsieur';
+
+// "24 septembre 2026" - same wording the PDFs print for a document's date.
+export const formatLongDate = (date: Date): string => {
+  return date.toLocaleDateString('fr-CH', { day: 'numeric', month: 'long', year: 'numeric' });
+};
+
+// Mirror of the backend's fillPlaceholders (pdf/templates/placeholders.ts) -
+// the document form's read-only preview fills an introduction/conclusion the
+// way the PDF will. Only the keys of `values` are replaced; anything else
+// ({{typo}}) is left as typed. Same one-pass/own-property rules.
+export const fillPlaceholders = (text: string, values: Record<string, string>): string => {
+  return text.replace(/\{\{\s*([a-z_]+)\s*\}\}/g, (match, name: string) => {
+    return Object.prototype.hasOwnProperty.call(values, name) ? values[name] : match;
+  });
+};

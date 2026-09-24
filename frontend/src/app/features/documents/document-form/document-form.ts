@@ -34,7 +34,7 @@ import { ResourceUnit } from '../../../shared/models/resource-unit';
 import { Company } from '../../../shared/models/company';
 import { DocumentStatus, DocumentType } from '../../../shared/models/document';
 import { DocumentComplete } from '../../../shared/models/document-complete';
-import { clientDisplayName, addressLabel, addDays, fromDateOnly, toDateOnly } from '../../../shared/utils/display';
+import { clientDisplayName, addressLabel, addDays, fromDateOnly, toDateOnly, fillPlaceholders, formatLongDate, DEFAULT_CLIENT_TITLE } from '../../../shared/utils/display';
 import { TabIndentDirective } from '../../../shared/directives/tab-indent.directive';
 
 // PROJECT never actually reaches this page (a chantier is never created or
@@ -163,16 +163,34 @@ export class DocumentForm implements OnInit {
   addressOptions = computed(() =>
     this.clientAddresses().map(address => ({ label: addressLabel(address), value: address.id }))
   );
-  // The selected client's own civility ("Monsieur,"/"Madame,") - shown
-  // right-aligned above the introduction (same line the PDF templates
-  // already print there, see invoice.template.ts/quote.template.ts's own
-  // client.title). Derived from the already-loaded `clients` list rather
-  // than a separate fetch - it's the same data selectedClientAddress reads
-  // through clientAddresses, just a different field of the same client.
+  // The selected client's own civility ("Monsieur"/"Madame") - what
+  // {{titre_client}} stands for in the read-only introduction/conclusion
+  // preview (see resolvePlaceholders). Derived from the already-loaded
+  // `clients` list rather than a separate fetch - it's the same data
+  // selectedClientAddress reads through clientAddresses, just a different
+  // field of the same client.
   selectedClientTitle = computed(() => {
     const clientId = this.selectedClientId();
     return this.clients().find(client => client.id === clientId)?.title ?? null;
   });
+
+  // Shown under the introduction/conclusion textareas - built here since a
+  // literal double brace in a template is read as an interpolation.
+  placeholdersHint = 'Variables : {{titre_client}}, {{date}}, {{montant}}, {{signature_entreprise}}';
+
+  // The introduction/conclusion as the PDF will print it (see the backend's
+  // pdf/templates/document.placeholders.ts): {{titre_client}} (Madame,
+  // Monsieur if the client has none), {{date}} (the document's), {{montant}}
+  // (Total TTC) and {{signature_entreprise}} (the company's name). A method, not a computed: `date` is a plain
+  // property, which a computed() would never re-read once cached.
+  resolvePlaceholders(text: string): string {
+    return fillPlaceholders(text, {
+      titre_client: this.selectedClientTitle()?.trim() || DEFAULT_CLIENT_TITLE,
+      date: formatLongDate(this.date),
+      montant: `${this.documentTotalInclVat().toFixed(2)} CHF`,
+      signature_entreprise: this.company()?.name ?? '',
+    });
+  }
   // No manual "Chantier" picker in the UI (an invoice is always linked to
   // its chantier the other way around - project-list.ts's own "Facturer",
   // see applyFromProject) - selectedProjectId/selectedProjectDocumentId

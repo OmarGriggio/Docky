@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { clientDisplayName, archiveActionLabel, formatFileSize, formatSectionDate, addressLabel, formatPrice, toDateOnly, fromDateOnly, addDays, daysOverdue } from './display';
+import { clientDisplayName, archiveActionLabel, formatFileSize, formatSectionDate, addressLabel, formatPrice, toDateOnly, fromDateOnly, addDays, daysOverdue, fillPlaceholders } from './display';
 
 describe('clientDisplayName', () => {
 
@@ -136,6 +136,21 @@ describe('daysOverdue', () => {
     expect(daysOverdue({ ...invoice, status: 'DRAFT' }, today)).toBeNull();
     expect(daysOverdue({ ...invoice, type: 'QUOTE' }, today)).toBeNull();
     expect(daysOverdue({ ...invoice, due_date: null }, today)).toBeNull();
+  });
+
+});
+
+describe('fillPlaceholders', () => {
+
+  const values = { titre_client: 'Monsieur', montant: '865.00 CHF' };
+
+  it('replaces known placeholders, spaces inside the braces allowed', () => {
+    expect(fillPlaceholders('{{titre_client}},\n\n{{ montant }}', values)).toBe('Monsieur,\n\n865.00 CHF');
+  });
+
+  it('leaves unknown and inherited names as typed, and never rescans a value', () => {
+    expect(fillPlaceholders('{{typo}} {{constructor}}', values)).toBe('{{typo}} {{constructor}}');
+    expect(fillPlaceholders('{{titre_client}}', { titre_client: '{{montant}}', montant: 'x' })).toBe('{{montant}}');
   });
 
 });

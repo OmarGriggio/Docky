@@ -132,12 +132,6 @@
       }
     </p-dialog>
 
-    @if (selectedClientTitle()) {
-      <p class="text-left text-[0.9rem] text-[#555] m-0 mb-4">{{ selectedClientTitle() }},</p>
-    } @else {
-      <p class="text-left text-[0.9rem] text-[#555] m-0 mb-4">Madame, Monsieur,</p>
-    }
-
     <div class="mb-6">
       @if (editingIntroduction() || !introduction()) {
         <textarea
@@ -149,13 +143,14 @@
           class="w-full"
           placeholder="Introduction du document..."
         ></textarea>
+        <p class="m-0 mt-1 text-xs text-gray-500">{{ placeholdersHint }}</p>
         <div class="flex justify-end items-center gap-3 mt-2">
           <a class="text-sm text-[#666] hover:underline cursor-pointer" (click)="cancelEditIntroduction()">Annuler</a>
           <p-button label="Appliquer" size="small" severity="secondary" [text]="true" (onClick)="applyIntroduction()" />
           <p-button label="Sauvegarder" size="small" [loading]="savingTemplate()" (onClick)="confirmSaveIntroduction()" />
         </div>
       } @else {
-        <p class="text-sm text-[#333] m-0 whitespace-pre-line">{{ introduction() }} ... <a class="text-sm hover:underline cursor-pointer text-green-700" (click)="startEditIntroduction()">Modifier le texte</a></p>
+        <p class="text-sm text-[#333] m-0 whitespace-pre-wrap">{{ resolvePlaceholders(introduction()) }} ... <a class="text-sm hover:underline cursor-pointer text-green-700" (click)="startEditIntroduction()">Modifier le texte</a></p>
       }
     </div>
 
@@ -476,13 +471,14 @@
             class="w-full"
             placeholder="Conclusion du document..."
           ></textarea>
+          <p class="m-0 mt-1 text-xs text-gray-500">{{ placeholdersHint }}</p>
           <div class="flex justify-end items-center gap-3 mt-2">
             <a class="text-sm text-[#666] hover:underline cursor-pointer" (click)="cancelEditConclusion()">Annuler</a>
             <p-button label="Appliquer" size="small" severity="secondary" [text]="true" (onClick)="applyConclusion()" />
             <p-button label="Sauvegarder" size="small" [loading]="savingTemplate()" (onClick)="confirmSaveConclusion()" />
           </div>
         } @else {
-          <p class="text-sm text-[#333] m-0 whitespace-pre-line">{{ conclusion() }} ... <a class="text-sm hover:underline cursor-pointer text-green-700" (click)="startEditConclusion()">Modifier le texte</a></p>
+          <p class="text-sm text-[#333] m-0 whitespace-pre-wrap">{{ resolvePlaceholders(conclusion()) }} ... <a class="text-sm hover:underline cursor-pointer text-green-700" (click)="startEditConclusion()">Modifier le texte</a></p>
           }
       </div>
     </div>
