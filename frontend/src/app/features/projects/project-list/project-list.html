@@ -1,20 +1,14 @@
-<p-toolbar class="rounded-b-none!">
-  <ng-template #start>
-    <h3>Chantiers</h3>
-  </ng-template>
-  <ng-template #end>
-    <p-iconfield>
-      <p-inputicon class="pi pi-search" />
-      <input pInputText pSize="small" placeholder="Rechercher..." [ngModel]="search()" (ngModelChange)="search.set($event)" />
-    </p-iconfield>
-    <!-- No "Nouveau chantier" trigger for now: a chantier only comes from an
-         accepted quote (see document.service.ts's acceptQuoteServ) - the
-         dialog/form below still exist, just unreachable from this page,
-         should a manual-creation need come back later. -->
-    <p-menu #toolbarMenu [popup]="true" [model]="toolbarMenuItems" appendTo="body"></p-menu>
-    <p-button class="ml-1" size="small" icon="pi pi-ellipsis-v" [outlined]="true" (click)="openToolbarMenu(toolbarMenu, $event)"></p-button>
-  </ng-template>
-</p-toolbar>
+<!-- No "Nouveau chantier" trigger for now: a chantier only comes from an
+     accepted quote (see document.service.ts's acceptQuoteServ) - the
+     dialog/form below still exist, just unreachable from this page,
+     should a manual-creation need come back later. -->
+<app-list-toolbar
+  title="Chantiers"
+  [(search)]="search"
+  [showArchived]="showArchived()"
+  (showArchivedChange)="onShowArchivedChange($event)"
+  [addable]="false"
+/>
 
 <p-dialog
   [(visible)]="createDialogVisible"

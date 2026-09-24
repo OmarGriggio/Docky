@@ -3,11 +3,8 @@ import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
-import { Toolbar } from 'primeng/toolbar';
 import { Menu } from 'primeng/menu';
 import { Dialog } from 'primeng/dialog';
-import { IconField } from 'primeng/iconfield';
-import { InputIcon } from 'primeng/inputicon';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { DatePicker } from 'primeng/datepicker';
@@ -25,6 +22,7 @@ import { Address } from '../../../shared/models/address';
 import { ProjectForm } from '../project-form/project-form';
 import { ProjectAttachments } from '../project-attachments/project-attachments';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
+import { ListToolbarComponent } from '../../../shared/components/list-toolbar/list-toolbar';
 import { DocumentLedger } from '../../../shared/components/document-ledger/document-ledger';
 import { SectionDatePipe } from '../../../shared/pipes/section-date.pipe';
 import { matchesSearch } from '../../../shared/utils/display';
@@ -32,7 +30,7 @@ import { matchesSearch } from '../../../shared/utils/display';
 @Component({
   selector: 'app-project-list',
   standalone: true,
-  imports: [TableModule, TagModule, Toolbar, Menu, Button, Dialog, IconField, InputIcon, InputText, Select, DatePicker, FormsModule, SectionDatePipe, ProjectForm, ProjectAttachments, ConfirmDialogComponent, DocumentLedger],
+  imports: [ListToolbarComponent, TableModule, TagModule, Menu, Button, Dialog, InputText, Select, DatePicker, FormsModule, SectionDatePipe, ProjectForm, ProjectAttachments, ConfirmDialogComponent, DocumentLedger],
   templateUrl: './project-list.html'
 })
 export class ProjectListComponent implements OnInit {
@@ -102,22 +100,6 @@ export class ProjectListComponent implements OnInit {
     menu.toggle(event);
   }
 
-  // The toolbar's own ⋮ menu (list-wide options, unlike the per-row one
-  // above) - built on click for the same reason as menuItems: its label
-  // depends on the current showArchived() state.
-  toolbarMenuItems: MenuItem[] = [];
-
-  openToolbarMenu(menu: Menu, event: Event): void {
-    this.toolbarMenuItems = [
-      {
-        label: this.showArchived() ? 'Masquer les archivés' : 'Afficher les archivés',
-        icon: 'pi pi-archive',
-        command: () => this.onShowArchivedChange(!this.showArchived())
-      }
-    ];
-    menu.toggle(event);
-  }
-
   attachmentsDialogVisible = signal(false);
   attachmentsProject = signal<Project | null>(null);
 
@@ -147,7 +129,6 @@ export class ProjectListComponent implements OnInit {
     }
     return documents;
   });
-
 
   ngOnInit(): void {
     this.loadProjects();

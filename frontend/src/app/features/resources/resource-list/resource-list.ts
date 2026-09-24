@@ -4,12 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { InputText } from 'primeng/inputtext';
 import { InputNumber } from 'primeng/inputnumber';
-import { Toolbar } from 'primeng/toolbar';
 import { Menu } from 'primeng/menu';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
-import { IconField } from 'primeng/iconfield';
-import { InputIcon } from 'primeng/inputicon';
 import { MenuItem } from 'primeng/api';
 import { ResourceService } from '../resource.service';
 import { Resource, ResourceType } from '../../../shared/models/resource';
@@ -17,6 +14,7 @@ import { PricePipe } from '../../../shared/pipes/price.pipe';
 import { formatPrice, matchesSearch } from '../../../shared/utils/display';
 import { ResourceForm } from '../resource-form/resource-form';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
+import { ListToolbarComponent } from '../../../shared/components/list-toolbar/list-toolbar';
 
 const TYPE_LABELS: Record<ResourceType, string> = {
   'MATERIAL': 'Matériel',
@@ -26,7 +24,7 @@ const TYPE_LABELS: Record<ResourceType, string> = {
 @Component({
   selector: 'app-resource-list',
   standalone: true,
-  imports: [TableModule, InputText, InputNumber, Toolbar, Menu, Button, Dialog, IconField, InputIcon, FormsModule, PricePipe, ResourceForm, ConfirmDialogComponent],
+  imports: [ListToolbarComponent, TableModule, InputText, InputNumber, Menu, Button, Dialog, FormsModule, PricePipe, ResourceForm, ConfirmDialogComponent],
   templateUrl: './resource-list.html'
 })
 export class ResourceListComponent implements OnInit {
@@ -76,22 +74,6 @@ export class ResourceListComponent implements OnInit {
 
   openActionsMenu(menu: Menu, event: Event, resource: Resource): void {
     this.menuItems = this.getActions(resource);
-    menu.toggle(event);
-  }
-
-  // The toolbar's own ⋮ menu (list-wide options, unlike the per-row one
-  // above) - built on click for the same reason as menuItems: its label
-  // depends on the current showArchived() state.
-  toolbarMenuItems: MenuItem[] = [];
-
-  openToolbarMenu(menu: Menu, event: Event): void {
-    this.toolbarMenuItems = [
-      {
-        label: this.showArchived() ? 'Masquer les archivés' : 'Afficher les archivés',
-        icon: 'pi pi-archive',
-        command: () => this.onShowArchivedChange(!this.showArchived())
-      }
-    ];
     menu.toggle(event);
   }
 

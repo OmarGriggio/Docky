@@ -4,12 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { TableModule, TableEditCompleteEvent, TableEditInitEvent } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
-import { Toolbar } from 'primeng/toolbar';
 import { Button } from 'primeng/button';
 import { Menu } from 'primeng/menu';
-import { InputText } from 'primeng/inputtext';
-import { IconField } from 'primeng/iconfield';
-import { InputIcon } from 'primeng/inputicon';
 import { Select } from 'primeng/select';
 import { MenuItem } from 'primeng/api';
 import { DocumentService } from '../document.service';
@@ -20,6 +16,7 @@ import { Client } from '../../../shared/models/client';
 import { AddressService } from '../../addresses/address.service';
 import { Address } from '../../../shared/models/address';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
+import { ListToolbarComponent } from '../../../shared/components/list-toolbar/list-toolbar';
 import { DocumentLedger } from '../../../shared/components/document-ledger/document-ledger';
 import { AppDatePipe } from '../../../shared/pipes/app-date.pipe';
 import { PricePipe } from '../../../shared/pipes/price.pipe';
@@ -36,7 +33,7 @@ const TYPE_LABELS: Record<DocumentType, string> = {
 @Component({
   selector: 'app-document-list',
   standalone: true,
-  imports: [TableModule, TagModule, Toolbar, Button, Menu, InputText, IconField, InputIcon, Select, FormsModule, AppDatePipe, PricePipe, ConfirmDialogComponent, DocumentLedger],
+  imports: [ListToolbarComponent, TableModule, TagModule, Button, Menu, Select, FormsModule, AppDatePipe, PricePipe, ConfirmDialogComponent, DocumentLedger],
   templateUrl: './document-list.html'
 })
 export class DocumentListComponent implements OnInit {
@@ -102,22 +99,6 @@ export class DocumentListComponent implements OnInit {
 
   openActionsMenu(menu: Menu, event: Event, document: Document): void {
     this.menuItems = this.getActions(document);
-    menu.toggle(event);
-  }
-
-  // The toolbar's own ⋮ menu (list-wide options, unlike the per-row one
-  // above) - built on click for the same reason as menuItems: its label
-  // depends on the current showArchived() state.
-  toolbarMenuItems: MenuItem[] = [];
-
-  openToolbarMenu(menu: Menu, event: Event): void {
-    this.toolbarMenuItems = [
-      {
-        label: this.showArchived() ? 'Masquer les archivés' : 'Afficher les archivés',
-        icon: 'pi pi-archive',
-        command: () => this.onShowArchivedChange(!this.showArchived())
-      }
-    ];
     menu.toggle(event);
   }
 

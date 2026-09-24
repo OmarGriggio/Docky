@@ -1,0 +1,16 @@
+<p-toolbar class="pt-2! pb-2! rounded-b-none!">
+  <ng-template #start>
+    <h3>{{ title() }}</h3>
+  </ng-template>
+  <ng-template #end>
+    <p-iconfield>
+      <p-inputicon class="pi pi-search" />
+      <input pInputText pSize="small" [placeholder]="searchPlaceholder()" [ngModel]="search()" (ngModelChange)="search.set($event)" />
+    </p-iconfield>
+    @if (addable()) {
+      <p-button class="ml-1" size="small" label="" icon="pi pi-plus" (onClick)="add.emit()" />
+    }
+    <p-menu #menu [popup]="true" [model]="menuItems" appendTo="body"></p-menu>
+    <p-button class="ml-1" size="small" icon="pi pi-ellipsis-v" [outlined]="true" (click)="openMenu(menu, $event)"></p-button>
+  </ng-template>
+</p-toolbar>

@@ -1,17 +1,10 @@
-<p-toolbar class="pt-2! pb-2! rounded-b-none!">
-  <ng-template #start>
-    <h3>Ressources @if (currentTypeLabel()) { — {{ currentTypeLabel() }} }</h3>
-  </ng-template>
-  <ng-template #end>
-    <p-iconfield>
-      <p-inputicon class="pi pi-search" />
-      <input pInputText pSize="small" placeholder="Rechercher..." [ngModel]="search()" (ngModelChange)="search.set($event)" />
-    </p-iconfield>
-    <p-button class="ml-1" size="small" label="" icon="pi pi-plus" (onClick)="openCreateDialog()" />
-    <p-menu #toolbarMenu [popup]="true" [model]="toolbarMenuItems" appendTo="body"></p-menu>
-    <p-button class="ml-1" size="small" icon="pi pi-ellipsis-v" [outlined]="true" (click)="openToolbarMenu(toolbarMenu, $event)"></p-button>
-  </ng-template>
-</p-toolbar>
+<app-list-toolbar
+  [title]="'Ressources' + (currentTypeLabel() ? ' — ' + currentTypeLabel() : '')"
+  [(search)]="search"
+  [showArchived]="showArchived()"
+  (showArchivedChange)="onShowArchivedChange($event)"
+  (add)="openCreateDialog()"
+/>
 
 <p-dialog
   [(visible)]="createDialogVisible"

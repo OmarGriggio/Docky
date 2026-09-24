@@ -3,12 +3,9 @@ import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TableModule, TableRowExpandEvent } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
-import { Toolbar } from 'primeng/toolbar';
 import { Menu } from 'primeng/menu';
 import { Dialog } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
-import { IconField } from 'primeng/iconfield';
-import { InputIcon } from 'primeng/inputicon';
 import { Select } from 'primeng/select';
 import { MenuItem } from 'primeng/api';
 import { ClientService } from '../client.service';
@@ -16,6 +13,7 @@ import { Client, ClientType } from '../../../shared/models/client';
 import { Button } from 'primeng/button';
 import { ClientForm } from '../client-form/client-form';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
+import { ListToolbarComponent } from '../../../shared/components/list-toolbar/list-toolbar';
 import { archiveActionLabel, documentStatusLabel, documentStatusSeverity, matchesSearch } from '../../../shared/utils/display';
 import { DocumentService } from '../../documents/document.service';
 import { Document } from '../../../shared/models/document';
@@ -30,7 +28,7 @@ const EMPTY_DOCUMENTS: Document[] = [];
 @Component({
   selector: 'app-client-list',
   standalone: true,
-  imports: [TableModule, TagModule, Toolbar, Menu, Button, Dialog, InputText, IconField, InputIcon, Select, FormsModule, AppDatePipe, PricePipe, ClientForm, ConfirmDialogComponent],
+  imports: [ListToolbarComponent, TableModule, TagModule, Menu, Button, Dialog, InputText, Select, FormsModule, AppDatePipe, PricePipe, ClientForm, ConfirmDialogComponent],
   templateUrl: './client-list.html',
   // Tried ChangeDetectionStrategy.OnPush here as an experiment - reverted.
   // It broke switching directly from one cell's edit mode to another
@@ -100,22 +98,6 @@ export class ClientListComponent implements OnInit {
 
   openActionsMenu(menu: Menu, event: Event, client: Client): void {
     this.menuItems = this.getActions(client);
-    menu.toggle(event);
-  }
-
-  // The toolbar's own ⋮ menu (list-wide options, unlike the per-row one
-  // above) - built on click for the same reason as menuItems: its label
-  // depends on the current showArchived() state.
-  toolbarMenuItems: MenuItem[] = [];
-
-  openToolbarMenu(menu: Menu, event: Event): void {
-    this.toolbarMenuItems = [
-      {
-        label: this.showArchived() ? 'Masquer les archivés' : 'Afficher les archivés',
-        icon: 'pi pi-archive',
-        command: () => this.onShowArchivedChange(!this.showArchived())
-      }
-    ];
     menu.toggle(event);
   }
 
