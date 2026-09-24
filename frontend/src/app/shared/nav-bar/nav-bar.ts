@@ -90,12 +90,19 @@ export class NavBar {
       : 'absolute left-[calc(100%+0.5rem)] top-1/2 -translate-y-1/2 bg-gray-800 text-white text-xs px-2.5 py-1 rounded whitespace-nowrap opacity-0 invisible pointer-events-none transition-opacity duration-150 group-hover:opacity-100 group-hover:visible z-[1]';
   }
 
+  // "Déconnexion" in the account popup (see nav-bar.html) - used to live in
+  // the settings side menu.
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
+  }
+
   // Lands back on the company picker rather than wherever the impersonated
   // view happened to be - that page wouldn't mean anything once back on the
   // platform admin's own company/token.
   returnToPlatformView(): void {
     this.authService.returnToPlatformView();
-    this.router.navigate(['/profile/companies']);
+    this.router.navigate(['/settings/companies']);
   }
 
   // A flyout is a plain <details>/<summary> (see nav-bar.html - no PrimeNG
@@ -128,6 +135,23 @@ export class NavBar {
   // live (Documents/Ressources icons sat further left than the rest).
   groupClasses(): string {
     return this.expanded() ? 'relative min-w-0 md:w-full' : 'relative';
+  }
+
+  // The account popup (see nav-bar.html): full labels while the rail is
+  // expanded, just the icons - one 40px square each, like the rail's own
+  // items, with the label as a native tooltip - while collapsed. Whole
+  // literal class strings again, for Tailwind's static scan. Opens upward on
+  // the desktop rail, downward on the mobile top bar (nothing above it).
+  accountMenuClasses(): string {
+    return this.expanded()
+      ? 'absolute right-0 top-full mt-2 md:right-auto md:left-0 md:top-auto md:bottom-full md:mt-0 md:mb-2 min-w-44 bg-white border border-gray-200 rounded-md shadow-lg p-1 z-1'
+      : 'absolute right-0 top-full mt-2 md:right-auto md:left-0 md:top-auto md:bottom-full md:mt-0 md:mb-2 bg-white border border-gray-200 rounded-md shadow-lg p-1 z-1';
+  }
+
+  accountItemClasses(): string {
+    return this.expanded()
+      ? 'flex items-center gap-2 px-3 py-2 rounded text-gray-800 no-underline text-sm whitespace-nowrap cursor-pointer hover:bg-gray-100'
+      : 'flex items-center justify-center w-10 h-10 rounded text-gray-800 no-underline text-[1.1rem] cursor-pointer hover:bg-gray-100';
   }
 
   // <nav>'s own width - only takes effect at the md breakpoint (see

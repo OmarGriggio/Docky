@@ -60,10 +60,28 @@
           <span [class]="labelClasses()">Retour vue plateforme</span>
         </button>
       }
-      <a routerLink="/profile" [class]="linkClasses()">
-        <i class="pi pi-user"></i>
-        <span [class]="labelClasses()">{{ currentUser()?.email ?? 'Profil' }}</span>
-      </a>
+      <!-- Same <details> flyout as Documents/Ressources above, but opening
+           upward (above the button, on the rail) instead of to the right -
+           it sits at the very bottom. On the mobile top bar there's nothing
+           above it, so there it opens downward instead. -->
+      <details #accountGroup [class]="groupClasses()">
+        <summary [class]="linkClasses() + ' list-none [&::-webkit-details-marker]:hidden'">
+          <i class="pi pi-user"></i>
+          <span [class]="labelClasses()">{{ currentUser()?.email ?? 'Profil' }}</span>
+        </summary>
+        <div [class]="accountMenuClasses()">
+          <a routerLink="/settings" [class]="accountItemClasses()" title="Paramètres" (click)="accountGroup.open = false">
+            <i class="pi pi-cog"></i>@if (expanded()) {Paramètres}
+          </a>
+          <a routerLink="/profile" [class]="accountItemClasses()" title="Profil" (click)="accountGroup.open = false">
+            <i class="pi pi-user"></i>@if (expanded()) {Profil}
+          </a>
+          <hr class="my-1 border-0 border-t border-gray-200" />
+          <button type="button" [class]="accountItemClasses() + ' w-full bg-transparent border-0 text-left'" title="Déconnexion" (click)="accountGroup.open = false; logout()">
+            <i class="pi pi-sign-out"></i>@if (expanded()) {Déconnexion}
+          </button>
+        </div>
+      </details>
     </div>
   </nav>
 }
