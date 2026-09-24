@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { clientDisplayName, archiveActionLabel, formatFileSize, formatSectionDate, addressLabel, formatPrice, toDateOnly, fromDateOnly, addDays, daysOverdue, fillPlaceholders } from './display';
+import { clientDisplayName, archiveActionLabel, formatFileSize, formatSectionDate, addressLabel, formatPrice, toDateOnly, fromDateOnly, addDays, daysOverdue, fillPlaceholders, matchesSearch } from './display';
 
 describe('clientDisplayName', () => {
 
@@ -151,6 +151,25 @@ describe('fillPlaceholders', () => {
   it('leaves unknown and inherited names as typed, and never rescans a value', () => {
     expect(fillPlaceholders('{{typo}} {{constructor}}', values)).toBe('{{typo}} {{constructor}}');
     expect(fillPlaceholders('{{titre_client}}', { titre_client: '{{montant}}', montant: 'x' })).toBe('{{montant}}');
+  });
+
+});
+
+describe('matchesSearch', () => {
+
+  it('matches everything on an empty or blank query', () => {
+    expect(matchesSearch('ABC Construction SA', '')).toBe(true);
+    expect(matchesSearch('ABC Construction SA', '   ')).toBe(true);
+  });
+
+  it('ignores case and accents', () => {
+    expect(matchesSearch('José Dupont', 'jose DUPONT')).toBe(true);
+    expect(matchesSearch('Rénov Alpes Sàrl', 'renov sarl')).toBe(true);
+  });
+
+  it('needs every word, in any order', () => {
+    expect(matchesSearch('Jean Dupont', 'dupont jean')).toBe(true);
+    expect(matchesSearch('Jean Dupont', 'jean martin')).toBe(false);
   });
 
 });

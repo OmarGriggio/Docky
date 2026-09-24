@@ -3,15 +3,17 @@
     <h3>Documents @if (currentTypeLabel()) { — {{ currentTypeLabel() }} }</h3>
   </ng-template>
   <ng-template #end>
-    <label class="ui-toolbar__archived">
-      <p-checkbox [binary]="true" [ngModel]="showArchived()" (ngModelChange)="onShowArchivedChange($event)" />
-      Afficher les archivés
-    </label>
-    <p-button size="small" label="" icon="pi pi-plus" (onClick)="createDocument()" />
+    <p-iconfield>
+      <p-inputicon class="pi pi-search" />
+      <input pInputText pSize="small" placeholder="Rechercher..." [ngModel]="search()" (ngModelChange)="search.set($event)" />
+    </p-iconfield>
+    <p-button class="ml-1" size="small" label="" icon="pi pi-plus" (onClick)="createDocument()" />
+    <p-menu #toolbarMenu [popup]="true" [model]="toolbarMenuItems" appendTo="body"></p-menu>
+    <p-button class="ml-1" size="small" icon="pi pi-ellipsis-v" [outlined]="true" (click)="openToolbarMenu(toolbarMenu, $event)"></p-button>
   </ng-template>
 </p-toolbar>
 
-<p-table [value]="documents()" dataKey="id" showGridlines size="small" editMode="cell" (onEditInit)="onStatusEditInit($event)" (onEditComplete)="onStatusEditComplete($event)" [expandedRowKeys]="expandedRowKeys">
+<p-table [value]="filteredDocuments()" dataKey="id" showGridlines size="small" editMode="cell" (onEditInit)="onStatusEditInit($event)" (onEditComplete)="onStatusEditComplete($event)" [expandedRowKeys]="expandedRowKeys">
   <ng-template #header>
     <tr>
       <th style="width: 3rem"></th>
@@ -26,6 +28,12 @@
       <th>Statut</th>
       <th></th>
       <th></th>
+    </tr>
+  </ng-template>
+
+  <ng-template #emptymessage>
+    <tr>
+      <td colspan="12" class="text-center text-gray-500">{{ search().trim() ? 'Aucun document ne correspond à la recherche.' : 'Aucun document.' }}</td>
     </tr>
   </ng-template>
 

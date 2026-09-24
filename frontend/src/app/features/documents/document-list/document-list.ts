@@ -7,12 +7,14 @@ import { TagModule } from 'primeng/tag';
 import { Toolbar } from 'primeng/toolbar';
 import { Button } from 'primeng/button';
 import { Menu } from 'primeng/menu';
-import { Checkbox } from 'primeng/checkbox';
+import { InputText } from 'primeng/inputtext';
+import { IconField } from 'primeng/iconfield';
+import { InputIcon } from 'primeng/inputicon';
 import { Select } from 'primeng/select';
 import { MenuItem } from 'primeng/api';
 import { DocumentService } from '../document.service';
 import { Document, DocumentType, DocumentStatus } from '../../../shared/models/document';
-import { documentStatusLabel, documentStatusSeverity, daysOverdue } from '../../../shared/utils/display';
+import { documentStatusLabel, documentStatusSeverity, daysOverdue, formatPrice, matchesSearch } from '../../../shared/utils/display';
 import { ClientService } from '../../clients/client.service';
 import { Client } from '../../../shared/models/client';
 import { AddressService } from '../../addresses/address.service';
@@ -34,7 +36,7 @@ const TYPE_LABELS: Record<DocumentType, string> = {
 @Component({
   selector: 'app-document-list',
   standalone: true,
-  imports: [TableModule, TagModule, Toolbar, Button, Menu, Checkbox, Select, FormsModule, AppDatePipe, PricePipe, ConfirmDialogComponent, DocumentLedger],
+  imports: [TableModule, TagModule, Toolbar, Button, Menu, InputText, IconField, InputIcon, Select, FormsModule, AppDatePipe, PricePipe, ConfirmDialogComponent, DocumentLedger],
   templateUrl: './document-list.html'
 })
 export class DocumentListComponent implements OnInit {
@@ -51,6 +53,30 @@ export class DocumentListComponent implements OnInit {
   currentTypeLabel = signal<string | null>(null);
   currentType: DocumentType | null = null;
   showArchived = signal(false);
+
+  // The toolbar's search box - matches any column of the table (number,
+  // client, location, date, due date, amounts, discount, status), each typed
+  // word anywhere among them, on the values as displayed. Done in the
+  // browser on the already-loaded list.
+  search = signal('');
+  filteredDocuments = computed(() =>
+    this.documents().filter(document => matchesSearch(this.searchableText(document), this.search()))
+  );
+
+  private searchableText(document: Document): string {
+    const appDate = new AppDatePipe();
+    return [
+      document.number,
+      this.clientName(document),
+      this.location(document),
+      appDate.transform(document.date),
+      appDate.transform(document.due_date),
+      formatPrice(document.amount_excl_vat),
+      formatPrice(document.amount_incl_vat),
+      document.discount,
+      this.statusLabel(document),
+    ].filter(value => value !== null && value !== undefined && value !== '').join(' ');
+  }
 
   // includeArchived on the clients fetch too - an archived client's name
   // should still resolve for a document that references them, same as
@@ -76,6 +102,22 @@ export class DocumentListComponent implements OnInit {
 
   openActionsMenu(menu: Menu, event: Event, document: Document): void {
     this.menuItems = this.getActions(document);
+    menu.toggle(event);
+  }
+
+  // The toolbar's own ⋮ menu (list-wide options, unlike the per-row one
+  // above) - built on click for the same reason as menuItems: its label
+  // depends on the current showArchived() state.
+  toolbarMenuItems: MenuItem[] = [];
+
+  openToolbarMenu(menu: Menu, event: Event): void {
+    this.toolbarMenuItems = [
+      {
+        label: this.showArchived() ? 'Masquer les archivés' : 'Afficher les archivés',
+        icon: 'pi pi-archive',
+        command: () => this.onShowArchivedChange(!this.showArchived())
+      }
+    ];
     menu.toggle(event);
   }
 

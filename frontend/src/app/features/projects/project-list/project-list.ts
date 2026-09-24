@@ -6,7 +6,8 @@ import { TagModule } from 'primeng/tag';
 import { Toolbar } from 'primeng/toolbar';
 import { Menu } from 'primeng/menu';
 import { Dialog } from 'primeng/dialog';
-import { Checkbox } from 'primeng/checkbox';
+import { IconField } from 'primeng/iconfield';
+import { InputIcon } from 'primeng/inputicon';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { DatePicker } from 'primeng/datepicker';
@@ -26,11 +27,12 @@ import { ProjectAttachments } from '../project-attachments/project-attachments';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { DocumentLedger } from '../../../shared/components/document-ledger/document-ledger';
 import { SectionDatePipe } from '../../../shared/pipes/section-date.pipe';
+import { matchesSearch } from '../../../shared/utils/display';
 
 @Component({
   selector: 'app-project-list',
   standalone: true,
-  imports: [TableModule, TagModule, Toolbar, Menu, Button, Dialog, Checkbox, InputText, Select, DatePicker, FormsModule, SectionDatePipe, ProjectForm, ProjectAttachments, ConfirmDialogComponent, DocumentLedger],
+  imports: [TableModule, TagModule, Toolbar, Menu, Button, Dialog, IconField, InputIcon, InputText, Select, DatePicker, FormsModule, SectionDatePipe, ProjectForm, ProjectAttachments, ConfirmDialogComponent, DocumentLedger],
   templateUrl: './project-list.html'
 })
 export class ProjectListComponent implements OnInit {
@@ -51,6 +53,27 @@ export class ProjectListComponent implements OnInit {
   private projectDocuments = signal<Document[]>([]);
   private addresses = signal<Address[]>([]);
   showArchived = signal(false);
+
+  // The toolbar's search box - matches any column of the table (name,
+  // client, quote number, location, date, type, status), each typed word
+  // anywhere among them, on the values as displayed. Done in the browser on
+  // the already-loaded list.
+  search = signal('');
+  filteredProjects = computed(() =>
+    this.projects().filter(project => matchesSearch(this.searchableText(project), this.search()))
+  );
+
+  private searchableText(project: Project): string {
+    return [
+      project.name,
+      this.clientName(project),
+      project.quote_number,
+      this.location(project),
+      this.date(project) ? new SectionDatePipe().transform(this.date(project)) : null,
+      project.project_type,
+      this.statusLabel(project),
+    ].filter(Boolean).join(' ');
+  }
 
   typeOptions = computed(() =>
     this.projectTypes().map(type => ({ label: type.label, value: type.id }))
@@ -76,6 +99,22 @@ export class ProjectListComponent implements OnInit {
 
   openActionsMenu(menu: Menu, event: Event, project: Project): void {
     this.menuItems = this.getActions(project);
+    menu.toggle(event);
+  }
+
+  // The toolbar's own ⋮ menu (list-wide options, unlike the per-row one
+  // above) - built on click for the same reason as menuItems: its label
+  // depends on the current showArchived() state.
+  toolbarMenuItems: MenuItem[] = [];
+
+  openToolbarMenu(menu: Menu, event: Event): void {
+    this.toolbarMenuItems = [
+      {
+        label: this.showArchived() ? 'Masquer les archivés' : 'Afficher les archivés',
+        icon: 'pi pi-archive',
+        command: () => this.onShowArchivedChange(!this.showArchived())
+      }
+    ];
     menu.toggle(event);
   }
 

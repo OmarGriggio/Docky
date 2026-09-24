@@ -3,11 +3,13 @@
     <h3>Ressources @if (currentTypeLabel()) { — {{ currentTypeLabel() }} }</h3>
   </ng-template>
   <ng-template #end>
-    <label class="ui-toolbar__archived">
-      <p-checkbox [binary]="true" [ngModel]="showArchived()" (ngModelChange)="onShowArchivedChange($event)" />
-      Afficher les archivés
-    </label>
-    <p-button size="small" label="" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+    <p-iconfield>
+      <p-inputicon class="pi pi-search" />
+      <input pInputText pSize="small" placeholder="Rechercher..." [ngModel]="search()" (ngModelChange)="search.set($event)" />
+    </p-iconfield>
+    <p-button class="ml-1" size="small" label="" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+    <p-menu #toolbarMenu [popup]="true" [model]="toolbarMenuItems" appendTo="body"></p-menu>
+    <p-button class="ml-1" size="small" icon="pi pi-ellipsis-v" [outlined]="true" (click)="openToolbarMenu(toolbarMenu, $event)"></p-button>
   </ng-template>
 </p-toolbar>
 
@@ -22,7 +24,7 @@
   }
 </p-dialog>
 
-<p-table [value]="resources()" dataKey="id" showGridlines size="small" editMode="row">
+<p-table [value]="filteredResources()" dataKey="id" showGridlines size="small" editMode="row">
   <ng-template #header>
     <tr>
       <th>Code</th>
@@ -32,6 +34,12 @@
       <th>Prix d'achat</th>
       <th></th>
       <th></th>
+    </tr>
+  </ng-template>
+
+  <ng-template #emptymessage>
+    <tr>
+      <td colspan="7" class="text-center text-gray-500">{{ search().trim() ? 'Aucune ressource ne correspond à la recherche.' : 'Aucune ressource.' }}</td>
     </tr>
   </ng-template>
 

@@ -3,14 +3,16 @@
     <h3>Chantiers</h3>
   </ng-template>
   <ng-template #end>
-    <label class="ui-toolbar__archived">
-      <p-checkbox [binary]="true" [ngModel]="showArchived()" (ngModelChange)="onShowArchivedChange($event)" />
-      Afficher les archivés
-    </label>
+    <p-iconfield>
+      <p-inputicon class="pi pi-search" />
+      <input pInputText pSize="small" placeholder="Rechercher..." [ngModel]="search()" (ngModelChange)="search.set($event)" />
+    </p-iconfield>
     <!-- No "Nouveau chantier" trigger for now: a chantier only comes from an
          accepted quote (see document.service.ts's acceptQuoteServ) - the
          dialog/form below still exist, just unreachable from this page,
          should a manual-creation need come back later. -->
+    <p-menu #toolbarMenu [popup]="true" [model]="toolbarMenuItems" appendTo="body"></p-menu>
+    <p-button class="ml-1" size="small" icon="pi pi-ellipsis-v" [outlined]="true" (click)="openToolbarMenu(toolbarMenu, $event)"></p-button>
   </ng-template>
 </p-toolbar>
 
@@ -37,7 +39,7 @@
 </p-dialog>
 
 <p-table
-  [value]="projects()" dataKey="id" showGridlines size="small" [tableStyle]="{ 'min-width': '50rem' }"
+  [value]="filteredProjects()" dataKey="id" showGridlines size="small" [tableStyle]="{ 'min-width': '50rem' }"
   editMode="row"
   [expandedRowKeys]="expandedRowKeys"
 >
@@ -53,6 +55,12 @@
       <th>Statut</th>
       <th></th>
       <th></th>
+    </tr>
+  </ng-template>
+
+  <ng-template #emptymessage>
+    <tr>
+      <td colspan="10" class="text-center text-gray-500">{{ search().trim() ? 'Aucun chantier ne correspond à la recherche.' : 'Aucun chantier.' }}</td>
     </tr>
   </ng-template>
 

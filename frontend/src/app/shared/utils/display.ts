@@ -181,3 +181,12 @@ export const fillPlaceholders = (text: string, values: Record<string, string>): 
     return Object.prototype.hasOwnProperty.call(values, name) ? values[name] : match;
   });
 };
+
+// Search-box matching for a list: every word typed must appear somewhere in
+// the text, in any order, ignoring case and accents ("jose dupont" finds
+// "José Dupont" and "Dupont José"). An empty query matches everything.
+export const matchesSearch = (text: string, query: string): boolean => {
+  const normalize = (value: string) => value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  const haystack = normalize(text);
+  return normalize(query).split(/\s+/).filter(Boolean).every(word => haystack.includes(word));
+};

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
@@ -8,11 +8,13 @@ import { Toolbar } from 'primeng/toolbar';
 import { Menu } from 'primeng/menu';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
-import { Checkbox } from 'primeng/checkbox';
+import { IconField } from 'primeng/iconfield';
+import { InputIcon } from 'primeng/inputicon';
 import { MenuItem } from 'primeng/api';
 import { ResourceService } from '../resource.service';
 import { Resource, ResourceType } from '../../../shared/models/resource';
 import { PricePipe } from '../../../shared/pipes/price.pipe';
+import { formatPrice, matchesSearch } from '../../../shared/utils/display';
 import { ResourceForm } from '../resource-form/resource-form';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 
@@ -24,7 +26,7 @@ const TYPE_LABELS: Record<ResourceType, string> = {
 @Component({
   selector: 'app-resource-list',
   standalone: true,
-  imports: [TableModule, InputText, InputNumber, Toolbar, Menu, Button, Dialog, Checkbox, FormsModule, PricePipe, ResourceForm, ConfirmDialogComponent],
+  imports: [TableModule, InputText, InputNumber, Toolbar, Menu, Button, Dialog, IconField, InputIcon, FormsModule, PricePipe, ResourceForm, ConfirmDialogComponent],
   templateUrl: './resource-list.html'
 })
 export class ResourceListComponent implements OnInit {
@@ -36,6 +38,25 @@ export class ResourceListComponent implements OnInit {
   currentTypeLabel = signal<string | null>(null);
   currentType: ResourceType | null = null;
   showArchived = signal(false);
+
+  // The toolbar's search box - matches any column of the table (code,
+  // designation, unit, selling and purchase price as displayed), each typed
+  // word anywhere among them. Done in the browser on the already-loaded
+  // list.
+  search = signal('');
+  filteredResources = computed(() =>
+    this.resources().filter(resource => matchesSearch(this.searchableText(resource), this.search()))
+  );
+
+  private searchableText(resource: Resource): string {
+    return [
+      resource.code,
+      resource.name,
+      resource.unit,
+      formatPrice(resource.selling_price),
+      formatPrice(resource.purchase_price),
+    ].filter(Boolean).join(' ');
+  }
 
   createDialogVisible = signal(false);
   // Set when "Dupliquer" is used - passed to <app-resource-form> so it can
@@ -55,6 +76,22 @@ export class ResourceListComponent implements OnInit {
 
   openActionsMenu(menu: Menu, event: Event, resource: Resource): void {
     this.menuItems = this.getActions(resource);
+    menu.toggle(event);
+  }
+
+  // The toolbar's own ⋮ menu (list-wide options, unlike the per-row one
+  // above) - built on click for the same reason as menuItems: its label
+  // depends on the current showArchived() state.
+  toolbarMenuItems: MenuItem[] = [];
+
+  openToolbarMenu(menu: Menu, event: Event): void {
+    this.toolbarMenuItems = [
+      {
+        label: this.showArchived() ? 'Masquer les archivés' : 'Afficher les archivés',
+        icon: 'pi pi-archive',
+        command: () => this.onShowArchivedChange(!this.showArchived())
+      }
+    ];
     menu.toggle(event);
   }
 
