@@ -88,6 +88,15 @@ export class InvoiceTemplate {
         }
         pdf.text(`Total TTC : ${invoice.amountInclVat.toFixed(2)} CHF`, { bold: true, marginBottom: 20 });
 
+        if (invoice.dueDate) {
+            const dueDate = new Date(invoice.dueDate).toLocaleDateString("fr-CH", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+            });
+            pdf.text(`Échéance : ${dueDate}`, { bold: true, marginBottom: 6 });
+        }
+
         if (invoice.paymentTerms) {
             pdf.text(invoice.paymentTerms, { marginBottom: 15 });
         }

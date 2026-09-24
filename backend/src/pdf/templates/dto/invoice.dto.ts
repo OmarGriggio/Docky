@@ -83,6 +83,7 @@ export const createInvoiceDto = (document: DocumentComplete, client: ClientWithA
         amountInclVat: document.amount_incl_vat,
         vatRate: document.vat_rate,
         discount: document.discount,
+        dueDate: document.due_date,
         paymentTerms: document.payment_terms,
         introduction: document.introduction ?? "",
         conclusion: document.conclusion ?? ""

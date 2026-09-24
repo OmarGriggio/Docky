@@ -720,6 +720,34 @@ VALUES
 
 	Avec nos meilleures salutations.');
 
+-- Due dates for every invoice (payment due, 30 days after its date - the two
+-- SENT ones, company 1's FAC-2026-0002 and company 2's FAC-2026-0003, are
+-- already past it, so the dashboard's "open invoices" tile has something
+-- overdue to show) and for some quotes ("valable jusqu'au", 30 days). Kept as one block, by
+-- (company_id, number), rather than a column in each INSERT above - those
+-- span 4 statements with different column lists. documents.due_date is
+-- plain data, set directly (no computation server-side).
+UPDATE documents AS d
+SET due_date = v.due_date::date
+FROM (VALUES
+(1, 'OFF-2026-0001', '2026-08-09'),
+(1, 'OFF-2026-0002', '2026-08-10'),
+(1, 'OFF-2026-0004', '2026-09-10'),
+(1, 'FAC-2026-0001', '2026-08-14'),
+(1, 'FAC-2026-0002', '2026-09-04'),
+(1, 'FAC-2026-0003', '2026-09-14'),
+(1, 'FAC-2026-0004', '2026-09-17'),
+(1, 'FAC-2026-0005', '2026-09-19'),
+(1, 'FAC-2026-0006', '2026-09-24'),
+(1, 'FAC-2026-0007', '2026-09-27'),
+(2, 'OFF-2026-0001', '2026-07-01'),
+(2, 'OFF-2026-0003', '2026-07-12'),
+(2, 'FAC-2026-0001', '2026-07-25'),
+(2, 'FAC-2026-0002', '2026-08-01'),
+(2, 'FAC-2026-0003', '2026-08-09')
+) AS v(company_id, number, due_date)
+WHERE d.company_id = v.company_id AND d.number = v.number;
+
 INSERT INTO document_sections
 (company_id, document_id, position, title, date_start, date_end)
 VALUES

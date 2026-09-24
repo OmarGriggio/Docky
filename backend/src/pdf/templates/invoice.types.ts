@@ -46,6 +46,8 @@ export interface InvoiceDto {
     // A percentage (0 when none is applied) - the recap only shows a line
     // for it above that (see invoice.template.ts).
     discount: number;
+    // documents.due_date - null shows nothing rather than a bare "-".
+    dueDate: Date | null;
     paymentTerms: string | null;
     introduction: string;
     conclusion: string;
