@@ -166,6 +166,30 @@
           <label for="invoice_conclusion">Facture - Conclusion</label>
         </p-floatlabel>
 
+        <p-floatlabel variant="on">
+          <p-inputnumber inputId="quote_due_days" formControlName="quote_due_days" [min]="0" [useGrouping]="false" suffix=" jours" />
+          <label for="quote_due_days">Offre - Validité par défaut</label>
+        </p-floatlabel>
+
+        <p-floatlabel variant="on">
+          <p-inputnumber inputId="invoice_due_days" formControlName="invoice_due_days" [min]="0" [useGrouping]="false" suffix=" jours" />
+          <label for="invoice_due_days">Facture - Échéance par défaut</label>
+        </p-floatlabel>
+
+        <p-floatlabel variant="on" class="ui-form__full">
+          <textarea pTextarea id="reminder_text" formControlName="reminder_text" rows="8"></textarea>
+          <label for="reminder_text">Rappel - Texte</label>
+        </p-floatlabel>
+
+        <div class="ui-form__full text-sm text-gray-600 -mt-2">
+          <p class="m-0 mb-1">Variables remplacées automatiquement dans le PDF de rappel (une variable inconnue reste telle quelle) :</p>
+          <ul class="m-0 pl-5">
+            @for (placeholder of reminderPlaceholders; track placeholder.token) {
+              <li><code>{{ placeholder.token }}</code> — {{ placeholder.label }}</li>
+            }
+          </ul>
+        </div>
+
         <p-floatlabel variant="on" class="ui-form__full">
           <textarea pTextarea id="payment_terms" formControlName="payment_terms" rows="3"></textarea>
           <label for="payment_terms">Conditions de paiement par défaut</label>

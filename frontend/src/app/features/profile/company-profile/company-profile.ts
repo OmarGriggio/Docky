@@ -51,8 +51,24 @@ export class CompanyProfile implements OnInit {
     quote_conclusion: [''],
     invoice_introduction: [''],
     invoice_conclusion: [''],
+    quote_due_days: [null as number | null],
+    invoice_due_days: [null as number | null],
+    reminder_text: [''],
     payment_terms: [''],
   });
+
+  // The {{placeholders}} the backend fills in on the payment reminder PDF
+  // (see backend/src/pdf/templates/reminder.placeholders.ts) - shown as help
+  // under the reminder text field. Built here as strings (not written in the
+  // template) since a literal double brace there is read as an interpolation.
+  reminderPlaceholders = [
+    { token: '{{numero_facture}}', label: 'Numéro de la facture' },
+    { token: '{{date_facture}}', label: 'Date de la facture' },
+    { token: '{{date_echeance}}', label: "Date d'échéance" },
+    { token: '{{montant}}', label: 'Montant TTC, avec CHF' },
+    { token: '{{jours_retard}}', label: 'Jours de retard' },
+    { token: '{{client}}', label: 'Nom du client' },
+  ];
 
   templatesLoading = signal(true);
   templatesSuccessMessage = signal<string | null>(null);
@@ -170,13 +186,17 @@ export class CompanyProfile implements OnInit {
     forkJoin({
       quote: this.documentTemplateService.getTemplate('QUOTE'),
       invoice: this.documentTemplateService.getTemplate('INVOICE'),
+      reminder: this.documentTemplateService.getTemplate('REMINDER'),
     }).subscribe({
-      next: ({ quote, invoice }) => {
+      next: ({ quote, invoice, reminder }) => {
         this.templatesForm.patchValue({
           quote_introduction: quote?.introduction ?? '',
           quote_conclusion: quote?.conclusion ?? '',
           invoice_introduction: invoice?.introduction ?? '',
           invoice_conclusion: invoice?.conclusion ?? '',
+          quote_due_days: quote?.due_days ?? null,
+          invoice_due_days: invoice?.due_days ?? null,
+          reminder_text: reminder?.introduction ?? '',
         });
         this.templatesLoading.set(false);
 
@@ -200,11 +220,12 @@ export class CompanyProfile implements OnInit {
     this.templatesSuccessMessage.set(null);
     this.templatesErrorMessage.set(null);
 
-    const { quote_introduction, quote_conclusion, invoice_introduction, invoice_conclusion, payment_terms } = this.templatesForm.getRawValue();
+    const { quote_introduction, quote_conclusion, invoice_introduction, invoice_conclusion, quote_due_days, invoice_due_days, reminder_text, payment_terms } = this.templatesForm.getRawValue();
 
     forkJoin({
-      quote: this.documentTemplateService.upsertTemplate('QUOTE', { introduction: quote_introduction, conclusion: quote_conclusion }),
-      invoice: this.documentTemplateService.upsertTemplate('INVOICE', { introduction: invoice_introduction, conclusion: invoice_conclusion }),
+      quote: this.documentTemplateService.upsertTemplate('QUOTE', { introduction: quote_introduction, conclusion: quote_conclusion, due_days: quote_due_days }),
+      invoice: this.documentTemplateService.upsertTemplate('INVOICE', { introduction: invoice_introduction, conclusion: invoice_conclusion, due_days: invoice_due_days }),
+      reminder: this.documentTemplateService.upsertTemplate('REMINDER', { introduction: reminder_text, conclusion: null }),
       company: this.companyService.updatePaymentTerms(this.companyId, payment_terms.trim() || null),
     }).subscribe({
       next: ({ company }) => {
