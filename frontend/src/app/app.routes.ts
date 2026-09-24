@@ -95,20 +95,29 @@ export const routes: Routes = [
     data: { breadcrumb: (): MenuItem[] => [{ label: 'Chantiers', routerLink: '/projects' }, { label: 'Fiche chantier' }] }
   },
   {
-    // Layout for the whole section (router-outlet + a persistent side menu,
-    // see profile.html) - every child below renders inside it, so the menu
-    // never disappears when navigating between them. '' redirects to
-    // 'company' so /profile itself lands on Entreprise directly.
+    // The company's own data form ("Mon entreprise") - opened from the
+    // account popup's "Profil" (see nav-bar.html). Everything else that used
+    // to live under /profile is under /settings now.
     path: 'profile',
-    loadComponent: () => import('./features/profile/profile').then(m => m.Profile),
+    loadComponent: () => import('./features/profile/company-profile/company-profile').then(m => m.CompanyProfile),
     canActivate: [authGuard],
-    data: { breadcrumb: 'Profil' },
+    data: { breadcrumb: 'Profil' }
+  },
+  {
+    // Layout for the whole section (router-outlet + a persistent side menu,
+    // see settings.html) - every child below renders inside it, so the menu
+    // never disappears when navigating between them. '' redirects to
+    // 'templates' so /settings itself lands on Modèles de documents directly.
+    path: 'settings',
+    loadComponent: () => import('./features/settings/settings').then(m => m.Settings),
+    canActivate: [authGuard],
+    data: { breadcrumb: 'Paramètres' },
     children: [
-      { path: '', redirectTo: 'company', pathMatch: 'full' },
+      { path: '', redirectTo: 'templates', pathMatch: 'full' },
       {
-        path: 'company',
-        loadComponent: () => import('./features/profile/company-profile/company-profile').then(m => m.CompanyProfile),
-        data: { breadcrumb: 'Entreprise' }
+        path: 'templates',
+        loadComponent: () => import('./features/settings/document-templates/document-templates').then(m => m.DocumentTemplates),
+        data: { breadcrumb: 'Modèles de documents' }
       },
       {
         // PLATFORM_ADMIN only, deliberately not (also) ADMIN - user
@@ -124,7 +133,7 @@ export const routes: Routes = [
         path: 'users/new',
         loadComponent: () => import('./features/admin/user-form/user-form').then(m => m.UserForm),
         canActivate: [roleGuard],
-        data: { roles: ['PLATFORM_ADMIN'], breadcrumb: (): MenuItem[] => [{ label: 'Utilisateurs', routerLink: '/profile/users' }, { label: 'Nouvel utilisateur' }] }
+        data: { roles: ['PLATFORM_ADMIN'], breadcrumb: (): MenuItem[] => [{ label: 'Utilisateurs', routerLink: '/settings/users' }, { label: 'Nouvel utilisateur' }] }
       },
       {
         // ADMIN and PLATFORM_ADMIN both - not one of the pages centralized
