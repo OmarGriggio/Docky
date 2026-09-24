@@ -1,17 +1,41 @@
 import { getTemplateByTypeFromDB, upsertTemplateInDB } from "./document_template.repository";
-import { DocumentType } from "./document.types";
+import { DocumentTemplate, DocumentTemplateType } from "./document_template.types";
+import { DEFAULT_REMINDER_TEXT } from "./document_template.defaults";
 
-// null (not a NotFoundError) when nothing's been saved yet for this type -
-// absence is a normal state here, not an error: the frontend just falls
-// back to empty introduction/conclusion fields.
-export const getTemplateServ = async (type: DocumentType, company_id: number) => {
-  return await getTemplateByTypeFromDB(type, company_id);
+// null (not a NotFoundError) when nothing's been saved yet for a QUOTE/
+// INVOICE - absence is a normal state here, not an error: the frontend just
+// falls back to empty introduction/conclusion fields. A REMINDER is never
+// null: unlike those two (copied into each document at creation, nothing
+// server-side reads them afterwards) the reminder PDF is built from this row
+// every time, so it falls back to the default text when nothing (or only
+// blank text) was saved - same value the profile form pre-fills with.
+export const getTemplateServ = async (type: DocumentTemplateType, company_id: number): Promise<DocumentTemplate | null> => {
+  const template: DocumentTemplate | null = await getTemplateByTypeFromDB(type, company_id);
+  if (type !== "REMINDER") {
+    return template;
+  }
+
+  return {
+    id: template?.id ?? 0,
+    company_id,
+    type,
+    introduction: template?.introduction?.trim() ? template.introduction : DEFAULT_REMINDER_TEXT,
+    conclusion: null,
+    due_days: null,
+  };
 };
 
+// due_days is optional: document-form.ts only ever edits introduction/
+// conclusion, so it doesn't send it - left out (undefined), the saved value
+// is kept instead of being wiped to null. An explicit null clears it.
 export const upsertTemplateServ = async (
-  type: DocumentType,
-  data: { introduction: string | null; conclusion: string | null },
+  type: DocumentTemplateType,
+  data: { introduction: string | null; conclusion: string | null; due_days?: number | null },
   company_id: number
 ) => {
-  return await upsertTemplateInDB({ ...data, type, company_id });
+  const due_days = data.due_days !== undefined
+    ? data.due_days
+    : (await getTemplateByTypeFromDB(type, company_id))?.due_days ?? null;
+
+  return await upsertTemplateInDB({ introduction: data.introduction, conclusion: data.conclusion, due_days, type, company_id });
 };
