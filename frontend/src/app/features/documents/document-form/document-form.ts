@@ -940,10 +940,16 @@ export class DocumentForm implements OnInit {
   // pre-existing free-text value that predates this picker, so it still
   // shows as selected instead of going blank), plus a synthetic
   // "+ Ajouter ..." entry when the current search text matches nothing.
-  unitOptions(): { label: string; value: string }[] {
+  // unitId is the resource_units row an option comes from - null for the
+  // ones with none (a label only present because a line/draft uses it, and
+  // the "+ Ajouter ..." entry), which is what gets the remove cross in the
+  // template (see archiveUnit).
+  unitOptions(): { label: string; value: string; unitId: number | null }[] {
     const labels = new Set<string>();
+    const unitIds = new Map<string, number>();
     for (const unit of this.resourceUnits()) {
       labels.add(unit.label);
+      unitIds.set(unit.label, unit.id);
     }
     for (const section of this.sections()) {
       for (const line of section.lines) {
@@ -960,13 +966,27 @@ export class DocumentForm implements OnInit {
 
     const options = Array.from(labels)
       .sort((a, b) => a.localeCompare(b))
-      .map(label => ({ label, value: label }));
+      .map(label => ({ label, value: label, unitId: unitIds.get(label) ?? null }));
 
     const query = this.unitFilterQuery().trim();
     if (query && !options.some(o => o.value.toLowerCase() === query.toLowerCase())) {
-      options.push({ label: `+ Ajouter "${query}"`, value: `${this.ADD_UNIT_PREFIX}${query}` });
+      options.push({ label: `+ Ajouter "${query}"`, value: `${this.ADD_UNIT_PREFIX}${query}`, unitId: null });
     }
     return options;
+  }
+
+  // The little cross on a unit option: takes it off the company's list. The
+  // click must not also pick the option (it'd select it in the line that
+  // opened the dropdown), hence stopPropagation. A line already using that
+  // unit keeps it - it's free text there.
+  archiveUnit(unitId: number, event: Event): void {
+    event.stopPropagation();
+    event.preventDefault();
+
+    this.resourceUnitService.archiveUnit(unitId).subscribe({
+      next: () => this.resourceUnits.update(units => units.filter(unit => unit.id !== unitId)),
+      error: err => console.error('document-form : ' + err)
+    });
   }
 
   // Wired to every unit p-select's own (ngModelChange) - `apply` is

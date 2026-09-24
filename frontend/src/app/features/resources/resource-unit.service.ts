@@ -23,4 +23,10 @@ export class ResourceUnitService {
     return this.http.post<ResourceUnit>(`${API_BASE}/resource-unit`, { label });
   }
 
+  // Takes it off the company's list (archived, not deleted) - lines and
+  // resources already using that unit keep it, it's free text on them.
+  archiveUnit(id: number) {
+    return this.http.patch<ResourceUnit>(`${API_BASE}/resource-unit/${id}/archive`, {});
+  }
+
 }

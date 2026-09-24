@@ -293,7 +293,16 @@
                         (onFilter)="unitFilterQuery.set($event.filter)"
                         (onHide)="unitFilterQuery.set('')"
                         appendTo="body"
-                      />
+                      >
+                        <ng-template #item let-option>
+                          <div class="flex items-center justify-between w-full gap-3">
+                            <span>{{ option.label }}</span>
+                            @if (option.unitId !== null) {
+                              <i class="pi pi-times text-[0.65rem] text-gray-400 hover:text-red-600 cursor-pointer" title="Retirer cette unité de la liste" (click)="archiveUnit(option.unitId, $event)"></i>
+                            }
+                          </div>
+                        </ng-template>
+                      </p-select>
                     </td>
                     <td class="py-[0.3rem] px-[0.2rem] align-middle">
                       <p-inputnumber
@@ -370,7 +379,16 @@
                       (onFilter)="unitFilterQuery.set($event.filter)"
                       (onHide)="unitFilterQuery.set('')"
                       appendTo="body"
-                    />
+                    >
+                      <ng-template #item let-option>
+                        <div class="flex items-center justify-between w-full gap-3">
+                          <span>{{ option.label }}</span>
+                          @if (option.unitId !== null) {
+                            <i class="pi pi-times text-[0.65rem] text-gray-400 hover:text-red-600 cursor-pointer" title="Retirer cette unité de la liste" (click)="archiveUnit(option.unitId, $event)"></i>
+                          }
+                        </div>
+                      </ng-template>
+                    </p-select>
                   </td>
                   <td class="py-[0.3rem] px-[0.2rem] align-middle">
                     <p-inputnumber
@@ -415,6 +433,8 @@
               optionValue="value"
               [ngModel]="null"
               (ngModelChange)="addCatalogResourceLine(section.id, $event)"
+              [filter]="true"
+              filterPlaceholder="Rechercher une ressource..."
               [placeholder]="type === 'QUOTE' ? 'Ajouter depuis le catalogue' : 'Ajouter une ressource'"
             >
               <ng-template #footer>

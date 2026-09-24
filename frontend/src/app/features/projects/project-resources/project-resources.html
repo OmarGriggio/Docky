@@ -128,6 +128,8 @@
               optionValue="value"
               [ngModel]="null"
               (ngModelChange)="addResourceLine(section.id, $event)"
+              [filter]="true"
+              filterPlaceholder="Rechercher une ressource..."
               placeholder="Ajouter depuis le catalogue"
             />
           </div>
