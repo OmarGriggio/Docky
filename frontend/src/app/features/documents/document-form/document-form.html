@@ -286,12 +286,8 @@
                         [options]="unitOptions()"
                         optionLabel="label"
                         optionValue="value"
-                        [filter]="true"
-                        filterPlaceholder="Rechercher ou ajouter..."
                         [ngModel]="line.unit"
-                        (ngModelChange)="onUnitPicked($event, u => updateLine(section.id, line.id, { unit: u }))"
-                        (onFilter)="unitFilterQuery.set($event.filter)"
-                        (onHide)="unitFilterQuery.set('')"
+                        (ngModelChange)="updateLine(section.id, line.id, { unit: $event })"
                         appendTo="body"
                       >
                         <ng-template #item let-option>
@@ -300,6 +296,20 @@
                             @if (option.unitId !== null) {
                               <i class="pi pi-times text-[0.65rem] text-gray-400 hover:text-red-600 cursor-pointer" title="Retirer cette unité de la liste" (click)="archiveUnit(option.unitId, $event)"></i>
                             }
+                          </div>
+                        </ng-template>
+                        <ng-template #footer>
+                          <div class="flex gap-2 p-2 border-t border-surface-200">
+                            <input
+                              pInputText size="small" [fluid]="true"
+                              placeholder="Nouvelle unité (ex. jour)"
+                              #newUnitInput
+                              (keydown.enter)="addUnit(newUnitInput.value, u => updateLine(section.id, line.id, { unit: u })); newUnitInput.value = ''"
+                            />
+                            <p-button
+                              type="button" icon="pi pi-plus" size="small"
+                              (onClick)="addUnit(newUnitInput.value, u => updateLine(section.id, line.id, { unit: u })); newUnitInput.value = ''"
+                            />
                           </div>
                         </ng-template>
                       </p-select>
@@ -371,13 +381,9 @@
                       [options]="unitOptions()"
                       optionLabel="label"
                       optionValue="value"
-                      [filter]="true"
-                      filterPlaceholder="Rechercher ou ajouter..."
                       placeholder="Unité"
                       [ngModel]="draft.unit"
-                      (ngModelChange)="onUnitPicked($event, u => draft.unit = u)"
-                      (onFilter)="unitFilterQuery.set($event.filter)"
-                      (onHide)="unitFilterQuery.set('')"
+                      (ngModelChange)="draft.unit = $event"
                       appendTo="body"
                     >
                       <ng-template #item let-option>
@@ -386,6 +392,20 @@
                           @if (option.unitId !== null) {
                             <i class="pi pi-times text-[0.65rem] text-gray-400 hover:text-red-600 cursor-pointer" title="Retirer cette unité de la liste" (click)="archiveUnit(option.unitId, $event)"></i>
                           }
+                        </div>
+                      </ng-template>
+                      <ng-template #footer>
+                        <div class="flex gap-2 p-2 border-t border-surface-200">
+                          <input
+                            pInputText size="small" [fluid]="true"
+                            placeholder="Nouvelle unité (ex. jour)"
+                            #newUnitInput
+                            (keydown.enter)="addUnit(newUnitInput.value, u => draft.unit = u); newUnitInput.value = ''"
+                          />
+                          <p-button
+                            type="button" icon="pi pi-plus" size="small"
+                            (onClick)="addUnit(newUnitInput.value, u => draft.unit = u); newUnitInput.value = ''"
+                          />
                         </div>
                       </ng-template>
                     </p-select>

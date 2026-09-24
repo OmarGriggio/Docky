@@ -215,15 +215,9 @@ export class DocumentForm implements OnInit {
 
   // The company's own customizable unit list (see zz_migrations/
   // 006_create_resource_units.sql) - source for the "unit" picker on every
-  // line below (unitOptions/onUnitPicked). Loaded once in ngOnInit like
+  // line below (unitOptions/addUnit). Loaded once in ngOnInit like
   // resources above.
   private resourceUnits = signal<ResourceUnit[]>([]);
-  // Current text typed into a unit p-select's own search bar (onFilter) -
-  // read by unitOptions to offer a "+ Ajouter ..." entry when it doesn't
-  // match anything yet. Shared across every unit picker on the page since
-  // only one can be open (thus filtering) at a time.
-  unitFilterQuery = signal('');
-  private readonly ADD_UNIT_PREFIX = '__add_unit__:';
   // Ids of sections that came from "Charger chantier" (applyFromProject's
   // own loadProjectResources call, see "Facturer" above) - tracked so
   // re-running it (or clearing the project) replaces exactly these, never a
@@ -938,12 +932,11 @@ export class DocumentForm implements OnInit {
   // instead. Options are every label the company already has, plus
   // whatever's currently sitting in a line/draft's own unit (covers a
   // pre-existing free-text value that predates this picker, so it still
-  // shows as selected instead of going blank), plus a synthetic
-  // "+ Ajouter ..." entry when the current search text matches nothing.
+  // shows as selected instead of going blank). Adding a new one is the
+  // select's own footer (see addUnit).
   // unitId is the resource_units row an option comes from - null for the
-  // ones with none (a label only present because a line/draft uses it, and
-  // the "+ Ajouter ..." entry), which is what gets the remove cross in the
-  // template (see archiveUnit).
+  // ones with none (a label only present because a line/draft uses it), the
+  // ones that don't get the remove cross in the template (see archiveUnit).
   unitOptions(): { label: string; value: string; unitId: number | null }[] {
     const labels = new Set<string>();
     const unitIds = new Map<string, number>();
@@ -968,10 +961,6 @@ export class DocumentForm implements OnInit {
       .sort((a, b) => a.localeCompare(b))
       .map(label => ({ label, value: label, unitId: unitIds.get(label) ?? null }));
 
-    const query = this.unitFilterQuery().trim();
-    if (query && !options.some(o => o.value.toLowerCase() === query.toLowerCase())) {
-      options.push({ label: `+ Ajouter "${query}"`, value: `${this.ADD_UNIT_PREFIX}${query}`, unitId: null });
-    }
     return options;
   }
 
@@ -989,26 +978,24 @@ export class DocumentForm implements OnInit {
     });
   }
 
-  // Wired to every unit p-select's own (ngModelChange) - `apply` is
-  // whatever setter that particular select needs (updateLine's patch for an
-  // already-added line, or a plain draft.unit assignment for the inline
-  // add-row). A plain pick just applies the label; picking the synthetic
-  // "+ Ajouter ..." entry from unitOptions above applies the typed label
-  // right away too (so the select doesn't sit blank while the request is
-  // in flight) and persists it as a real resource_units row in the
-  // background (get-or-create - see resource_unit.service.ts).
-  onUnitPicked(value: string, apply: (unit: string) => void): void {
-    if (!value.startsWith(this.ADD_UNIT_PREFIX)) {
-      apply(value);
+  // The footer of every unit p-select (an input + a "+" button, the same
+  // way project-list.ts adds a chantier type): persists the typed label as a
+  // resource_units row (get-or-create - see resource_unit.service.ts, it
+  // also brings an archived one back) and then applies it to that select's
+  // own line - `apply` is whatever setter that particular select needs
+  // (updateLine's patch for an already-added line, or a plain draft.unit
+  // assignment for the inline add-row).
+  addUnit(label: string, apply: (unit: string) => void): void {
+    const trimmed = label.trim();
+    if (!trimmed) {
       return;
     }
 
-    const label = value.slice(this.ADD_UNIT_PREFIX.length);
-    apply(label);
-    this.unitFilterQuery.set('');
-
-    this.resourceUnitService.createUnit(label).subscribe({
-      next: unit => this.resourceUnits.update(units => [...units, unit]),
+    this.resourceUnitService.createUnit(trimmed).subscribe({
+      next: unit => {
+        this.resourceUnits.update(units => units.some(u => u.id === unit.id) ? units : [...units, unit]);
+        apply(unit.label);
+      },
       error: err => console.error('document-form : ' + err)
     });
   }
