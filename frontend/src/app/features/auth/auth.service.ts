@@ -64,6 +64,14 @@ export class AuthService {
     this.currentUser()?.role === 'PLATFORM_ADMIN'
   );
 
+  // Company 2 (Rénov Alpes) is the one demo company handed to recruiters -
+  // see CLAUDE.md's Backend "Seed data" bullet and the weekly reset cron job
+  // in its Deployment section. Hardcoded on purpose, there's no generic
+  // "is this a demo" flag on a company.
+  isDemoCompany = computed(() =>
+    this.currentUser()?.company_id === 2
+  );
+
   isImpersonating = computed(() => this.platformToken() !== null);
 
   getToken(): string | null {
