@@ -1,11 +1,11 @@
 <div class="border-t border-b border-dashed border-[#ddd] py-6 mb-6">
   <div class="flex items-center justify-between mb-4">
-    <h2 class="m-0">Détails</h2>
+    <h2 class="m-0">{{ 'documents.sections.details' | transloco }}</h2>
     <div class="flex items-center gap-2 flex-wrap">
       <p-button
         size="small"
         type="button"
-        label="Ajouter une section"
+        [label]="'projects.resources.addSection' | transloco"
         icon="pi pi-plus"
         severity="secondary"
         (onClick)="addSection()"
@@ -15,8 +15,7 @@
 
   @if (sections().length === 0) {
     <p class="m-0 text-[#888] italic">
-      Aucune section pour l'instant - clique sur "Ajouter une section" pour commencer (ex. "Gros
-      oeuvre", "Électricité"...).
+      {{ 'documents.sections.noSectionsYet' | transloco }}
     </p>
   }
 
@@ -27,7 +26,7 @@
           pInputText
           pSize="small"
           class="flex-1 font-semibold w-full md:w-18"
-          placeholder="Titre de la section (ex. Gros oeuvre)"
+          [placeholder]="'projects.resources.sectionTitlePlaceholder' | transloco"
           [ngModel]="section.title"
           (ngModelChange)="updateSectionTitle(section.id, $event)"
         />
@@ -46,7 +45,7 @@
         pSize="small"
         class="w-full mb-3"
         rows="2"
-        placeholder="Description de la section (optionnel)"
+        [placeholder]="'projects.resources.descriptionPlaceholder' | transloco"
         [ngModel]="section.description"
         (ngModelChange)="updateSectionDescription(section.id, $event)"
       ></textarea>
@@ -65,22 +64,22 @@
           <thead>
             <tr>
               <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">
-                Type
+                {{ 'clients.columnType' | transloco }}
               </th>
               <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">
-                Désignation
+                {{ 'resources.columnName' | transloco }}
               </th>
               <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">
-                Qté / Temps
+                {{ 'documents.sections.columnQtyTime' | transloco }}
               </th>
               <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">
-                Unité
+                {{ 'resources.columnUnit' | transloco }}
               </th>
               <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">
-                Prix
+                {{ 'projects.resources.columnPrice' | transloco }}
               </th>
               <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">
-                Total
+                {{ 'projects.resources.columnTotal' | transloco }}
               </th>
               <th
                 class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]"
@@ -94,7 +93,7 @@
                   <p-select
                     size="small"
                     [fluid]="true"
-                    [options]="lineTypeOptions"
+                    [options]="lineTypeOptions()"
                     optionLabel="label"
                     optionValue="value"
                     [ngModel]="line.type"
@@ -138,7 +137,7 @@
                       <div class="flex items-center justify-between w-full gap-3">
                         <span>{{ option.label }}</span>
                         @if (option.unitId !== null) {
-                          <i class="pi pi-times text-[0.65rem] text-gray-400 hover:text-red-600 cursor-pointer" title="Retirer cette unité de la liste" (click)="archiveUnit(option.unitId, $event)"></i>
+                          <i class="pi pi-times text-[0.65rem] text-gray-400 hover:text-red-600 cursor-pointer" [title]="'documents.sections.removeUnitTooltip' | transloco" (click)="archiveUnit(option.unitId, $event)"></i>
                         }
                       </div>
                     </ng-template>
@@ -146,7 +145,7 @@
                       <div class="flex gap-2 p-2 border-t border-surface-200">
                         <input
                           pInputText size="small" [fluid]="true"
-                          placeholder="Nouvelle unité (ex. jour)"
+                          [placeholder]="'documents.sections.newUnitPlaceholder' | transloco"
                           #newUnitInput
                           (keydown.enter)="addUnit(newUnitInput.value, u => updateLine(section.id, line.id, { unit: u })); newUnitInput.value = ''"
                         />
@@ -190,7 +189,7 @@
                 <p-select
                   size="small"
                   [fluid]="true"
-                  [options]="lineTypeOptions"
+                  [options]="lineTypeOptions()"
                   optionLabel="label"
                   optionValue="value"
                   [ngModel]="draft.type"
@@ -205,7 +204,7 @@
                   [fluid]="true"
                   class="block"
                   [(ngModel)]="draft.label"
-                  placeholder="Désignation"
+                  [placeholder]="'resources.columnName' | transloco"
                 />
               </td>
               <td class="py-[0.3rem] px-[0.2rem] align-middle">
@@ -225,7 +224,7 @@
                   [options]="unitOptions()"
                   optionLabel="label"
                   optionValue="value"
-                  placeholder="Unité"
+                  [placeholder]="'resources.columnUnit' | transloco"
                   [ngModel]="draft.unit"
                   (ngModelChange)="draft.unit = $event"
                   appendTo="body"
@@ -234,7 +233,7 @@
                     <div class="flex items-center justify-between w-full gap-3">
                       <span>{{ option.label }}</span>
                       @if (option.unitId !== null) {
-                        <i class="pi pi-times text-[0.65rem] text-gray-400 hover:text-red-600 cursor-pointer" title="Retirer cette unité de la liste" (click)="archiveUnit(option.unitId, $event)"></i>
+                        <i class="pi pi-times text-[0.65rem] text-gray-400 hover:text-red-600 cursor-pointer" [title]="'documents.sections.removeUnitTooltip' | transloco" (click)="archiveUnit(option.unitId, $event)"></i>
                       }
                     </div>
                   </ng-template>
@@ -242,7 +241,7 @@
                     <div class="flex gap-2 p-2 border-t border-surface-200">
                       <input
                         pInputText size="small" [fluid]="true"
-                        placeholder="Nouvelle unité (ex. jour)"
+                        [placeholder]="'documents.sections.newUnitPlaceholder' | transloco"
                         #newUnitInput
                         (keydown.enter)="addUnit(newUnitInput.value, u => draft.unit = u); newUnitInput.value = ''"
                       />
@@ -277,7 +276,7 @@
           <tfoot>
             <tr>
               <td colspan="5" class="font-semibold border-t border-[#eee] pt-2">
-                Sous-total section
+                {{ 'documents.sections.sectionSubtotal' | transloco }}
               </td>
               <td class="font-semibold border-t border-[#eee] pt-2">
                 {{ sectionTotal(section) | price }}
@@ -298,13 +297,13 @@
           [ngModel]="null"
           (ngModelChange)="addCatalogResourceLine(section.id, $event)"
           [filter]="true"
-          filterPlaceholder="Rechercher une ressource..."
-          [placeholder]="type() === 'QUOTE' ? 'Ajouter depuis le catalogue' : 'Ajouter une ressource'"
+          [filterPlaceholder]="'projects.resources.catalogSearchPlaceholder' | transloco"
+          [placeholder]="(type() === 'QUOTE' ? 'projects.resources.addFromCatalog' : 'documents.sections.addResource') | transloco"
         >
           <ng-template #footer>
             <div class="p-2 border-t border-surface-200">
               <p-button
-                type="button" label="Ajouter une ressource" icon="pi pi-plus"
+                type="button" [label]="'documents.sections.addResource' | transloco" icon="pi pi-plus"
                 size="small" [text]="true" [fluid]="true"
                 (onClick)="openCreateResourceDialog(section.id)"
               />
@@ -318,7 +317,7 @@
 
 <p-dialog
   [(visible)]="createResourceDialogVisible"
-  header="Nouvelle ressource"
+  [header]="'resources.newResource' | transloco"
   [modal]="true"
   [style]="{ width: '32rem' }"
 >

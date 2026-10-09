@@ -6,6 +6,7 @@ import { Textarea } from 'primeng/textarea';
 import { Select } from 'primeng/select';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
+import { TranslocoPipe, TranslocoService, translateSignal } from '@jsverse/transloco';
 import { ResourceForm } from '../../../resources/resource-form/resource-form';
 import { ResourceService } from '../../../resources/resource.service';
 import { ResourceUnitService } from '../../../resources/resource-unit.service';
@@ -25,7 +26,7 @@ import { DraftLine, DraftLineType, DraftSection, lineTotal, nextDraftId, section
 @Component({
   selector: 'app-document-sections',
   standalone: true,
-  imports: [FormsModule, PricePipe, InputText, InputNumber, Textarea, Select, Button, Dialog, ResourceForm, TabIndentDirective],
+  imports: [FormsModule, PricePipe, InputText, InputNumber, Textarea, Select, Button, Dialog, ResourceForm, TabIndentDirective, TranslocoPipe],
   templateUrl: './document-sections.html',
   host: { class: 'block' },
 })
@@ -33,6 +34,7 @@ export class DocumentSections implements OnInit {
 
   private resourceService = inject(ResourceService);
   private resourceUnitService = inject(ResourceUnitService);
+  private transloco = inject(TranslocoService);
 
   sections = model<DraftSection[]>([]);
   type = input.required<DocumentType>();
@@ -61,10 +63,13 @@ export class DocumentSections implements OnInit {
       .map(resource => ({ label: resource.name, value: resource.id }));
   });
 
-  lineTypeOptions: { label: string; value: DraftLineType }[] = [
-    { label: 'Matériel', value: 'MATERIAL' },
-    { label: 'Service', value: 'SERVICE' },
-  ];
+  private materialLabel = translateSignal('nav.material');
+  private serviceLabel = translateSignal('nav.service');
+
+  lineTypeOptions = computed<{ label: string; value: DraftLineType }[]>(() => [
+    { label: this.materialLabel(), value: 'MATERIAL' },
+    { label: this.serviceLabel(), value: 'SERVICE' },
+  ]);
 
   // One pending "new line" draft per section, keyed by section id, so each
   // section's little inline add-row keeps its own in-progress values.
@@ -290,7 +295,7 @@ export class DocumentSections implements OnInit {
   }
 
   lineQuantityLabel(type: DraftLineType): string {
-    return type === 'MATERIAL' ? 'Quantité' : 'Temps (h)';
+    return this.transloco.translate(type === 'MATERIAL' ? 'documents.sections.quantityFull' : 'documents.sections.timeHours');
   }
 
 }

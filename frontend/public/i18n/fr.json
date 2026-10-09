@@ -262,6 +262,17 @@
       "saveDefaultTitle": "Enregistrer comme valeur par défaut",
       "saveDefaultMessage": "Ce texte deviendra le nouveau texte par défaut pour toutes les prochaines {{noun}}. Continuer ?",
       "saveError": "Impossible d'enregistrer le modèle par défaut."
+    },
+    "sections": {
+      "details": "Détails",
+      "noSectionsYet": "Aucune section pour l'instant - clique sur \"Ajouter une section\" pour commencer (ex. \"Gros oeuvre\", \"Électricité\"...).",
+      "columnQtyTime": "Qté / Temps",
+      "removeUnitTooltip": "Retirer cette unité de la liste",
+      "newUnitPlaceholder": "Nouvelle unité (ex. jour)",
+      "sectionSubtotal": "Sous-total section",
+      "addResource": "Ajouter une ressource",
+      "quantityFull": "Quantité",
+      "timeHours": "Temps (h)"
     }
   }
 }

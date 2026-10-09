@@ -262,6 +262,17 @@
       "saveDefaultTitle": "Save as default",
       "saveDefaultMessage": "This text will become the new default for every future {{noun}}. Continue?",
       "saveError": "Could not save the default template."
+    },
+    "sections": {
+      "details": "Details",
+      "noSectionsYet": "No sections yet - click \"Add a section\" to get started (e.g. \"Groundwork\", \"Electrical\"...).",
+      "columnQtyTime": "Qty / Time",
+      "removeUnitTooltip": "Remove this unit from the list",
+      "newUnitPlaceholder": "New unit (e.g. day)",
+      "sectionSubtotal": "Section subtotal",
+      "addResource": "Add a resource",
+      "quantityFull": "Quantity",
+      "timeHours": "Time (h)"
     }
   }
 }
