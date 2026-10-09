@@ -288,5 +288,13 @@
       "chooseClient": "Choisis un client.",
       "saveError": "Impossible d'enregistrer le document. Réessaie dans un instant."
     }
+  },
+  "dashboard": {
+    "openInvoices": "Factures ouvertes",
+    "openInvoicesSingular": "{{count}} facture envoyée, pas encore payée",
+    "openInvoicesPlural": "{{count}} factures envoyées, pas encore payées",
+    "paidByClient": "Montant payé par client",
+    "noPaidInvoices": "Aucune facture payée pour l'instant.",
+    "paidAmount": "Montant payé"
   }
 }

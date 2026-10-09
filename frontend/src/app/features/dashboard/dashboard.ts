@@ -1,5 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { UIChart } from 'primeng/chart';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { DashboardService } from './dashboard.service';
 import { OpenInvoicesTotal, PaidAmountByClient } from '../../shared/models/dashboard';
 import { formatPrice } from '../../shared/utils/display';
@@ -13,12 +14,13 @@ interface BarChartData {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [UIChart, PricePipe],
+  imports: [UIChart, PricePipe, TranslocoPipe],
   templateUrl: './dashboard.html',
 })
 export class Dashboard implements OnInit {
 
   private dashboardService = inject(DashboardService);
+  private transloco = inject(TranslocoService);
 
   paidByClient = signal<PaidAmountByClient[]>([]);
   chartData = signal<BarChartData | null>(null);
@@ -68,7 +70,7 @@ export class Dashboard implements OnInit {
     return {
       labels: rows.map(row => this.clientName(row)),
       datasets: [{
-        label: 'Montant payé',
+        label: this.transloco.translate('dashboard.paidAmount'),
         data: rows.map(row => row.total_paid),
         backgroundColor: primaryColor,
       }]

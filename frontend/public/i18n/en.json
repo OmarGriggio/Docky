@@ -288,5 +288,13 @@
       "chooseClient": "Choose a client.",
       "saveError": "Could not save the document. Try again in a moment."
     }
+  },
+  "dashboard": {
+    "openInvoices": "Open invoices",
+    "openInvoicesSingular": "{{count}} invoice sent, not yet paid",
+    "openInvoicesPlural": "{{count}} invoices sent, not yet paid",
+    "paidByClient": "Amount paid by client",
+    "noPaidInvoices": "No paid invoices yet.",
+    "paidAmount": "Amount paid"
   }
 }
