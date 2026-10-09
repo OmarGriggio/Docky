@@ -7,6 +7,7 @@ import { InputText } from 'primeng/inputtext';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
 import { MenuItem } from 'primeng/api';
+import { TranslocoPipe, translateSignal } from '@jsverse/transloco';
 
 // The header bar every list page shares: a title on the left; on the right a
 // search box, an optional "+" button, and a ⋮ menu with "Afficher/Masquer les
@@ -17,20 +18,25 @@ import { MenuItem } from 'primeng/api';
 @Component({
   selector: 'app-list-toolbar',
   standalone: true,
-  imports: [FormsModule, Toolbar, Button, Menu, InputText, IconField, InputIcon],
+  imports: [FormsModule, Toolbar, Button, Menu, InputText, IconField, InputIcon, TranslocoPipe],
   templateUrl: './list-toolbar.html',
 })
 export class ListToolbarComponent {
 
   title = input.required<string>();
   search = model('');
-  searchPlaceholder = input('Rechercher...');
+  // Empty means "use the translated default" (see list-toolbar.html) - a
+  // literal default string here wouldn't react to a language switch.
+  searchPlaceholder = input('');
   showArchived = input(false);
   // Off for a list that has nothing to create from here (chantiers).
   addable = input(true);
 
   showArchivedChange = output<boolean>();
   add = output<void>();
+
+  private showArchivedLabel = translateSignal('common.showArchived');
+  private hideArchivedLabel = translateSignal('common.hideArchived');
 
   // Built on click, not bound live: its label depends on showArchived(), and
   // a live [model] expression breaks p-menu (see user-list.ts's own
@@ -40,7 +46,7 @@ export class ListToolbarComponent {
   openMenu(menu: Menu, event: Event): void {
     this.menuItems = [
       {
-        label: this.showArchived() ? 'Masquer les archivés' : 'Afficher les archivés',
+        label: this.showArchived() ? this.hideArchivedLabel() : this.showArchivedLabel(),
         icon: 'pi pi-archive',
         command: () => this.showArchivedChange.emit(!this.showArchived())
       }

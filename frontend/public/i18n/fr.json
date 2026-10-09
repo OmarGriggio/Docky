@@ -64,5 +64,63 @@
       "daysLate": "Jours de retard",
       "clientName": "Nom du client"
     }
+  },
+  "common": {
+    "search": "Rechercher...",
+    "showArchived": "Afficher les archivés",
+    "hideArchived": "Masquer les archivés",
+    "confirmTitle": "Confirmation",
+    "confirmMessage": "Êtes-vous sûr ?",
+    "confirm": "Confirmer",
+    "cancel": "Annuler",
+    "add": "Ajouter",
+    "loading": "Chargement..."
+  },
+  "clients": {
+    "newClient": "Nouveau client",
+    "columnNumber": "N° client",
+    "columnType": "Type",
+    "columnCompany": "Société",
+    "columnFirstName": "Prénom",
+    "columnLastName": "Nom",
+    "columnEmail": "Email",
+    "columnPhone": "Téléphone",
+    "individual": "Particulier",
+    "professional": "Professionnel",
+    "noSearchResults": "Aucun client ne correspond à la recherche.",
+    "noClients": "Aucun client.",
+    "noDocuments": "Aucune offre ni facture pour ce client.",
+    "quote": "Offre",
+    "invoice": "Facture",
+    "duplicate": "Dupliquer",
+    "detail": "Détail",
+    "archiveTitle": "Archivage",
+    "archiveConfirm": "Archiver le client {{number}} ?",
+    "form": {
+      "title": "Civilité",
+      "vatNumber": "TVA",
+      "note": "Remarque",
+      "create": "Créer",
+      "createError": "Impossible de créer le client.",
+      "emailConflict": "Cet email est déjà utilisé par un autre client.",
+      "numberConflict": "Ce numéro de client existe déjà.",
+      "genericConflict": "Ce client existe déjà."
+    },
+    "detail": {
+      "addresses": "Adresses",
+      "addressAttention": "Attention",
+      "addressStreet": "Rue",
+      "addressPostalCode": "NPA",
+      "addressCity": "Ville",
+      "addressCountry": "Pays",
+      "addressPrimary": "Principale",
+      "newAddress": "Nouvelle adresse",
+      "deleteTitle": "Suppression",
+      "deleteConfirm": "Supprimer l'adresse {{street}}, {{city}} ?"
+    },
+    "addressForm": {
+      "attentionOptional": "Attention (optionnel)",
+      "primary": "Adresse principale"
+    }
   }
 }

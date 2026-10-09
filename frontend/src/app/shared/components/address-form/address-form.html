@@ -1,36 +1,36 @@
 <form [formGroup]="form" (ngSubmit)="submit()" class="ui-form">
   <p-floatlabel variant="on" class="ui-form__full">
     <input pInputText id="attention" formControlName="attention" />
-    <label for="attention">Attention (optionnel)</label>
+    <label for="attention">{{ 'clients.addressForm.attentionOptional' | transloco }}</label>
   </p-floatlabel>
 
   <p-floatlabel variant="on">
     <input pInputText id="street" formControlName="street" />
-    <label for="street">Rue</label>
+    <label for="street">{{ 'clients.detail.addressStreet' | transloco }}</label>
   </p-floatlabel>
 
   <p-floatlabel variant="on">
     <input pInputText id="postal_code" formControlName="postal_code" />
-    <label for="postal_code">NPA</label>
+    <label for="postal_code">{{ 'clients.detail.addressPostalCode' | transloco }}</label>
   </p-floatlabel>
 
   <p-floatlabel variant="on">
     <input pInputText id="city" formControlName="city" />
-    <label for="city">Ville</label>
+    <label for="city">{{ 'clients.detail.addressCity' | transloco }}</label>
   </p-floatlabel>
 
   <p-floatlabel variant="on">
     <input pInputText id="country" formControlName="country" />
-    <label for="country">Pays</label>
+    <label for="country">{{ 'clients.detail.addressCountry' | transloco }}</label>
   </p-floatlabel>
 
   <label class="ui-form__full">
     <p-checkbox [binary]="true" formControlName="is_primary" />
-    Adresse principale
+    {{ 'clients.addressForm.primary' | transloco }}
   </label>
 
   <div class="ui-form__actions">
-    <p-button type="button" label="Annuler" severity="secondary" (onClick)="cancel()" />
-    <p-button type="submit" label="Ajouter" />
+    <p-button type="button" [label]="'common.cancel' | transloco" severity="secondary" (onClick)="cancel()" />
+    <p-button type="submit" [label]="'common.add' | transloco" />
   </div>
 </form>

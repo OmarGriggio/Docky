@@ -1,15 +1,15 @@
 <p-dialog
   [(visible)]="visible"
-  [header]="title()"
+  [header]="title() || ('common.confirmTitle' | transloco)"
   [modal]="true"
   [closable]="false"
   [closeOnEscape]="false"
   [style]="{ width: '25rem' }"
 >
-  <p>{{ message() }}</p>
+  <p>{{ message() || ('common.confirmMessage' | transloco) }}</p>
 
   <ng-template #footer>
-    <p-button [label]="cancelLabel()" severity="secondary" (onClick)="onCancel()" />
-    <p-button [label]="confirmLabel()" severity="danger" (onClick)="onConfirm()" />
+    <p-button [label]="cancelLabel() || ('common.cancel' | transloco)" severity="secondary" (onClick)="onCancel()" />
+    <p-button [label]="confirmLabel() || ('common.confirm' | transloco)" severity="danger" (onClick)="onConfirm()" />
   </ng-template>
 </p-dialog>

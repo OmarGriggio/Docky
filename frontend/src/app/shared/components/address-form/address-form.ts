@@ -4,12 +4,16 @@ import { InputText } from 'primeng/inputtext';
 import { FloatLabel } from 'primeng/floatlabel';
 import { Checkbox } from 'primeng/checkbox';
 import { Button } from 'primeng/button';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { AddressService } from '../../../features/addresses/address.service';
 
+// Currently only used from client-detail.html - its own labels share the
+// "clients.detail.address*" keys (see address-form.html) rather than owning
+// a duplicate set, since both show the exact same words for the same fields.
 @Component({
   selector: 'app-address-form',
   standalone: true,
-  imports: [ReactiveFormsModule, InputText, FloatLabel, Checkbox, Button],
+  imports: [ReactiveFormsModule, InputText, FloatLabel, Checkbox, Button, TranslocoPipe],
   templateUrl: './address-form.html',
 })
 export class AddressForm {

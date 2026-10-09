@@ -1,5 +1,5 @@
 <app-list-toolbar
-  title="Clients"
+  [title]="'nav.clients' | transloco"
   [(search)]="search"
   [showArchived]="showArchived()"
   (showArchivedChange)="onShowArchivedChange($event)"
@@ -8,7 +8,7 @@
 
 <p-dialog
   [(visible)]="createDialogVisible"
-  header="Nouveau client"
+  [header]="'clients.newClient' | transloco"
   [modal]="true"
   [style]="{ width: '32rem' }"
 >
@@ -21,13 +21,13 @@
   <ng-template #header>
     <tr>
       <th style="width: 3rem"></th>
-      <th>N° client</th>
-      <th>Type</th>
-      <th>Société</th>
-      <th>Prénom</th>
-      <th>Nom</th>
-      <th>Email</th>
-      <th>Téléphone</th>
+      <th>{{ 'clients.columnNumber' | transloco }}</th>
+      <th>{{ 'clients.columnType' | transloco }}</th>
+      <th>{{ 'clients.columnCompany' | transloco }}</th>
+      <th>{{ 'clients.columnFirstName' | transloco }}</th>
+      <th>{{ 'clients.columnLastName' | transloco }}</th>
+      <th>{{ 'clients.columnEmail' | transloco }}</th>
+      <th>{{ 'clients.columnPhone' | transloco }}</th>
       <th></th>
       <th></th>
     </tr>
@@ -35,7 +35,7 @@
 
   <ng-template #emptymessage>
     <tr>
-      <td colspan="10" class="text-center text-gray-500">{{ search().trim() ? 'Aucun client ne correspond à la recherche.' : 'Aucun client.' }}</td>
+      <td colspan="10" class="text-center text-gray-500">{{ (search().trim() ? 'clients.noSearchResults' : 'clients.noClients') | transloco }}</td>
     </tr>
   </ng-template>
 
@@ -54,10 +54,10 @@
       <td>
         <p-cellEditor>
           <ng-template #input>
-            <p-select [(ngModel)]="client.type" [options]="typeOptions" optionLabel="label" optionValue="value" [fluid]="true" appendTo="body" />
+            <p-select [(ngModel)]="client.type" [options]="typeOptions()" optionLabel="label" optionValue="value" [fluid]="true" appendTo="body" />
           </ng-template>
           <ng-template #output>
-            {{ client.type === 'PROFESSIONAL' ? 'Professionnel' : 'Particulier' }}
+            {{ (client.type === 'PROFESSIONAL' ? 'clients.professional' : 'clients.individual') | transloco }}
           </ng-template>
         </p-cellEditor>
       </td>
@@ -142,9 +142,9 @@
            which a plain Tailwind utility class wouldn't win against. -->
       <td colspan="10" class="p-0!">
         @if (isLoadingDocuments(client)) {
-          <p>Chargement...</p>
+          <p>{{ 'common.loading' | transloco }}</p>
         } @else if (documentsFor(client).length === 0) {
-          <p>Aucune offre ni facture pour ce client.</p>
+          <p>{{ 'clients.noDocuments' | transloco }}</p>
         } @else {
           <p-table [value]="documentsFor(client)" dataKey="id" size="small">
             <ng-template #body let-document>
@@ -155,7 +155,7 @@
               <tr class="bg-gray-100!">
                 <td class="w-12"></td>
                 <td class="py-1! text-xs!">{{ document.number }}</td>
-                <td class="py-1! text-xs!">{{ document.type === 'QUOTE' ? 'Offre' : 'Facture' }}</td>
+                <td class="py-1! text-xs!">{{ (document.type === 'QUOTE' ? 'clients.quote' : 'clients.invoice') | transloco }}</td>
                 <td class="py-1! text-xs!">{{ document.date | appDate }}</td>
                 <td class="py-1! text-xs!">{{ document.amount_incl_vat | price }}</td>
                 <td class="py-1! text-xs!"><p-tag [value]="statusLabel(document)" [severity]="statusSeverity(document)" /></td>
@@ -173,7 +173,7 @@
 
 <app-confirm-dialog
   [(visible)]="confirmVisible"
-  title="Archivage"
+  [title]="'clients.archiveTitle' | transloco"
   [message]="confirmMessage()"
   (confirmed)="onArchiveConfirmed()"
 />

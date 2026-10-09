@@ -6,36 +6,36 @@
   <p-card styleClass="ui-card--elevated mb-6">
     <div class="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-y-4 gap-x-6">
       <div class="flex flex-col gap-1">
-        <span class="text-xs text-gray-500 uppercase tracking-wide">N° client</span>
+        <span class="text-xs text-gray-500 uppercase tracking-wide">{{ 'clients.columnNumber' | transloco }}</span>
         <span class="font-medium">{{ c.client_number }}</span>
       </div>
       <div class="flex flex-col gap-1">
-        <span class="text-xs text-gray-500 uppercase tracking-wide">Civilité</span>
+        <span class="text-xs text-gray-500 uppercase tracking-wide">{{ 'clients.form.title' | transloco }}</span>
         <span class="font-medium">{{ c.title || '—' }}</span>
       </div>
       <div class="flex flex-col gap-1">
-        <span class="text-xs text-gray-500 uppercase tracking-wide">Nom</span>
+        <span class="text-xs text-gray-500 uppercase tracking-wide">{{ 'clients.columnLastName' | transloco }}</span>
         <span class="font-medium">{{ c.first_name }} {{ c.last_name }}</span>
       </div>
       <div class="flex flex-col gap-1">
-        <span class="text-xs text-gray-500 uppercase tracking-wide">Société</span>
+        <span class="text-xs text-gray-500 uppercase tracking-wide">{{ 'clients.columnCompany' | transloco }}</span>
         <span class="font-medium">{{ c.company_name || '—' }}</span>
       </div>
       <div class="flex flex-col gap-1">
-        <span class="text-xs text-gray-500 uppercase tracking-wide">TVA</span>
+        <span class="text-xs text-gray-500 uppercase tracking-wide">{{ 'clients.form.vatNumber' | transloco }}</span>
         <span class="font-medium">{{ c.vat_number || '—' }}</span>
       </div>
       <div class="flex flex-col gap-1">
-        <span class="text-xs text-gray-500 uppercase tracking-wide">Email</span>
+        <span class="text-xs text-gray-500 uppercase tracking-wide">{{ 'clients.columnEmail' | transloco }}</span>
         <span class="font-medium">{{ c.email }}</span>
       </div>
       <div class="flex flex-col gap-1">
-        <span class="text-xs text-gray-500 uppercase tracking-wide">Téléphone</span>
+        <span class="text-xs text-gray-500 uppercase tracking-wide">{{ 'clients.columnPhone' | transloco }}</span>
         <span class="font-medium">{{ c.phone || '—' }}</span>
       </div>
       @if (c.note) {
         <div class="flex flex-col gap-1">
-          <span class="text-xs text-gray-500 uppercase tracking-wide">Remarque</span>
+          <span class="text-xs text-gray-500 uppercase tracking-wide">{{ 'clients.form.note' | transloco }}</span>
           <span class="font-medium">{{ c.note }}</span>
         </div>
       }
@@ -44,7 +44,7 @@
 
   <p-toolbar class="rounded-b-none!">
     <ng-template #start>
-      <h3>Adresses</h3>
+      <h3>{{ 'clients.detail.addresses' | transloco }}</h3>
     </ng-template>
     <ng-template #end>
       <p-button size="small" label="" icon="pi pi-plus" (onClick)="addAddressDialogVisible.set(true)" />
@@ -54,11 +54,11 @@
   <p-table [value]="c.addresses" dataKey="id" showGridlines size="small" editMode="row">
     <ng-template #header>
       <tr>
-        <th>Attention</th>
-        <th>Rue</th>
-        <th>NPA</th>
-        <th>Ville</th>
-        <th>Pays</th>
+        <th>{{ 'clients.detail.addressAttention' | transloco }}</th>
+        <th>{{ 'clients.detail.addressStreet' | transloco }}</th>
+        <th>{{ 'clients.detail.addressPostalCode' | transloco }}</th>
+        <th>{{ 'clients.detail.addressCity' | transloco }}</th>
+        <th>{{ 'clients.detail.addressCountry' | transloco }}</th>
         <th></th>
         <th></th>
         <th></th>
@@ -123,7 +123,7 @@
 
         <td>
           @if (address.is_primary) {
-            <p-tag value="Principale" severity="success" />
+            <p-tag [value]="'clients.detail.addressPrimary' | transloco" severity="success" />
           }
         </td>
 
@@ -146,7 +146,7 @@
 
   <p-dialog
     [(visible)]="addAddressDialogVisible"
-    header="Nouvelle adresse"
+    [header]="'clients.detail.newAddress' | transloco"
     [modal]="true"
     [style]="{ width: '28rem' }"
   >
@@ -157,7 +157,7 @@
 
   <app-confirm-dialog
     [(visible)]="confirmVisible"
-    title="Suppression"
+    [title]="'clients.detail.deleteTitle' | transloco"
     [message]="confirmMessage()"
     (confirmed)="onDeleteConfirmed()"
   />

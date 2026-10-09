@@ -8,6 +8,7 @@ import { Dialog } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { MenuItem } from 'primeng/api';
+import { TranslocoPipe, TranslocoService, translateSignal } from '@jsverse/transloco';
 import { ClientService } from '../client.service';
 import { Client, ClientType } from '../../../shared/models/client';
 import { Button } from 'primeng/button';
@@ -28,7 +29,7 @@ const EMPTY_DOCUMENTS: Document[] = [];
 @Component({
   selector: 'app-client-list',
   standalone: true,
-  imports: [ListToolbarComponent, TableModule, TagModule, Menu, Button, Dialog, InputText, Select, FormsModule, AppDatePipe, PricePipe, ClientForm, ConfirmDialogComponent],
+  imports: [ListToolbarComponent, TableModule, TagModule, Menu, Button, Dialog, InputText, Select, FormsModule, AppDatePipe, PricePipe, ClientForm, ConfirmDialogComponent, TranslocoPipe],
   templateUrl: './client-list.html',
   // Tried ChangeDetectionStrategy.OnPush here as an experiment - reverted.
   // It broke switching directly from one cell's edit mode to another
@@ -45,6 +46,7 @@ export class ClientListComponent implements OnInit {
   private clientService = inject(ClientService);
   private documentService = inject(DocumentService);
   private router = inject(Router);
+  private transloco = inject(TranslocoService);
 
   clients = signal<Client[]>([]);
 
@@ -59,6 +61,9 @@ export class ClientListComponent implements OnInit {
   );
 
   private searchableText(client: Client): string {
+    // Always French regardless of the active UI language - this text is
+    // never shown, only matched against what's typed in the search box, and
+    // changing it would mean deciding which language a search is "in".
     return [
       client.client_number,
       client.type === 'PROFESSIONAL' ? 'Professionnel' : 'Particulier',
@@ -101,10 +106,13 @@ export class ClientListComponent implements OnInit {
     menu.toggle(event);
   }
 
-  typeOptions: { label: string; value: ClientType }[] = [
-    { label: 'Particulier', value: 'INDIVIDUAL' },
-    { label: 'Professionnel', value: 'PROFESSIONAL' },
-  ];
+  private individualLabel = translateSignal('clients.individual');
+  private professionalLabel = translateSignal('clients.professional');
+
+  typeOptions = computed<{ label: string; value: ClientType }[]>(() => [
+    { label: this.individualLabel(), value: 'INDIVIDUAL' },
+    { label: this.professionalLabel(), value: 'PROFESSIONAL' },
+  ]);
 
   ngOnInit(): void {
     this.loadClients();
@@ -146,6 +154,9 @@ export class ClientListComponent implements OnInit {
     this.loadClients();
   }
 
+  // archiveActionLabel's own label stays French for now - shared/utils/
+  // display.ts is used across every list page (clients, suppliers, projects,
+  // resources, documents), most not translated yet; see conversation notes.
   getActions(client: Client): MenuItem[] {
     return [
       {
@@ -153,11 +164,11 @@ export class ClientListComponent implements OnInit {
         command: () => client.is_active ? this.archiveClient(client) : this.unarchiveClient(client)
       },
       {
-        label: 'Dupliquer',
+        label: this.transloco.translate('clients.duplicate'),
         command: () => this.duplicateClient(client)
       },
       {
-        label: 'Détail',
+        label: this.transloco.translate('clients.detail'),
         command: () => this.router.navigate(['/clients', client.id])
       },
     ];
@@ -165,7 +176,7 @@ export class ClientListComponent implements OnInit {
 
   private archiveClient(client: Client): void {
     this.clientPendingArchive = client;
-    this.confirmMessage.set(`Archiver le client ${client.client_number} ?`);
+    this.confirmMessage.set(this.transloco.translate('clients.archiveConfirm', { number: client.client_number }));
     this.confirmVisible.set(true);
   }
 

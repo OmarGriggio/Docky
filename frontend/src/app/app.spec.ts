@@ -1,7 +1,9 @@
 import { TestBed } from '@angular/core/testing';
+import { importProvidersFrom } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { TranslocoTestingModule } from '@jsverse/transloco';
 import { App } from './app';
 
 describe('App', () => {
@@ -16,6 +18,11 @@ describe('App', () => {
         provideRouter([]),
         provideHttpClient(),
         provideHttpClientTesting(),
+        // AuthService also injects TranslocoService (see its syncLanguage
+        // effect) - the testing loader resolves synchronously from a plain
+        // object, no HTTP involved, same "no HTTP, nothing async" spirit as
+        // the rest of this project's tests.
+        importProvidersFrom(TranslocoTestingModule.forRoot({ langs: { fr: {} } })),
       ],
     }).compileComponents();
   });

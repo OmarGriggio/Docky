@@ -5,7 +5,7 @@
   <ng-template #end>
     <p-iconfield>
       <p-inputicon class="pi pi-search" />
-      <input pInputText pSize="small" [placeholder]="searchPlaceholder()" [ngModel]="search()" (ngModelChange)="search.set($event)" />
+      <input pInputText pSize="small" [placeholder]="searchPlaceholder() || ('common.search' | transloco)" [ngModel]="search()" (ngModelChange)="search.set($event)" />
     </p-iconfield>
     @if (addable()) {
       <p-button class="ml-1" size="small" label="" icon="pi pi-plus" (onClick)="add.emit()" />

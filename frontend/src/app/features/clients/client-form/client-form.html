@@ -2,7 +2,7 @@
   <div class="ui-form__full client-form-type">
     <p-selectbutton
       formControlName="isProfessional"
-      [options]="typeOptions"
+      [options]="typeOptions()"
       optionLabel="label"
       optionValue="value"
     />
@@ -10,49 +10,49 @@
 
   <p-floatlabel variant="on">
     <input pInputText id="last_name" formControlName="last_name" />
-    <label for="last_name">Nom</label>
+    <label for="last_name">{{ 'clients.columnLastName' | transloco }}</label>
   </p-floatlabel>
 
   <p-floatlabel variant="on">
     <input pInputText id="first_name" formControlName="first_name" />
-    <label for="first_name">Prénom</label>
+    <label for="first_name">{{ 'clients.columnFirstName' | transloco }}</label>
   </p-floatlabel>
 
   <p-floatlabel variant="on">
     <input pInputText id="title" formControlName="title" />
-    <label for="title">Civilité</label>
+    <label for="title">{{ 'clients.form.title' | transloco }}</label>
   </p-floatlabel>
 
   <p-floatlabel variant="on">
     <input pInputText id="client_number" formControlName="client_number" />
-    <label for="client_number">N° client</label>
+    <label for="client_number">{{ 'clients.columnNumber' | transloco }}</label>
   </p-floatlabel>
 
   @if (isProfessional) {
     <p-floatlabel variant="on">
       <input pInputText id="company_name" formControlName="company_name" />
-      <label for="company_name">Société</label>
+      <label for="company_name">{{ 'clients.columnCompany' | transloco }}</label>
     </p-floatlabel>
 
     <p-floatlabel variant="on">
       <input pInputText id="vat_number" formControlName="vat_number" />
-      <label for="vat_number">TVA</label>
+      <label for="vat_number">{{ 'clients.form.vatNumber' | transloco }}</label>
     </p-floatlabel>
   }
 
   <p-floatlabel variant="on">
     <input pInputText id="email" type="email" formControlName="email" />
-    <label for="email">Email</label>
+    <label for="email">{{ 'clients.columnEmail' | transloco }}</label>
   </p-floatlabel>
 
   <p-floatlabel variant="on">
     <input pInputText id="phone" formControlName="phone" />
-    <label for="phone">Téléphone</label>
+    <label for="phone">{{ 'clients.columnPhone' | transloco }}</label>
   </p-floatlabel>
 
   <p-floatlabel variant="on" class="ui-form__full">
     <textarea pTextarea id="note" formControlName="note" rows="4"></textarea>
-    <label for="note">Remarque</label>
+    <label for="note">{{ 'clients.form.note' | transloco }}</label>
   </p-floatlabel>
 
   @if (errorMessage()) {
@@ -60,7 +60,7 @@
   }
 
   <div class="ui-form__actions">
-    <p-button type="button" label="Annuler" severity="secondary" (onClick)="cancel()" />
-    <p-button type="submit" label="Créer" />
+    <p-button type="button" [label]="'common.cancel' | transloco" severity="secondary" (onClick)="cancel()" />
+    <p-button type="submit" [label]="'clients.form.create' | transloco" />
   </div>
 </form>

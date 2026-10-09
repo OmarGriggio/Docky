@@ -64,5 +64,63 @@
       "daysLate": "Days overdue",
       "clientName": "Client's name"
     }
+  },
+  "common": {
+    "search": "Search...",
+    "showArchived": "Show archived",
+    "hideArchived": "Hide archived",
+    "confirmTitle": "Confirmation",
+    "confirmMessage": "Are you sure?",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "add": "Add",
+    "loading": "Loading..."
+  },
+  "clients": {
+    "newClient": "New client",
+    "columnNumber": "Client no.",
+    "columnType": "Type",
+    "columnCompany": "Company",
+    "columnFirstName": "First name",
+    "columnLastName": "Last name",
+    "columnEmail": "Email",
+    "columnPhone": "Phone",
+    "individual": "Individual",
+    "professional": "Professional",
+    "noSearchResults": "No client matches the search.",
+    "noClients": "No clients.",
+    "noDocuments": "No quote or invoice for this client.",
+    "quote": "Quote",
+    "invoice": "Invoice",
+    "duplicate": "Duplicate",
+    "detail": "Detail",
+    "archiveTitle": "Archive",
+    "archiveConfirm": "Archive client {{number}}?",
+    "form": {
+      "title": "Title",
+      "vatNumber": "VAT",
+      "note": "Note",
+      "create": "Create",
+      "createError": "Could not create the client.",
+      "emailConflict": "This email is already used by another client.",
+      "numberConflict": "This client number already exists.",
+      "genericConflict": "This client already exists."
+    },
+    "detail": {
+      "addresses": "Addresses",
+      "addressAttention": "Attention",
+      "addressStreet": "Street",
+      "addressPostalCode": "Postal code",
+      "addressCity": "City",
+      "addressCountry": "Country",
+      "addressPrimary": "Primary",
+      "newAddress": "New address",
+      "deleteTitle": "Deletion",
+      "deleteConfirm": "Delete address {{street}}, {{city}}?"
+    },
+    "addressForm": {
+      "attentionOptional": "Attention (optional)",
+      "primary": "Primary address"
+    }
   }
 }

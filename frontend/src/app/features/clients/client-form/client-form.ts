@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, input, output, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, input, output, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { InputText } from 'primeng/inputtext';
@@ -6,6 +6,7 @@ import { Textarea } from 'primeng/textarea';
 import { FloatLabel } from 'primeng/floatlabel';
 import { SelectButton } from 'primeng/selectbutton';
 import { Button } from 'primeng/button';
+import { TranslocoPipe, TranslocoService, translateSignal } from '@jsverse/transloco';
 import { ClientService } from '../client.service';
 import { Client } from '../../../shared/models/client';
 import { TabIndentDirective } from '../../../shared/directives/tab-indent.directive';
@@ -13,7 +14,7 @@ import { TabIndentDirective } from '../../../shared/directives/tab-indent.direct
 @Component({
   selector: 'app-client-form',
   standalone: true,
-  imports: [ReactiveFormsModule, InputText, Textarea, FloatLabel, SelectButton, Button, TabIndentDirective],
+  imports: [ReactiveFormsModule, InputText, Textarea, FloatLabel, SelectButton, Button, TabIndentDirective, TranslocoPipe],
   templateUrl: './client-form.html',
   styleUrl: './client-form.css',
 })
@@ -21,6 +22,7 @@ export class ClientForm implements OnInit {
 
   private fb = inject(FormBuilder);
   private clientService = inject(ClientService);
+  private transloco = inject(TranslocoService);
 
   // When set (see "Dupliquer" in client-list.ts), pre-fills the form with an
   // existing client's data - everything except `client_number`, which is
@@ -45,10 +47,13 @@ export class ClientForm implements OnInit {
     note: [''],
   });
 
-  typeOptions = [
-    { label: 'Particulier', value: false },
-    { label: 'Professionnel', value: true }
-  ];
+  private individualLabel = translateSignal('clients.individual');
+  private professionalLabel = translateSignal('clients.professional');
+
+  typeOptions = computed(() => [
+    { label: this.individualLabel(), value: false },
+    { label: this.professionalLabel(), value: true },
+  ]);
 
   constructor() {
     this.form.controls.isProfessional.valueChanges.subscribe(isProfessional => {
@@ -101,7 +106,7 @@ export class ClientForm implements OnInit {
       },
       error: (err: HttpErrorResponse) => {
         console.error('client-form : ' + err);
-        this.errorMessage.set(this.conflictMessage(err) ?? 'Impossible de créer le client.');
+        this.errorMessage.set(this.conflictMessage(err) ?? this.transloco.translate('clients.form.createError'));
       }
     });
   }
@@ -114,12 +119,12 @@ export class ClientForm implements OnInit {
       return null;
     }
     if (err.error?.message === 'Client email already exists') {
-      return 'Cet email est déjà utilisé par un autre client.';
+      return this.transloco.translate('clients.form.emailConflict');
     }
     if (err.error?.message === 'Client number already exists') {
-      return 'Ce numéro de client existe déjà.';
+      return this.transloco.translate('clients.form.numberConflict');
     }
-    return 'Ce client existe déjà.';
+    return this.transloco.translate('clients.form.genericConflict');
   }
 
 }

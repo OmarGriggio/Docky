@@ -8,6 +8,7 @@ import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Dialog } from 'primeng/dialog';
 import { Card } from 'primeng/card';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { ClientService } from '../client.service';
 import { AddressService } from '../../addresses/address.service';
 import { ClientWithAddresses } from '../../../shared/models/client';
@@ -18,7 +19,7 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
 @Component({
   selector: 'app-client-detail',
   standalone: true,
-  imports: [TableModule, Tag, Toolbar, Button, InputText, Dialog, Card, FormsModule, AddressForm, ConfirmDialogComponent],
+  imports: [TableModule, Tag, Toolbar, Button, InputText, Dialog, Card, FormsModule, AddressForm, ConfirmDialogComponent, TranslocoPipe],
   templateUrl: './client-detail.html',
   styleUrl: './client-detail.css'
 })
@@ -27,6 +28,7 @@ export class ClientDetail implements OnInit {
   private route = inject(ActivatedRoute);
   private clientService = inject(ClientService);
   private addressService = inject(AddressService);
+  private transloco = inject(TranslocoService);
 
   client = signal<ClientWithAddresses | null>(null);
   addAddressDialogVisible = signal(false);
@@ -99,7 +101,7 @@ export class ClientDetail implements OnInit {
 
   deleteAddress(address: Address): void {
     this.addressPendingDelete = address;
-    this.confirmMessage.set(`Supprimer l'adresse ${address.street}, ${address.city} ?`);
+    this.confirmMessage.set(this.transloco.translate('clients.detail.deleteConfirm', { street: address.street, city: address.city }));
     this.confirmVisible.set(true);
   }
 
