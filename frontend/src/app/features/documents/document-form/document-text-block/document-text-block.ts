@@ -1,7 +1,8 @@
-import { Component, inject, input, model, signal } from '@angular/core';
+import { Component, computed, inject, input, model, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Button } from 'primeng/button';
 import { Textarea } from 'primeng/textarea';
+import { TranslocoPipe, TranslocoService, translateSignal } from '@jsverse/transloco';
 import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import { DocumentType } from '../../../../shared/models/document';
 import { TabIndentDirective } from '../../../../shared/directives/tab-indent.directive';
@@ -18,13 +19,14 @@ import { DocumentTemplateService } from '../../document-template.service';
 @Component({
   selector: 'app-document-text-block',
   standalone: true,
-  imports: [FormsModule, Button, Textarea, ConfirmDialogComponent, TabIndentDirective],
+  imports: [FormsModule, Button, Textarea, ConfirmDialogComponent, TabIndentDirective, TranslocoPipe],
   templateUrl: './document-text-block.html',
   host: { class: 'block' },
 })
 export class DocumentTextBlock {
 
   private documentTemplateService = inject(DocumentTemplateService);
+  private transloco = inject(TranslocoService);
 
   // The document's own text - two-way, the form saves it with the document.
   text = model('');
@@ -36,8 +38,17 @@ export class DocumentTextBlock {
   resolve = input.required<(text: string) => string>();
 
   // Shown under the textarea - built here since a literal double brace in a
-  // template is read as an interpolation.
-  placeholdersHint = 'Variables : {{titre_client}}, {{date}}, {{montant}}, {{signature_entreprise}}';
+  // template is read as an interpolation. The {{tokens}} themselves are
+  // fixed printed content, not translated (same convention as
+  // document-templates.html's own placeholder list) - and critically can't
+  // be put through the transloco pipe/translate() as part of one string
+  // either: Transloco's own interpolation syntax is {{param}} too, so an
+  // unrecognized {{titre_client}} inside a *translated* value would be
+  // silently swallowed by its transpiler, not left as literal text.
+  private placeholdersHintPrefix = translateSignal('documents.textBlock.placeholdersHint');
+  placeholdersHint = computed(() =>
+    `${this.placeholdersHintPrefix()} {{titre_client}}, {{date}}, {{montant}}, {{signature_entreprise}}`
+  );
 
   editing = signal(false);
   draft = signal('');
@@ -67,10 +78,10 @@ export class DocumentTextBlock {
   }
 
   confirmSave(): void {
-    const noun = this.type() === 'INVOICE' ? 'factures' : 'offres';
-    this.confirmMessage.set(
-      `Ce texte deviendra le nouveau texte par défaut pour toutes les prochaines ${noun}. Continuer ?`
-    );
+    // nav.invoices/nav.quotes are capitalized (nav-bar labels) - lowercased
+    // here, this is mid-sentence.
+    const noun = this.transloco.translate(this.type() === 'INVOICE' ? 'nav.invoices' : 'nav.quotes').toLowerCase();
+    this.confirmMessage.set(this.transloco.translate('documents.textBlock.saveDefaultMessage', { noun }));
     this.confirmVisible.set(true);
   }
 
@@ -96,7 +107,7 @@ export class DocumentTextBlock {
       error: err => {
         console.error('document-text-block : ' + err);
         this.saving.set(false);
-        this.saveError.set('Impossible d\'enregistrer le modèle par défaut.');
+        this.saveError.set(this.transloco.translate('documents.textBlock.saveError'));
       }
     });
   }

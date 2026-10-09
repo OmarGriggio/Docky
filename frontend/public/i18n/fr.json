@@ -253,6 +253,15 @@
       "addAddress": "Ajouter une adresse",
       "location": "Lieu/Bâtiment",
       "referenceClient": "Référence client"
+    },
+    "textBlock": {
+      "placeholdersHint": "Variables :",
+      "apply": "Appliquer",
+      "save": "Sauvegarder",
+      "editText": "Modifier le texte",
+      "saveDefaultTitle": "Enregistrer comme valeur par défaut",
+      "saveDefaultMessage": "Ce texte deviendra le nouveau texte par défaut pour toutes les prochaines {{noun}}. Continuer ?",
+      "saveError": "Impossible d'enregistrer le modèle par défaut."
     }
   }
 }

@@ -253,6 +253,15 @@
       "addAddress": "Add an address",
       "location": "Location",
       "referenceClient": "Client reference"
+    },
+    "textBlock": {
+      "placeholdersHint": "Variables:",
+      "apply": "Apply",
+      "save": "Save",
+      "editText": "Edit text",
+      "saveDefaultTitle": "Save as default",
+      "saveDefaultMessage": "This text will become the new default for every future {{noun}}. Continue?",
+      "saveError": "Could not save the default template."
     }
   }
 }
