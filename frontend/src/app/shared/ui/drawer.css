@@ -1,16 +1,12 @@
-/* The demo-company banner (shared/demo-banner) - short one-line notice, the
-   default p-drawer sizing/padding is sized for far more content than this. */
-.ui-demo-drawer.p-drawer-bottom {
-  height: 76px;
-}
-
+/* The demo-company banner (shared/demo-banner): its message lives in the
+   #header template (not the default content slot) so it sits on the same
+   row as the close button instead of stacked above/below it. */
 .ui-demo-drawer .p-drawer-header {
-  padding: 0.5rem 1rem 0;
-  min-height: 0;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
 }
 
 .ui-demo-drawer .p-drawer-content {
-  padding: 0 1rem 0.75rem;
-  display: flex;
-  align-items: center;
+  display: none;
 }
