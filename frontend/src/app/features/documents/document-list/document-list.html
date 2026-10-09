@@ -1,5 +1,5 @@
 <app-list-toolbar
-  [title]="'Documents' + (currentTypeLabel() ? ' — ' + currentTypeLabel() : '')"
+  [title]="toolbarTitle()"
   [(search)]="search"
   [showArchived]="showArchived()"
   (showArchivedChange)="onShowArchivedChange($event)"
@@ -10,15 +10,15 @@
   <ng-template #header>
     <tr>
       <th style="width: 3rem"></th>
-      <th>Numéro</th>
-      <th>Client</th>
-      <th>Lieu</th>
-      <th>Date</th>
-      <th>Échéance</th>
-      <th>Montant HT</th>
-      <th>Montant TTC</th>
-      <th>Rabais</th>
-      <th>Statut</th>
+      <th>{{ 'documents.columnNumber' | transloco }}</th>
+      <th>{{ 'projects.columnClient' | transloco }}</th>
+      <th>{{ 'projects.columnLocation' | transloco }}</th>
+      <th>{{ 'projects.columnDate' | transloco }}</th>
+      <th>{{ 'documents.columnDueDate' | transloco }}</th>
+      <th>{{ 'documents.columnAmountExcl' | transloco }}</th>
+      <th>{{ 'documents.columnAmountIncl' | transloco }}</th>
+      <th>{{ 'documents.columnDiscount' | transloco }}</th>
+      <th>{{ 'projects.columnStatus' | transloco }}</th>
       <th></th>
       <th></th>
     </tr>
@@ -26,7 +26,7 @@
 
   <ng-template #emptymessage>
     <tr>
-      <td colspan="12" class="text-center text-gray-500">{{ search().trim() ? 'Aucun document ne correspond à la recherche.' : 'Aucun document.' }}</td>
+      <td colspan="12" class="text-center text-gray-500">{{ (search().trim() ? 'documents.noSearchResults' : 'documents.noDocuments') | transloco }}</td>
     </tr>
   </ng-template>
 
@@ -47,7 +47,7 @@
         @if (overdueDays(document); as days) {
           <div class="flex flex-wrap items-center gap-2">
             <span class="font-semibold text-red-600">{{ document.due_date | appDate }}</span>
-            <i class="pi pi-exclamation-triangle text-red-600" [attr.title]="days + ' j de retard'"></i>
+            <i class="pi pi-exclamation-triangle text-red-600" [attr.title]="'documents.overdueTooltip' | transloco: { days }"></i>
           </div>
         } @else {
           {{ document.due_date | appDate }}
@@ -97,16 +97,16 @@
 
 <app-confirm-dialog
   [(visible)]="confirmVisible"
-  title="Archivage"
+  [title]="'clients.archiveTitle' | transloco"
   [message]="confirmMessage()"
   (confirmed)="onArchiveConfirmed()"
 />
 
 <app-confirm-dialog
   [(visible)]="acceptConfirmVisible"
-  title="Validation de l'offre"
-  message="Valider cette offre va créer un chantier et y reporter les ressources utilisées. Continuer ?"
-  confirmLabel="Valider"
+  [title]="'documents.acceptTitle' | transloco"
+  [message]="'documents.acceptMessage' | transloco"
+  [confirmLabel]="'documents.acceptConfirmLabel' | transloco"
   (confirmed)="onAcceptConfirmed()"
   (cancelled)="onAcceptCancelled()"
 />

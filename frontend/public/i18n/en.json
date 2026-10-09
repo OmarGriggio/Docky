@@ -220,5 +220,29 @@
     "month": "Month",
     "week": "Week",
     "day": "Day"
+  },
+  "documents": {
+    "columnNumber": "Number",
+    "columnDueDate": "Due date",
+    "columnAmountExcl": "Amount excl. VAT",
+    "columnAmountIncl": "Amount incl. VAT",
+    "columnDiscount": "Discount",
+    "overdueTooltip": "{{days}} days overdue",
+    "noSearchResults": "No document matches the search.",
+    "noDocuments": "No documents.",
+    "archiveConfirm": "Archive document {{number}}?",
+    "acceptTitle": "Quote validation",
+    "acceptMessage": "Validating this quote will create a project and carry its used resources over. Continue?",
+    "acceptConfirmLabel": "Validate",
+    "modify": "Edit",
+    "reminderPdf": "Reminder (PDF)",
+    "status": {
+      "DRAFT": "Draft",
+      "SENT": "Sent",
+      "ACCEPTED": "Accepted",
+      "REJECTED": "Rejected",
+      "PAID": "Paid",
+      "CANCELLED": "Cancelled"
+    }
   }
 }

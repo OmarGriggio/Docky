@@ -8,9 +8,10 @@ import { Button } from 'primeng/button';
 import { Menu } from 'primeng/menu';
 import { Select } from 'primeng/select';
 import { MenuItem } from 'primeng/api';
+import { TranslocoPipe, TranslocoService, translateSignal } from '@jsverse/transloco';
 import { DocumentService } from '../document.service';
 import { Document, DocumentType, DocumentStatus } from '../../../shared/models/document';
-import { documentStatusLabel, documentStatusSeverity, daysOverdue, formatPrice, matchesSearch } from '../../../shared/utils/display';
+import { documentStatusSeverity, daysOverdue, formatPrice, matchesSearch } from '../../../shared/utils/display';
 import { ClientService } from '../../clients/client.service';
 import { Client } from '../../../shared/models/client';
 import { AddressService } from '../../addresses/address.service';
@@ -21,19 +22,10 @@ import { DocumentLedger } from '../../../shared/components/document-ledger/docum
 import { AppDatePipe } from '../../../shared/pipes/app-date.pipe';
 import { PricePipe } from '../../../shared/pipes/price.pipe';
 
-// PROJECT documents never appear in this list (see document-list.html's own
-// GET /document?type=QUOTE|INVOICE calls) but DocumentType still includes
-// it, so the Record needs an entry regardless.
-const TYPE_LABELS: Record<DocumentType, string> = {
-  'QUOTE': 'Offres',
-  'INVOICE': 'Factures',
-  'PROJECT': 'Chantiers',
-};
-
 @Component({
   selector: 'app-document-list',
   standalone: true,
-  imports: [ListToolbarComponent, TableModule, TagModule, Button, Menu, Select, FormsModule, AppDatePipe, PricePipe, ConfirmDialogComponent, DocumentLedger],
+  imports: [ListToolbarComponent, TableModule, TagModule, Button, Menu, Select, FormsModule, AppDatePipe, PricePipe, ConfirmDialogComponent, DocumentLedger, TranslocoPipe],
   templateUrl: './document-list.html'
 })
 export class DocumentListComponent implements OnInit {
@@ -43,13 +35,32 @@ export class DocumentListComponent implements OnInit {
   private documentService = inject(DocumentService);
   private clientService = inject(ClientService);
   private addressService = inject(AddressService);
+  private transloco = inject(TranslocoService);
 
   documents = signal<Document[]>([]);
   clients = signal<Client[]>([]);
   addresses = signal<Address[]>([]);
-  currentTypeLabel = signal<string | null>(null);
-  currentType: DocumentType | null = null;
+  currentType = signal<DocumentType | null>(null);
   showArchived = signal(false);
+
+  private documentsLabel = translateSignal('nav.documents');
+  private quotesLabel = translateSignal('nav.quotes');
+  private invoicesLabel = translateSignal('nav.invoices');
+  private projectsLabel = translateSignal('nav.projects');
+
+  // "Documents" alone, or "Documents — Offres"/"— Factures" when filtered by
+  // type (see resource-list.ts's own toolbarTitle for the same pattern).
+  // PROJECT never actually appears here (this list only ever fetches
+  // QUOTE/INVOICE - see loadDocuments below) but DocumentType still includes
+  // it, so the switch needs a case for it regardless.
+  toolbarTitle = computed(() => {
+    const type = this.currentType();
+    const suffix = type === 'QUOTE' ? this.quotesLabel()
+      : type === 'INVOICE' ? this.invoicesLabel()
+      : type === 'PROJECT' ? this.projectsLabel()
+      : null;
+    return suffix ? `${this.documentsLabel()} — ${suffix}` : this.documentsLabel();
+  });
 
   // The toolbar's search box - matches any column of the table (number,
   // client, location, date, due date, amounts, discount, status), each typed
@@ -113,9 +124,7 @@ export class DocumentListComponent implements OnInit {
 
   ngOnInit(): void {
     this.route.queryParamMap.subscribe(params => {
-      const type = params.get('type') as DocumentType | null;
-      this.currentType = type;
-      this.currentTypeLabel.set(type ? TYPE_LABELS[type] : null);
+      this.currentType.set(params.get('type') as DocumentType | null);
       this.loadDocuments();
     });
 
@@ -136,9 +145,12 @@ export class DocumentListComponent implements OnInit {
 
   // document.status is null for a PROJECT document only (see
   // shared/models/document.ts) - never seen here (this list is always
-  // filtered to QUOTE/INVOICE), but the type still allows it.
+  // filtered to QUOTE/INVOICE), but the type still allows it. Own
+  // translated labels (documents.status.*), not the untranslated
+  // documentStatusLabel from shared/utils/display.ts - see commit notes for
+  // why that shared one isn't touched yet.
   statusLabel(document: Document): string {
-    return document.status ? documentStatusLabel(document.status) : '—';
+    return document.status ? this.transloco.translate(`documents.status.${document.status}`) : '—';
   }
 
   statusSeverity(document: Document): 'secondary' | 'info' | 'success' | 'danger' {
@@ -165,11 +177,11 @@ export class DocumentListComponent implements OnInit {
   // anymore. Falls back to the form's own default (QUOTE) if this list
   // somehow isn't type-filtered.
   createDocument(): void {
-    this.router.navigate(['/documents/new'], this.currentType ? { queryParams: { type: this.currentType } } : {});
+    this.router.navigate(['/documents/new'], this.currentType() ? { queryParams: { type: this.currentType() } } : {});
   }
 
   private loadDocuments(): void {
-    this.documentService.getDocuments(this.currentType ?? undefined, this.showArchived()).subscribe({
+    this.documentService.getDocuments(this.currentType() ?? undefined, this.showArchived()).subscribe({
       next: data => {
         this.documents.set(data);
       },
@@ -200,20 +212,16 @@ export class DocumentListComponent implements OnInit {
   // it creates a chantier and carries resources over, not a plain status
   // write. Kept as two separate lists (not one shared array) so ACCEPTED
   // never leaks into an invoice's own options.
-  private quoteStatusOptions: { label: string; value: DocumentStatus }[] = [
-    { label: 'Brouillon', value: 'DRAFT' },
-    { label: 'Envoyée', value: 'SENT' },
-    { label: 'Acceptée', value: 'ACCEPTED' },
-  ];
-  private invoiceStatusOptions: { label: string; value: DocumentStatus }[] = [
-    { label: 'Brouillon', value: 'DRAFT' },
-    { label: 'Envoyée', value: 'SENT' },
-    { label: 'Payée', value: 'PAID' },
-    { label: 'Annulée', value: 'CANCELLED' },
-  ];
+  private statusOption(status: DocumentStatus): { label: string; value: DocumentStatus } {
+    return { label: this.transloco.translate(`documents.status.${status}`), value: status };
+  }
 
+  // Built fresh on every call (not cached) so each one picks up whatever
+  // language is active right now - see statusLabel's own reasoning above.
   statusOptionsFor(document: Document): { label: string; value: DocumentStatus }[] {
-    return document.type === 'INVOICE' ? this.invoiceStatusOptions : this.quoteStatusOptions;
+    return document.type === 'INVOICE'
+      ? [this.statusOption('DRAFT'), this.statusOption('SENT'), this.statusOption('PAID'), this.statusOption('CANCELLED')]
+      : [this.statusOption('DRAFT'), this.statusOption('SENT'), this.statusOption('ACCEPTED')];
   }
 
   // Snapshotted right as a cell enters edit mode (before the select's own
@@ -260,19 +268,19 @@ export class DocumentListComponent implements OnInit {
   getActions(document: Document): MenuItem[] {
     return [
       document.is_active
-        ? { label: 'Archiver', command: () => this.archiveDocument(document) }
-        : { label: 'Restaurer', command: () => this.unarchiveDocument(document) },
+        ? { label: this.transloco.translate('common.archive'), command: () => this.archiveDocument(document) }
+        : { label: this.transloco.translate('common.unarchive'), command: () => this.unarchiveDocument(document) },
       {
-        label: 'Modifier',
+        label: this.transloco.translate('documents.modify'),
         command: () => this.router.navigate(['/documents', document.id])
       },
       // Only an overdue invoice gets a payment reminder (see daysOverdue).
       ...(this.overdueDays(document) !== null
-        ? [{ label: 'Rappel (PDF)', command: () => this.openReminderPdf(document) }]
+        ? [{ label: this.transloco.translate('documents.reminderPdf'), command: () => this.openReminderPdf(document) }]
         : []),
       // A quote or an invoice - a new draft pre-filled from this one (see
       // document-form.ts's applyDuplicateFrom).
-      { label: 'Dupliquer', command: () => this.duplicateDocument(document) }
+      { label: this.transloco.translate('clients.duplicate'), command: () => this.duplicateDocument(document) }
     ];
   }
 
@@ -314,7 +322,7 @@ export class DocumentListComponent implements OnInit {
 
   private archiveDocument(document: Document): void {
     this.documentPendingArchive = document;
-    this.confirmMessage.set(`Archiver le document ${document.number} ?`);
+    this.confirmMessage.set(this.transloco.translate('documents.archiveConfirm', { number: document.number }));
     this.confirmVisible.set(true);
   }
 

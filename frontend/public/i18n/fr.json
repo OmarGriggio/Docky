@@ -220,5 +220,29 @@
     "month": "Mois",
     "week": "Semaine",
     "day": "Jour"
+  },
+  "documents": {
+    "columnNumber": "Numéro",
+    "columnDueDate": "Échéance",
+    "columnAmountExcl": "Montant HT",
+    "columnAmountIncl": "Montant TTC",
+    "columnDiscount": "Rabais",
+    "overdueTooltip": "{{days}} j de retard",
+    "noSearchResults": "Aucun document ne correspond à la recherche.",
+    "noDocuments": "Aucun document.",
+    "archiveConfirm": "Archiver le document {{number}} ?",
+    "acceptTitle": "Validation de l'offre",
+    "acceptMessage": "Valider cette offre va créer un chantier et y reporter les ressources utilisées. Continuer ?",
+    "acceptConfirmLabel": "Valider",
+    "modify": "Modifier",
+    "reminderPdf": "Rappel (PDF)",
+    "status": {
+      "DRAFT": "Brouillon",
+      "SENT": "Envoyée",
+      "ACCEPTED": "Acceptée",
+      "REJECTED": "Refusée",
+      "PAID": "Payée",
+      "CANCELLED": "Annulée"
+    }
   }
 }
