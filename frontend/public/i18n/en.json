@@ -76,7 +76,8 @@
     "add": "Add",
     "loading": "Loading...",
     "archive": "Archive",
-    "unarchive": "Restore"
+    "unarchive": "Restore",
+    "delete": "Delete"
   },
   "clients": {
     "newClient": "New client",
@@ -201,5 +202,23 @@
     "columnQuantity": "Quantity",
     "columnUnitPrice": "Unit price",
     "columnTotal": "Total"
+  },
+  "calendar": {
+    "unscheduledSections": "Sections to plan",
+    "noUnscheduledSections": "No sections to plan.",
+    "title": "Title",
+    "description": "Description",
+    "lines": "Lines",
+    "note": "Note",
+    "addNotePlaceholder": "Add a note...",
+    "viewProject": "View the project",
+    "saveNote": "Save the note",
+    "editNote": "Edit note",
+    "newNote": "New note",
+    "project": "Project",
+    "today": "Today",
+    "month": "Month",
+    "week": "Week",
+    "day": "Day"
   }
 }

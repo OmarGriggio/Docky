@@ -76,7 +76,8 @@
     "add": "Ajouter",
     "loading": "Chargement...",
     "archive": "Archiver",
-    "unarchive": "Restaurer"
+    "unarchive": "Restaurer",
+    "delete": "Supprimer"
   },
   "clients": {
     "newClient": "Nouveau client",
@@ -201,5 +202,23 @@
     "columnQuantity": "Quantité",
     "columnUnitPrice": "Prix unitaire",
     "columnTotal": "Total"
+  },
+  "calendar": {
+    "unscheduledSections": "Sections à planifier",
+    "noUnscheduledSections": "Aucune section à planifier.",
+    "title": "Titre",
+    "description": "Description",
+    "lines": "Lignes",
+    "note": "Note",
+    "addNotePlaceholder": "Ajouter une note...",
+    "viewProject": "Voir le chantier",
+    "saveNote": "Enregistrer la note",
+    "editNote": "Modifier la note",
+    "newNote": "Nouvelle note",
+    "project": "Chantier",
+    "today": "Aujourd'hui",
+    "month": "Mois",
+    "week": "Semaine",
+    "day": "Jour"
   }
 }

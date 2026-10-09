@@ -1,8 +1,9 @@
-import { AfterViewInit, Component, ElementRef, inject, OnInit, signal, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, effect, ElementRef, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { FullCalendarComponent, FullCalendarModule } from '@fullcalendar/angular';
 import { CalendarOptions, EventClickArg, EventDropArg, EventHoveringArg, EventInput } from '@fullcalendar/core';
+import frLocale from '@fullcalendar/core/locales/fr';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin, { DateClickArg, Draggable, EventReceiveArg, EventResizeDoneArg } from '@fullcalendar/interaction';
@@ -12,6 +13,7 @@ import { Textarea } from 'primeng/textarea';
 import { InputText } from 'primeng/inputtext';
 import { DatePicker } from 'primeng/datepicker';
 import { FloatLabel } from 'primeng/floatlabel';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { DocumentSectionService } from '../documents/document-section.service';
 import { DocumentLineService } from '../documents/document-line.service';
 import { CalendarNoteService } from './calendar-note.service';
@@ -29,7 +31,7 @@ const NOTE_COLOR = '#9ca3af';
 @Component({
   selector: 'app-calendar',
   standalone: true,
-  imports: [FullCalendarModule, Dialog, Button, Textarea, InputText, DatePicker, FloatLabel, RouterLink, FormsModule, PricePipe, TabIndentDirective],
+  imports: [FullCalendarModule, Dialog, Button, Textarea, InputText, DatePicker, FloatLabel, RouterLink, FormsModule, PricePipe, TabIndentDirective, TranslocoPipe],
   templateUrl: './calendar.html',
   styleUrl: './calendar.css',
 })
@@ -38,6 +40,7 @@ export class CalendarPage implements OnInit, AfterViewInit {
   private documentSectionService = inject(DocumentSectionService);
   private documentLineService = inject(DocumentLineService);
   private calendarNoteService = inject(CalendarNoteService);
+  private transloco = inject(TranslocoService);
 
   @ViewChild('fullCalendar') fullCalendar!: FullCalendarComponent;
   @ViewChild('unscheduledList') unscheduledListRef!: ElementRef<HTMLElement>;
@@ -86,10 +89,17 @@ export class CalendarPage implements OnInit, AfterViewInit {
   noteStartDraft = signal<Date | null>(null);
   noteEndDraft = signal<Date | null>(null);
 
+  // FullCalendar ships English as its only built-in locale - French needs
+  // its own locale module registered (month/day names etc.), English needs
+  // none. `locale`/`buttonText` are set here from whatever language is
+  // active at construction time, and kept in sync afterwards by the effect
+  // below (Calendar.setOption(), not a full re-render) - a static object
+  // here would only ever match the language active on first load.
   calendarOptions: CalendarOptions = {
     plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
     initialView: 'dayGridMonth',
-    locale: 'fr',
+    locales: [frLocale],
+    locale: this.transloco.getActiveLang(),
     firstDay: 1,
     height: 'auto',
     headerToolbar: {
@@ -97,12 +107,7 @@ export class CalendarPage implements OnInit, AfterViewInit {
       center: 'title',
       right: 'dayGridMonth,timeGridWeek,timeGridDay',
     },
-    buttonText: {
-      today: "Aujourd'hui",
-      month: 'Mois',
-      week: 'Semaine',
-      day: 'Jour',
-    },
+    buttonText: this.buttonTextFor(this.transloco.getActiveLang()),
     // timeGridWeek/timeGridDay only - dayGridMonth ignores these.
     slotMinTime: '06:00:00',
     slotMaxTime: '20:00:00',
@@ -115,6 +120,29 @@ export class CalendarPage implements OnInit, AfterViewInit {
     eventMouseLeave: () => this.hoveredSection.set(null),
     dateClick: info => this.onDateClick(info),
   };
+
+  private buttonTextFor(lang: string) {
+    return {
+      today: this.transloco.translate('calendar.today', {}, lang),
+      month: this.transloco.translate('calendar.month', {}, lang),
+      week: this.transloco.translate('calendar.week', {}, lang),
+      day: this.transloco.translate('calendar.day', {}, lang),
+    };
+  }
+
+  // Patches the already-rendered calendar in place on a language switch -
+  // the ViewChild isn't up yet on the very first run (before
+  // ngAfterViewInit), which the initial values on calendarOptions above
+  // already cover, so this only has anything to do from the second run on.
+  private readonly syncCalendarLanguage = effect(() => {
+    const lang = this.transloco.activeLang();
+    const api = this.fullCalendar?.getApi();
+    if (!api) {
+      return;
+    }
+    api.setOption('locale', lang);
+    api.setOption('buttonText', this.buttonTextFor(lang));
+  });
 
   ngOnInit(): void {
     this.loadUnscheduledSections();

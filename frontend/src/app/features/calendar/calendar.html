@@ -6,9 +6,9 @@
   </div>
 
   <div class="w-64 shrink-0 flex flex-col gap-2">
-    <h2 class="text-sm font-semibold text-gray-500 uppercase m-0">Sections à planifier</h2>
+    <h2 class="text-sm font-semibold text-gray-500 uppercase m-0">{{ 'calendar.unscheduledSections' | transloco }}</h2>
     @if (unscheduledSections().length === 0) {
-      <p class="text-sm text-gray-500">Aucune section à planifier.</p>
+      <p class="text-sm text-gray-500">{{ 'calendar.noUnscheduledSections' | transloco }}</p>
     }
     <div #unscheduledList class="flex flex-col gap-2">
       @for (section of unscheduledSections(); track section.id) {
@@ -33,19 +33,19 @@
   @if (selectedSection(); as section) {
     <div class="flex flex-col gap-3">
       <div class="flex flex-col gap-1">
-        <span class="text-xs text-gray-500 uppercase tracking-wide">Titre</span>
+        <span class="text-xs text-gray-500 uppercase tracking-wide">{{ 'calendar.title' | transloco }}</span>
         <span class="font-medium">{{ section.title }}</span>
       </div>
       @if (section.description) {
         <div class="flex flex-col gap-1">
-          <span class="text-xs text-gray-500 uppercase tracking-wide">Description</span>
+          <span class="text-xs text-gray-500 uppercase tracking-wide">{{ 'calendar.description' | transloco }}</span>
           <span class="font-medium">{{ section.description }}</span>
         </div>
       }
       <div class="flex flex-col gap-1">
-        <span class="text-xs text-gray-500 uppercase tracking-wide">Lignes</span>
+        <span class="text-xs text-gray-500 uppercase tracking-wide">{{ 'calendar.lines' | transloco }}</span>
         @if (selectedSectionLines().length === 0) {
-          <span class="text-sm text-gray-500">Aucune ligne.</span>
+          <span class="text-sm text-gray-500">{{ 'projects.resources.noLines' | transloco }}</span>
         }
         @for (line of selectedSectionLines(); track line.id) {
           <div class="flex justify-between gap-2 text-sm border-b border-gray-100 py-1">
@@ -57,20 +57,20 @@
         }
       </div>
       <div class="flex flex-col gap-1">
-        <span class="text-xs text-gray-500 uppercase tracking-wide">Note</span>
+        <span class="text-xs text-gray-500 uppercase tracking-wide">{{ 'calendar.note' | transloco }}</span>
         <textarea
           pTextarea
           rows="3"
           class="w-full"
           [(ngModel)]="noteDraft"
-          placeholder="Ajouter une note..."
+          [placeholder]="'calendar.addNotePlaceholder' | transloco"
         ></textarea>
       </div>
     </div>
 
     <div class="flex justify-end gap-2 mt-4">
       <p-button
-        label="Voir le chantier"
+        [label]="'calendar.viewProject' | transloco"
         icon="pi pi-arrow-up-right"
         size="small"
         severity="secondary"
@@ -78,7 +78,7 @@
         (onClick)="detailDialogVisible.set(false)"
       />
       <p-button
-        label="Enregistrer la note"
+        [label]="'calendar.saveNote' | transloco"
         icon="pi pi-save"
         size="small"
         styleClass="self-end"
@@ -90,14 +90,14 @@
 
 <p-dialog
   [(visible)]="noteDialogVisible"
-  [header]="editingNoteId() !== null ? 'Modifier la note' : 'Nouvelle note'"
+  [header]="(editingNoteId() !== null ? 'calendar.editNote' : 'calendar.newNote') | transloco"
   [modal]="true"
   [style]="{ width: '28rem' }"
 >
   <div class="flex flex-col gap-4">
     <p-floatlabel variant="on">
       <input pInputText id="noteTitle" [(ngModel)]="noteTitleDraft" [fluid]="true" />
-      <label for="noteTitle">Titre</label>
+      <label for="noteTitle">{{ 'calendar.title' | transloco }}</label>
     </p-floatlabel>
 
     <p-floatlabel variant="on">
@@ -108,7 +108,7 @@
         class="w-full"
         [(ngModel)]="noteDescriptionDraft"
       ></textarea>
-      <label for="noteDescription">Description</label>
+      <label for="noteDescription">{{ 'calendar.description' | transloco }}</label>
     </p-floatlabel>
 
     <div class="flex gap-3 flex-wrap">
@@ -122,7 +122,7 @@
           hourFormat="24"
           [fluid]="true"
         />
-        <label for="noteStart">Début</label>
+        <label for="noteStart">{{ 'projects.resources.start' | transloco }}</label>
       </p-floatlabel>
 
       <p-floatlabel variant="on" class="flex-1">
@@ -135,18 +135,18 @@
           hourFormat="24"
           [fluid]="true"
         />
-        <label for="noteEnd">Fin</label>
+        <label for="noteEnd">{{ 'projects.resources.end' | transloco }}</label>
       </p-floatlabel>
     </div>
   </div>
 
   <div class="flex justify-between gap-2 mt-4">
     @if (editingNoteId() !== null) {
-      <p-button label="Supprimer" icon="pi pi-trash" size="small" severity="danger" [text]="true" (onClick)="deleteNoteDialog()" />
+      <p-button [label]="'common.delete' | transloco" icon="pi pi-trash" size="small" severity="danger" [text]="true" (onClick)="deleteNoteDialog()" />
     } @else {
       <span></span>
     }
-    <p-button label="Enregistrer" icon="pi pi-save" size="small" (onClick)="saveNoteDialog()" />
+    <p-button [label]="'documentTemplates.save' | transloco" icon="pi pi-save" size="small" (onClick)="saveNoteDialog()" />
   </div>
 </p-dialog>
 
@@ -156,12 +156,12 @@
     [style.top.px]="hoverPosition().top"
     [style.left.px]="hoverPosition().left"
   >
-    <span class="text-xs text-gray-500 uppercase tracking-wide">Chantier</span>
+    <span class="text-xs text-gray-500 uppercase tracking-wide">{{ 'calendar.project' | transloco }}</span>
     <span class="font-medium">{{ section.project_name }}</span>
-    <span class="text-xs text-gray-500 uppercase tracking-wide mt-1">Titre</span>
+    <span class="text-xs text-gray-500 uppercase tracking-wide mt-1">{{ 'calendar.title' | transloco }}</span>
     <span class="font-medium">{{ section.title }}</span>
     @if (section.description) {
-      <span class="text-xs text-gray-500 uppercase tracking-wide mt-1">Description</span>
+      <span class="text-xs text-gray-500 uppercase tracking-wide mt-1">{{ 'calendar.description' | transloco }}</span>
       <span class="text-sm">{{ section.description }}</span>
     }
   </div>
