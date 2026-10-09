@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getAllUsersController, createUserController, deleteUserController } from "./user.controller";
+import { getAllUsersController, createUserController, deleteUserController, updateUserLanguage } from "./user.controller";
 import { authenticate } from "../../shared/middlewares/auth.middleware";
 import { requireRole } from "../../shared/middlewares/role.middleware";
 
@@ -21,5 +21,10 @@ router.get("/", authenticate, requireRole("PLATFORM_ADMIN"), getAllUsersControll
 router.post("/", createUserController);
 
 router.delete("/:id", authenticate, requireRole("PLATFORM_ADMIN"), deleteUserController);
+
+// Self-only, no :id - always the caller's own row (req.user.userId), open to
+// any role. A personal preference, not the user management centralized to
+// PLATFORM_ADMIN above.
+router.patch("/language", authenticate, updateUserLanguage);
 
 export default router;

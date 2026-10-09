@@ -1,5 +1,5 @@
-import { createUserDB, getUserByEmail, getUserByIdForCompany, getUsersFromDB, deleteUserDB } from "./user.repository";
-import { CreateUserData } from "./user.types";
+import { createUserDB, getUserByEmail, getUserByIdForCompany, getUsersFromDB, deleteUserDB, updateUserLanguageDB } from "./user.repository";
+import { CreateUserData, Language } from "./user.types";
 import { NotFoundError, ConflictError, ForbiddenError } from "../../shared/types/errors";
 import { TokenPayload } from "../../shared/middlewares/jwt.service";
 import bcrypt from "bcrypt";
@@ -45,4 +45,13 @@ export const createUserService = async (userData: CreateUserData, actor: TokenPa
   } else {
     throw new ConflictError("Email already exists");
   }
+};
+
+// Self-only (see user.routes.ts) - the acting user's own id, never a body/param id.
+export const updateUserLanguageServ = async (userId: number, language: Language) => {
+  const user = await updateUserLanguageDB(userId, language);
+  if (!user) {
+    throw new NotFoundError("User not found");
+  }
+  return user;
 };

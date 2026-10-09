@@ -4,6 +4,10 @@
 // by hand directly in the database, never through POST /user.
 export type Role = 'ADMIN' | 'USER' | 'PLATFORM_ADMIN';
 
+// The frontend's own UI language (Transloco) - a personal preference, not
+// tied to a company. Only FR/EN for now (see zz_migrations/002_add_user_language.sql).
+export type Language = 'FR' | 'EN';
+
 export interface User {
   id: number;
   company_id: number;
@@ -16,6 +20,7 @@ export interface User {
   updated_at: Date | null;
   last_login_at: Date | null;
   is_active: boolean;
+  language: Language;
 }
 
 export interface CreateUserData {

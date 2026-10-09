@@ -41,7 +41,8 @@ export const authUserService = async (loginData: LoginUserData, ip: string | nul
     userId: user.id,
     email: user.email,
     role: user.role,
-    company_id: user.company_id
+    company_id: user.company_id,
+    language: user.language
   };
 
   const token = generateAccessToken(payload);
@@ -80,6 +81,7 @@ export const impersonateCompanyServ = async (actor: TokenPayload, companyId: num
     email: actor.email,
     role: actor.role,
     company_id: companyId,
+    language: actor.language
   };
 
   return { token: generateAccessToken(payload) };
@@ -111,7 +113,8 @@ export const refreshAccessTokenServ = async (refreshToken: string) => {
     userId: payload.userId,
     email: payload.email,
     role: payload.role,
-    company_id: payload.company_id
+    company_id: payload.company_id,
+    language: payload.language
   });
 
   return { token };

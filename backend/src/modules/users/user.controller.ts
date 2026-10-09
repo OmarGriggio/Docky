@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { createUserService, deleteUserService, getAllUsers } from "./user.service";
-import { CreateUserData } from "./user.types";
+import { createUserService, deleteUserService, getAllUsers, updateUserLanguageServ } from "./user.service";
+import { CreateUserData, Language } from "./user.types";
 import { verifyToken } from "../../shared/middlewares/jwt.service";
 import { UnauthorizedError } from "../../shared/types/errors";
 
@@ -33,4 +33,11 @@ export const createUserController = async (req: Request, res: Response) => {
 
     const userCreated = await createUserService(userData, actor);
     res.json(userCreated);
+};
+
+export const updateUserLanguage = async (req: Request, res: Response) => {
+    const { language }: { language: Language } = req.body;
+
+    const user = await updateUserLanguageServ(req.user.userId, language);
+    res.json(user);
 };

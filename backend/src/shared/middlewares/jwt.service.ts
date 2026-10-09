@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
-import { Role } from "../../modules/users/user.types";
+import { Language, Role } from "../../modules/users/user.types";
 
-export type TokenPayload = { userId: number; email: string; role: Role; company_id: number };
+export type TokenPayload = { userId: number; email: string; role: Role; company_id: number; language: Language };
 
 // Kept as a single constant so the JWT's own expiry and the refresh_tokens.expires_at
 // row written alongside it (see auth.service.ts) can never drift apart.

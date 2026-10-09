@@ -1,5 +1,5 @@
 import { pool } from "../../shared/config/database";
-import { CreateUserData, User } from "./user.types";
+import { CreateUserData, Language, User } from "./user.types";
 
 export const getUsersFromDB = async (company_id: number) => {
     const result = await pool.query("SELECT * FROM users WHERE company_id = $1", [company_id]);
@@ -54,4 +54,12 @@ export const createUserDB = async (
 
     const result = await pool.query(query, values);
     return result.rows[0];
+};
+
+export const updateUserLanguageDB = async (id: number, language: Language) => {
+    const result = await pool.query(
+        "UPDATE users SET language = $1 WHERE id = $2 RETURNING *",
+        [language, id]
+    );
+    return result.rows[0] ?? null;
 };
