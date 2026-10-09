@@ -26,6 +26,7 @@
     "users": "Utilisateurs",
     "newUser": "Nouvel utilisateur",
     "loginHistory": "Historique des connexions",
+    "loginHistoryBreadcrumb": "Historique de connexion",
     "languageDescription": "Langue de l'interface, propre à votre compte.",
     "languageUpdated": "Langue mise à jour.",
     "languageUpdateError": "Impossible de mettre à jour la langue.",
@@ -77,7 +78,8 @@
     "loading": "Chargement...",
     "archive": "Archiver",
     "unarchive": "Restaurer",
-    "delete": "Supprimer"
+    "delete": "Supprimer",
+    "detail": "Détail"
   },
   "clients": {
     "newClient": "Nouveau client",
@@ -96,7 +98,7 @@
     "quote": "Offre",
     "invoice": "Facture",
     "duplicate": "Dupliquer",
-    "detail": "Détail",
+    "sheet": "Fiche client",
     "archiveTitle": "Archivage",
     "archiveConfirm": "Archiver le client {{number}} ?",
     "form": {
@@ -146,6 +148,7 @@
     "statusCompleted": "Terminé",
     "statusInProgress": "En cours",
     "newProject": "Nouveau chantier",
+    "sheet": "Fiche chantier",
     "attachmentsTitle": "Pièces jointes",
     "columnName": "Nom",
     "columnClient": "Client",

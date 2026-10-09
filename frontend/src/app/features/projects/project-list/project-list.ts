@@ -231,7 +231,7 @@ export class ProjectListComponent implements OnInit {
         ? { label: this.transloco.translate('common.archive'), command: () => this.archiveProject(project) }
         : { label: this.transloco.translate('common.unarchive'), command: () => this.unarchiveProject(project) },
       {
-        label: this.transloco.translate('clients.detail'),
+        label: this.transloco.translate('common.detail'),
         command: () => this.router.navigate(['/projects', project.id])
       },
       {

@@ -12,7 +12,7 @@
               @if (hiddenOpen()) {
                 <div class="absolute left-0 top-full mt-2 min-w-40 bg-white border border-gray-200 rounded-md shadow-lg p-1 z-20">
                   @for (entry of hiddenEntries(); track entry.key) {
-                    <a [routerLink]="entry.path" [queryParams]="entry.queryParams" class="block px-3 py-2 rounded text-gray-800 no-underline text-sm whitespace-nowrap hover:bg-gray-100">{{ entry.label }}</a>
+                    <a [routerLink]="entry.path" [queryParams]="entry.queryParams" class="block px-3 py-2 rounded text-gray-800 no-underline text-sm whitespace-nowrap hover:bg-gray-100">{{ entry.label | transloco }}</a>
                   }
                 </div>
               }

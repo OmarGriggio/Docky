@@ -26,6 +26,7 @@
     "users": "Users",
     "newUser": "New user",
     "loginHistory": "Login history",
+    "loginHistoryBreadcrumb": "Login history",
     "languageDescription": "Interface language, specific to your account.",
     "languageUpdated": "Language updated.",
     "languageUpdateError": "Could not update the language.",
@@ -77,7 +78,8 @@
     "loading": "Loading...",
     "archive": "Archive",
     "unarchive": "Restore",
-    "delete": "Delete"
+    "delete": "Delete",
+    "detail": "Detail"
   },
   "clients": {
     "newClient": "New client",
@@ -96,7 +98,7 @@
     "quote": "Quote",
     "invoice": "Invoice",
     "duplicate": "Duplicate",
-    "detail": "Detail",
+    "sheet": "Client details",
     "archiveTitle": "Archive",
     "archiveConfirm": "Archive client {{number}}?",
     "form": {
@@ -146,6 +148,7 @@
     "statusCompleted": "Completed",
     "statusInProgress": "In progress",
     "newProject": "New project",
+    "sheet": "Project details",
     "attachmentsTitle": "Attachments",
     "columnName": "Name",
     "columnClient": "Client",

@@ -3,6 +3,7 @@ import { ActivatedRouteSnapshot, NavigationEnd, Router, RouterLink } from '@angu
 import { filter } from 'rxjs';
 import { Breadcrumb } from 'primeng/breadcrumb';
 import { MenuItem } from 'primeng/api';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { AuthService } from '../../features/auth/auth.service';
 
 // A route's `data.breadcrumb` (see app.routes.ts): a plain label, or a
@@ -10,6 +11,10 @@ import { AuthService } from '../../features/auth/auth.service';
 // detail page) - it gets that route's own snapshot and returns the items
 // naming it. Only the *last* label of that list names the page for the
 // history trail below. Routes without one contribute nothing (e.g. a redirect).
+// Every `label` here is a Transloco key, not display text - resolved in
+// items() below (or by the `| transloco` pipe in header.html for
+// hiddenEntries), not stored pre-translated, so a language switch doesn't
+// leave an already-visited trail entry stuck in the old language.
 export type RouteBreadcrumb = string | ((route: ActivatedRouteSnapshot) => MenuItem[]);
 
 interface TrailEntry {
@@ -32,12 +37,13 @@ const MAX_STORED = 20;
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [Breadcrumb, RouterLink],
+  imports: [Breadcrumb, RouterLink, TranslocoPipe],
   templateUrl: './header.html',
 })
 export class Header {
 
   private router = inject(Router);
+  private transloco = inject(TranslocoService);
 
   isAuthenticated = inject(AuthService).isAuthenticated;
 
@@ -49,14 +55,19 @@ export class Header {
   hiddenEntries = computed(() => this.trail().slice(0, -MAX_VISIBLE));
 
   items = computed<MenuItem[]>(() => {
+    // PrimeNG's Breadcrumb renders `label` as plain text (no pipe applied
+    // for us) - translated right here. Reading activeLang() first is what
+    // makes this computed re-run (and re-translate) on a language switch.
+    this.transloco.activeLang();
     const trail = this.trail();
     const visible = trail.slice(-MAX_VISIBLE);
-    const items: MenuItem[] = visible.map((entry, index) =>
+    const items: MenuItem[] = visible.map((entry, index) => {
+      const label = this.transloco.translate(entry.label);
       // The page you're on isn't a link to itself.
-      index === visible.length - 1
-        ? { label: entry.label }
-        : { label: entry.label, routerLink: entry.path, queryParams: entry.queryParams },
-    );
+      return index === visible.length - 1
+        ? { label }
+        : { label, routerLink: entry.path, queryParams: entry.queryParams };
+    });
     return trail.length > MAX_VISIBLE ? [{ ellipsis: true }, ...items] : items;
   });
 

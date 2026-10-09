@@ -168,7 +168,7 @@ export class ClientListComponent implements OnInit {
         command: () => this.duplicateClient(client)
       },
       {
-        label: this.transloco.translate('clients.detail'),
+        label: this.transloco.translate('common.detail'),
         command: () => this.router.navigate(['/clients', client.id])
       },
     ];
