@@ -273,6 +273,20 @@
       "addResource": "Add a resource",
       "quantityFull": "Quantity",
       "timeHours": "Time (h)"
+    },
+    "form": {
+      "newQuote": "New quote",
+      "newInvoice": "New invoice",
+      "editQuote": "Edit the quote",
+      "editInvoice": "Edit the invoice",
+      "introPlaceholder": "Document introduction...",
+      "conclusionPlaceholder": "Document conclusion...",
+      "discount": "Document discount",
+      "subtotal": "Subtotal",
+      "totalAfterDiscount": "Total excl. VAT (after discount)",
+      "totalInclVat": "Total incl. VAT",
+      "chooseClient": "Choose a client.",
+      "saveError": "Could not save the document. Try again in a moment."
     }
   }
 }

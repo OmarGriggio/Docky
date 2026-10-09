@@ -7,6 +7,7 @@ import { InputNumber } from 'primeng/inputnumber';
 import { FloatLabel } from 'primeng/floatlabel';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { DocumentService } from '../document.service';
 import { DocumentSectionService } from '../document-section.service';
 import { DocumentLineService } from '../document-line.service';
@@ -27,15 +28,6 @@ import { DocumentHeader } from './document-header/document-header';
 import { DocumentTextBlock } from './document-text-block/document-text-block';
 import { DocumentSections } from './document-sections/document-sections';
 import { DraftSection, nextDraftId, round2, sectionTotal, usedResourceIds } from './document-draft';
-
-// PROJECT never actually reaches this page (a chantier is never created or
-// edited here - see zz_docs/Project Definition.md) but DocumentType still
-// includes it, so the Record needs an entry regardless.
-const TYPE_LABELS: Record<DocumentType, string> = {
-  QUOTE: 'offre',
-  INVOICE: 'facture',
-  PROJECT: 'chantier',
-};
 
 // Matches document.service.ts's own EDITABLE_STATUSES on the backend -
 // duplicated here purely so the form can hide/disable itself instead of
@@ -63,7 +55,7 @@ const EDITABLE_STATUSES: DocumentStatus[] = ['DRAFT', 'SENT'];
 @Component({
   selector: 'app-document-form',
   standalone: true,
-  imports: [FormsModule, PricePipe, InputNumber, FloatLabel, Button, Card, DocumentHeader, DocumentTextBlock, DocumentSections],
+  imports: [FormsModule, PricePipe, InputNumber, FloatLabel, Button, Card, DocumentHeader, DocumentTextBlock, DocumentSections, TranslocoPipe],
   templateUrl: './document-form.html',
   styleUrl: './document-form.css',
 })
@@ -80,6 +72,7 @@ export class DocumentForm implements OnInit {
   private projectService = inject(ProjectService);
   private companyService = inject(CompanyService);
   private authService = inject(AuthService);
+  private transloco = inject(TranslocoService);
 
   company = signal<Company | null>(null);
   companyLogoUrl = computed(() => this.companyService.getFileUrl(this.company()?.logo ?? null));
@@ -149,9 +142,6 @@ export class DocumentForm implements OnInit {
   // ngOnInit and never changes afterwards, so a plain getter (not a signal)
   // is enough for the template to read it.
   type: DocumentType = 'QUOTE';
-  get typeLabel(): string {
-    return TYPE_LABELS[this.type];
-  }
 
   // Set by loadForEdit() when this page is reached as documents/:id - null
   // means a fresh/duplicated draft (documents/new), submit() branches on it.
@@ -166,10 +156,11 @@ export class DocumentForm implements OnInit {
   locked = signal(false);
 
   get pageTitle(): string {
-    if (this.editingDocumentId() !== null) {
-      return this.type === 'QUOTE' ? "Modifier l'offre" : 'Modifier la facture';
-    }
-    return `Nouvelle ${this.typeLabel}`;
+    const editing = this.editingDocumentId() !== null;
+    const key = this.type === 'QUOTE'
+      ? (editing ? 'documents.form.editQuote' : 'documents.form.newQuote')
+      : (editing ? 'documents.form.editInvoice' : 'documents.form.newInvoice');
+    return this.transloco.translate(key);
   }
 
   date = signal(new Date());
@@ -598,7 +589,7 @@ export class DocumentForm implements OnInit {
 
     const clientId = this.selectedClientId();
     if (clientId === null) {
-      this.errorMessage.set('Choisis un client.');
+      this.errorMessage.set(this.transloco.translate('documents.form.chooseClient'));
       return;
     }
 
@@ -655,7 +646,7 @@ export class DocumentForm implements OnInit {
     } catch (err) {
       console.error('document-form : ' + err);
       this.submitting.set(false);
-      this.errorMessage.set('Impossible d\'enregistrer le document. Réessaie dans un instant.');
+      this.errorMessage.set(this.transloco.translate('documents.form.saveError'));
     }
   }
 

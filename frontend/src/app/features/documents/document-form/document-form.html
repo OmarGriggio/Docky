@@ -23,7 +23,7 @@
     <div class="mb-6">
       <app-document-text-block
         field="introduction"
-        placeholder="Introduction du document..."
+        [placeholder]="'documents.form.introPlaceholder' | transloco"
         [type]="type"
         [resolve]="resolvePlaceholders"
         [(text)]="introduction"
@@ -44,7 +44,7 @@
             [minFractionDigits]="2"
             suffix=" %"
           />
-          <label for="discount">Rabais document</label>
+          <label for="discount">{{ 'documents.form.discount' | transloco }}</label>
         </p-floatlabel>
 
         <p-floatlabel variant="on">
@@ -57,13 +57,13 @@
             [minFractionDigits]="1"
             suffix=" %"
           />
-          <label for="vatRate">TVA</label>
+          <label for="vatRate">{{ 'clients.form.vatNumber' | transloco }}</label>
         </p-floatlabel>
       }
       <div class="ui-form__full">
         <app-document-text-block
           field="conclusion"
-          placeholder="Conclusion du document..."
+          [placeholder]="'documents.form.conclusionPlaceholder' | transloco"
           [type]="type"
           [resolve]="resolvePlaceholders"
           [(text)]="conclusion"
@@ -73,16 +73,16 @@
 
     <div class="flex flex-col items-end gap-[0.35rem] mb-6 text-[0.95rem]">
       <div class="flex gap-6 min-w-65 justify-between">
-        <span>Sous-total</span><span>{{ documentSubtotal() | price }} CHF</span>
+        <span>{{ 'documents.form.subtotal' | transloco }}</span><span>{{ documentSubtotal() | price }} CHF</span>
       </div>
       <div class="flex gap-6 min-w-65 justify-between">
-        <span>Total HT (après rabais)</span
+        <span>{{ 'documents.form.totalAfterDiscount' | transloco }}</span
         ><span>{{ documentTotalAfterDiscount() | price }} CHF</span>
       </div>
       <div
         class="flex gap-6 min-w-65 justify-between font-bold text-[1.1rem] border-t border-[#ddd] pt-[0.35rem]"
       >
-        <span>Total TTC</span><span>{{ documentTotalInclVat() | price }} CHF</span>
+        <span>{{ 'documents.form.totalInclVat' | transloco }}</span><span>{{ documentTotalInclVat() | price }} CHF</span>
       </div>
     </div>
 
@@ -94,14 +94,14 @@
       <p-button
         size="small"
         type="button"
-        label="Annuler"
+        [label]="'common.cancel' | transloco"
         severity="secondary"
         (onClick)="cancel()"
       />
       <p-button
         size="small"
         type="button"
-        label="Enregistrer"
+        [label]="'documentTemplates.save' | transloco"
         [loading]="submitting()"
         [disabled]="locked()"
         (onClick)="submit()"

@@ -273,6 +273,20 @@
       "addResource": "Ajouter une ressource",
       "quantityFull": "Quantité",
       "timeHours": "Temps (h)"
+    },
+    "form": {
+      "newQuote": "Nouvelle offre",
+      "newInvoice": "Nouvelle facture",
+      "editQuote": "Modifier l'offre",
+      "editInvoice": "Modifier la facture",
+      "introPlaceholder": "Introduction du document...",
+      "conclusionPlaceholder": "Conclusion du document...",
+      "discount": "Rabais document",
+      "subtotal": "Sous-total",
+      "totalAfterDiscount": "Total HT (après rabais)",
+      "totalInclVat": "Total TTC",
+      "chooseClient": "Choisis un client.",
+      "saveError": "Impossible d'enregistrer le document. Réessaie dans un instant."
     }
   }
 }
