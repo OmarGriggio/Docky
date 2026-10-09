@@ -1,8 +1,14 @@
 -- Sample data - a full dataset so there's always something to look at.
 --
 -- Two separate companies (tenants):
---   1  DE DONNO STYLE Sàrl - the developer's own company.
---   2  Rénov Alpes Sàrl    - the demo company handed to recruiters.
+--   1  DE DONNO STYLE Sàrl - the developer's own company. Content in French
+--      (see CLAUDE.md's "English everywhere" bullet - the frontend's own
+--      French-Swiss end user).
+--   2  Rénov Alpes Sàrl    - the demo company handed to recruiters. Content
+--      in English on purpose (a recruiter is far more likely to read English
+--      than French) - its own user also defaults to the English UI
+--      (users.language, see migration 002) - everything else about it
+--      (still a Swiss company/address/VAT) stays as realistic as company 1.
 -- Demo login: admin@demo.docky.ch / Demo2026! (ADMIN, not PLATFORM_ADMIN -
 -- see CLAUDE.md's Roles section: there's no self-service way to make one of
 -- those, this account only ever sees company 2's own data).
@@ -45,8 +51,8 @@ VALUES
 -- pdf/swiss-qr-bill/validators/creditor.validator.ts).
 ('DE DONNO STYLE Sàrl', 'dedonnostyle@gmail.com', '+41799549936', 'CH8500790016247615012', 'Rue de boujean 37', '2502', 'Biel/Bienne', 'Suisse', NULL, NULL, 8.1, 'CHE-456.789.123 TVA', 'Paiement à 30 jours net, sans escompte.
 En cas de retard de paiement, un intérêt moratoire de 5 % l''an sera perçu.'),
-('Rénov Alpes Sàrl', 'contact@renovalpes.ch', '+41798765432', 'CH9300762011623852957', 'Avenue de la Gare 22', '1950', 'Sion', 'Suisse', NULL, NULL, 8.1, 'CHE-321.654.987 TVA', 'Paiement à 30 jours net, sans escompte.
-En cas de retard de paiement, un intérêt moratoire de 5 % l''an sera perçu.');
+('Rénov Alpes Sàrl', 'contact@renovalpes.ch', '+41798765432', 'CH9300762011623852957', 'Avenue de la Gare 22', '1950', 'Sion', 'Switzerland', NULL, NULL, 8.1, 'CHE-321.654.987 VAT', 'Payment due within 30 days net, no discount.
+A late payment interest of 5% per annum will be charged on overdue payments.');
 
 -- ==========================================
 -- USERS
@@ -57,13 +63,17 @@ En cas de retard de paiement, un intérêt moratoire de 5 % l''an sera perçu.')
 -- demo ADMIN of company 2. The PLATFORM_ADMIN one is inserted by hand here -
 -- see the "Roles" bullet in CLAUDE.md for why there's no self-service way to
 -- create one otherwise. Dev logins (company 1): password123.
+-- language isn't set here - the column doesn't exist yet at this point in a
+-- fresh volume's bootstrap sequence (it's added by migration 002, which runs
+-- after this file - see zz_migrations/004_set_demo_user_language.sql for how
+-- the demo admin below ends up on 'EN' regardless of load order).
 INSERT INTO users
 (company_id, role, last_name, first_name, email, password_hash)
 VALUES
 (1, 'ADMIN', 'Griggio', 'Omar', 'admin@dedonnostyle.ch', '$2b$10$iajz9XismG1lmi4UqoUE/eWKmkUbcCP0atCdq69lLJeyzLUYgxzEK'),
 (1, 'USER', 'Dupont', 'Jean', 'user@dedonnostyle.ch', '$2b$10$UD0BeQiB2zuK18XQ/xarOem0Gb.cm9rrrhy0EUkBaIFU4NmK4SIa.'),
 (1, 'PLATFORM_ADMIN', 'Martin', 'Alex', 'platform-admin@docky.ch', '$2b$10$5t99pOfvURFib9Z/YGDVleN//lXQGF/YR7o3t4decR/WXYvFukl92'),
-(2, 'ADMIN', 'Démo', 'Admin', 'admin@demo.docky.ch', '$2b$10$RsWdYHkci6jeRUfTYl/qt.HcXY0FK0wa5OKNl2sJRIdXejkpyQ9Wy');
+(2, 'ADMIN', 'Demo', 'Admin', 'admin@demo.docky.ch', '$2b$10$RsWdYHkci6jeRUfTYl/qt.HcXY0FK0wa5OKNl2sJRIdXejkpyQ9Wy');
 
 -- ==========================================
 -- CLIENTS
@@ -80,11 +90,11 @@ VALUES
 (1, 'C0003', 'PROFESSIONAL', 'Entreprise Martin SA', 'CHE-123.456.789', NULL, NULL, 'Madame, Monsieur', 'contact@martinsa.ch', '0211112233', 'Client professionnel', TRUE),
 (1, 'C0004', 'PROFESSIONAL', 'ABC Construction SA', 'CHE-987.654.321', NULL, NULL, 'Madame, Monsieur', 'info@abcconstruction.ch', '0215556677', NULL, TRUE),
 (1, 'C0005', 'INDIVIDUAL', NULL, NULL, 'Durand', 'Paul', 'Monsieur', 'paul.durand@gmail.com', '0783334455', NULL, TRUE),
-(2, 'C0006', 'INDIVIDUAL', NULL, NULL, 'Fournier', 'Marc', 'Monsieur', 'marc.fournier@gmail.com', '0764445566', NULL, TRUE),
-(2, 'C0007', 'INDIVIDUAL', NULL, NULL, 'Bianchi', 'Elena', 'Madame', 'elena.bianchi@gmail.com', '0765556677', NULL, TRUE),
-(2, 'C0008', 'PROFESSIONAL', 'Hôtel du Cervin SA', 'CHE-111.222.333', NULL, NULL, 'Madame, Monsieur', 'contact@hotelducervin.ch', '0276667788', 'Client professionnel', TRUE),
-(2, 'C0009', 'PROFESSIONAL', 'Immobilière Valaisanne Sàrl', 'CHE-444.555.666', NULL, NULL, 'Madame, Monsieur', 'info@immo-valais.ch', '0278889900', 'Client professionnel', TRUE),
-(2, 'C0010', 'INDIVIDUAL', NULL, NULL, 'Roduit', 'Claire', 'Madame', 'claire.roduit@gmail.com', '0767778899', NULL, TRUE),
+(2, 'C0006', 'INDIVIDUAL', NULL, NULL, 'Fournier', 'Marc', 'Mr', 'marc.fournier@gmail.com', '0764445566', NULL, TRUE),
+(2, 'C0007', 'INDIVIDUAL', NULL, NULL, 'Bianchi', 'Elena', 'Ms', 'elena.bianchi@gmail.com', '0765556677', NULL, TRUE),
+(2, 'C0008', 'PROFESSIONAL', 'Hôtel du Cervin SA', 'CHE-111.222.333', NULL, NULL, 'Dear Sir/Madam', 'contact@hotelducervin.ch', '0276667788', 'Professional client', TRUE),
+(2, 'C0009', 'PROFESSIONAL', 'Immobilière Valaisanne Sàrl', 'CHE-444.555.666', NULL, NULL, 'Dear Sir/Madam', 'info@immo-valais.ch', '0278889900', 'Professional client', TRUE),
+(2, 'C0010', 'INDIVIDUAL', NULL, NULL, 'Roduit', 'Claire', 'Ms', 'claire.roduit@gmail.com', '0767778899', NULL, TRUE),
 (1, 'C0011', 'PROFESSIONAL', 'Toiture Plus Sàrl', 'CHE-222.333.444', NULL, NULL, 'Madame, Monsieur', 'contact@toitureplus.ch', '0219998877', NULL, FALSE),
 (1, 'C0012', 'INDIVIDUAL', NULL, NULL, 'Bertrand', 'Lucie', 'Madame', 'lucie.bertrand@gmail.com', '0761234567', NULL, TRUE),
 (1, 'C0013', 'INDIVIDUAL', NULL, NULL, 'Moser', 'Thomas', 'Monsieur', 'thomas.moser@gmail.com', '0789876543', NULL, TRUE);
@@ -104,11 +114,11 @@ VALUES
 (1, 3, TRUE, NULL, 'Rue Centrale 18', '1020', 'Renens', 'Suisse'),
 (1, 4, TRUE, NULL, 'Chemin du Bois 45', '1008', 'Prilly', 'Suisse'),
 (1, 5, TRUE, NULL, 'Avenue des Alpes 9', '1800', 'Vevey', 'Suisse'),
-(2, 6, TRUE, NULL, 'Rue du Rhône 14', '1950', 'Sion', 'Suisse'),
-(2, 7, TRUE, NULL, 'Route de Riddes 8', '1908', 'Riddes', 'Suisse'),
-(2, 8, TRUE, NULL, 'Rue du Cervin 3', '3920', 'Zermatt', 'Suisse'),
-(2, 9, TRUE, NULL, 'Avenue de la Gare 40', '1950', 'Sion', 'Suisse'),
-(2, 10, TRUE, NULL, 'Chemin des Vignes 6', '1963', 'Vétroz', 'Suisse'),
+(2, 6, TRUE, NULL, 'Rue du Rhône 14', '1950', 'Sion', 'Switzerland'),
+(2, 7, TRUE, NULL, 'Route de Riddes 8', '1908', 'Riddes', 'Switzerland'),
+(2, 8, TRUE, NULL, 'Rue du Cervin 3', '3920', 'Zermatt', 'Switzerland'),
+(2, 9, TRUE, NULL, 'Avenue de la Gare 40', '1950', 'Sion', 'Switzerland'),
+(2, 10, TRUE, NULL, 'Chemin des Vignes 6', '1963', 'Vétroz', 'Switzerland'),
 (1, 3, FALSE, 'Site de Renens', 'Route Industrielle 8', '1020', 'Renens', 'Suisse'),
 (1, 11, TRUE, NULL, 'Rue de la Gare 3', '1003', 'Lausanne', 'Suisse'),
 (1, 12, TRUE, NULL, 'Chemin des Fleurs 7', '1010', 'Lausanne', 'Suisse'),
@@ -143,16 +153,16 @@ VALUES
 (1, NULL, 'SERVICE', 'DEP-1', 'Déplacement', 'Forfait', 60, NULL, TRUE),
 (1, NULL, 'SERVICE', 'NAC-1', 'Location nacelle', 'Jour', 250, 180, TRUE),
 (1, NULL, 'MATERIAL', 'MAT005', 'Brique réfractaire', 'Pièce', 6.5, 4, FALSE),
-(2, NULL, 'MATERIAL', 'MAT101', 'Tuile terre cuite', 'Pièce', 3.2, 1.8, TRUE),
-(2, NULL, 'MATERIAL', 'MAT102', 'Isolant laine de roche 100mm', 'm²', 18.5, 12, TRUE),
-(2, NULL, 'MATERIAL', 'MAT103', 'Fenêtre PVC triple vitrage', 'Pièce', 650, 420, TRUE),
-(2, NULL, 'MATERIAL', 'MAT104', 'Chéneau zinc', 'm', 38, 24, TRUE),
-(2, NULL, 'MATERIAL', 'MAT105', 'Lucarne de toit', 'Pièce', 1450, 980, TRUE),
-(2, NULL, 'SERVICE', 'MO101', 'Couvreur qualifié', 'Heure', 105, NULL, TRUE),
-(2, NULL, 'SERVICE', 'MO102', 'Apprenti couvreur', 'Heure', 58, NULL, TRUE),
-(2, NULL, 'SERVICE', 'ST101', 'Grutier externe', 'Heure', 140, 100, TRUE),
-(2, NULL, 'SERVICE', 'DIV101', 'Déplacement', 'Forfait', 65, NULL, TRUE),
-(2, NULL, 'SERVICE', 'DIV102', 'Location échafaudage', 'Semaine', 320, 220, TRUE);
+(2, NULL, 'MATERIAL', 'MAT101', 'Clay roof tile', 'Each', 3.2, 1.8, TRUE),
+(2, NULL, 'MATERIAL', 'MAT102', 'Rock wool insulation 100mm', 'm²', 18.5, 12, TRUE),
+(2, NULL, 'MATERIAL', 'MAT103', 'Triple-glazed PVC window', 'Each', 650, 420, TRUE),
+(2, NULL, 'MATERIAL', 'MAT104', 'Zinc gutter', 'm', 38, 24, TRUE),
+(2, NULL, 'MATERIAL', 'MAT105', 'Roof dormer window', 'Each', 1450, 980, TRUE),
+(2, NULL, 'SERVICE', 'MO101', 'Qualified roofer', 'Hour', 105, NULL, TRUE),
+(2, NULL, 'SERVICE', 'MO102', 'Roofing apprentice', 'Hour', 58, NULL, TRUE),
+(2, NULL, 'SERVICE', 'ST101', 'External crane operator', 'Hour', 140, 100, TRUE),
+(2, NULL, 'SERVICE', 'DIV101', 'Travel', 'Flat rate', 65, NULL, TRUE),
+(2, NULL, 'SERVICE', 'DIV102', 'Scaffolding rental', 'Week', 320, 220, TRUE);
 
 -- The unit picker's list, per company.
 INSERT INTO resource_units (company_id, label)
@@ -167,13 +177,13 @@ VALUES
 (1, 'm'),
 (1, 'm²'),
 (1, 'kg'),
-(2, 'Heure'),
-(2, 'Jour'),
-(2, 'Semaine'),
-(2, 'Forfait'),
-(2, 'Pièce'),
-(2, 'Sac'),
-(2, 'Pot'),
+(2, 'Hour'),
+(2, 'Day'),
+(2, 'Week'),
+(2, 'Flat rate'),
+(2, 'Each'),
+(2, 'Bag'),
+(2, 'Can'),
 (2, 'm'),
 (2, 'm²'),
 (2, 'kg');
@@ -182,7 +192,13 @@ VALUES
 -- PROJECT TYPES
 -- ==========================================
 
--- A global lookup - no company_id, shared by every tenant.
+-- A global lookup - no company_id, shared by every tenant. Ids 1-8 (French)
+-- are what company 1's own projects below use; ids 9-16 (English) are their
+-- counterparts for company 2's projects, which needs its own English-labeled
+-- types rather than reusing company 1's French ones (see this file's own
+-- header comment on why company 2's content is English) - also recreated
+-- idempotently by zz_migrations/003_add_english_project_types.sql, so an
+-- already-initialized database picks them up too, not just a fresh volume.
 INSERT INTO project_types (label)
 VALUES
 ('Porte'),
@@ -192,7 +208,15 @@ VALUES
 ('Isolation'),
 ('Autre'),
 ('Toiture'),
-('Fenêtres');
+('Fenêtres'),
+('Door'),
+('Kitchens'),
+('Bathroom'),
+('Repair'),
+('Insulation'),
+('Other'),
+('Roofing'),
+('Windows');
 
 -- ==========================================
 -- DOCUMENTS
@@ -313,68 +337,68 @@ C''est avec plaisir que nous vous transmettons la facture ci-dessous, établie c
 En cas de retard de paiement, un intérêt moratoire de 5 % l''an sera perçu.', CURRENT_DATE + 4, TRUE),
 (2, 8, NULL, NULL, NULL, 'QUOTE', 'OFF-2026-0001', CURRENT_DATE - 90, 2540, 2745.74, 0, 8.1, 'ACCEPTED', '{{titre_client}},
 
-Nous avons le plaisir de vous soumettre notre offre pour les travaux décrits ci-dessous.', 'Cette offre est valable 30 jours à compter de sa date d''émission. Nous restons à votre disposition pour toute question.
+We are pleased to submit our quote for the work described below.', 'This quote is valid for 30 days from its issue date. Please do not hesitate to contact us with any questions.
 
-Avec nos meilleures salutations.
+Kind regards,
 
-{{signature_entreprise}}', 'Paiement à 30 jours net, sans escompte.
-En cas de retard de paiement, un intérêt moratoire de 5 % l''an sera perçu.', CURRENT_DATE - 60, TRUE),
+{{signature_entreprise}}', 'Payment due within 30 days net, no discount.
+A late payment interest of 5% per annum will be charged on overdue payments.', CURRENT_DATE - 60, TRUE),
 (2, 9, NULL, NULL, NULL, 'QUOTE', 'OFF-2026-0002', CURRENT_DATE - 70, 6635.75, 7173.25, 5, 8.1, 'ACCEPTED', '{{titre_client}},
 
-Nous avons le plaisir de vous soumettre notre offre pour les travaux décrits ci-dessous.', 'Cette offre est valable 30 jours à compter de sa date d''émission. Nous restons à votre disposition pour toute question.
+We are pleased to submit our quote for the work described below.', 'This quote is valid for 30 days from its issue date. Please do not hesitate to contact us with any questions.
 
-Avec nos meilleures salutations.
+Kind regards,
 
-{{signature_entreprise}}', 'Paiement à 30 jours net, sans escompte.
-En cas de retard de paiement, un intérêt moratoire de 5 % l''an sera perçu.', CURRENT_DATE - 40, TRUE),
+{{signature_entreprise}}', 'Payment due within 30 days net, no discount.
+A late payment interest of 5% per annum will be charged on overdue payments.', CURRENT_DATE - 40, TRUE),
 (2, 10, NULL, NULL, NULL, 'QUOTE', 'OFF-2026-0003', CURRENT_DATE - 65, 1597, 1726.36, 0, 8.1, 'ACCEPTED', '{{titre_client}},
 
-Nous avons le plaisir de vous soumettre notre offre pour les travaux décrits ci-dessous.', 'Cette offre est valable 30 jours à compter de sa date d''émission. Nous restons à votre disposition pour toute question.
+We are pleased to submit our quote for the work described below.', 'This quote is valid for 30 days from its issue date. Please do not hesitate to contact us with any questions.
 
-Avec nos meilleures salutations.
+Kind regards,
 
-{{signature_entreprise}}', 'Paiement à 30 jours net, sans escompte.
-En cas de retard de paiement, un intérêt moratoire de 5 % l''an sera perçu.', CURRENT_DATE - 35, TRUE),
+{{signature_entreprise}}', 'Payment due within 30 days net, no discount.
+A late payment interest of 5% per annum will be charged on overdue payments.', CURRENT_DATE - 35, TRUE),
 (2, 7, NULL, NULL, NULL, 'QUOTE', 'OFF-2026-0004', CURRENT_DATE - 30, 2179, 2355.5, 0, 8.1, 'ACCEPTED', '{{titre_client}},
 
-Nous avons le plaisir de vous soumettre notre offre pour les travaux décrits ci-dessous.', 'Cette offre est valable 30 jours à compter de sa date d''émission. Nous restons à votre disposition pour toute question.
+We are pleased to submit our quote for the work described below.', 'This quote is valid for 30 days from its issue date. Please do not hesitate to contact us with any questions.
 
-Avec nos meilleures salutations.
+Kind regards,
 
-{{signature_entreprise}}', 'Paiement à 30 jours net, sans escompte.
-En cas de retard de paiement, un intérêt moratoire de 5 % l''an sera perçu.', CURRENT_DATE, TRUE),
+{{signature_entreprise}}', 'Payment due within 30 days net, no discount.
+A late payment interest of 5% per annum will be charged on overdue payments.', CURRENT_DATE, TRUE),
 (2, 6, NULL, NULL, NULL, 'QUOTE', 'OFF-2026-0005', CURRENT_DATE - 20, 2645, 2859.25, 0, 8.1, 'ACCEPTED', '{{titre_client}},
 
-Nous avons le plaisir de vous soumettre notre offre pour les travaux décrits ci-dessous.', 'Cette offre est valable 30 jours à compter de sa date d''émission. Nous restons à votre disposition pour toute question.
+We are pleased to submit our quote for the work described below.', 'This quote is valid for 30 days from its issue date. Please do not hesitate to contact us with any questions.
 
-Avec nos meilleures salutations.
+Kind regards,
 
-{{signature_entreprise}}', 'Paiement à 30 jours net, sans escompte.
-En cas de retard de paiement, un intérêt moratoire de 5 % l''an sera perçu.', CURRENT_DATE + 10, TRUE),
+{{signature_entreprise}}', 'Payment due within 30 days net, no discount.
+A late payment interest of 5% per annum will be charged on overdue payments.', CURRENT_DATE + 10, TRUE),
 (2, 8, NULL, NULL, NULL, 'QUOTE', 'OFF-2026-0006', CURRENT_DATE - 6, 12660, 13685.46, 0, 8.1, 'SENT', '{{titre_client}},
 
-Nous avons le plaisir de vous soumettre notre offre pour les travaux décrits ci-dessous.', 'Cette offre est valable 30 jours à compter de sa date d''émission. Nous restons à votre disposition pour toute question.
+We are pleased to submit our quote for the work described below.', 'This quote is valid for 30 days from its issue date. Please do not hesitate to contact us with any questions.
 
-Avec nos meilleures salutations.
+Kind regards,
 
-{{signature_entreprise}}', 'Paiement à 30 jours net, sans escompte.
-En cas de retard de paiement, un intérêt moratoire de 5 % l''an sera perçu.', CURRENT_DATE + 24, TRUE),
+{{signature_entreprise}}', 'Payment due within 30 days net, no discount.
+A late payment interest of 5% per annum will be charged on overdue payments.', CURRENT_DATE + 24, TRUE),
 (2, 9, NULL, NULL, NULL, 'QUOTE', 'OFF-2026-0007', CURRENT_DATE - 2, 6760, 7307.56, 0, 8.1, 'DRAFT', '{{titre_client}},
 
-Nous avons le plaisir de vous soumettre notre offre pour les travaux décrits ci-dessous.', 'Cette offre est valable 30 jours à compter de sa date d''émission. Nous restons à votre disposition pour toute question.
+We are pleased to submit our quote for the work described below.', 'This quote is valid for 30 days from its issue date. Please do not hesitate to contact us with any questions.
 
-Avec nos meilleures salutations.
+Kind regards,
 
-{{signature_entreprise}}', 'Paiement à 30 jours net, sans escompte.
-En cas de retard de paiement, un intérêt moratoire de 5 % l''an sera perçu.', CURRENT_DATE + 28, TRUE),
+{{signature_entreprise}}', 'Payment due within 30 days net, no discount.
+A late payment interest of 5% per annum will be charged on overdue payments.', CURRENT_DATE + 28, TRUE),
 (2, 10, NULL, NULL, NULL, 'QUOTE', 'OFF-2026-0008', CURRENT_DATE - 50, 824, 890.74, 0, 8.1, 'REJECTED', '{{titre_client}},
 
-Nous avons le plaisir de vous soumettre notre offre pour les travaux décrits ci-dessous.', 'Cette offre est valable 30 jours à compter de sa date d''émission. Nous restons à votre disposition pour toute question.
+We are pleased to submit our quote for the work described below.', 'This quote is valid for 30 days from its issue date. Please do not hesitate to contact us with any questions.
 
-Avec nos meilleures salutations.
+Kind regards,
 
-{{signature_entreprise}}', 'Paiement à 30 jours net, sans escompte.
-En cas de retard de paiement, un intérêt moratoire de 5 % l''an sera perçu.', CURRENT_DATE - 20, FALSE),
+{{signature_entreprise}}', 'Payment due within 30 days net, no discount.
+A late payment interest of 5% per annum will be charged on overdue payments.', CURRENT_DATE - 20, FALSE),
 (2, 8, NULL, NULL, 22, 'PROJECT', 'CH-2026-0001', CURRENT_DATE - 88, 2572, 2572, 0, 0, NULL, NULL, NULL, NULL, NULL, TRUE),
 (2, 9, NULL, NULL, 23, 'PROJECT', 'CH-2026-0002', CURRENT_DATE - 68, 6985, 6985, 0, 0, NULL, NULL, NULL, NULL, NULL, TRUE),
 (2, 10, NULL, NULL, 24, 'PROJECT', 'CH-2026-0003', CURRENT_DATE - 63, 1597, 1597, 0, 0, NULL, NULL, NULL, NULL, NULL, TRUE),
@@ -383,40 +407,40 @@ En cas de retard de paiement, un intérêt moratoire de 5 % l''an sera perçu.',
 (2, 6, NULL, NULL, 26, 'PROJECT', 'CH-2026-0006', CURRENT_DATE - 18, 2645, 2645, 0, 0, NULL, NULL, NULL, NULL, NULL, TRUE),
 (2, 8, NULL, NULL, 30, 'INVOICE', 'FAC-2026-0001', CURRENT_DATE - 2, 2572, 2780.33, 0, 8.1, 'PAID', '{{titre_client}},
 
-C''est avec plaisir que nous vous transmettons la facture ci-dessous, établie conformément à nos accords. Nous restons à votre entière disposition pour toute question.', 'Nous vous remercions pour votre confiance et vous souhaitons, Madame, Monsieur, nos salutations les meilleures.
+We are pleased to send you the invoice below, issued in accordance with our agreement. Please do not hesitate to contact us with any questions.', 'Thank you for your trust. Kind regards,
 
-{{signature_entreprise}}', 'Paiement à 30 jours net, sans escompte.
-En cas de retard de paiement, un intérêt moratoire de 5 % l''an sera perçu.', CURRENT_DATE + 28, TRUE),
+{{signature_entreprise}}', 'Payment due within 30 days net, no discount.
+A late payment interest of 5% per annum will be charged on overdue payments.', CURRENT_DATE + 28, TRUE),
 (2, 9, NULL, NULL, 31, 'INVOICE', 'FAC-2026-0002', CURRENT_DATE - 46, 6635.75, 7173.25, 5, 8.1, 'PAID', '{{titre_client}},
 
-C''est avec plaisir que nous vous transmettons la facture ci-dessous, établie conformément à nos accords. Nous restons à votre entière disposition pour toute question.', 'Nous vous remercions pour votre confiance et vous souhaitons, Madame, Monsieur, nos salutations les meilleures.
+We are pleased to send you the invoice below, issued in accordance with our agreement. Please do not hesitate to contact us with any questions.', 'Thank you for your trust. Kind regards,
 
-{{signature_entreprise}}', 'Paiement à 30 jours net, sans escompte.
-En cas de retard de paiement, un intérêt moratoire de 5 % l''an sera perçu.', CURRENT_DATE - 16, TRUE),
+{{signature_entreprise}}', 'Payment due within 30 days net, no discount.
+A late payment interest of 5% per annum will be charged on overdue payments.', CURRENT_DATE - 16, TRUE),
 (2, 10, NULL, NULL, 32, 'INVOICE', 'FAC-2026-0003', CURRENT_DATE - 55, 1597, 1726.36, 0, 8.1, 'SENT', '{{titre_client}},
 
-C''est avec plaisir que nous vous transmettons la facture ci-dessous, établie conformément à nos accords. Nous restons à votre entière disposition pour toute question.', 'Nous vous remercions pour votre confiance et vous souhaitons, Madame, Monsieur, nos salutations les meilleures.
+We are pleased to send you the invoice below, issued in accordance with our agreement. Please do not hesitate to contact us with any questions.', 'Thank you for your trust. Kind regards,
 
-{{signature_entreprise}}', 'Paiement à 30 jours net, sans escompte.
-En cas de retard de paiement, un intérêt moratoire de 5 % l''an sera perçu.', CURRENT_DATE - 25, TRUE),
-(2, 7, NULL, 'Commande 2026-118', NULL, 'INVOICE', 'FAC-2026-0004', CURRENT_DATE - 1, 695, 751.3, 0, 8.1, 'DRAFT', '{{titre_client}},
+{{signature_entreprise}}', 'Payment due within 30 days net, no discount.
+A late payment interest of 5% per annum will be charged on overdue payments.', CURRENT_DATE - 25, TRUE),
+(2, 7, NULL, 'Order 2026-118', NULL, 'INVOICE', 'FAC-2026-0004', CURRENT_DATE - 1, 695, 751.3, 0, 8.1, 'DRAFT', '{{titre_client}},
 
-C''est avec plaisir que nous vous transmettons la facture ci-dessous, établie conformément à nos accords. Nous restons à votre entière disposition pour toute question.', 'Nous vous remercions pour votre confiance et vous souhaitons, Madame, Monsieur, nos salutations les meilleures.
+We are pleased to send you the invoice below, issued in accordance with our agreement. Please do not hesitate to contact us with any questions.', 'Thank you for your trust. Kind regards,
 
-{{signature_entreprise}}', 'Paiement à 30 jours net, sans escompte.
-En cas de retard de paiement, un intérêt moratoire de 5 % l''an sera perçu.', CURRENT_DATE + 29, TRUE),
+{{signature_entreprise}}', 'Payment due within 30 days net, no discount.
+A late payment interest of 5% per annum will be charged on overdue payments.', CURRENT_DATE + 29, TRUE),
 (2, 6, NULL, NULL, NULL, 'INVOICE', 'FAC-2026-0005', CURRENT_DATE - 40, 239, 258.36, 0, 8.1, 'CANCELLED', '{{titre_client}},
 
-C''est avec plaisir que nous vous transmettons la facture ci-dessous, établie conformément à nos accords. Nous restons à votre entière disposition pour toute question.', 'Nous vous remercions pour votre confiance et vous souhaitons, Madame, Monsieur, nos salutations les meilleures.
+We are pleased to send you the invoice below, issued in accordance with our agreement. Please do not hesitate to contact us with any questions.', 'Thank you for your trust. Kind regards,
 
-{{signature_entreprise}}', 'Paiement à 30 jours net, sans escompte.
-En cas de retard de paiement, un intérêt moratoire de 5 % l''an sera perçu.', CURRENT_DATE - 10, TRUE),
+{{signature_entreprise}}', 'Payment due within 30 days net, no discount.
+A late payment interest of 5% per annum will be charged on overdue payments.', CURRENT_DATE - 10, TRUE),
 (2, 8, NULL, NULL, NULL, 'INVOICE', 'FAC-2026-0006', CURRENT_DATE - 5, 485, 524.29, 0, 8.1, 'SENT', '{{titre_client}},
 
-C''est avec plaisir que nous vous transmettons la facture ci-dessous, établie conformément à nos accords. Nous restons à votre entière disposition pour toute question.', 'Nous vous remercions pour votre confiance et vous souhaitons, Madame, Monsieur, nos salutations les meilleures.
+We are pleased to send you the invoice below, issued in accordance with our agreement. Please do not hesitate to contact us with any questions.', 'Thank you for your trust. Kind regards,
 
-{{signature_entreprise}}', 'Paiement à 30 jours net, sans escompte.
-En cas de retard de paiement, un intérêt moratoire de 5 % l''an sera perçu.', CURRENT_DATE + 25, TRUE);
+{{signature_entreprise}}', 'Payment due within 30 days net, no discount.
+A late payment interest of 5% per annum will be charged on overdue payments.', CURRENT_DATE + 25, TRUE);
 
 -- ==========================================
 -- DOCUMENT SECTIONS
@@ -451,28 +475,28 @@ VALUES
 (1, 19, 1, 'Maçonnerie', NULL, NULL, NULL, TRUE),
 (1, 20, 1, 'Travaux', NULL, NULL, NULL, TRUE),
 (1, 21, 1, 'Travaux', NULL, NULL, NULL, TRUE),
-(2, 22, 1, 'Réfection de toiture', NULL, NULL, NULL, TRUE),
-(2, 23, 1, 'Isolation et fenêtres', NULL, NULL, NULL, TRUE),
-(2, 24, 1, 'Remplacement de fenêtres', NULL, NULL, NULL, TRUE),
-(2, 25, 1, 'Chéneaux et gouttières', NULL, NULL, NULL, TRUE),
-(2, 26, 1, 'Isolation des combles', NULL, NULL, NULL, TRUE),
-(2, 27, 1, 'Lucarnes', NULL, NULL, NULL, TRUE),
-(2, 27, 2, 'Fenêtres', NULL, NULL, NULL, TRUE),
-(2, 27, 3, 'Logistique', NULL, NULL, NULL, TRUE),
-(2, 28, 1, 'Réfection de toiture', NULL, NULL, NULL, TRUE),
-(2, 29, 1, 'Fenêtre de toit', NULL, NULL, NULL, FALSE),
-(2, 30, 1, 'Réfection de toiture', NULL, CURRENT_DATE - 3 + TIME '07:00', CURRENT_DATE - 3 + TIME '17:00', TRUE),
-(2, 31, 1, 'Isolation et fenêtres', NULL, CURRENT_DATE - 50 + TIME '07:00', CURRENT_DATE - 50 + TIME '17:00', TRUE),
-(2, 32, 1, 'Remplacement de fenêtres', NULL, CURRENT_DATE - 60 + TIME '08:00', CURRENT_DATE - 60 + TIME '17:00', TRUE),
-(2, 33, 1, 'Entretien', NULL, CURRENT_DATE - 2 + TIME '07:00', CURRENT_DATE - 2 + TIME '16:00', TRUE),
-(2, 34, 1, 'Chéneaux et gouttières', NULL, CURRENT_DATE + 1 + TIME '07:00', CURRENT_DATE + 1 + TIME '17:00', TRUE),
-(2, 35, 1, 'Isolation des combles', NULL, NULL, NULL, TRUE),
-(2, 36, 1, 'Réfection de toiture', NULL, NULL, NULL, TRUE),
-(2, 37, 1, 'Isolation et fenêtres', NULL, NULL, NULL, TRUE),
-(2, 38, 1, 'Remplacement de fenêtres', NULL, NULL, NULL, TRUE),
-(2, 39, 1, 'Réparation de toiture', NULL, NULL, NULL, TRUE),
-(2, 40, 1, 'Petits travaux', NULL, NULL, NULL, TRUE),
-(2, 41, 1, 'Entretien annuel', NULL, NULL, NULL, TRUE);
+(2, 22, 1, 'Roof refurbishment', NULL, NULL, NULL, TRUE),
+(2, 23, 1, 'Insulation and windows', NULL, NULL, NULL, TRUE),
+(2, 24, 1, 'Window replacement', NULL, NULL, NULL, TRUE),
+(2, 25, 1, 'Gutters and downpipes', NULL, NULL, NULL, TRUE),
+(2, 26, 1, 'Attic insulation', NULL, NULL, NULL, TRUE),
+(2, 27, 1, 'Dormer windows', NULL, NULL, NULL, TRUE),
+(2, 27, 2, 'Windows', NULL, NULL, NULL, TRUE),
+(2, 27, 3, 'Logistics', NULL, NULL, NULL, TRUE),
+(2, 28, 1, 'Roof refurbishment', NULL, NULL, NULL, TRUE),
+(2, 29, 1, 'Roof window', NULL, NULL, NULL, FALSE),
+(2, 30, 1, 'Roof refurbishment', NULL, CURRENT_DATE - 3 + TIME '07:00', CURRENT_DATE - 3 + TIME '17:00', TRUE),
+(2, 31, 1, 'Insulation and windows', NULL, CURRENT_DATE - 50 + TIME '07:00', CURRENT_DATE - 50 + TIME '17:00', TRUE),
+(2, 32, 1, 'Window replacement', NULL, CURRENT_DATE - 60 + TIME '08:00', CURRENT_DATE - 60 + TIME '17:00', TRUE),
+(2, 33, 1, 'Maintenance', NULL, CURRENT_DATE - 2 + TIME '07:00', CURRENT_DATE - 2 + TIME '16:00', TRUE),
+(2, 34, 1, 'Gutters and downpipes', NULL, CURRENT_DATE + 1 + TIME '07:00', CURRENT_DATE + 1 + TIME '17:00', TRUE),
+(2, 35, 1, 'Attic insulation', NULL, NULL, NULL, TRUE),
+(2, 36, 1, 'Roof refurbishment', NULL, NULL, NULL, TRUE),
+(2, 37, 1, 'Insulation and windows', NULL, NULL, NULL, TRUE),
+(2, 38, 1, 'Window replacement', NULL, NULL, NULL, TRUE),
+(2, 39, 1, 'Roof repair', NULL, NULL, NULL, TRUE),
+(2, 40, 1, 'Minor works', NULL, NULL, NULL, TRUE),
+(2, 41, 1, 'Annual maintenance', NULL, NULL, NULL, TRUE);
 
 -- ==========================================
 -- DOCUMENT LINES
@@ -536,66 +560,66 @@ VALUES
 (1, 20, 22, 'SERVICE', 2, 'Maçon qualifié', 4, 'Heure', 95, 0, 15, TRUE),
 (1, 21, 23, 'MATERIAL', 1, 'Parpaing 20 cm', 80, 'Pièce', 4.5, 0, 5, TRUE),
 (1, 21, 23, 'SERVICE', 2, 'Apprenti 3ème', 5, 'Heure', 50, 0, 10, TRUE),
-(2, 22, 24, 'MATERIAL', 1, 'Tuile terre cuite', 200, 'Pièce', 3.2, 0, 21, TRUE),
-(2, 22, 24, 'SERVICE', 2, 'Couvreur qualifié', 12, 'Heure', 105, 0, 26, TRUE),
-(2, 22, 24, 'SERVICE', 3, 'Location échafaudage', 2, 'Semaine', 320, 0, 30, TRUE),
-(2, 23, 25, 'MATERIAL', 1, 'Isolant laine de roche 100mm', 120, 'm²', 18.5, 0, 22, TRUE),
-(2, 23, 25, 'MATERIAL', 2, 'Fenêtre PVC triple vitrage', 4, 'Pièce', 650, 0, 23, TRUE),
-(2, 23, 25, 'SERVICE', 3, 'Couvreur qualifié', 20, 'Heure', 105, 0, 26, TRUE),
-(2, 23, 25, 'SERVICE', 4, 'Déplacement', 1, 'Forfait', 65, 0, 29, TRUE),
-(2, 24, 26, 'MATERIAL', 1, 'Fenêtre PVC triple vitrage', 2, 'Pièce', 650, 0, 23, TRUE),
-(2, 24, 26, 'SERVICE', 2, 'Apprenti couvreur', 4, 'Heure', 58, 0, 27, TRUE),
-(2, 24, 26, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 65, 0, 29, TRUE),
-(2, 25, 27, 'MATERIAL', 1, 'Chéneau zinc', 28, 'm', 38, 0, 24, TRUE),
-(2, 25, 27, 'SERVICE', 2, 'Couvreur qualifié', 10, 'Heure', 105, 0, 26, TRUE),
-(2, 25, 27, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 65, 0, 29, TRUE),
-(2, 26, 28, 'MATERIAL', 1, 'Isolant laine de roche 100mm', 60, 'm²', 18.5, 0, 22, TRUE),
-(2, 26, 28, 'SERVICE', 2, 'Couvreur qualifié', 14, 'Heure', 105, 0, 26, TRUE),
-(2, 26, 28, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 65, 0, 29, TRUE),
-(2, 27, 29, 'MATERIAL', 1, 'Lucarne de toit', 2, 'Pièce', 1450, 0, 25, TRUE),
-(2, 27, 29, 'SERVICE', 2, 'Couvreur qualifié', 24, 'Heure', 105, 0, 26, TRUE),
-(2, 27, 30, 'MATERIAL', 1, 'Fenêtre PVC triple vitrage', 6, 'Pièce', 650, 0, 23, TRUE),
-(2, 27, 30, 'SERVICE', 2, 'Couvreur qualifié', 12, 'Heure', 105, 0, 26, TRUE),
-(2, 27, 31, 'SERVICE', 1, 'Grutier externe', 8, 'Heure', 140, 0, 28, TRUE),
-(2, 27, 31, 'SERVICE', 2, 'Location échafaudage', 3, 'Semaine', 320, 0, 30, TRUE),
-(2, 28, 32, 'MATERIAL', 1, 'Tuile terre cuite', 800, 'Pièce', 3.2, 0, 21, TRUE),
-(2, 28, 32, 'SERVICE', 2, 'Couvreur qualifié', 40, 'Heure', 105, 0, 26, TRUE),
-(2, 29, 33, 'MATERIAL', 1, 'Fenêtre PVC triple vitrage', 1, 'Pièce', 650, 0, 23, FALSE),
-(2, 29, 33, 'SERVICE', 2, 'Apprenti couvreur', 3, 'Heure', 58, 0, 27, FALSE),
-(2, 30, 34, 'MATERIAL', 1, 'Tuile terre cuite', 210, 'Pièce', 3.2, 0, 21, TRUE),
-(2, 30, 34, 'SERVICE', 2, 'Couvreur qualifié', 12, 'Heure', 105, 0, 26, TRUE),
-(2, 30, 34, 'SERVICE', 3, 'Location échafaudage', 2, 'Semaine', 320, 0, 30, TRUE),
-(2, 31, 35, 'MATERIAL', 1, 'Isolant laine de roche 100mm', 120, 'm²', 18.5, 0, 22, TRUE),
-(2, 31, 35, 'MATERIAL', 2, 'Fenêtre PVC triple vitrage', 4, 'Pièce', 650, 0, 23, TRUE),
-(2, 31, 35, 'SERVICE', 3, 'Couvreur qualifié', 20, 'Heure', 105, 0, 26, TRUE),
-(2, 31, 35, 'SERVICE', 4, 'Déplacement', 1, 'Forfait', 65, 0, 29, TRUE),
-(2, 32, 36, 'MATERIAL', 1, 'Fenêtre PVC triple vitrage', 2, 'Pièce', 650, 0, 23, TRUE),
-(2, 32, 36, 'SERVICE', 2, 'Apprenti couvreur', 4, 'Heure', 58, 0, 27, TRUE),
-(2, 32, 36, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 65, 0, 29, TRUE),
-(2, 33, 37, 'SERVICE', 1, 'Couvreur qualifié', 8, 'Heure', 105, 0, 26, TRUE),
-(2, 33, 37, 'SERVICE', 2, 'Déplacement', 1, 'Forfait', 65, 0, 29, TRUE),
-(2, 34, 38, 'MATERIAL', 1, 'Chéneau zinc', 28, 'm', 38, 0, 24, TRUE),
-(2, 34, 38, 'SERVICE', 2, 'Couvreur qualifié', 10, 'Heure', 105, 0, 26, TRUE),
-(2, 34, 38, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 65, 0, 29, TRUE),
-(2, 35, 39, 'MATERIAL', 1, 'Isolant laine de roche 100mm', 60, 'm²', 18.5, 0, 22, TRUE),
-(2, 35, 39, 'SERVICE', 2, 'Couvreur qualifié', 14, 'Heure', 105, 0, 26, TRUE),
-(2, 35, 39, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 65, 0, 29, TRUE),
-(2, 36, 40, 'MATERIAL', 1, 'Tuile terre cuite', 210, 'Pièce', 3.2, 0, 21, TRUE),
-(2, 36, 40, 'SERVICE', 2, 'Couvreur qualifié', 12, 'Heure', 105, 0, 26, TRUE),
-(2, 36, 40, 'SERVICE', 3, 'Location échafaudage', 2, 'Semaine', 320, 0, 30, TRUE),
-(2, 37, 41, 'MATERIAL', 1, 'Isolant laine de roche 100mm', 120, 'm²', 18.5, 0, 22, TRUE),
-(2, 37, 41, 'MATERIAL', 2, 'Fenêtre PVC triple vitrage', 4, 'Pièce', 650, 0, 23, TRUE),
-(2, 37, 41, 'SERVICE', 3, 'Couvreur qualifié', 20, 'Heure', 105, 0, 26, TRUE),
-(2, 37, 41, 'SERVICE', 4, 'Déplacement', 1, 'Forfait', 65, 0, 29, TRUE),
-(2, 38, 42, 'MATERIAL', 1, 'Fenêtre PVC triple vitrage', 2, 'Pièce', 650, 0, 23, TRUE),
-(2, 38, 42, 'SERVICE', 2, 'Apprenti couvreur', 4, 'Heure', 58, 0, 27, TRUE),
-(2, 38, 42, 'SERVICE', 3, 'Déplacement', 1, 'Forfait', 65, 0, 29, TRUE),
-(2, 39, 43, 'SERVICE', 1, 'Couvreur qualifié', 6, 'Heure', 105, 0, 26, TRUE),
-(2, 39, 43, 'SERVICE', 2, 'Déplacement', 1, 'Forfait', 65, 0, 29, TRUE),
-(2, 40, 44, 'SERVICE', 1, 'Apprenti couvreur', 3, 'Heure', 58, 0, 27, TRUE),
-(2, 40, 44, 'SERVICE', 2, 'Déplacement', 1, 'Forfait', 65, 0, 29, TRUE),
-(2, 41, 45, 'SERVICE', 1, 'Couvreur qualifié', 4, 'Heure', 105, 0, 26, TRUE),
-(2, 41, 45, 'SERVICE', 2, 'Déplacement', 1, 'Forfait', 65, 0, 29, TRUE);
+(2, 22, 24, 'MATERIAL', 1, 'Clay roof tile', 200, 'Each', 3.2, 0, 21, TRUE),
+(2, 22, 24, 'SERVICE', 2, 'Qualified roofer', 12, 'Hour', 105, 0, 26, TRUE),
+(2, 22, 24, 'SERVICE', 3, 'Scaffolding rental', 2, 'Week', 320, 0, 30, TRUE),
+(2, 23, 25, 'MATERIAL', 1, 'Rock wool insulation 100mm', 120, 'm²', 18.5, 0, 22, TRUE),
+(2, 23, 25, 'MATERIAL', 2, 'Triple-glazed PVC window', 4, 'Each', 650, 0, 23, TRUE),
+(2, 23, 25, 'SERVICE', 3, 'Qualified roofer', 20, 'Hour', 105, 0, 26, TRUE),
+(2, 23, 25, 'SERVICE', 4, 'Travel', 1, 'Flat rate', 65, 0, 29, TRUE),
+(2, 24, 26, 'MATERIAL', 1, 'Triple-glazed PVC window', 2, 'Each', 650, 0, 23, TRUE),
+(2, 24, 26, 'SERVICE', 2, 'Roofing apprentice', 4, 'Hour', 58, 0, 27, TRUE),
+(2, 24, 26, 'SERVICE', 3, 'Travel', 1, 'Flat rate', 65, 0, 29, TRUE),
+(2, 25, 27, 'MATERIAL', 1, 'Zinc gutter', 28, 'm', 38, 0, 24, TRUE),
+(2, 25, 27, 'SERVICE', 2, 'Qualified roofer', 10, 'Hour', 105, 0, 26, TRUE),
+(2, 25, 27, 'SERVICE', 3, 'Travel', 1, 'Flat rate', 65, 0, 29, TRUE),
+(2, 26, 28, 'MATERIAL', 1, 'Rock wool insulation 100mm', 60, 'm²', 18.5, 0, 22, TRUE),
+(2, 26, 28, 'SERVICE', 2, 'Qualified roofer', 14, 'Hour', 105, 0, 26, TRUE),
+(2, 26, 28, 'SERVICE', 3, 'Travel', 1, 'Flat rate', 65, 0, 29, TRUE),
+(2, 27, 29, 'MATERIAL', 1, 'Roof dormer window', 2, 'Each', 1450, 0, 25, TRUE),
+(2, 27, 29, 'SERVICE', 2, 'Qualified roofer', 24, 'Hour', 105, 0, 26, TRUE),
+(2, 27, 30, 'MATERIAL', 1, 'Triple-glazed PVC window', 6, 'Each', 650, 0, 23, TRUE),
+(2, 27, 30, 'SERVICE', 2, 'Qualified roofer', 12, 'Hour', 105, 0, 26, TRUE),
+(2, 27, 31, 'SERVICE', 1, 'External crane operator', 8, 'Hour', 140, 0, 28, TRUE),
+(2, 27, 31, 'SERVICE', 2, 'Scaffolding rental', 3, 'Week', 320, 0, 30, TRUE),
+(2, 28, 32, 'MATERIAL', 1, 'Clay roof tile', 800, 'Each', 3.2, 0, 21, TRUE),
+(2, 28, 32, 'SERVICE', 2, 'Qualified roofer', 40, 'Hour', 105, 0, 26, TRUE),
+(2, 29, 33, 'MATERIAL', 1, 'Triple-glazed PVC window', 1, 'Each', 650, 0, 23, FALSE),
+(2, 29, 33, 'SERVICE', 2, 'Roofing apprentice', 3, 'Hour', 58, 0, 27, FALSE),
+(2, 30, 34, 'MATERIAL', 1, 'Clay roof tile', 210, 'Each', 3.2, 0, 21, TRUE),
+(2, 30, 34, 'SERVICE', 2, 'Qualified roofer', 12, 'Hour', 105, 0, 26, TRUE),
+(2, 30, 34, 'SERVICE', 3, 'Scaffolding rental', 2, 'Week', 320, 0, 30, TRUE),
+(2, 31, 35, 'MATERIAL', 1, 'Rock wool insulation 100mm', 120, 'm²', 18.5, 0, 22, TRUE),
+(2, 31, 35, 'MATERIAL', 2, 'Triple-glazed PVC window', 4, 'Each', 650, 0, 23, TRUE),
+(2, 31, 35, 'SERVICE', 3, 'Qualified roofer', 20, 'Hour', 105, 0, 26, TRUE),
+(2, 31, 35, 'SERVICE', 4, 'Travel', 1, 'Flat rate', 65, 0, 29, TRUE),
+(2, 32, 36, 'MATERIAL', 1, 'Triple-glazed PVC window', 2, 'Each', 650, 0, 23, TRUE),
+(2, 32, 36, 'SERVICE', 2, 'Roofing apprentice', 4, 'Hour', 58, 0, 27, TRUE),
+(2, 32, 36, 'SERVICE', 3, 'Travel', 1, 'Flat rate', 65, 0, 29, TRUE),
+(2, 33, 37, 'SERVICE', 1, 'Qualified roofer', 8, 'Hour', 105, 0, 26, TRUE),
+(2, 33, 37, 'SERVICE', 2, 'Travel', 1, 'Flat rate', 65, 0, 29, TRUE),
+(2, 34, 38, 'MATERIAL', 1, 'Zinc gutter', 28, 'm', 38, 0, 24, TRUE),
+(2, 34, 38, 'SERVICE', 2, 'Qualified roofer', 10, 'Hour', 105, 0, 26, TRUE),
+(2, 34, 38, 'SERVICE', 3, 'Travel', 1, 'Flat rate', 65, 0, 29, TRUE),
+(2, 35, 39, 'MATERIAL', 1, 'Rock wool insulation 100mm', 60, 'm²', 18.5, 0, 22, TRUE),
+(2, 35, 39, 'SERVICE', 2, 'Qualified roofer', 14, 'Hour', 105, 0, 26, TRUE),
+(2, 35, 39, 'SERVICE', 3, 'Travel', 1, 'Flat rate', 65, 0, 29, TRUE),
+(2, 36, 40, 'MATERIAL', 1, 'Clay roof tile', 210, 'Each', 3.2, 0, 21, TRUE),
+(2, 36, 40, 'SERVICE', 2, 'Qualified roofer', 12, 'Hour', 105, 0, 26, TRUE),
+(2, 36, 40, 'SERVICE', 3, 'Scaffolding rental', 2, 'Week', 320, 0, 30, TRUE),
+(2, 37, 41, 'MATERIAL', 1, 'Rock wool insulation 100mm', 120, 'm²', 18.5, 0, 22, TRUE),
+(2, 37, 41, 'MATERIAL', 2, 'Triple-glazed PVC window', 4, 'Each', 650, 0, 23, TRUE),
+(2, 37, 41, 'SERVICE', 3, 'Qualified roofer', 20, 'Hour', 105, 0, 26, TRUE),
+(2, 37, 41, 'SERVICE', 4, 'Travel', 1, 'Flat rate', 65, 0, 29, TRUE),
+(2, 38, 42, 'MATERIAL', 1, 'Triple-glazed PVC window', 2, 'Each', 650, 0, 23, TRUE),
+(2, 38, 42, 'SERVICE', 2, 'Roofing apprentice', 4, 'Hour', 58, 0, 27, TRUE),
+(2, 38, 42, 'SERVICE', 3, 'Travel', 1, 'Flat rate', 65, 0, 29, TRUE),
+(2, 39, 43, 'SERVICE', 1, 'Qualified roofer', 6, 'Hour', 105, 0, 26, TRUE),
+(2, 39, 43, 'SERVICE', 2, 'Travel', 1, 'Flat rate', 65, 0, 29, TRUE),
+(2, 40, 44, 'SERVICE', 1, 'Roofing apprentice', 3, 'Hour', 58, 0, 27, TRUE),
+(2, 40, 44, 'SERVICE', 2, 'Travel', 1, 'Flat rate', 65, 0, 29, TRUE),
+(2, 41, 45, 'SERVICE', 1, 'Qualified roofer', 4, 'Hour', 105, 0, 26, TRUE),
+(2, 41, 45, 'SERVICE', 2, 'Travel', 1, 'Flat rate', 65, 0, 29, TRUE);
 
 -- ==========================================
 -- DOCUMENT TEMPLATES
@@ -622,14 +646,14 @@ Avec nos meilleures salutations.
 {{signature_entreprise}}', 30),
 (2, 'INVOICE', '{{titre_client}},
 
-C''est avec plaisir que nous vous transmettons la facture ci-dessous, établie conformément à nos accords. Nous restons à votre entière disposition pour toute question.', 'Nous vous remercions pour votre confiance et vous souhaitons, Madame, Monsieur, nos salutations les meilleures.
+We are pleased to send you the invoice below, issued in accordance with our agreement. Please do not hesitate to contact us with any questions.', 'Thank you for your trust. Kind regards,
 
 {{signature_entreprise}}', 30),
 (2, 'QUOTE', '{{titre_client}},
 
-Nous avons le plaisir de vous soumettre notre offre pour les travaux décrits ci-dessous.', 'Cette offre est valable 30 jours à compter de sa date d''émission. Nous restons à votre disposition pour toute question.
+We are pleased to submit our quote for the work described below.', 'This quote is valid for 30 days from its issue date. Please do not hesitate to contact us with any questions.
 
-Avec nos meilleures salutations.
+Kind regards,
 
 {{signature_entreprise}}', 30);
 
@@ -648,12 +672,12 @@ VALUES
 (1, 12, 12, NULL, 'Rénovation façade', 'Chantier suspendu - à reprendre', 'IN_PROGRESS', FALSE),
 (1, 13, 4, 8, 'Remplacement des fenêtres du dépôt', NULL, 'IN_PROGRESS', TRUE),
 (1, 14, 5, 5, 'Isolation de façade', NULL, 'IN_PROGRESS', TRUE),
-(2, 30, 8, 7, 'Rénovation toiture hôtel', NULL, 'COMPLETED', TRUE),
-(2, 31, 9, 5, 'Isolation et fenêtres immeuble', NULL, 'COMPLETED', TRUE),
-(2, 32, 10, 8, 'Remplacement fenêtres', NULL, 'COMPLETED', TRUE),
-(2, 33, 6, 6, 'Entretien toiture chalet', NULL, 'IN_PROGRESS', TRUE),
-(2, 34, 7, 7, 'Chéneaux et gouttières', NULL, 'IN_PROGRESS', TRUE),
-(2, 35, 6, 5, 'Isolation des combles', NULL, 'IN_PROGRESS', TRUE);
+(2, 30, 8, 15, 'Hotel roof renovation', NULL, 'COMPLETED', TRUE),
+(2, 31, 9, 13, 'Building insulation and windows', NULL, 'COMPLETED', TRUE),
+(2, 32, 10, 16, 'Window replacement', NULL, 'COMPLETED', TRUE),
+(2, 33, 6, 14, 'Chalet roof maintenance', NULL, 'IN_PROGRESS', TRUE),
+(2, 34, 7, 15, 'Gutters and downpipes', NULL, 'IN_PROGRESS', TRUE),
+(2, 35, 6, 13, 'Attic insulation', NULL, 'IN_PROGRESS', TRUE);
 
 -- ==========================================
 -- CALENDAR NOTES
@@ -665,4 +689,4 @@ INSERT INTO calendar_notes
 VALUES
 (1, 'Réunion de chantier - Renens', 'Point avec le client sur le planning des fenêtres.', (CURRENT_DATE + 1 + TIME '09:00') AT TIME ZONE 'Europe/Zurich', (CURRENT_DATE + 1 + TIME '10:00') AT TIME ZONE 'Europe/Zurich'),
 (1, 'Commande de matériel', 'Isolant et échafaudage pour la façade.', (CURRENT_DATE + 3 + TIME '08:00') AT TIME ZONE 'Europe/Zurich', (CURRENT_DATE + 3 + TIME '09:00') AT TIME ZONE 'Europe/Zurich'),
-(2, 'Visite de repérage - Zermatt', 'Toiture de l''hôtel : relevé pour la prochaine offre.', (CURRENT_DATE + 2 + TIME '14:00') AT TIME ZONE 'Europe/Zurich', (CURRENT_DATE + 2 + TIME '15:30') AT TIME ZONE 'Europe/Zurich');
+(2, 'Site visit - Zermatt', 'Hotel roof: survey for the upcoming quote.', (CURRENT_DATE + 2 + TIME '14:00') AT TIME ZONE 'Europe/Zurich', (CURRENT_DATE + 2 + TIME '15:30') AT TIME ZONE 'Europe/Zurich');
