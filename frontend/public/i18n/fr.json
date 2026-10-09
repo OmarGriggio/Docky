@@ -140,5 +140,66 @@
       "createError": "Impossible de créer la ressource.",
       "codeConflict": "Ce code existe déjà."
     }
+  },
+  "projects": {
+    "statusCompleted": "Terminé",
+    "statusInProgress": "En cours",
+    "newProject": "Nouveau chantier",
+    "attachmentsTitle": "Pièces jointes",
+    "columnName": "Nom",
+    "columnClient": "Client",
+    "columnQuoteNumber": "N° Offre",
+    "columnLocation": "Lieu",
+    "columnDate": "Date",
+    "columnStatus": "Statut",
+    "noSearchResults": "Aucun chantier ne correspond à la recherche.",
+    "noProjects": "Aucun chantier.",
+    "newTypePlaceholder": "Nouveau type (ex. Parquets)",
+    "closeAction": "Clôturer",
+    "invoiceAction": "Facturer",
+    "archiveConfirm": "Archiver le chantier {{name}} ?",
+    "completeTitle": "Clôture du chantier",
+    "completeMessage": "Clôturer ce chantier verrouille ses quantités et permet de le facturer. Continuer ?",
+    "form": {
+      "name": "Nom du chantier",
+      "type": "Type de chantier",
+      "newType": "Nouveau type",
+      "newTypeLabel": "Libellé du nouveau type"
+    },
+    "detail": {
+      "address": "Adresse"
+    },
+    "attachments": {
+      "dropHint": "Glissez-déposez un PDF ici, ou cliquez pour parcourir",
+      "none": "Aucune pièce jointe.",
+      "loadError": "Impossible de charger les pièces jointes.",
+      "onlyPdf": "Seuls les fichiers PDF sont acceptés.",
+      "uploadError": "Impossible d'ajouter la pièce jointe."
+    },
+    "resources": {
+      "readonlyNotice": "Chantier clôturé - les ressources ne sont plus modifiables.",
+      "none": "Aucune ressource pour l'instant.",
+      "sectionTitlePlaceholder": "Titre de la section (ex. Gros oeuvre)",
+      "start": "Début",
+      "end": "Fin",
+      "descriptionPlaceholder": "Description de la section (optionnel)",
+      "noLines": "Aucune ligne.",
+      "columnQuantity": "Qté",
+      "columnPrice": "Prix",
+      "columnTotal": "Total",
+      "catalogSearchPlaceholder": "Rechercher une ressource...",
+      "addFromCatalog": "Ajouter depuis le catalogue",
+      "addSection": "Ajouter une section",
+      "defaultSectionTitle": "Ressources",
+      "loadError": "Impossible de charger les ressources du chantier.",
+      "saveError": "Impossible d'enregistrer les ressources."
+    }
+  },
+  "documentLedger": {
+    "noSections": "Aucune section.",
+    "noLines": "Aucune ligne.",
+    "columnQuantity": "Quantité",
+    "columnUnitPrice": "Prix unitaire",
+    "columnTotal": "Total"
   }
 }

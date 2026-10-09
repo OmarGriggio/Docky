@@ -1,13 +1,13 @@
 <div class="flex flex-col gap-4">
   @if (readonly()) {
-    <p class="text-sm text-surface-500">Chantier clôturé - les ressources ne sont plus modifiables.</p>
+    <p class="text-sm text-surface-500">{{ 'projects.resources.readonlyNotice' | transloco }}</p>
   }
 
   @if (loading()) {
-    <p class="text-sm text-surface-500">Chargement...</p>
+    <p class="text-sm text-surface-500">{{ 'common.loading' | transloco }}</p>
   } @else {
     @if (sections().length === 0) {
-      <p class="text-sm text-surface-500">Aucune ressource pour l'instant.</p>
+      <p class="text-sm text-surface-500">{{ 'projects.resources.none' | transloco }}</p>
     }
 
     @for (section of sections(); track section.id) {
@@ -15,19 +15,19 @@
         <div class="flex items-center gap-2 mb-3 flex-wrap">
           <input
             pInputText pSize="small" [fluid]="true" class="flex-1 font-semibold w-full md:w-18"
-            placeholder="Titre de la section (ex. Gros oeuvre)"
+            [placeholder]="'projects.resources.sectionTitlePlaceholder' | transloco"
             [ngModel]="section.title"
             (ngModelChange)="updateSectionTitle(section.id, $event)"
             [disabled]="readonly()"
           />
-          <span class="text-xs text-surface-500">Début</span>
+          <span class="text-xs text-surface-500">{{ 'projects.resources.start' | transloco }}</span>
           <p-datepicker
             [ngModel]="section.date_start"
             (ngModelChange)="updateSectionDate(section.id, 'date_start', $event)"
             dateFormat="dd.mm.yy" [showTime]="sectionHasTime(section)" hourFormat="24" size="small" appendTo="body"
             [disabled]="readonly()"
           />
-          <span class="text-xs text-surface-500">Fin</span>
+          <span class="text-xs text-surface-500">{{ 'projects.resources.end' | transloco }}</span>
           <p-datepicker
             [ngModel]="section.date_end"
             (ngModelChange)="updateSectionDate(section.id, 'date_end', $event)"
@@ -41,14 +41,14 @@
 
         <textarea
           pTextarea pSize="small" class="w-full mb-3" rows="2"
-          placeholder="Description de la section (optionnel)"
+          [placeholder]="'projects.resources.descriptionPlaceholder' | transloco"
           [ngModel]="section.description"
           (ngModelChange)="updateSectionDescription(section.id, $event)"
           [disabled]="readonly()"
         ></textarea>
 
         @if (section.lines.length === 0 && readonly()) {
-          <p class="text-xs text-surface-500 mb-2">Aucune ligne.</p>
+          <p class="text-xs text-surface-500 mb-2">{{ 'projects.resources.noLines' | transloco }}</p>
         } @else {
           <div class="overflow-x-auto">
             <table class="w-full min-w-160 border-collapse table-fixed">
@@ -62,11 +62,11 @@
               </colgroup>
               <thead>
                 <tr>
-                  <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">Désignation</th>
-                  <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">Qté</th>
-                  <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">Unité</th>
-                  <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">Prix</th>
-                  <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">Total</th>
+                  <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">{{ 'resources.columnName' | transloco }}</th>
+                  <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">{{ 'projects.resources.columnQuantity' | transloco }}</th>
+                  <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">{{ 'resources.columnUnit' | transloco }}</th>
+                  <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">{{ 'projects.resources.columnPrice' | transloco }}</th>
+                  <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">{{ 'projects.resources.columnTotal' | transloco }}</th>
                   <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]"></th>
                 </tr>
               </thead>
@@ -129,8 +129,8 @@
               [ngModel]="null"
               (ngModelChange)="addResourceLine(section.id, $event)"
               [filter]="true"
-              filterPlaceholder="Rechercher une ressource..."
-              placeholder="Ajouter depuis le catalogue"
+              [filterPlaceholder]="'projects.resources.catalogSearchPlaceholder' | transloco"
+              [placeholder]="'projects.resources.addFromCatalog' | transloco"
             />
           </div>
         }
@@ -138,7 +138,7 @@
     }
 
     @if (!readonly()) {
-      <p-button type="button" label="Ajouter une section" icon="pi pi-plus" severity="secondary" size="small" (onClick)="addSection()" />
+      <p-button type="button" [label]="'projects.resources.addSection' | transloco" icon="pi pi-plus" severity="secondary" size="small" (onClick)="addSection()" />
     }
   }
 
@@ -148,7 +148,7 @@
 
   @if (!readonly()) {
     <div class="flex justify-end">
-      <p-button type="button" label="Enregistrer" [loading]="saving()" (onClick)="save()" />
+      <p-button type="button" [label]="'documentTemplates.save' | transloco" [loading]="saving()" (onClick)="save()" />
     </div>
   }
 </div>

@@ -2,6 +2,7 @@ import { Component, contentChild, inject, input, OnInit, signal, TemplateRef } f
 import { NgTemplateOutlet } from '@angular/common';
 import { PricePipe } from '../../pipes/price.pipe';
 import { forkJoin } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { DocumentSectionService } from '../../../features/documents/document-section.service';
 import { DocumentLineService } from '../../../features/documents/document-line.service';
 import { DocumentSection } from '../../models/document-section';
@@ -28,7 +29,7 @@ const EMPTY_LINES: DocumentLine[] = [];
 @Component({
   selector: 'app-document-ledger',
   standalone: true,
-  imports: [PricePipe, NgTemplateOutlet, SectionDatePipe],
+  imports: [PricePipe, NgTemplateOutlet, SectionDatePipe, TranslocoPipe],
   templateUrl: './document-ledger.html'
 })
 export class DocumentLedger implements OnInit {

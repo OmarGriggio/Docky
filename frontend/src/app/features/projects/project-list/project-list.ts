@@ -10,6 +10,7 @@ import { Select } from 'primeng/select';
 import { DatePicker } from 'primeng/datepicker';
 import { MenuItem } from 'primeng/api';
 import { Button } from 'primeng/button';
+import { TranslocoPipe, TranslocoService, translateSignal } from '@jsverse/transloco';
 import { ProjectService } from '../project.service';
 import { ClientService } from '../../clients/client.service';
 import { DocumentService } from '../../documents/document.service';
@@ -30,7 +31,7 @@ import { matchesSearch } from '../../../shared/utils/display';
 @Component({
   selector: 'app-project-list',
   standalone: true,
-  imports: [ListToolbarComponent, TableModule, TagModule, Menu, Button, Dialog, InputText, Select, DatePicker, FormsModule, SectionDatePipe, ProjectForm, ProjectAttachments, ConfirmDialogComponent, DocumentLedger],
+  imports: [ListToolbarComponent, TableModule, TagModule, Menu, Button, Dialog, InputText, Select, DatePicker, FormsModule, SectionDatePipe, ProjectForm, ProjectAttachments, ConfirmDialogComponent, DocumentLedger, TranslocoPipe],
   templateUrl: './project-list.html'
 })
 export class ProjectListComponent implements OnInit {
@@ -41,6 +42,7 @@ export class ProjectListComponent implements OnInit {
   private documentService = inject(DocumentService);
   private documentSectionService = inject(DocumentSectionService);
   private addressService = inject(AddressService);
+  private transloco = inject(TranslocoService);
 
   projects = signal<Project[]>([]);
   clients = signal<Client[]>([]);
@@ -201,7 +203,7 @@ export class ProjectListComponent implements OnInit {
   }
 
   statusLabel(project: Project): string {
-    return project.status === 'COMPLETED' ? 'Terminé' : 'En cours';
+    return this.transloco.translate(project.status === 'COMPLETED' ? 'projects.statusCompleted' : 'projects.statusInProgress');
   }
 
   statusSeverity(project: Project): 'success' | 'info' {
@@ -226,19 +228,19 @@ export class ProjectListComponent implements OnInit {
   getActions(project: Project): MenuItem[] {
     return [
       project.is_active
-        ? { label: 'Archiver', command: () => this.archiveProject(project) }
-        : { label: 'Restaurer', command: () => this.unarchiveProject(project) },
+        ? { label: this.transloco.translate('common.archive'), command: () => this.archiveProject(project) }
+        : { label: this.transloco.translate('common.unarchive'), command: () => this.unarchiveProject(project) },
       {
-        label: 'Détail',
+        label: this.transloco.translate('clients.detail'),
         command: () => this.router.navigate(['/projects', project.id])
       },
       {
-        label: 'Pièces jointes',
+        label: this.transloco.translate('projects.attachmentsTitle'),
         command: () => this.openAttachmentsDialog(project)
       },
       ...(project.status === 'IN_PROGRESS'
-        ? [{ label: 'Clôturer', command: () => this.completeProject(project) }]
-        : [{ label: 'Facturer', command: () => this.invoiceProject(project) }])
+        ? [{ label: this.transloco.translate('projects.closeAction'), command: () => this.completeProject(project) }]
+        : [{ label: this.transloco.translate('projects.invoiceAction'), command: () => this.invoiceProject(project) }])
     ];
   }
 
@@ -277,7 +279,7 @@ export class ProjectListComponent implements OnInit {
 
   private archiveProject(project: Project): void {
     this.projectPendingArchive = project;
-    this.confirmMessage.set(`Archiver le chantier ${project.name} ?`);
+    this.confirmMessage.set(this.transloco.translate('projects.archiveConfirm', { name: project.name }));
     this.confirmVisible.set(true);
   }
 

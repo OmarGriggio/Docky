@@ -1,7 +1,7 @@
 @if (loading()) {
-  <p class="text-sm text-surface-500 m-0">Chargement...</p>
+  <p class="text-sm text-surface-500 m-0">{{ 'common.loading' | transloco }}</p>
 } @else if (sections().length === 0) {
-  <p class="text-sm text-surface-500 m-0">Aucune section.</p>
+  <p class="text-sm text-surface-500 m-0">{{ 'documentLedger.noSections' | transloco }}</p>
 } @else {
   <div [class]="columns() === 2 ? 'grid grid-cols-1 md:grid-cols-2 gap-3' : 'flex flex-col gap-3'">
     @for (section of sections(); track section.id) {
@@ -25,16 +25,16 @@
         </div>
 
         @if (linesFor(section).length === 0) {
-          <p class="text-xs text-surface-500 m-0">Aucune ligne.</p>
+          <p class="text-xs text-surface-500 m-0">{{ 'documentLedger.noLines' | transloco }}</p>
         } @else {
           <table class="w-full table-fixed text-xs">
             <thead>
               <tr class="text-left text-xs text-surface-500 uppercase">
-                <th class="font-semibold pb-1 w-[40%]">Désignation</th>
-                <th class="font-semibold pb-1 w-[15%]">Quantité</th>
-                <th class="font-semibold pb-1 w-[15%]">Unité</th>
-                <th class="font-semibold pb-1 w-[15%]">Prix unitaire</th>
-                <th class="font-semibold pb-1 w-[15%]">Total</th>
+                <th class="font-semibold pb-1 w-[40%]">{{ 'resources.columnName' | transloco }}</th>
+                <th class="font-semibold pb-1 w-[15%]">{{ 'documentLedger.columnQuantity' | transloco }}</th>
+                <th class="font-semibold pb-1 w-[15%]">{{ 'resources.columnUnit' | transloco }}</th>
+                <th class="font-semibold pb-1 w-[15%]">{{ 'documentLedger.columnUnitPrice' | transloco }}</th>
+                <th class="font-semibold pb-1 w-[15%]">{{ 'documentLedger.columnTotal' | transloco }}</th>
               </tr>
             </thead>
             <tbody>

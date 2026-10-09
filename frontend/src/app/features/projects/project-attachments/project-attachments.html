@@ -12,7 +12,7 @@
     @if (selectedFile()) {
       <p class="text-sm">{{ selectedFile()!.name }}</p>
     } @else {
-      <p class="text-sm text-surface-500">Glissez-déposez un PDF ici, ou cliquez pour parcourir</p>
+      <p class="text-sm text-surface-500">{{ 'projects.attachments.dropHint' | transloco }}</p>
     }
 
     <input #fileInput type="file" accept="application/pdf" class="hidden" (change)="onFileInputChange($event)" />
@@ -20,8 +20,8 @@
 
   @if (selectedFile()) {
     <div class="flex justify-end gap-2">
-      <p-button type="button" label="Annuler" severity="secondary" [text]="true" size="small" (onClick)="clearSelectedFile()" />
-      <p-button type="button" label="Ajouter" size="small" [loading]="uploading()" (onClick)="uploadFile()" />
+      <p-button type="button" [label]="'common.cancel' | transloco" severity="secondary" [text]="true" size="small" (onClick)="clearSelectedFile()" />
+      <p-button type="button" [label]="'common.add' | transloco" size="small" [loading]="uploading()" (onClick)="uploadFile()" />
     </div>
   }
 
@@ -31,13 +31,13 @@
 
   <label class="flex items-center gap-2 text-sm">
     <p-checkbox [binary]="true" [ngModel]="showArchived()" (ngModelChange)="onShowArchivedChange($event)" />
-    Afficher les archivés
+    {{ 'common.showArchived' | transloco }}
   </label>
 
   @if (loading()) {
-    <p class="text-sm text-surface-500">Chargement...</p>
+    <p class="text-sm text-surface-500">{{ 'common.loading' | transloco }}</p>
   } @else if (attachments().length === 0) {
-    <p class="text-sm text-surface-500">Aucune pièce jointe.</p>
+    <p class="text-sm text-surface-500">{{ 'projects.attachments.none' | transloco }}</p>
   } @else {
     <ul class="flex flex-col gap-2">
       @for (attachment of attachments(); track attachment.id) {

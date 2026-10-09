@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Card } from 'primeng/card';
 import { Tag } from 'primeng/tag';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { ProjectService } from '../project.service';
 import { ClientService } from '../../clients/client.service';
 import { DocumentService } from '../../documents/document.service';
@@ -19,7 +20,7 @@ import { clientDisplayName } from '../../../shared/utils/display';
 @Component({
   selector: 'app-project-detail',
   standalone: true,
-  imports: [Card, Tag, ProjectResources],
+  imports: [Card, Tag, ProjectResources, TranslocoPipe],
   templateUrl: './project-detail.html',
 })
 export class ProjectDetail implements OnInit {
@@ -28,6 +29,7 @@ export class ProjectDetail implements OnInit {
   private projectService = inject(ProjectService);
   private clientService = inject(ClientService);
   private documentService = inject(DocumentService);
+  private transloco = inject(TranslocoService);
 
   project = signal<Project | null>(null);
   clientName = signal<string>('—');
@@ -68,7 +70,7 @@ export class ProjectDetail implements OnInit {
   }
 
   statusLabel(project: Project): string {
-    return project.status === 'COMPLETED' ? 'Terminé' : 'En cours';
+    return this.transloco.translate(project.status === 'COMPLETED' ? 'projects.statusCompleted' : 'projects.statusInProgress');
   }
 
   statusSeverity(project: Project): 'success' | 'info' {

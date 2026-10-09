@@ -8,6 +8,7 @@ import { InputText } from 'primeng/inputtext';
 import { InputNumber } from 'primeng/inputnumber';
 import { Textarea } from 'primeng/textarea';
 import { DatePicker } from 'primeng/datepicker';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { DocumentSectionService } from '../../documents/document-section.service';
 import { DocumentLineService } from '../../documents/document-line.service';
 import { ResourceService } from '../../resources/resource.service';
@@ -53,7 +54,7 @@ let nextId = 1;
 @Component({
   selector: 'app-project-resources',
   standalone: true,
-  imports: [FormsModule, PricePipe, Button, Select, InputText, InputNumber, Textarea, DatePicker, TabIndentDirective],
+  imports: [FormsModule, PricePipe, Button, Select, InputText, InputNumber, Textarea, DatePicker, TabIndentDirective, TranslocoPipe],
   templateUrl: './project-resources.html',
 })
 export class ProjectResources implements OnInit {
@@ -63,6 +64,7 @@ export class ProjectResources implements OnInit {
   private documentSectionService = inject(DocumentSectionService);
   private documentLineService = inject(DocumentLineService);
   private resourceService = inject(ResourceService);
+  private transloco = inject(TranslocoService);
 
   // Once a chantier is closed, its resource ledger is exactly what an
   // invoice would be built from - no more changes past that point (see
@@ -133,7 +135,7 @@ export class ProjectResources implements OnInit {
       this.loading.set(false);
     }).catch(err => {
       console.error('project-resources : ' + err);
-      this.errorMessage.set('Impossible de charger les ressources du chantier.');
+      this.errorMessage.set(this.transloco.translate('projects.resources.loadError'));
       this.loading.set(false);
     });
   }
@@ -247,7 +249,7 @@ export class ProjectResources implements OnInit {
       for (const section of this.sections()) {
         const createdSection = await firstValueFrom(this.documentSectionService.createSection({
           document_id: documentId,
-          title: section.title || 'Ressources',
+          title: section.title || this.transloco.translate('projects.resources.defaultSectionTitle'),
           description: section.description,
           date_start: section.date_start ? section.date_start.toISOString() : null,
           date_end: section.date_end ? section.date_end.toISOString() : null,
@@ -272,7 +274,7 @@ export class ProjectResources implements OnInit {
       this.load();
     } catch (err) {
       console.error('project-resources : ' + err);
-      this.errorMessage.set('Impossible d\'enregistrer les ressources.');
+      this.errorMessage.set(this.transloco.translate('projects.resources.saveError'));
     } finally {
       this.saving.set(false);
     }

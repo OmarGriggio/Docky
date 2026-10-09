@@ -140,5 +140,66 @@
       "createError": "Could not create the resource.",
       "codeConflict": "This code already exists."
     }
+  },
+  "projects": {
+    "statusCompleted": "Completed",
+    "statusInProgress": "In progress",
+    "newProject": "New project",
+    "attachmentsTitle": "Attachments",
+    "columnName": "Name",
+    "columnClient": "Client",
+    "columnQuoteNumber": "Quote no.",
+    "columnLocation": "Location",
+    "columnDate": "Date",
+    "columnStatus": "Status",
+    "noSearchResults": "No project matches the search.",
+    "noProjects": "No projects.",
+    "newTypePlaceholder": "New type (e.g. Flooring)",
+    "closeAction": "Close",
+    "invoiceAction": "Invoice",
+    "archiveConfirm": "Archive project {{name}}?",
+    "completeTitle": "Project closing",
+    "completeMessage": "Closing this project locks its quantities and allows invoicing it. Continue?",
+    "form": {
+      "name": "Project name",
+      "type": "Project type",
+      "newType": "New type",
+      "newTypeLabel": "New type's label"
+    },
+    "detail": {
+      "address": "Address"
+    },
+    "attachments": {
+      "dropHint": "Drag and drop a PDF here, or click to browse",
+      "none": "No attachments.",
+      "loadError": "Could not load the attachments.",
+      "onlyPdf": "Only PDF files are accepted.",
+      "uploadError": "Could not add the attachment."
+    },
+    "resources": {
+      "readonlyNotice": "Project closed - resources can no longer be edited.",
+      "none": "No resources yet.",
+      "sectionTitlePlaceholder": "Section title (e.g. Groundwork)",
+      "start": "Start",
+      "end": "End",
+      "descriptionPlaceholder": "Section description (optional)",
+      "noLines": "No lines.",
+      "columnQuantity": "Qty",
+      "columnPrice": "Price",
+      "columnTotal": "Total",
+      "catalogSearchPlaceholder": "Search for a resource...",
+      "addFromCatalog": "Add from the catalog",
+      "addSection": "Add a section",
+      "defaultSectionTitle": "Resources",
+      "loadError": "Could not load the project's resources.",
+      "saveError": "Could not save the resources."
+    }
+  },
+  "documentLedger": {
+    "noSections": "No sections.",
+    "noLines": "No lines.",
+    "columnQuantity": "Quantity",
+    "columnUnitPrice": "Unit price",
+    "columnTotal": "Total"
   }
 }

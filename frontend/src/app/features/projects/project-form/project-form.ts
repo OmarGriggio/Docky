@@ -5,6 +5,7 @@ import { Textarea } from 'primeng/textarea';
 import { FloatLabel } from 'primeng/floatlabel';
 import { Select } from 'primeng/select';
 import { Button } from 'primeng/button';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { ProjectService } from '../project.service';
 import { ClientService } from '../../clients/client.service';
 import { Client } from '../../../shared/models/client';
@@ -19,7 +20,7 @@ import { TabIndentDirective } from '../../../shared/directives/tab-indent.direct
 @Component({
   selector: 'app-project-form',
   standalone: true,
-  imports: [ReactiveFormsModule, InputText, Textarea, FloatLabel, Select, Button, TabIndentDirective],
+  imports: [ReactiveFormsModule, InputText, Textarea, FloatLabel, Select, Button, TabIndentDirective, TranslocoPipe],
   templateUrl: './project-form.html',
   styleUrl: './project-form.css',
 })

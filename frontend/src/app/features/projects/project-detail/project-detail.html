@@ -6,15 +6,15 @@
   <p-card styleClass="ui-card--elevated mb-6">
     <div class="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-y-4 gap-x-6">
       <div class="flex flex-col gap-1">
-        <span class="text-xs text-gray-500 uppercase tracking-wide">Client</span>
+        <span class="text-xs text-gray-500 uppercase tracking-wide">{{ 'projects.columnClient' | transloco }}</span>
         <span class="font-medium">{{ clientName() }}</span>
       </div>
       <div class="flex flex-col gap-1">
-        <span class="text-xs text-gray-500 uppercase tracking-wide">Type</span>
+        <span class="text-xs text-gray-500 uppercase tracking-wide">{{ 'clients.columnType' | transloco }}</span>
         <span class="font-medium">{{ p.project_type }}</span>
       </div>
       <div class="flex flex-col gap-1">
-        <span class="text-xs text-gray-500 uppercase tracking-wide">Adresse</span>
+        <span class="text-xs text-gray-500 uppercase tracking-wide">{{ 'projects.detail.address' | transloco }}</span>
         <span class="font-medium">
           @if (address(); as a) {
             {{ a.street }}, {{ a.postal_code }} {{ a.city }}, {{ a.country }}
@@ -24,18 +24,18 @@
         </span>
       </div>
       <div class="flex flex-col gap-1">
-        <span class="text-xs text-gray-500 uppercase tracking-wide">Statut</span>
+        <span class="text-xs text-gray-500 uppercase tracking-wide">{{ 'projects.columnStatus' | transloco }}</span>
         <span class="font-medium"><p-tag [value]="statusLabel(p)" [severity]="statusSeverity(p)" /></span>
       </div>
       @if (p.note) {
         <div class="flex flex-col gap-1">
-          <span class="text-xs text-gray-500 uppercase tracking-wide">Remarque</span>
+          <span class="text-xs text-gray-500 uppercase tracking-wide">{{ 'clients.form.note' | transloco }}</span>
           <span class="font-medium">{{ p.note }}</span>
         </div>
       }
     </div>
   </p-card>
 
-  <h2>Ressources</h2>
+  <h2>{{ 'nav.resources' | transloco }}</h2>
   <app-project-resources [project]="p" />
 }

@@ -2,6 +2,7 @@ import { Component, OnInit, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Button } from 'primeng/button';
 import { Checkbox } from 'primeng/checkbox';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { ProjectAttachmentService } from '../project-attachment.service';
 import { ProjectAttachment } from '../../../shared/models/project-attachment';
 import { AppDatePipe } from '../../../shared/pipes/app-date.pipe';
@@ -15,7 +16,7 @@ const ALLOWED_ATTACHMENT_TYPES = ['application/pdf'];
 @Component({
   selector: 'app-project-attachments',
   standalone: true,
-  imports: [FormsModule, Button, Checkbox, AppDatePipe],
+  imports: [FormsModule, Button, Checkbox, AppDatePipe, TranslocoPipe],
   templateUrl: './project-attachments.html',
 })
 export class ProjectAttachments implements OnInit {
@@ -23,6 +24,7 @@ export class ProjectAttachments implements OnInit {
   projectId = input.required<number>();
 
   private service = inject(ProjectAttachmentService);
+  private transloco = inject(TranslocoService);
 
   attachments = signal<ProjectAttachment[]>([]);
   showArchived = signal(false);
@@ -49,7 +51,7 @@ export class ProjectAttachments implements OnInit {
       },
       error: err => {
         console.error('project-attachments : ' + err);
-        this.errorMessage.set('Impossible de charger les pièces jointes.');
+        this.errorMessage.set(this.transloco.translate('projects.attachments.loadError'));
         this.loading.set(false);
       }
     });
@@ -96,7 +98,7 @@ export class ProjectAttachments implements OnInit {
     }
 
     if (!ALLOWED_ATTACHMENT_TYPES.includes(file.type)) {
-      this.errorMessage.set('Seuls les fichiers PDF sont acceptés.');
+      this.errorMessage.set(this.transloco.translate('projects.attachments.onlyPdf'));
       return;
     }
 
@@ -125,7 +127,7 @@ export class ProjectAttachments implements OnInit {
       },
       error: err => {
         console.error('project-attachments : ' + err);
-        this.errorMessage.set('Impossible d\'ajouter la pièce jointe.');
+        this.errorMessage.set(this.transloco.translate('projects.attachments.uploadError'));
         this.uploading.set(false);
       }
     });

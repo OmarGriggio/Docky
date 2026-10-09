@@ -7,12 +7,12 @@
       optionLabel="label"
       optionValue="value"
     />
-    <label for="client_id">Client</label>
+    <label for="client_id">{{ 'projects.columnClient' | transloco }}</label>
   </p-floatlabel>
 
   <p-floatlabel variant="on" class="ui-form__full">
     <input pInputText id="name" formControlName="name" />
-    <label for="name">Nom du chantier</label>
+    <label for="name">{{ 'projects.form.name' | transloco }}</label>
   </p-floatlabel>
 
   <div class="ui-form__full project-form-type">
@@ -24,29 +24,29 @@
         optionLabel="label"
         optionValue="value"
       />
-      <label for="project_type_id">Type de chantier</label>
+      <label for="project_type_id">{{ 'projects.form.type' | transloco }}</label>
     </p-floatlabel>
 
-    <p-button type="button" icon="pi pi-plus" label="Nouveau type" severity="secondary" (onClick)="toggleNewType()" />
+    <p-button type="button" icon="pi pi-plus" [label]="'projects.form.newType' | transloco" severity="secondary" (onClick)="toggleNewType()" />
   </div>
 
   @if (newTypeVisible()) {
     <div class="ui-form__full project-form-new-type">
       <p-floatlabel variant="on" class="project-form-new-type-input">
         <input pInputText id="newTypeLabel" #newTypeInput (keyup.enter)="addProjectType(newTypeInput.value); newTypeInput.value = ''" />
-        <label for="newTypeLabel">Libellé du nouveau type</label>
+        <label for="newTypeLabel">{{ 'projects.form.newTypeLabel' | transloco }}</label>
       </p-floatlabel>
-      <p-button type="button" label="Ajouter" (onClick)="addProjectType(newTypeInput.value); newTypeInput.value = ''" />
+      <p-button type="button" [label]="'common.add' | transloco" (onClick)="addProjectType(newTypeInput.value); newTypeInput.value = ''" />
     </div>
   }
 
   <p-floatlabel variant="on" class="ui-form__full">
     <textarea pTextarea id="note" formControlName="note" rows="4"></textarea>
-    <label for="note">Remarque</label>
+    <label for="note">{{ 'clients.form.note' | transloco }}</label>
   </p-floatlabel>
 
   <div class="ui-form__actions">
-    <p-button type="button" label="Annuler" severity="secondary" (onClick)="cancel()" />
-    <p-button type="submit" label="Créer" />
+    <p-button type="button" [label]="'common.cancel' | transloco" severity="secondary" (onClick)="cancel()" />
+    <p-button type="submit" [label]="'clients.form.create' | transloco" />
   </div>
 </form>

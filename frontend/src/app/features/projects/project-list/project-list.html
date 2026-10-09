@@ -3,7 +3,7 @@
      dialog/form below still exist, just unreachable from this page,
      should a manual-creation need come back later. -->
 <app-list-toolbar
-  title="Chantiers"
+  [title]="'nav.projects' | transloco"
   [(search)]="search"
   [showArchived]="showArchived()"
   (showArchivedChange)="onShowArchivedChange($event)"
@@ -12,7 +12,7 @@
 
 <p-dialog
   [(visible)]="createDialogVisible"
-  header="Nouveau chantier"
+  [header]="'projects.newProject' | transloco"
   [modal]="true"
   [style]="{ width: '32rem' }"
 >
@@ -23,7 +23,7 @@
 
 <p-dialog
   [(visible)]="attachmentsDialogVisible"
-  header="Pièces jointes"
+  [header]="'projects.attachmentsTitle' | transloco"
   [modal]="true"
   [style]="{ width: '32rem' }"
 >
@@ -40,13 +40,13 @@
   <ng-template #header>
     <tr>
       <th style="width: 3rem"></th>
-      <th>Nom</th>
-      <th>Client</th>
-      <th>N° Offre</th>
-      <th>Lieu</th>
-      <th>Date</th>
-      <th>Type</th>
-      <th>Statut</th>
+      <th>{{ 'projects.columnName' | transloco }}</th>
+      <th>{{ 'projects.columnClient' | transloco }}</th>
+      <th>{{ 'projects.columnQuoteNumber' | transloco }}</th>
+      <th>{{ 'projects.columnLocation' | transloco }}</th>
+      <th>{{ 'projects.columnDate' | transloco }}</th>
+      <th>{{ 'clients.columnType' | transloco }}</th>
+      <th>{{ 'projects.columnStatus' | transloco }}</th>
       <th></th>
       <th></th>
     </tr>
@@ -54,7 +54,7 @@
 
   <ng-template #emptymessage>
     <tr>
-      <td colspan="10" class="text-center text-gray-500">{{ search().trim() ? 'Aucun chantier ne correspond à la recherche.' : 'Aucun chantier.' }}</td>
+      <td colspan="10" class="text-center text-gray-500">{{ (search().trim() ? 'projects.noSearchResults' : 'projects.noProjects') | transloco }}</td>
     </tr>
   </ng-template>
 
@@ -113,7 +113,7 @@
                 <div class="flex gap-2 p-2 border-t border-surface-200">
                   <input
                     pInputText size="small" [fluid]="true"
-                    placeholder="Nouveau type (ex. Parquets)"
+                    [placeholder]="'projects.newTypePlaceholder' | transloco"
                     #newTypeInput
                     (keydown.enter)="addProjectType(project, newTypeInput.value); newTypeInput.value = ''"
                   />
@@ -165,15 +165,15 @@
 
 <app-confirm-dialog
   [(visible)]="confirmVisible"
-  title="Archivage"
+  [title]="'clients.archiveTitle' | transloco"
   [message]="confirmMessage()"
   (confirmed)="onArchiveConfirmed()"
 />
 
 <app-confirm-dialog
   [(visible)]="completeConfirmVisible"
-  title="Clôture du chantier"
-  message="Clôturer ce chantier verrouille ses quantités et permet de le facturer. Continuer ?"
-  confirmLabel="Clôturer"
+  [title]="'projects.completeTitle' | transloco"
+  [message]="'projects.completeMessage' | transloco"
+  [confirmLabel]="'projects.closeAction' | transloco"
   (confirmed)="onCompleteConfirmed()"
 />
