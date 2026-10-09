@@ -4,7 +4,7 @@ Solo learning project (SaaS for small construction companies). See [README.md](R
 
 ## Workflow
 
-- **Git**: work directly on `main` — no feature branches. Only commit or push when explicitly asked, and never push without an explicit go-ahead even after committing.
+- **Git**: day-to-day work happens on `develop` (started 2026-10-09) — `main` is the deploy branch CI watches (see Deployment), kept for stable/ready work, merged into from `develop` once a feature or a batch of commits is ready to ship. Not a per-feature-branch model - one shared `develop`, no feature branches off it either. Only commit or push when explicitly asked, and never push without an explicit go-ahead even after committing - this applies to merges into `main` too, since that's what triggers an auto-redeploy.
 - **Commit messages**: `<Area> : <what changed>` (e.g. `Backend : scope client lookup by id and delete to the caller's company`), capitalized, English, imperative/present tense, no trailing period. Areas so far: `Backend`, `Frontend`, `Docs`.
 - One commit per module per side — a backend change and its matching frontend change are two separate commits.
 - **English everywhere** — code identifiers, DB tables/columns, doc filenames and content (migrated from French, complete as of 2026-09-02; see [zz_docs/Decisions.md](zz_docs/Decisions.md) for the glossary). **Two exceptions, content not naming**: the seed data in `zz_migrations/001_data.sql` and the frontend's user-facing text (labels, buttons, messages) — both shown to a French-speaking Swiss end user, not code. Don't "fix" French UI strings into English.
