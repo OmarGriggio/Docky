@@ -74,7 +74,9 @@
     "confirm": "Confirm",
     "cancel": "Cancel",
     "add": "Add",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "archive": "Archive",
+    "unarchive": "Restore"
   },
   "clients": {
     "newClient": "New client",
@@ -121,6 +123,22 @@
     "addressForm": {
       "attentionOptional": "Attention (optional)",
       "primary": "Primary address"
+    }
+  },
+  "resources": {
+    "title": "Resources",
+    "newResource": "New resource",
+    "columnCode": "Code",
+    "columnName": "Designation",
+    "columnUnit": "Unit",
+    "columnSellingPrice": "Selling price",
+    "columnPurchasePrice": "Purchase price",
+    "noSearchResults": "No resource matches the search.",
+    "noResources": "No resources.",
+    "archiveConfirm": "Archive resource {{name}}?",
+    "form": {
+      "createError": "Could not create the resource.",
+      "codeConflict": "This code already exists."
     }
   }
 }

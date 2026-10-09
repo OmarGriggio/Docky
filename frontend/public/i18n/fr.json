@@ -74,7 +74,9 @@
     "confirm": "Confirmer",
     "cancel": "Annuler",
     "add": "Ajouter",
-    "loading": "Chargement..."
+    "loading": "Chargement...",
+    "archive": "Archiver",
+    "unarchive": "Restaurer"
   },
   "clients": {
     "newClient": "Nouveau client",
@@ -121,6 +123,22 @@
     "addressForm": {
       "attentionOptional": "Attention (optionnel)",
       "primary": "Adresse principale"
+    }
+  },
+  "resources": {
+    "title": "Ressources",
+    "newResource": "Nouvelle ressource",
+    "columnCode": "Code",
+    "columnName": "Désignation",
+    "columnUnit": "Unité",
+    "columnSellingPrice": "Prix de vente",
+    "columnPurchasePrice": "Prix d'achat",
+    "noSearchResults": "Aucune ressource ne correspond à la recherche.",
+    "noResources": "Aucune ressource.",
+    "archiveConfirm": "Archiver la ressource {{name}} ?",
+    "form": {
+      "createError": "Impossible de créer la ressource.",
+      "codeConflict": "Ce code existe déjà."
     }
   }
 }

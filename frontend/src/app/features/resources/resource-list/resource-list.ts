@@ -8,6 +8,7 @@ import { Menu } from 'primeng/menu';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { MenuItem } from 'primeng/api';
+import { TranslocoPipe, TranslocoService, translateSignal } from '@jsverse/transloco';
 import { ResourceService } from '../resource.service';
 import { Resource, ResourceType } from '../../../shared/models/resource';
 import { PricePipe } from '../../../shared/pipes/price.pipe';
@@ -16,26 +17,35 @@ import { ResourceForm } from '../resource-form/resource-form';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { ListToolbarComponent } from '../../../shared/components/list-toolbar/list-toolbar';
 
-const TYPE_LABELS: Record<ResourceType, string> = {
-  'MATERIAL': 'Matériel',
-  'SERVICE': 'Service',
-};
-
 @Component({
   selector: 'app-resource-list',
   standalone: true,
-  imports: [ListToolbarComponent, TableModule, InputText, InputNumber, Menu, Button, Dialog, FormsModule, PricePipe, ResourceForm, ConfirmDialogComponent],
+  imports: [ListToolbarComponent, TableModule, InputText, InputNumber, Menu, Button, Dialog, FormsModule, PricePipe, ResourceForm, ConfirmDialogComponent, TranslocoPipe],
   templateUrl: './resource-list.html'
 })
 export class ResourceListComponent implements OnInit {
 
   private route = inject(ActivatedRoute);
   private resourceService = inject(ResourceService);
+  private transloco = inject(TranslocoService);
 
   resources = signal<Resource[]>([]);
-  currentTypeLabel = signal<string | null>(null);
-  currentType: ResourceType | null = null;
+  currentType = signal<ResourceType | null>(null);
   showArchived = signal(false);
+
+  private titleLabel = translateSignal('resources.title');
+  private materialLabel = translateSignal('nav.material');
+  private serviceLabel = translateSignal('nav.service');
+
+  // "Ressources" alone, or "Ressources — Matériel"/"— Service" when filtered
+  // by type (see app.routes.ts's own queryParams on the nav-bar's Ressources
+  // sub-links) - a computed (not string concatenation in the template) so it
+  // reacts to both the route's own type param and a language switch.
+  toolbarTitle = computed(() => {
+    const type = this.currentType();
+    const suffix = type === 'MATERIAL' ? this.materialLabel() : type === 'SERVICE' ? this.serviceLabel() : null;
+    return suffix ? `${this.titleLabel()} — ${suffix}` : this.titleLabel();
+  });
 
   // The toolbar's search box - matches any column of the table (code,
   // designation, unit, selling and purchase price as displayed), each typed
@@ -79,15 +89,13 @@ export class ResourceListComponent implements OnInit {
 
   ngOnInit(): void {
     this.route.queryParamMap.subscribe(params => {
-      const type = params.get('type') as ResourceType | null;
-      this.currentType = type;
-      this.currentTypeLabel.set(type ? TYPE_LABELS[type] : null);
+      this.currentType.set(params.get('type') as ResourceType | null);
       this.loadResources();
     });
   }
 
   private loadResources(): void {
-    this.resourceService.getResources(this.currentType ?? undefined, this.showArchived()).subscribe({
+    this.resourceService.getResources(this.currentType() ?? undefined, this.showArchived()).subscribe({
       next: data => {
         this.resources.set(data);
       },
@@ -125,10 +133,10 @@ export class ResourceListComponent implements OnInit {
   getActions(resource: Resource): MenuItem[] {
     return [
       resource.is_active
-        ? { label: 'Archiver', command: () => this.archiveResource(resource) }
-        : { label: 'Restaurer', command: () => this.unarchiveResource(resource) },
+        ? { label: this.transloco.translate('common.archive'), command: () => this.archiveResource(resource) }
+        : { label: this.transloco.translate('common.unarchive'), command: () => this.unarchiveResource(resource) },
       {
-        label: 'Dupliquer',
+        label: this.transloco.translate('clients.duplicate'),
         command: () => this.duplicateResource(resource)
       }
     ];
@@ -136,7 +144,7 @@ export class ResourceListComponent implements OnInit {
 
   private archiveResource(resource: Resource): void {
     this.resourcePendingArchive = resource;
-    this.confirmMessage.set(`Archiver la ressource ${resource.name} ?`);
+    this.confirmMessage.set(this.transloco.translate('resources.archiveConfirm', { name: resource.name }));
     this.confirmVisible.set(true);
   }
 
