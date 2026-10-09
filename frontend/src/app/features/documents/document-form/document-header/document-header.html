@@ -13,19 +13,19 @@
 
     <p-floatlabel variant="on">
       <p-datepicker inputId="date" [ngModel]="date()" (ngModelChange)="onDateChange($event)" dateFormat="dd.mm.yy" />
-      <label for="date">Date</label>
+      <label for="date">{{ 'projects.columnDate' | transloco }}</label>
     </p-floatlabel>
 
     <p-floatlabel variant="on">
       <p-datepicker inputId="due_date" [ngModel]="dueDate()" (ngModelChange)="dueDate.set($event)" dateFormat="dd.mm.yy" [showClear]="true" />
-      <label for="due_date">{{ type() === 'QUOTE' ? "Valable jusqu'au" : 'Échéance' }}</label>
+      <label for="due_date">{{ (type() === 'QUOTE' ? 'documents.header.validUntil' : 'documents.columnDueDate') | transloco }}</label>
     </p-floatlabel>
 
     <p class="m-0 text-[0.8rem] text-[#888] italic">
-      @if (documentNumber()) {
-        N° : {{ documentNumber() }}
+      @if (documentNumber(); as number) {
+        {{ 'documents.header.numberPrefix' | transloco: { number } }}
       } @else {
-        N° : généré automatiquement à la création
+        {{ 'documents.header.numberGenerated' | transloco }}
       }
     </p>
   </div>
@@ -33,7 +33,7 @@
 
 @if (locked()) {
   <p class="m-0 mb-6 text-[#d32f2f]">
-    Ce document ne peut plus être modifié (offre déjà répondue ou facture déjà finalisée).
+    {{ 'documents.header.locked' | transloco }}
   </p>
 }
 
@@ -53,14 +53,14 @@
         <ng-template #footer>
           <div class="p-2 border-t border-surface-200">
             <p-button
-              type="button" label="Ajouter un client" icon="pi pi-plus"
+              type="button" [label]="'documents.header.addClient' | transloco" icon="pi pi-plus"
               size="small" [text]="true" [fluid]="true"
               (onClick)="createClientDialogVisible.set(true)"
             />
           </div>
         </ng-template>
       </p-select>
-      <label for="client_id">Client</label>
+      <label for="client_id">{{ 'projects.columnClient' | transloco }}</label>
     </p-floatlabel>
 
     @if (selectedClientAddress(); as address) {
@@ -89,20 +89,20 @@
         <ng-template #footer>
           <div class="p-2 border-t border-surface-200">
             <p-button
-              type="button" label="Ajouter une adresse" icon="pi pi-plus"
+              type="button" [label]="'documents.header.addAddress' | transloco" icon="pi pi-plus"
               size="small" [text]="true" [fluid]="true"
               (onClick)="goToClientAddresses()"
             />
           </div>
         </ng-template>
       </p-select>
-      <label for="address_id">Lieu/Bâtiment</label>
+      <label for="address_id">{{ 'documents.header.location' | transloco }}</label>
     </p-floatlabel>
 
     @if (type() === 'INVOICE') {
       <p-floatlabel variant="on" class="w-full">
         <input pInputText pSize="small" id="reference_client" [ngModel]="referenceClient()" (ngModelChange)="referenceClient.set($event)" [fluid]="true" />
-        <label for="reference_client">Référence client</label>
+        <label for="reference_client">{{ 'documents.header.referenceClient' | transloco }}</label>
       </p-floatlabel>
     }
   </div>
@@ -110,7 +110,7 @@
 
 <p-dialog
   [(visible)]="createClientDialogVisible"
-  header="Nouveau client"
+  [header]="'clients.newClient' | transloco"
   [modal]="true"
   [style]="{ width: '32rem' }"
 >

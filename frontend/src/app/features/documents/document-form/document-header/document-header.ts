@@ -7,6 +7,7 @@ import { Select } from 'primeng/select';
 import { DatePicker } from 'primeng/datepicker';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { ClientForm } from '../../../clients/client-form/client-form';
 import { Client } from '../../../../shared/models/client';
 import { Address } from '../../../../shared/models/address';
@@ -24,7 +25,7 @@ import { clientDisplayName, addressLabel } from '../../../../shared/utils/displa
 @Component({
   selector: 'app-document-header',
   standalone: true,
-  imports: [FormsModule, InputText, FloatLabel, Select, DatePicker, Button, Dialog, ClientForm],
+  imports: [FormsModule, InputText, FloatLabel, Select, DatePicker, Button, Dialog, ClientForm, TranslocoPipe],
   templateUrl: './document-header.html',
   host: { class: 'block' },
 })

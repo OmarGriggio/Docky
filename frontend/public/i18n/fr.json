@@ -243,6 +243,16 @@
       "REJECTED": "Refusée",
       "PAID": "Payée",
       "CANCELLED": "Annulée"
+    },
+    "header": {
+      "validUntil": "Valable jusqu'au",
+      "numberGenerated": "N° : généré automatiquement à la création",
+      "numberPrefix": "N° : {{number}}",
+      "locked": "Ce document ne peut plus être modifié (offre déjà répondue ou facture déjà finalisée).",
+      "addClient": "Ajouter un client",
+      "addAddress": "Ajouter une adresse",
+      "location": "Lieu/Bâtiment",
+      "referenceClient": "Référence client"
     }
   }
 }

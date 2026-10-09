@@ -243,6 +243,16 @@
       "REJECTED": "Rejected",
       "PAID": "Paid",
       "CANCELLED": "Cancelled"
+    },
+    "header": {
+      "validUntil": "Valid until",
+      "numberGenerated": "No.: generated automatically on creation",
+      "numberPrefix": "No.: {{number}}",
+      "locked": "This document can no longer be edited (quote already answered or invoice already finalized).",
+      "addClient": "Add a client",
+      "addAddress": "Add an address",
+      "location": "Location",
+      "referenceClient": "Client reference"
     }
   }
 }
