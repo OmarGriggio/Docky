@@ -70,6 +70,10 @@ One `Dockerfile` with `dev`/`build`/`prod` stages selected via `target:` — sin
 
 Every route in `app.routes.ts` uses `loadComponent` — fixed the actual cause (the whole app loading at once) rather than the symptom: 1.21 MB → 485 KB initial. **Turned down**: just raising the `angular.json` budget — would have hidden a real problem instead of fixing it.
 
+## i18n: Transloco (runtime) over `@angular/localize` (compile-time)
+
+Language is a per-user setting (`users.language`), switchable without a reload — Transloco loads `public/i18n/{lang}.json` at runtime via `TranslocoService`, one single build either way. **Turned down**: `@angular/localize` — translates at compile time, so changing language means loading a *different build* (its own bundle per locale), which doesn't fit a setting toggled live in the app, and would need a multi-bundle build/nginx setup this project doesn't have.
+
 ## Error handling: an `AppError` hierarchy + a single middleware
 
 `NotFoundError`/`ConflictError`/`UnauthorizedError`/`ForbiddenError` (all `extends AppError`), one error middleware at the end of `app.ts`, no `try/catch` in controllers — Express 5 forwards rejected promises automatically. Depends on Express 5 (4 would've needed a wrapper); not an issue, already on 5.

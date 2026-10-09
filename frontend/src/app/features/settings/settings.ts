@@ -2,6 +2,7 @@ import { Component, computed, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { Menu } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
+import { translateSignal } from '@jsverse/transloco';
 import { AuthService } from '../auth/auth.service';
 
 // Layout for the whole /settings section, not just a landing page: this
@@ -23,15 +24,30 @@ export class Settings {
   private isAdmin = this.authService.isAdmin;
   private isPlatformAdmin = this.authService.isPlatformAdmin;
 
+  // PrimeNG's Menu renders `label` as plain text (no pipe applied for us).
+  // translateSignal() (not a one-off translate() call) is what keeps each
+  // label correct both once the translation file's async load finishes and
+  // across a later language switch - a plain translate() inside a computed
+  // can run before the file has loaded, cache the raw key as a fallback,
+  // and never re-run since nothing it reads changes again afterwards.
+  private documentTemplatesLabel = translateSignal('settings.documentTemplates');
+  private languageLabel = translateSignal('settings.language');
+  private uiKitLabel = translateSignal('settings.uiKit');
+  private companiesLabel = translateSignal('settings.companies');
+  private usersLabel = translateSignal('settings.users');
+  private newUserLabel = translateSignal('settings.newUser');
+  private loginHistoryLabel = translateSignal('settings.loginHistory');
+
   items = computed<MenuItem[]>(() => {
     const menu: MenuItem[] = [
-      { label: 'Modèles de documents', icon: 'pi pi-file-edit', routerLink: '/settings/templates' },
+      { label: this.documentTemplatesLabel(), icon: 'pi pi-file-edit', routerLink: '/settings/templates' },
+      { label: this.languageLabel(), icon: 'pi pi-language', routerLink: '/settings/language' },
     ];
 
     // Same page, open to either role now - not one of the pages
     // centralized to PLATFORM_ADMIN only below.
     if (this.isAdmin() || this.isPlatformAdmin()) {
-      menu.push({ label: 'UI Kit', icon: 'pi pi-palette', routerLink: '/settings/uitest' });
+      menu.push({ label: this.uiKitLabel(), icon: 'pi pi-palette', routerLink: '/settings/uitest' });
     }
 
     // User management was centralized to PLATFORM_ADMIN only (see
@@ -40,10 +56,10 @@ export class Settings {
     // impersonating it first (see "Entreprises" below).
     if (this.isPlatformAdmin()) {
       menu.push(
-        { label: 'Entreprises', icon: 'pi pi-sitemap', routerLink: '/settings/companies' },
-        { label: 'Utilisateurs', icon: 'pi pi-users', routerLink: '/settings/users' },
-        { label: 'Nouvel utilisateur', icon: 'pi pi-user-plus', routerLink: '/settings/users/new' },
-        { label: 'Historique des connexions', icon: 'pi pi-history', routerLink: '/settings/login-history' },
+        { label: this.companiesLabel(), icon: 'pi pi-sitemap', routerLink: '/settings/companies' },
+        { label: this.usersLabel(), icon: 'pi pi-users', routerLink: '/settings/users' },
+        { label: this.newUserLabel(), icon: 'pi pi-user-plus', routerLink: '/settings/users/new' },
+        { label: this.loginHistoryLabel(), icon: 'pi pi-history', routerLink: '/settings/login-history' },
       );
     }
 

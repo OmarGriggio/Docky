@@ -1,0 +1,13 @@
+<p-card [header]="'settings.language' | transloco" styleClass="ui-card--elevated">
+  <p class="text-sm text-gray-600 mt-0 mb-4">{{ 'settings.languageDescription' | transloco }}</p>
+
+  <p-selectbutton [options]="options()" optionLabel="label" optionValue="value" [ngModel]="language()" (onChange)="setLanguage($event.value)" />
+
+  @if (successMessage()) {
+    <p class="text-sm text-green-700 mt-3 mb-0">{{ successMessage() }}</p>
+  }
+
+  @if (errorMessage()) {
+    <p class="text-sm text-red-700 mt-3 mb-0">{{ errorMessage() }}</p>
+  }
+</p-card>

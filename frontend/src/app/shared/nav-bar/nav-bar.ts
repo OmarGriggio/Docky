@@ -1,5 +1,6 @@
 import { Component, computed, ElementRef, HostListener, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { AuthService } from '../../features/auth/auth.service';
 import { UserRole } from '../models/auth';
 
@@ -24,7 +25,7 @@ const NAV_EXPANDED_KEY = 'docky_nav_expanded';
 @Component({
   selector: 'app-nav-bar',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, TranslocoPipe],
   templateUrl: './nav-bar.html',
   styleUrl: './nav-bar.css'
 })
@@ -164,12 +165,15 @@ export class NavBar {
       : 'md:w-16 md:items-center md:px-2';
   }
 
+  // `label`s are Transloco keys (see nav-bar.html's `| transloco`), not
+  // display text - translated at render time so a language switch updates
+  // this static array's rendering without rebuilding it.
   navItems: NavItem[] = [
     {
-      label: 'Dashboard',
+      label: 'nav.dashboard',
       icon: 'pi pi-home',
       links: [
-        { label: 'Dashboard', path: '/dashboard' }
+        { label: 'nav.dashboard', path: '/dashboard' }
       ],
       // Matches app.routes.ts's own restriction - a plain USER (employee)
       // has no company-wide figures to look at here.
@@ -178,41 +182,41 @@ export class NavBar {
     {
       // Matches app.routes.ts's own restriction - a plain USER (employee)
       // doesn't plan chantiers.
-      label: 'Calendrier',
+      label: 'nav.calendar',
       icon: 'pi pi-calendar',
       links: [
-        { label: 'Calendrier', path: '/calendar' }
+        { label: 'nav.calendar', path: '/calendar' }
       ],
       roles: ['ADMIN', 'PLATFORM_ADMIN']
     },
     {
-      label: 'Clients',
+      label: 'nav.clients',
       icon: 'pi pi-address-book',
       links: [
-        { label: 'Liste', path: '/clients' }
+        { label: 'nav.list', path: '/clients' }
       ]
     },
     {
-      label: 'Documents',
+      label: 'nav.documents',
       icon: 'pi pi-receipt',
       links: [
-        { label: 'Offres', path: '/documents', queryParams: { type: 'QUOTE' } },
-        { label: 'Factures', path: '/documents', queryParams: { type: 'INVOICE' } }
+        { label: 'nav.quotes', path: '/documents', queryParams: { type: 'QUOTE' } },
+        { label: 'nav.invoices', path: '/documents', queryParams: { type: 'INVOICE' } }
       ]
     },
     {
-      label: 'Ressources',
+      label: 'nav.resources',
       icon: 'pi pi-box',
       links: [
-        { label: 'Matériel', path: '/resources', queryParams: { type: 'MATERIAL' } },
-        { label: 'Service', path: '/resources', queryParams: { type: 'SERVICE' } }
+        { label: 'nav.material', path: '/resources', queryParams: { type: 'MATERIAL' } },
+        { label: 'nav.service', path: '/resources', queryParams: { type: 'SERVICE' } }
       ]
     },
     {
-      label: 'Chantiers',
+      label: 'nav.projects',
       icon: 'pi pi-hammer',
       links: [
-        { label: 'Liste', path: '/projects' }
+        { label: 'nav.list', path: '/projects' }
       ]
     }
   ];

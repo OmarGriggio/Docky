@@ -7,6 +7,7 @@ import { FloatLabel } from 'primeng/floatlabel';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from 'primeng/tabs';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { CompanyService } from '../../profile/company.service';
 import { AuthService } from '../../auth/auth.service';
 import { DocumentTemplateService } from '../../documents/document-template.service';
@@ -15,7 +16,7 @@ import { TabIndentDirective } from '../../../shared/directives/tab-indent.direct
 @Component({
   selector: 'app-document-templates',
   standalone: true,
-  imports: [ReactiveFormsModule, InputNumber, Textarea, FloatLabel, Button, Card, Tabs, TabList, Tab, TabPanels, TabPanel, TabIndentDirective],
+  imports: [ReactiveFormsModule, InputNumber, Textarea, FloatLabel, Button, Card, Tabs, TabList, Tab, TabPanels, TabPanel, TabIndentDirective, TranslocoPipe],
   templateUrl: './document-templates.html',
 })
 export class DocumentTemplates implements OnInit {
@@ -24,6 +25,7 @@ export class DocumentTemplates implements OnInit {
   private companyService = inject(CompanyService);
   private authService = inject(AuthService);
   private documentTemplateService = inject(DocumentTemplateService);
+  private transloco = inject(TranslocoService);
 
   // Default introduction/conclusion/payment terms applied when that type is
   // picked on a new document (see document-form.ts) - introduction/
@@ -46,23 +48,25 @@ export class DocumentTemplates implements OnInit {
   // (see backend/src/pdf/templates/reminder.placeholders.ts) - shown as help
   // under the reminder text field. Built here as strings (not written in the
   // template) since a literal double brace there is read as an interpolation.
+  // `label`s are Transloco keys (see document-templates.html's `| transloco`),
+  // not display text - same pattern as nav-bar.ts's navItems.
   reminderPlaceholders = [
-    { token: '{{numero_facture}}', label: 'Numéro de la facture' },
-    { token: '{{date_facture}}', label: 'Date de la facture' },
-    { token: '{{date_echeance}}', label: "Date d'échéance" },
-    { token: '{{montant}}', label: 'Montant TTC, avec CHF' },
-    { token: '{{jours_retard}}', label: 'Jours de retard' },
-    { token: '{{client}}', label: 'Nom du client' },
-    { token: '{{signature_entreprise}}', label: 'Signature : le nom de l\'entreprise pour l\'instant' },
+    { token: '{{numero_facture}}', label: 'documentTemplates.placeholders.invoiceNumber' },
+    { token: '{{date_facture}}', label: 'documentTemplates.placeholders.invoiceDate' },
+    { token: '{{date_echeance}}', label: 'documentTemplates.placeholders.dueDate' },
+    { token: '{{montant}}', label: 'documentTemplates.placeholders.amount' },
+    { token: '{{jours_retard}}', label: 'documentTemplates.placeholders.daysLate' },
+    { token: '{{client}}', label: 'documentTemplates.placeholders.clientName' },
+    { token: '{{signature_entreprise}}', label: 'documentTemplates.placeholders.signature' },
   ];
 
   // Same for an invoice's/quote's introduction and conclusion (see the
   // backend's pdf/templates/document.placeholders.ts).
   documentPlaceholders = [
-    { token: '{{titre_client}}', label: 'Titre du client (Madame, Monsieur s\'il n\'en a pas), sans virgule' },
-    { token: '{{date}}', label: 'Date du document' },
-    { token: '{{montant}}', label: 'Montant TTC, avec CHF' },
-    { token: '{{signature_entreprise}}', label: 'Signature : le nom de l\'entreprise pour l\'instant' },
+    { token: '{{titre_client}}', label: 'documentTemplates.placeholders.clientTitle' },
+    { token: '{{date}}', label: 'documentTemplates.placeholders.documentDate' },
+    { token: '{{montant}}', label: 'documentTemplates.placeholders.amount' },
+    { token: '{{signature_entreprise}}', label: 'documentTemplates.placeholders.signature' },
   ];
 
   templatesLoading = signal(true);
@@ -126,7 +130,7 @@ export class DocumentTemplates implements OnInit {
       },
       error: err => {
         console.error('settings : ' + err);
-        this.templatesErrorMessage.set('Impossible de charger les modèles de documents.');
+        this.templatesErrorMessage.set(this.transloco.translate('documentTemplates.loadError'));
         this.templatesLoading.set(false);
       }
     });
@@ -149,11 +153,11 @@ export class DocumentTemplates implements OnInit {
       company: this.companyService.updatePaymentTerms(this.companyId, payment_terms.trim() || null),
     }).subscribe({
       next: () => {
-        this.templatesSuccessMessage.set('Les modèles de documents ont été mis à jour.');
+        this.templatesSuccessMessage.set(this.transloco.translate('documentTemplates.updateSuccess'));
       },
       error: err => {
         console.error('settings : ' + err);
-        this.templatesErrorMessage.set('Impossible de mettre à jour les modèles de documents.');
+        this.templatesErrorMessage.set(this.transloco.translate('documentTemplates.updateError'));
       }
     });
   }

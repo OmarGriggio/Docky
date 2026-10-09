@@ -120,6 +120,13 @@ export const routes: Routes = [
         data: { breadcrumb: 'Modèles de documents' }
       },
       {
+        // Open to every role, like 'templates' above - a personal
+        // preference (users.language), not company/admin-scoped.
+        path: 'language',
+        loadComponent: () => import('./features/settings/language/language').then(m => m.Language),
+        data: { breadcrumb: 'Langue' }
+      },
+      {
         // PLATFORM_ADMIN only, deliberately not (also) ADMIN - user
         // management was centralized there, see user.routes.ts on the
         // backend for why (and how a PLATFORM_ADMIN still manages a given

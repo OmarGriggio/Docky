@@ -9,8 +9,8 @@
       type="button"
       class="flex items-center justify-center w-6 h-6 rounded-full bg-(--p-primary-color) text-white shadow-md hover:opacity-90 transition-opacity cursor-pointer border-0
              md:absolute md:top-5 md:-right-3.5 md:z-10"
-      [attr.aria-label]="expanded() ? 'Réduire' : 'Agrandir'"
-      [attr.title]="expanded() ? 'Réduire' : 'Agrandir'"
+      [attr.aria-label]="(expanded() ? 'nav.collapse' : 'nav.expand') | transloco"
+      [attr.title]="(expanded() ? 'nav.collapse' : 'nav.expand') | transloco"
       (click)="toggleExpanded()"
     >
       <i [class]="expanded() ? 'pi pi-angle-left' : 'pi pi-angle-right'" class="text-sm"></i>
@@ -33,11 +33,11 @@
         <details #group [class]="groupClasses()">
           <summary [class]="linkClasses() + ' list-none [&::-webkit-details-marker]:hidden'">
             <i [class]="item.icon"></i>
-            <span [class]="labelClasses()">{{ item.label }}</span>
+            <span [class]="labelClasses()">{{ item.label | transloco }}</span>
           </summary>
           <div class="absolute left-[calc(100%+0.5rem)] top-0 min-w-35 bg-white border border-gray-200 rounded-md shadow-lg p-1 z-1">
             @for (link of item.links; track link.label) {
-              <a [routerLink]="link.path" [queryParams]="link.queryParams" class="block px-3 py-2 rounded text-gray-800 no-underline text-sm whitespace-nowrap hover:bg-gray-100" (click)="group.open = false">{{ link.label }}</a>
+              <a [routerLink]="link.path" [queryParams]="link.queryParams" class="block px-3 py-2 rounded text-gray-800 no-underline text-sm whitespace-nowrap hover:bg-gray-100" (click)="group.open = false">{{ link.label | transloco }}</a>
             }
           </div>
         </details>
@@ -48,7 +48,7 @@
           [class]="linkClasses()"
         >
           <i [class]="item.icon"></i>
-          <span [class]="labelClasses()">{{ item.label }}</span>
+          <span [class]="labelClasses()">{{ item.label | transloco }}</span>
         </a>
       }
     }
@@ -57,7 +57,7 @@
       @if (isImpersonating()) {
         <button type="button" [class]="linkClasses() + ' text-amber-700 hover:bg-amber-100'" (click)="returnToPlatformView()">
           <i class="pi pi-sign-out"></i>
-          <span [class]="labelClasses()">Retour vue plateforme</span>
+          <span [class]="labelClasses()">{{ 'nav.returnToPlatformView' | transloco }}</span>
         </button>
       }
       <!-- Same <details> flyout as Documents/Ressources above, but opening
@@ -67,18 +67,18 @@
       <details #accountGroup [class]="groupClasses()">
         <summary [class]="linkClasses() + ' list-none [&::-webkit-details-marker]:hidden'">
           <i class="pi pi-user"></i>
-          <span [class]="labelClasses()">{{ currentUser()?.email ?? 'Profil' }}</span>
+          <span [class]="labelClasses()">{{ currentUser()?.email ?? ('nav.profile' | transloco) }}</span>
         </summary>
         <div [class]="accountMenuClasses()">
-          <a routerLink="/settings" [class]="accountItemClasses()" title="Paramètres" (click)="accountGroup.open = false">
-            <i class="pi pi-cog"></i>@if (expanded()) {Paramètres}
+          <a routerLink="/settings" [class]="accountItemClasses()" [title]="'nav.settings' | transloco" (click)="accountGroup.open = false">
+            <i class="pi pi-cog"></i>@if (expanded()) {{{ 'nav.settings' | transloco }}}
           </a>
-          <a routerLink="/profile" [class]="accountItemClasses()" title="Profil" (click)="accountGroup.open = false">
-            <i class="pi pi-user"></i>@if (expanded()) {Profil}
+          <a routerLink="/profile" [class]="accountItemClasses()" [title]="'nav.profile' | transloco" (click)="accountGroup.open = false">
+            <i class="pi pi-user"></i>@if (expanded()) {{{ 'nav.profile' | transloco }}}
           </a>
           <hr class="my-1 border-0 border-t border-gray-200" />
-          <button type="button" [class]="accountItemClasses() + ' w-full bg-transparent border-0 text-left'" title="Déconnexion" (click)="accountGroup.open = false; logout()">
-            <i class="pi pi-sign-out"></i>@if (expanded()) {Déconnexion}
+          <button type="button" [class]="accountItemClasses() + ' w-full bg-transparent border-0 text-left'" [title]="'nav.logout' | transloco" (click)="accountGroup.open = false; logout()">
+            <i class="pi pi-sign-out"></i>@if (expanded()) {{{ 'nav.logout' | transloco }}}
           </button>
         </div>
       </details>

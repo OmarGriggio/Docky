@@ -1,6 +1,7 @@
-import { computed, inject, Injectable, signal } from '@angular/core';
+import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, finalize, map, shareReplay, switchMap, tap, throwError } from 'rxjs';
+import { TranslocoService } from '@jsverse/transloco';
 import { AuthResponse, LoginPayload, RegisterPayload, UserRole } from '../../shared/models/auth';
 import { Company } from '../../shared/models/company';
 import { User } from '../../shared/models/user';
@@ -14,11 +15,15 @@ const TOKEN_KEY = 'docky_token';
 // and zz_docs/Decisions.md's "Cross-company access" entry.
 const PLATFORM_TOKEN_KEY = 'docky_platform_token';
 
+// Only FR/EN for now (see backend/src/modules/users/user.types.ts's Language).
+export type Language = 'FR' | 'EN';
+
 interface TokenPayload {
   userId: number;
   email: string;
   role: UserRole;
   company_id: number;
+  language: Language;
 }
 
 function decodeToken(token: string): TokenPayload | null {
@@ -37,6 +42,7 @@ function decodeToken(token: string): TokenPayload | null {
 export class AuthService {
 
   private http = inject(HttpClient);
+  private transloco = inject(TranslocoService);
 
   private token = signal<string | null>(localStorage.getItem(TOKEN_KEY));
   private platformToken = signal<string | null>(localStorage.getItem(PLATFORM_TOKEN_KEY));
@@ -50,6 +56,14 @@ export class AuthService {
   currentUser = computed(() => {
     const token = this.token();
     return token ? decodeToken(token) : null;
+  });
+
+  // Keeps Transloco's active language in sync with whatever token is active
+  // (login, impersonation switch, refresh, logout) - runs once at app
+  // startup too, for a page reload with an already-stored token.
+  private readonly syncLanguage = effect(() => {
+    const language = this.currentUser()?.language ?? 'FR';
+    this.transloco.setActiveLang(language.toLowerCase());
   });
 
   isAdmin = computed(() =>
@@ -76,6 +90,18 @@ export class AuthService {
 
   getToken(): string | null {
     return this.token();
+  }
+
+  // Updates the stored preference server-side and switches the UI
+  // immediately (Transloco), rather than waiting for a new token to carry
+  // the change - the current access token keeps its old `language` claim
+  // until it's next refreshed/re-issued, same staleness as role/company_id
+  // elsewhere in this app.
+  updateLanguage(language: Language): Observable<void> {
+    return this.http.patch<User>(`${API_BASE}/user/language`, { language }).pipe(
+      tap(() => this.transloco.setActiveLang(language.toLowerCase())),
+      map(() => undefined)
+    );
   }
 
   login(payload: LoginPayload) {

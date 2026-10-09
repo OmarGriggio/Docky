@@ -1,15 +1,15 @@
-<p-card header="Modèles de documents" styleClass="ui-card--elevated profile-card">
+<p-card [header]="'documentTemplates.title' | transloco" styleClass="ui-card--elevated profile-card">
   @if (templatesLoading()) {
-    <p>Chargement...</p>
+    <p>{{ 'documentTemplates.loading' | transloco }}</p>
   } @else {
     <form [formGroup]="templatesForm" (ngSubmit)="submitTemplates()" class="ui-form">
-      <p class="ui-form__full">Textes et échéance appliqués automatiquement à la création d'une nouvelle facture ou offre, et texte du PDF de rappel.</p>
+      <p class="ui-form__full">{{ 'documentTemplates.description' | transloco }}</p>
 
       <p-tabs value="invoice" class="ui-form__full">
         <p-tablist>
-          <p-tab value="invoice">Facture</p-tab>
-          <p-tab value="quote">Offre</p-tab>
-          <p-tab value="reminder">Rappel</p-tab>
+          <p-tab value="invoice">{{ 'documentTemplates.invoiceTab' | transloco }}</p-tab>
+          <p-tab value="quote">{{ 'documentTemplates.quoteTab' | transloco }}</p-tab>
+          <p-tab value="reminder">{{ 'documentTemplates.reminderTab' | transloco }}</p-tab>
         </p-tablist>
 
         <p-tabpanels>
@@ -17,26 +17,26 @@
             <div class="ui-form pt-2">
               <p-floatlabel variant="on" class="ui-form__full">
                 <textarea pTextarea id="invoice_introduction" formControlName="invoice_introduction" rows="3"></textarea>
-                <label for="invoice_introduction">Introduction</label>
+                <label for="invoice_introduction">{{ 'documentTemplates.introduction' | transloco }}</label>
               </p-floatlabel>
 
               <p-floatlabel variant="on" class="ui-form__full">
                 <textarea pTextarea id="invoice_conclusion" formControlName="invoice_conclusion" rows="3"></textarea>
-                <label for="invoice_conclusion">Conclusion</label>
+                <label for="invoice_conclusion">{{ 'documentTemplates.conclusion' | transloco }}</label>
               </p-floatlabel>
 
               <div class="ui-form__full text-sm text-gray-600 -mt-2">
-                <p class="m-0 mb-1">Variables remplacées automatiquement dans le PDF (une variable inconnue reste telle quelle) :</p>
+                <p class="m-0 mb-1">{{ 'documentTemplates.variablesHelp' | transloco }}</p>
                 <ul class="m-0 pl-5">
                   @for (placeholder of documentPlaceholders; track placeholder.token) {
-                    <li><code>{{ placeholder.token }}</code> — {{ placeholder.label }}</li>
+                    <li><code>{{ placeholder.token }}</code> — {{ placeholder.label | transloco }}</li>
                   }
                 </ul>
               </div>
 
               <p-floatlabel variant="on">
-                <p-inputnumber inputId="invoice_due_days" formControlName="invoice_due_days" [min]="0" [useGrouping]="false" suffix=" jours" />
-                <label for="invoice_due_days">Échéance par défaut</label>
+                <p-inputnumber inputId="invoice_due_days" formControlName="invoice_due_days" [min]="0" [useGrouping]="false" [suffix]="'documentTemplates.daysSuffix' | transloco" />
+                <label for="invoice_due_days">{{ 'documentTemplates.invoiceDueDays' | transloco }}</label>
               </p-floatlabel>
             </div>
           </p-tabpanel>
@@ -45,26 +45,26 @@
             <div class="ui-form pt-2">
               <p-floatlabel variant="on" class="ui-form__full">
                 <textarea pTextarea id="quote_introduction" formControlName="quote_introduction" rows="3"></textarea>
-                <label for="quote_introduction">Introduction</label>
+                <label for="quote_introduction">{{ 'documentTemplates.introduction' | transloco }}</label>
               </p-floatlabel>
 
               <p-floatlabel variant="on" class="ui-form__full">
                 <textarea pTextarea id="quote_conclusion" formControlName="quote_conclusion" rows="3"></textarea>
-                <label for="quote_conclusion">Conclusion</label>
+                <label for="quote_conclusion">{{ 'documentTemplates.conclusion' | transloco }}</label>
               </p-floatlabel>
 
               <div class="ui-form__full text-sm text-gray-600 -mt-2">
-                <p class="m-0 mb-1">Variables remplacées automatiquement dans le PDF (une variable inconnue reste telle quelle) :</p>
+                <p class="m-0 mb-1">{{ 'documentTemplates.variablesHelp' | transloco }}</p>
                 <ul class="m-0 pl-5">
                   @for (placeholder of documentPlaceholders; track placeholder.token) {
-                    <li><code>{{ placeholder.token }}</code> — {{ placeholder.label }}</li>
+                    <li><code>{{ placeholder.token }}</code> — {{ placeholder.label | transloco }}</li>
                   }
                 </ul>
               </div>
 
               <p-floatlabel variant="on">
-                <p-inputnumber inputId="quote_due_days" formControlName="quote_due_days" [min]="0" [useGrouping]="false" suffix=" jours" />
-                <label for="quote_due_days">Validité par défaut</label>
+                <p-inputnumber inputId="quote_due_days" formControlName="quote_due_days" [min]="0" [useGrouping]="false" [suffix]="'documentTemplates.daysSuffix' | transloco" />
+                <label for="quote_due_days">{{ 'documentTemplates.quoteDueDays' | transloco }}</label>
               </p-floatlabel>
             </div>
           </p-tabpanel>
@@ -73,14 +73,14 @@
             <div class="ui-form pt-2">
               <p-floatlabel variant="on" class="ui-form__full">
                 <textarea pTextarea id="reminder_text" formControlName="reminder_text" rows="8"></textarea>
-                <label for="reminder_text">Texte du rappel</label>
+                <label for="reminder_text">{{ 'documentTemplates.reminderText' | transloco }}</label>
               </p-floatlabel>
 
               <div class="ui-form__full text-sm text-gray-600 -mt-2">
-                <p class="m-0 mb-1">Variables remplacées automatiquement dans le PDF de rappel (une variable inconnue reste telle quelle) :</p>
+                <p class="m-0 mb-1">{{ 'documentTemplates.reminderVariablesHelp' | transloco }}</p>
                 <ul class="m-0 pl-5">
                   @for (placeholder of reminderPlaceholders; track placeholder.token) {
-                    <li><code>{{ placeholder.token }}</code> — {{ placeholder.label }}</li>
+                    <li><code>{{ placeholder.token }}</code> — {{ placeholder.label | transloco }}</li>
                   }
                 </ul>
               </div>
@@ -91,11 +91,11 @@
 
       <p-floatlabel variant="on" class="ui-form__full">
         <textarea pTextarea id="payment_terms" formControlName="payment_terms" rows="3"></textarea>
-        <label for="payment_terms">Conditions de paiement par défaut</label>
+        <label for="payment_terms">{{ 'documentTemplates.paymentTerms' | transloco }}</label>
       </p-floatlabel>
 
       @if (!canManageCompany()) {
-        <p class="ui-form__full">Seul un administrateur peut modifier les modèles de documents.</p>
+        <p class="ui-form__full">{{ 'documentTemplates.adminOnly' | transloco }}</p>
       }
 
       @if (templatesSuccessMessage()) {
@@ -108,7 +108,7 @@
 
       @if (canManageCompany()) {
         <div class="ui-form__actions">
-          <p-button type="submit" label="Enregistrer" />
+          <p-button type="submit" [label]="'documentTemplates.save' | transloco" />
         </div>
       }
     </form>
