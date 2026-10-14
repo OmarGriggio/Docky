@@ -17,7 +17,7 @@ export const getClientByIdServ = async (id: number, company_id: number): Promise
   return { ...client, addresses };
 };
 
-export const addClientServ = async (clientData: Omit<Client, "id" | "company_id">, company_id: number) => {
+export const addClientServ = async (clientData: Omit<Client, "id" | "company_id" | "language">, company_id: number) => {
   const existingClient = await getClientByNumber(clientData.client_number);
   if (!existingClient) {
     if (clientData.email) {

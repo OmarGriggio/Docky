@@ -5,7 +5,7 @@
 export type Role = 'ADMIN' | 'USER' | 'PLATFORM_ADMIN';
 
 // The frontend's own UI language (Transloco) - a personal preference, not
-// tied to a company. Only FR/EN for now (see zz_migrations/002_add_user_language.sql).
+// tied to a company. Only FR/EN for now (see zz_migrations/002_add_language_columns.sql).
 export type Language = 'FR' | 'EN';
 
 export interface User {

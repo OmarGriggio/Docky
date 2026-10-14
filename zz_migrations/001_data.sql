@@ -65,7 +65,7 @@ A late payment interest of 5% per annum will be charged on overdue payments.');
 -- create one otherwise. Dev logins (company 1): password123.
 -- language isn't set here - the column doesn't exist yet at this point in a
 -- fresh volume's bootstrap sequence (it's added by migration 002, which runs
--- after this file - see zz_migrations/004_set_demo_user_language.sql for how
+-- after this file - see zz_migrations/004_set_demo_company_language.sql for how
 -- the demo admin below ends up on 'EN' regardless of load order).
 INSERT INTO users
 (company_id, role, last_name, first_name, email, password_hash)
@@ -82,6 +82,12 @@ VALUES
 -- client_number is UNIQUE across the whole table, not just per company (see
 -- 000_base.sql) - C0001-C0005 company 1, C0006-C0010 company 2, C0011-C0013
 -- company 1 again (C0011 is archived).
+-- language isn't listed here on purpose - that column (migration
+-- 002_add_language_columns.sql) doesn't exist yet at this point in a fresh
+-- volume's bootstrap sequence (001_data.sql runs before any numbered
+-- migration), so every client implicitly gets the column's own
+-- DEFAULT 'FR' once that migration runs; 004_set_demo_company_language.sql
+-- then flips company 2's clients to 'EN' to match its English content.
 INSERT INTO clients
 (company_id, client_number, type, company_name, vat_number, last_name, first_name, title, email, phone, note, is_active)
 VALUES

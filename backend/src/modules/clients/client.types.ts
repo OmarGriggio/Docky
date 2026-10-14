@@ -2,6 +2,12 @@ import { Address } from "./address.types";
 
 export type ClientType = "INDIVIDUAL" | "PROFESSIONAL";
 
+// The client's preferred language for correspondence/documents (see
+// zz_migrations/002_add_language_columns.sql) - distinct from a user's own
+// UI language (Transloco, FR/EN only), covers Switzerland's main business
+// languages.
+export type ClientLanguage = "FR" | "EN" | "DE" | "IT";
+
 export interface Client {
   id: number;
 
@@ -17,6 +23,7 @@ export interface Client {
   email: string;
   phone: string | null;
   note: string | null;
+  language: ClientLanguage;
   is_active: boolean;
 }
 
@@ -29,5 +36,5 @@ export interface ClientWithAddresses extends Client {
 // dedicated flows - everything else can be edited this way.
 export type UpdateClientData = Pick<
   Client,
-  "type" | "company_name" | "vat_number" | "last_name" | "first_name" | "title" | "email" | "phone" | "note"
+  "type" | "company_name" | "vat_number" | "last_name" | "first_name" | "title" | "email" | "phone" | "note" | "language"
 >;

@@ -31,7 +31,7 @@ export const getClientByEmail = async (email: string) => {
 
 
 export const createClientInDB = async (
-    client: Omit<Client, "id">
+    client: Omit<Client, "id" | "language">
 ): Promise<Client> => {
     const query = `
     INSERT INTO clients (
@@ -84,8 +84,9 @@ export const updateClientInDB = async (
       title = $6,
       email = $7,
       phone = $8,
-      note = $9
-      WHERE id = $10 AND company_id = $11
+      note = $9,
+      language = $10
+      WHERE id = $11 AND company_id = $12
     RETURNING *;
   `;
 
@@ -99,6 +100,7 @@ export const updateClientInDB = async (
       data.email,
       data.phone,
       data.note,
+      data.language,
       id,
       company_id
     ];
