@@ -10,7 +10,7 @@ import { Select } from 'primeng/select';
 import { MenuItem } from 'primeng/api';
 import { TranslocoPipe, TranslocoService, translateSignal } from '@jsverse/transloco';
 import { ClientService } from '../client.service';
-import { Client, ClientType } from '../../../shared/models/client';
+import { Client, ClientLanguage, ClientType } from '../../../shared/models/client';
 import { Button } from 'primeng/button';
 import { ClientForm } from '../client-form/client-form';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
@@ -113,6 +113,22 @@ export class ClientListComponent implements OnInit {
     { label: this.individualLabel(), value: 'INDIVIDUAL' },
     { label: this.professionalLabel(), value: 'PROFESSIONAL' },
   ]);
+
+  private frenchLabel = translateSignal('clients.languageFrench');
+  private englishLabel = translateSignal('clients.languageEnglish');
+  private germanLabel = translateSignal('clients.languageGerman');
+  private italianLabel = translateSignal('clients.languageItalian');
+
+  languageOptions = computed<{ label: string; value: ClientLanguage }[]>(() => [
+    { label: this.frenchLabel(), value: 'FR' },
+    { label: this.englishLabel(), value: 'EN' },
+    { label: this.germanLabel(), value: 'DE' },
+    { label: this.italianLabel(), value: 'IT' },
+  ]);
+
+  languageLabel(language: ClientLanguage): string {
+    return this.languageOptions().find(option => option.value === language)?.label ?? language;
+  }
 
   ngOnInit(): void {
     this.loadClients();
@@ -221,6 +237,7 @@ export class ClientListComponent implements OnInit {
       email: client.email,
       phone: client.phone,
       note: client.note,
+      language: client.language,
     }).subscribe({
       // Mutate the *same* client object in place with the server's
       // canonical values, rather than swapping in a new object (or

@@ -22,13 +22,15 @@ export class ClientService {
     return this.http.get<ClientWithAddresses>(`${API_BASE}/client/${id}`);
   }
 
-  createClient(client: Omit<Client, 'id' | 'is_active'>) {
+  // language isn't set at creation - the backend defaults it to 'FR', see
+  // client.types.ts's own addClientServ parameter type.
+  createClient(client: Omit<Client, 'id' | 'is_active' | 'language'>) {
     return this.http.post<Client>(`${API_BASE}/client`, client);
   }
 
   // client_number/is_active/company_id aren't editable this way - see
   // client.types.ts's UpdateClientData on the backend.
-  updateClient(id: number, client: Pick<Client, 'type' | 'company_name' | 'vat_number' | 'last_name' | 'first_name' | 'title' | 'email' | 'phone' | 'note'>) {
+  updateClient(id: number, client: Pick<Client, 'type' | 'company_name' | 'vat_number' | 'last_name' | 'first_name' | 'title' | 'email' | 'phone' | 'note' | 'language'>) {
     return this.http.put<Client>(`${API_BASE}/client/${id}`, client);
   }
 
