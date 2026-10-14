@@ -58,7 +58,9 @@ Three types of users are planned: **employees** (day-to-day usage), **company ad
 - [x] Refresh token stored in an httpOnly cookie (not readable by frontend JS, mitigates XSS token theft)
 - [x] Platform-admin company impersonation, login history/audit trail
 - [ ] Automated tests (Vitest is wired up and passing on both sides, but only covers a couple of pure functions so far — not real coverage yet)
-- [ ] Database migrations (schema is currently created manually)
+- [x] Database migrations (incremental, numbered files in `zz_migrations/`, auto-applied on backend startup)
+- [ ] PDF documents rendered in the client's own language (`clients.language` is stored, but quote/invoice PDFs still always render in French)
+- [ ] AI-assisted document scanner — extract structured data (reference, project/building, address, amount) from an uploaded scanned document via an LLM, to prefill a form instead of retyping it by hand
 
 **Frontend**
 - [x] Angular app skeleton with routing (every route lazy-loaded)
