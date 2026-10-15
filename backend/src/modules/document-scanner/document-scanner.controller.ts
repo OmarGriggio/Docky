@@ -24,6 +24,6 @@ export const scanDocument = async (req: Request, res: Response) => {
         return;
     }
 
-    const data = await scanDocumentServ(req.file.buffer);
-    res.json(data);
+    const { data, truncated } = await scanDocumentServ(req.file.buffer);
+    res.json({ ...data, truncated });
 };

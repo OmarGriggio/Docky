@@ -4,15 +4,28 @@ import { extractTextFromPdf } from "./document-scanner.pdf-text";
 import { EXTRACTION_SYSTEM_PROMPT } from "./document-scanner.prompt";
 import { ExtractedDocumentData } from "./document-scanner.types";
 
-export const scanDocumentServ = async (pdfBuffer: Buffer): Promise<ExtractedDocumentData> => {
-    const text = await extractTextFromPdf(pdfBuffer);
+// The handful of fields this feature extracts never needs more than a page
+// or two of a real bon de commande/livraison - capping what's sent to the
+// LLM bounds the cost of a single scan regardless of how long the uploaded
+// PDF actually is (a 20-page file shouldn't mean a 20-page bill).
+const MAX_TEXT_LENGTH = 8000;
+
+export interface ScanResult {
+    data: ExtractedDocumentData;
+    truncated: boolean;
+}
+
+export const scanDocumentServ = async (pdfBuffer: Buffer): Promise<ScanResult> => {
+    const fullText = await extractTextFromPdf(pdfBuffer);
+    const truncated = fullText.length > MAX_TEXT_LENGTH;
+    const text = truncated ? fullText.slice(0, MAX_TEXT_LENGTH) : fullText;
 
     const raw = await chatCompletionServ([
         { role: "system", content: EXTRACTION_SYSTEM_PROMPT },
         { role: "user", content: text },
     ]);
 
-    return parseExtractedData(raw);
+    return { data: parseExtractedData(raw), truncated };
 };
 
 // The result still goes through a review screen before anything is saved
