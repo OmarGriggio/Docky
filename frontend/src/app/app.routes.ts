@@ -107,6 +107,13 @@ export const routes: Routes = [
     data: { breadcrumb: 'nav.profile' }
   },
   {
+    // Throwaway test page for the document-scanner feature in progress -
+    // not linked from nav-bar on purpose, reached by its URL directly.
+    path: 'document-scanner',
+    loadComponent: () => import('./features/document-scanner/document-scanner').then(m => m.DocumentScanner),
+    canActivate: [authGuard]
+  },
+  {
     // Layout for the whole section (router-outlet + a persistent side menu,
     // see settings.html) - every child below renders inside it, so the menu
     // never disappears when navigating between them. '' redirects to

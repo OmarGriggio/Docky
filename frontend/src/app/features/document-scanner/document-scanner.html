@@ -1,0 +1,19 @@
+<div class="flex flex-col gap-4 p-8 max-w-3xl">
+  <h1 class="text-xl font-bold">Scanner un document (test)</h1>
+
+  <input type="file" accept="application/pdf" (change)="onFileSelected($event)" />
+
+  <p-button label="Scanner" [disabled]="!selectedFile() || loading()" (click)="scan()" />
+
+  @if (loading()) {
+    <p>Extraction en cours...</p>
+  }
+
+  @if (errorMessage()) {
+    <p class="text-red-600">{{ errorMessage() }}</p>
+  }
+
+  @if (extractedText()) {
+    <pre class="whitespace-pre-wrap bg-gray-100 p-4 rounded text-sm">{{ extractedText() }}</pre>
+  }
+</div>
