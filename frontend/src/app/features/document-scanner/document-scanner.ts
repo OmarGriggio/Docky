@@ -55,7 +55,11 @@ export class DocumentScanner {
       },
       error: (err: HttpErrorResponse) => {
         console.error('document-scanner : ' + err);
-        this.errorMessage.set('Impossible d\'extraire les donnees de ce PDF.');
+        this.errorMessage.set(
+          err.status === 429
+            ? 'Trop de scans, réessaie plus tard.'
+            : 'Impossible d\'extraire les donnees de ce PDF.'
+        );
         this.loading.set(false);
       }
     });
