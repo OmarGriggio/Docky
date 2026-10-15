@@ -13,7 +13,17 @@
     <p class="text-red-600">{{ errorMessage() }}</p>
   }
 
+  @if (extractedData()) {
+    <div>
+      <h2 class="font-semibold mb-1">Données structurées (LLM)</h2>
+      <pre class="whitespace-pre-wrap bg-gray-100 p-4 rounded text-sm">{{ extractedData() | json }}</pre>
+    </div>
+  }
+
   @if (extractedText()) {
-    <pre class="whitespace-pre-wrap bg-gray-100 p-4 rounded text-sm">{{ extractedText() }}</pre>
+    <div>
+      <h2 class="font-semibold mb-1">Texte envoyé au LLM</h2>
+      <pre class="whitespace-pre-wrap bg-gray-100 p-4 rounded text-sm">{{ extractedText() }}</pre>
+    </div>
   }
 </div>
