@@ -205,6 +205,8 @@ cp backend/.env.example backend/.env
 | `DB_NAME`     | PostgreSQL database name                                         |
 | `JWT_SECRET`  | Secret used to sign/verify access tokens                        |
 | `JWT_REFRESH_SECRET` | Secret used to sign/verify refresh tokens (separate from `JWT_SECRET`) |
+| `INFOMANIAK_AI_PRODUCT_ID` | Product ID for Infomaniak's AI Tools, used by the document scanner |
+| `INFOMANIAK_AI_API_TOKEN`  | API token for Infomaniak's AI Tools                             |
 
 ## Documentation
 
