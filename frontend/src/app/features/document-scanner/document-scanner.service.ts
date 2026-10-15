@@ -4,7 +4,10 @@ import { environment } from '../../../environments/environment';
 
 const API_BASE = environment.apiUrl;
 
-// Mirrors the backend's own document-scanner.types.ts.
+// Mirrors the backend's own document-scanner.types.ts, plus `truncated`
+// (added by the controller, not part of the LLM's own schema) - set when
+// the extracted text was too long and got cut before reaching the LLM (see
+// document-scanner.service.ts's MAX_TEXT_LENGTH).
 export interface ExtractedDocumentData {
   reference_client: string | null;
   project_name: string | null;
@@ -18,6 +21,7 @@ export interface ExtractedDocumentData {
   estimated_amount: number | null;
   client_name_guess: string | null;
   confidence: 'high' | 'medium' | 'low';
+  truncated: boolean;
 }
 
 @Injectable({

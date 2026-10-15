@@ -16,6 +16,9 @@
   @if (extractedData()) {
     <div>
       <h2 class="font-semibold mb-1">Données structurées (LLM)</h2>
+      @if (extractedData()!.truncated) {
+        <p class="text-orange-600 text-sm">Document tronqué avant l'analyse (trop long).</p>
+      }
       <pre class="whitespace-pre-wrap bg-gray-100 p-4 rounded text-sm">{{ extractedData() | json }}</pre>
     </div>
   }
