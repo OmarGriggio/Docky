@@ -1,5 +1,22 @@
 <div class="flex justify-center py-8 px-4">
   <p-card styleClass="ui-card--elevated w-full max-w-280">
+    @if (type === 'INVOICE' && editingDocumentId() === null) {
+      <div class="flex justify-end mb-4">
+        <p-button
+          size="small"
+          type="button"
+          severity="secondary"
+          [outlined]="true"
+          [label]="'documents.form.scanButton' | transloco"
+          (onClick)="openScanDialog()"
+        />
+      </div>
+    }
+
+    @if (scanTruncatedWarning()) {
+      <p class="text-orange-600 text-sm mb-4">{{ 'documents.form.scanTruncated' | transloco }}</p>
+    }
+
     <app-document-header
       [company]="company()"
       [logoUrl]="companyLogoUrl()"
@@ -108,4 +125,28 @@
       />
     </div>
   </p-card>
+
+  <p-dialog
+    [(visible)]="scanDialogVisible"
+    [header]="'documents.form.scanDialogTitle' | transloco"
+    [modal]="true"
+    [style]="{ width: '28rem' }"
+  >
+    <div class="flex flex-col gap-4">
+      <input type="file" accept="application/pdf" (change)="onScanFileSelected($event)" />
+
+      @if (scanError()) {
+        <p class="text-[#d32f2f] m-0">{{ scanError() }}</p>
+      }
+
+      <p-button
+        size="small"
+        type="button"
+        [label]="'documents.form.scanAction' | transloco"
+        [loading]="scanning()"
+        [disabled]="!scanFile() || scanning()"
+        (onClick)="scanDocument()"
+      />
+    </div>
+  </p-dialog>
 </div>

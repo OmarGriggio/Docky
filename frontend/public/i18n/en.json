@@ -294,7 +294,13 @@
       "totalAfterDiscount": "Total excl. VAT (after discount)",
       "totalInclVat": "Total incl. VAT",
       "chooseClient": "Choose a client.",
-      "saveError": "Could not save the document. Try again in a moment."
+      "saveError": "Could not save the document. Try again in a moment.",
+      "scanButton": "Scan a document",
+      "scanDialogTitle": "Scan a document",
+      "scanAction": "Scan",
+      "scanError": "Could not analyze this document.",
+      "scanRateLimited": "Too many scans, try again later.",
+      "scanTruncated": "Document truncated before analysis (too long)."
     }
   },
   "dashboard": {

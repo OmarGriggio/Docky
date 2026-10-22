@@ -294,7 +294,13 @@
       "totalAfterDiscount": "Total HT (après rabais)",
       "totalInclVat": "Total TTC",
       "chooseClient": "Choisis un client.",
-      "saveError": "Impossible d'enregistrer le document. Réessaie dans un instant."
+      "saveError": "Impossible d'enregistrer le document. Réessaie dans un instant.",
+      "scanButton": "Scanner un document",
+      "scanDialogTitle": "Scanner un document",
+      "scanAction": "Scanner",
+      "scanError": "Impossible d'analyser ce document.",
+      "scanRateLimited": "Trop de scans, réessaie plus tard.",
+      "scanTruncated": "Document tronqué avant l'analyse (trop long)."
     }
   },
   "dashboard": {

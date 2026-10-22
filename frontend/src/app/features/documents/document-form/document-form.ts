@@ -3,16 +3,19 @@ import { PricePipe } from '../../../shared/pipes/price.pipe';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
 import { InputNumber } from 'primeng/inputnumber';
 import { FloatLabel } from 'primeng/floatlabel';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
+import { Dialog } from 'primeng/dialog';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { DocumentService } from '../document.service';
 import { DocumentSectionService } from '../document-section.service';
 import { DocumentLineService } from '../document-line.service';
 import { DocumentCompleteService } from '../document-complete.service';
 import { DocumentTemplateService } from '../document-template.service';
+import { DocumentScannerService, ExtractedDocumentData } from '../../document-scanner/document-scanner.service';
 import { ClientService } from '../../clients/client.service';
 import { ProjectService } from '../../projects/project.service';
 import { CompanyService } from '../../profile/company.service';
@@ -28,6 +31,7 @@ import { DocumentHeader } from './document-header/document-header';
 import { DocumentTextBlock } from './document-text-block/document-text-block';
 import { DocumentSections } from './document-sections/document-sections';
 import { DraftSection, nextDraftId, round2, sectionTotal, usedResourceIds } from './document-draft';
+import { matchClientByName } from './document-scan-match';
 
 // Matches document.service.ts's own EDITABLE_STATUSES on the backend -
 // duplicated here purely so the form can hide/disable itself instead of
@@ -55,7 +59,7 @@ const EDITABLE_STATUSES: DocumentStatus[] = ['DRAFT', 'SENT'];
 @Component({
   selector: 'app-document-form',
   standalone: true,
-  imports: [FormsModule, PricePipe, InputNumber, FloatLabel, Button, Card, DocumentHeader, DocumentTextBlock, DocumentSections, TranslocoPipe],
+  imports: [FormsModule, PricePipe, InputNumber, FloatLabel, Button, Card, Dialog, DocumentHeader, DocumentTextBlock, DocumentSections, TranslocoPipe],
   templateUrl: './document-form.html',
   styleUrl: './document-form.css',
 })
@@ -73,6 +77,7 @@ export class DocumentForm implements OnInit {
   private companyService = inject(CompanyService);
   private authService = inject(AuthService);
   private transloco = inject(TranslocoService);
+  private scannerService = inject(DocumentScannerService);
 
   company = signal<Company | null>(null);
   companyLogoUrl = computed(() => this.companyService.getFileUrl(this.company()?.logo ?? null));
@@ -413,6 +418,75 @@ export class DocumentForm implements OnInit {
       },
       error: err => console.error('document-form : ' + err)
     });
+  }
+
+  // "Scanner un document" - uploads a PDF to the AI document scanner and
+  // fills this invoice's own header fields (reference, due date, a
+  // best-effort client guess) from its LLM extraction. Nothing server-side
+  // happens here, same as applyFromProject/applyDuplicateFrom above - still
+  // fully editable before submit(). Line items aren't attempted (see
+  // document-scan-match.ts and the conversation that led to this scope -
+  // extracting those reliably is a harder problem, left for later).
+  scanDialogVisible = signal(false);
+  scanFile = signal<File | null>(null);
+  scanning = signal(false);
+  scanError = signal<string | null>(null);
+  // Shown on the form itself (not the dialog, which closes on success) -
+  // the one thing worth flagging even when the scan otherwise succeeded.
+  scanTruncatedWarning = signal(false);
+
+  openScanDialog(): void {
+    this.scanFile.set(null);
+    this.scanError.set(null);
+    this.scanDialogVisible.set(true);
+  }
+
+  onScanFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.scanFile.set(input.files?.[0] ?? null);
+  }
+
+  scanDocument(): void {
+    const file = this.scanFile();
+    if (!file) {
+      return;
+    }
+
+    this.scanning.set(true);
+    this.scanError.set(null);
+
+    this.scannerService.scan(file).subscribe({
+      next: data => {
+        this.applyFromScan(data);
+        this.scanning.set(false);
+        this.scanDialogVisible.set(false);
+      },
+      error: (err: HttpErrorResponse) => {
+        console.error('document-form : ' + err);
+        this.scanError.set(
+          err.status === 429
+            ? this.transloco.translate('documents.form.scanRateLimited')
+            : this.transloco.translate('documents.form.scanError')
+        );
+        this.scanning.set(false);
+      }
+    });
+  }
+
+  private applyFromScan(data: ExtractedDocumentData): void {
+    this.referenceClient.set(data.reference_client ?? '');
+
+    if (data.due_date) {
+      this.dueDate.set(fromDateOnly(data.due_date));
+      this.dueDateTouched = true;
+    }
+
+    const match = matchClientByName(this.clients(), data.client_name_guess);
+    if (match) {
+      this.onClientChange(match.id);
+    }
+
+    this.scanTruncatedWarning.set(data.truncated);
   }
 
   // "Modifier" (document-list.ts) - loads an existing document's own data
