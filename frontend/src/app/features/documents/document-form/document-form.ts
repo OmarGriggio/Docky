@@ -31,10 +31,13 @@ import { DocumentSections } from './document-sections/document-sections';
 import { DraftSection, nextDraftId, round2, sectionTotal, usedResourceIds } from './document-draft';
 import { matchClientByName } from './document-scan-match';
 
-// Matches document.service.ts's own EDITABLE_STATUSES on the backend -
+// Matches document.service.ts's own isOpenForEditing on the backend -
 // duplicated here purely so the form can hide/disable itself instead of
-// letting the user fill it out only to hit a 409 on save.
-const EDITABLE_STATUSES: DocumentStatus[] = ['DRAFT', 'SENT'];
+// letting the user fill it out only to hit a 409 on save. A quote stays
+// editable until the client answers; an invoice only while it's a draft -
+// once sent it's cancelled and duplicated rather than rewritten.
+const isOpenForEditing = (type: DocumentType, status: DocumentStatus | null): boolean =>
+  type === 'INVOICE' ? status === 'DRAFT' : status === 'DRAFT' || status === 'SENT';
 
 // A full page rather than a small dialog - the whole point is to look like a
 // simplified live preview of the document being built. Sections/lines are
@@ -499,7 +502,7 @@ export class DocumentForm implements OnInit {
         // A PROJECT document's own status is always null (see
         // shared/models/document.ts) - never editable through this page
         // either way, though nothing currently routes one here.
-        this.locked.set(source.status === null || !EDITABLE_STATUSES.includes(source.status));
+        this.locked.set(!isOpenForEditing(source.type, source.status));
         this.date.set(fromDateOnly(source.date));
         this.dueDate.set(source.due_date ? fromDateOnly(source.due_date) : null);
         this.dueDateTouched = true;

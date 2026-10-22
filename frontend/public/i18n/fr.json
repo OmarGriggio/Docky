@@ -260,7 +260,7 @@
       "validUntil": "Valable jusqu'au",
       "numberGenerated": "N° : généré automatiquement à la création",
       "numberPrefix": "N° : {{number}}",
-      "locked": "Ce document ne peut plus être modifié (offre déjà répondue ou facture déjà finalisée).",
+      "locked": "Ce document ne peut plus être modifié : offre déjà acceptée ou refusée, ou facture déjà envoyée. Pour corriger une facture envoyée, annulez-la puis dupliquez-la.",
       "addClient": "Ajouter un client",
       "addAddress": "Ajouter une adresse",
       "location": "Lieu/Bâtiment",
@@ -306,7 +306,8 @@
       "scanError": "Impossible d'analyser ce document.",
       "scanRateLimited": "Trop de scans, réessaie plus tard.",
       "scanTruncated": "Document tronqué avant l'analyse (trop long)."
-    }
+    },
+    "pdfError": "Impossible de générer le PDF."
   },
   "dashboard": {
     "openInvoices": "Factures ouvertes",
@@ -385,5 +386,11 @@
     "copyError": "Impossible de copier le bulletin dans le presse-papier.",
     "invalid": "Données invalides : il faut au moins un nom et un NPA/ville, chaque ligne doit tenir sur le bulletin, le montant doit être entre 0.01 et 999 999 999.99, et l'IBAN et l'adresse de l'entreprise doivent être renseignés (Profil).",
     "generateError": "Impossible de générer le bulletin."
+  },
+  "qrBillErrors": {
+    "COMPANY_IBAN_MISSING": "L'IBAN de votre entreprise n'est pas renseigné : ajoutez-le dans Profil pour générer le bulletin QR.",
+    "COMPANY_IBAN_INVALID": "L'IBAN de votre entreprise est invalide (21 caractères, commençant par CH ou LI) : corrigez-le dans Profil.",
+    "COMPANY_ADDRESS_INCOMPLETE": "L'adresse de votre entreprise est incomplète (nom, rue, NPA, ville, pays) : complétez-la dans Profil.",
+    "QR_BILL_INVALID": "L'adresse du client ne permet pas de générer le bulletin QR (pays inconnu ou ligne trop longue)."
   }
 }

@@ -260,7 +260,7 @@
       "validUntil": "Valid until",
       "numberGenerated": "No.: generated automatically on creation",
       "numberPrefix": "No.: {{number}}",
-      "locked": "This document can no longer be edited (quote already answered or invoice already finalized).",
+      "locked": "This document can no longer be edited: the quote was already accepted or rejected, or the invoice was already sent. To correct a sent invoice, cancel it, then duplicate it.",
       "addClient": "Add a client",
       "addAddress": "Add an address",
       "location": "Location",
@@ -306,7 +306,8 @@
       "scanError": "Could not analyze this document.",
       "scanRateLimited": "Too many scans, try again later.",
       "scanTruncated": "Document truncated before analysis (too long)."
-    }
+    },
+    "pdfError": "Couldn't generate the PDF."
   },
   "dashboard": {
     "openInvoices": "Open invoices",
@@ -385,5 +386,11 @@
     "copyError": "Couldn't copy the slip to the clipboard.",
     "invalid": "Invalid data: a name and a postcode/town are needed, every line must fit on the slip, the amount must be between 0.01 and 999,999,999.99, and the company's IBAN and address must be filled in (Profile).",
     "generateError": "Couldn't generate the slip."
+  },
+  "qrBillErrors": {
+    "COMPANY_IBAN_MISSING": "Your company's IBAN isn't filled in: add it in Profile to generate the QR-bill.",
+    "COMPANY_IBAN_INVALID": "Your company's IBAN is invalid (21 characters, starting with CH or LI): correct it in Profile.",
+    "COMPANY_ADDRESS_INCOMPLETE": "Your company's address is incomplete (name, street, postcode, town, country): complete it in Profile.",
+    "QR_BILL_INVALID": "The client's address can't be used for the QR-bill (unknown country or a line too long)."
   }
 }

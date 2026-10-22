@@ -14,6 +14,7 @@ import { DocumentService } from '../documents/document.service';
 import { Client } from '../../shared/models/client';
 import { Address } from '../../shared/models/address';
 import { clientDisplayName } from '../../shared/utils/display';
+import { qrBillErrorKey } from '../../shared/utils/api-error';
 
 // The slip's official size, and the resolution its copied image is drawn at -
 // 300 dpi, enough for the QR code to stay sharp once printed.
@@ -147,13 +148,12 @@ export class QrBillSlip implements OnInit {
         this.svg.set(svg);
         this.generating.set(false);
       },
-      error: (err: HttpErrorResponse) => {
+      error: async (err: HttpErrorResponse) => {
         console.error('qr-bill-slip : ' + err.message);
         this.svg.set(null);
         this.generating.set(false);
-        this.errorMessage.set(err.status === 400
-          ? this.transloco.translate('qrBill.invalid')
-          : this.transloco.translate('qrBill.generateError'));
+        const fallback = err.status === 400 || err.status === 422 ? 'qrBill.invalid' : 'qrBill.generateError';
+        this.errorMessage.set(this.transloco.translate(await qrBillErrorKey(err, fallback)));
       }
     });
   }

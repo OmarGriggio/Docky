@@ -6,6 +6,10 @@
   (add)="createDocument()"
 />
 
+@if (pdfErrorMessage()) {
+  <p class="text-sm text-red-600 mt-0 mb-3">{{ pdfErrorMessage() }}</p>
+}
+
 <p-table [value]="filteredDocuments()" dataKey="id" showGridlines size="small" editMode="cell" (onEditInit)="onStatusEditInit($event)" (onEditComplete)="onStatusEditComplete($event)" [expandedRowKeys]="expandedRowKeys">
   <ng-template #header>
     <tr>

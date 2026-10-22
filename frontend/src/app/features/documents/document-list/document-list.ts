@@ -21,6 +21,7 @@ import { ListToolbarComponent } from '../../../shared/components/list-toolbar/li
 import { DocumentLedger } from '../../../shared/components/document-ledger/document-ledger';
 import { AppDatePipe } from '../../../shared/pipes/app-date.pipe';
 import { PricePipe } from '../../../shared/pipes/price.pipe';
+import { qrBillErrorKey } from '../../../shared/utils/api-error';
 
 @Component({
   selector: 'app-document-list',
@@ -207,7 +208,8 @@ export class DocumentListComponent implements OnInit {
 
   // Statuses settable straight from the list, per type (mirrors
   // document.service.ts's SETTABLE_STATUSES on the backend, which enforces
-  // it). Picking ACCEPTED still goes through the confirm dialog below
+  // it). A sent invoice only moves forward (paid or cancelled), never back
+  // to draft - that would reopen it for editing. Picking ACCEPTED still goes through the confirm dialog below
   // (onStatusEditComplete/onAcceptConfirmed) rather than saving right away -
   // it creates a chantier and carries resources over, not a plain status
   // write. Kept as two separate lists (not one shared array) so ACCEPTED
@@ -219,6 +221,9 @@ export class DocumentListComponent implements OnInit {
   // Built fresh on every call (not cached) so each one picks up whatever
   // language is active right now - see statusLabel's own reasoning above.
   statusOptionsFor(document: Document): { label: string; value: DocumentStatus }[] {
+    if (document.type === 'INVOICE' && document.status === 'SENT') {
+      return [this.statusOption('SENT'), this.statusOption('PAID'), this.statusOption('CANCELLED')];
+    }
     return document.type === 'INVOICE'
       ? [this.statusOption('DRAFT'), this.statusOption('SENT'), this.statusOption('PAID'), this.statusOption('CANCELLED')]
       : [this.statusOption('DRAFT'), this.statusOption('SENT'), this.statusOption('ACCEPTED'), this.statusOption('REJECTED')];
@@ -362,13 +367,22 @@ export class DocumentListComponent implements OnInit {
     this.openBlob(this.documentService.getReminderPdf(document.id));
   }
 
+  // Shown above the list when a PDF can't be generated - most often the
+  // company's own IBAN or address missing from Profil (invoice/reminder
+  // QR-bill), which the user can fix once there.
+  pdfErrorMessage = signal<string | null>(null);
+
   private openBlob(pdf$: Observable<Blob>): void {
+    this.pdfErrorMessage.set(null);
     pdf$.subscribe({
       next: blob => {
         const url = window.URL.createObjectURL(blob);
         window.open(url, '_blank');
       },
-      error: err => console.error('document-list : ' + err)
+      error: async err => {
+        console.error('document-list : ' + err);
+        this.pdfErrorMessage.set(this.transloco.translate(await qrBillErrorKey(err, 'documents.pdfError')));
+      }
     });
   }
 
