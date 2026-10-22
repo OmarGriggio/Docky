@@ -1,4 +1,5 @@
 import { ClientWithAddresses } from "../../../modules/clients/client.types";
+import { clientDisplayName } from "../../../modules/clients/client.display";
 import { DocumentComplete } from "../../../modules/documents/document_complete.types";
 import { Company } from "../../../modules/companies/company.types";
 import { ReminderDto } from "../reminder.types";
@@ -14,7 +15,7 @@ const resolveBillingAddress = (client: ClientWithAddresses) => {
 // templateText is the raw REMINDER template (with its {{placeholders}}).
 export const createReminderDto = (document: DocumentComplete, client: ClientWithAddresses, company: Company, templateText: string): ReminderDto => {
     const address = resolveBillingAddress(client);
-    const clientName = client.company_name ?? `${client.first_name ?? ""} ${client.last_name ?? ""}`.trim();
+    const clientName = clientDisplayName(client);
     const today = new Date();
 
     return {

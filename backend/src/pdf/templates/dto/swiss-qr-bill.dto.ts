@@ -1,4 +1,5 @@
 import { ClientWithAddresses } from "../../../modules/clients/client.types";
+import { clientDisplayName } from "../../../modules/clients/client.display";
 import { DocumentComplete } from "../../../modules/documents/document_complete.types";
 import { Company } from "../../../modules/companies/company.types";
 import { SwissQrBillDto } from "../../swiss-qr-bill/swiss-qr-bill.types";
@@ -19,7 +20,7 @@ export const createSwissQrBillDto = (
             iban: company.iban ?? "",
         },
         debtor: {
-            name: client.company_name ?? `${client.first_name ?? ""} ${client.last_name ?? ""}`.trim(),
+            name: clientDisplayName(client),
             addressLine1: address ? address.street : "",
             addressLine2: address ? `${address.postal_code ?? ""} ${address.city ?? ""}`.trim() : "",
             country: toIsoCountryCode(address?.country ?? null),
@@ -33,13 +34,31 @@ export const createSwissQrBillDto = (
 };
 
 /**
- * The `country` columns store free-text French country names (e.g. "Suisse"),
+ * The `country` columns store free-text country names, in whichever language
+ * the company works in (company 1's "Suisse", the demo company's "Switzerland"),
  * while the Swiss QR-bill spec requires an ISO 3166-1 alpha-2 code. Already
  * ISO-looking values (2 letters) pass through unchanged.
  */
 const COUNTRY_NAME_TO_ISO_CODE: Record<string, string> = {
     "suisse": "CH",
+    "switzerland": "CH",
+    "schweiz": "CH",
+    "svizzera": "CH",
     "liechtenstein": "LI",
+    "france": "FR",
+    "frankreich": "FR",
+    "francia": "FR",
+    "allemagne": "DE",
+    "germany": "DE",
+    "deutschland": "DE",
+    "germania": "DE",
+    "italie": "IT",
+    "italy": "IT",
+    "italien": "IT",
+    "italia": "IT",
+    "autriche": "AT",
+    "austria": "AT",
+    "österreich": "AT",
 };
 
 function toIsoCountryCode(country: string | null): string {

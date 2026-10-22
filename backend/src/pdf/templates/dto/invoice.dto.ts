@@ -1,5 +1,6 @@
 import { Address } from "../../../modules/clients/address.types";
 import { ClientWithAddresses } from "../../../modules/clients/client.types";
+import { clientDisplayName } from "../../../modules/clients/client.display";
 import { DocumentComplete } from "../../../modules/documents/document_complete.types";
 import { Company } from "../../../modules/companies/company.types";
 import { InvoiceDto, InvoiceSectionDto } from "../invoice.types";
@@ -74,7 +75,7 @@ export const createInvoiceDto = (document: DocumentComplete, client: ClientWithA
             vatNumber: company.vat_number,
         },
         client: {
-            name: client.company_name ?? `${client.first_name ?? ""} ${client.last_name ?? ""}`.trim(),
+            name: clientDisplayName(client),
             street: address ? `${address.street}` : "",
             city: address?.city ?? "",
             postalCodeCity: address ? `${address.postal_code ?? ""} ${address.city ?? ""}` : "",

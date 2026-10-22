@@ -15,17 +15,10 @@ import {
 import { getLinesByDocumentIdFromDB, createLineInDB } from "./document_line.repository";
 import { getSectionsByDocumentIdFromDB, createSectionInDB } from "./document_section.repository";
 import { getClientByIdFromDB } from "../clients/client.repository";
-import { Client } from "../clients/client.types";
+import { clientDisplayName } from "../clients/client.display";
 import { getProjectByDocumentIdFromDB, createProjectInDB } from "../projects/project.repository";
 import { NotFoundError, ConflictError } from "../../shared/types/errors";
 import { computeDocumentTotals } from "./document.calculations";
-
-// Same rule as the frontend's clientDisplayName (shared/utils/display.ts) -
-// duplicated rather than shared across front/back (different languages,
-// no shared package between them).
-const clientDisplayName = (client: Client): string => {
-  return client.company_name || `${client.first_name ?? ""} ${client.last_name ?? ""}`.trim();
-};
 
 export const getAllDocumentsServ = async (company_id: number, includeArchived = false, client_id?: number) => {
   return await getDocumentsFromDB(company_id, includeArchived, client_id);
