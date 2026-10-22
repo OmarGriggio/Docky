@@ -2,9 +2,19 @@ import { ClientWithAddresses } from "../../../modules/clients/client.types";
 import { clientDisplayName } from "../../../modules/clients/client.display";
 import { DocumentComplete } from "../../../modules/documents/document_complete.types";
 import { Company } from "../../../modules/companies/company.types";
-import { SwissQrBillDto } from "../../swiss-qr-bill/swiss-qr-bill.types";
+import { QrBillCreditor, SwissQrBillDto } from "../../swiss-qr-bill/swiss-qr-bill.types";
 import { PDF_LABELS, toPdfLanguage } from "../pdf-labels";
 import { resolveBillingAddress } from "./shared";
+
+// The company itself is always the creditor - shared by the invoice's own
+// QR-bill below and the standalone slip (pdf/qr-bill-slip.ts).
+export const buildQrBillCreditor = (company: Company): QrBillCreditor => ({
+    name: company.name ?? "",
+    addressLine1: company.street ?? "",
+    addressLine2: `${company.postal_code ?? ""} ${company.city ?? ""}`.trim(),
+    country: toIsoCountryCode(company.country),
+    iban: company.iban ?? "",
+});
 
 export const createSwissQrBillDto = (
     document: DocumentComplete,
@@ -16,13 +26,7 @@ export const createSwissQrBillDto = (
     const labels = PDF_LABELS[toPdfLanguage(client.language)];
 
     return {
-        creditor: {
-            name: company.name ?? "",
-            addressLine1: company.street ?? "",
-            addressLine2: `${company.postal_code ?? ""} ${company.city ?? ""}`.trim(),
-            country: toIsoCountryCode(company.country),
-            iban: company.iban ?? "",
-        },
+        creditor: buildQrBillCreditor(company),
         debtor: {
             name: clientDisplayName(client),
             addressLine1: address ? address.street : "",
@@ -65,7 +69,7 @@ const COUNTRY_NAME_TO_ISO_CODE: Record<string, string> = {
     "österreich": "AT",
 };
 
-function toIsoCountryCode(country: string | null): string {
+export function toIsoCountryCode(country: string | null): string {
     const value = (country ?? "").trim();
     if (value.length === 2) {
         return value.toUpperCase();

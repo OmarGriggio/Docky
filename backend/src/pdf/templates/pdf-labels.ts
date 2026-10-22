@@ -59,6 +59,7 @@ export const PDF_LABELS = {
         qrCurrency: "Monnaie",
         qrAmount: "Montant",
         qrAcceptancePoint: "Point de dépôt",
+        qrAdditionalInfo: "Informations supplémentaires",
     },
     EN: {
         placeDate: (city: string, date: string) => `${city}, ${date}`,
@@ -93,6 +94,7 @@ export const PDF_LABELS = {
         qrCurrency: "Currency",
         qrAmount: "Amount",
         qrAcceptancePoint: "Acceptance point",
+        qrAdditionalInfo: "Additional information",
     },
 } satisfies Record<PdfLanguage, Record<string, unknown>>;
 
