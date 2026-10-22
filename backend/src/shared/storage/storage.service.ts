@@ -3,6 +3,8 @@ import {
   PutObjectCommand,
   GetObjectCommand,
   DeleteObjectCommand,
+  DeleteObjectsCommand,
+  ListObjectsV2Command,
   HeadBucketCommand,
   CreateBucketCommand,
   NoSuchKey,
@@ -48,4 +50,25 @@ export const getFileServ = async (key: string): Promise<StoredFile | null> => {
 // an error, so callers don't need to check existence first.
 export const deleteFileServ = async (key: string): Promise<void> => {
   await s3.send(new DeleteObjectCommand({ Bucket: S3_BUCKET, Key: key }));
+};
+
+// Every key under `prefix` (e.g. "companies/2/"), one page of up to 1000 at
+// a time - ListObjectsV2's own page size, also DeleteObjects' own limit.
+// Returns how many were deleted.
+export const deleteFilesWithPrefixServ = async (prefix: string): Promise<number> => {
+  let deleted = 0;
+  let continuationToken: string | undefined;
+
+  do {
+    const page = await s3.send(new ListObjectsV2Command({ Bucket: S3_BUCKET, Prefix: prefix, ContinuationToken: continuationToken }));
+    const keys = (page.Contents ?? []).flatMap(object => object.Key ? [{ Key: object.Key }] : []);
+
+    if (keys.length > 0) {
+      await s3.send(new DeleteObjectsCommand({ Bucket: S3_BUCKET, Delete: { Objects: keys } }));
+      deleted += keys.length;
+    }
+    continuationToken = page.IsTruncated ? page.NextContinuationToken : undefined;
+  } while (continuationToken);
+
+  return deleted;
 };

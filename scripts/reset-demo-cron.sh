@@ -16,3 +16,8 @@ set +a
 
 docker exec -i "$POSTGRES_CONTAINER_NAME" sh -c 'psql -v ON_ERROR_STOP=1 -1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"' \
     < "$REPO_DIR/scripts/reset-demo-company.sql"
+
+# Only once the rows pointing at them are gone (the SQL above) - the files
+# themselves live in MinIO, which the backend container already has the
+# credentials for.
+docker exec "$BACKEND_CONTAINER_NAME" node dist/shared/storage/purge-company-files.js 2

@@ -4,8 +4,12 @@
 -- Meant to run weekly via cron (see scripts/reset-demo-cron.sh and
 -- CLAUDE.md's Deployment section) so a demo user's edits never pile up.
 --
--- Company 1 (the developer's own company) and the two companies' own rows
--- (companies, users) are never touched - only company 2's business data.
+-- Company 1 (the developer's own company) is never touched. Company 2's own
+-- companies row and its users are kept (login stays stable) but put back to
+-- their seed values - a demo visitor can edit the company's name, IBAN,
+-- logo... and would otherwise break every later visitor's PDFs. The files
+-- themselves (logo, header image, project attachments) live in MinIO, not
+-- here - scripts/reset-demo-cron.sh purges them right after this script.
 --
 -- Content is English here (see 001_data.sql's own header comment) - a
 -- recruiter is far more likely to read English than French.
@@ -43,6 +47,31 @@ DELETE FROM resources WHERE company_id = 2;
 DELETE FROM resource_units WHERE company_id = 2;
 DELETE FROM document_templates WHERE company_id = 2;
 DELETE FROM calendar_notes WHERE company_id = 2;
+
+-- ==========================================
+-- COMPANY AND USERS
+-- ==========================================
+
+-- Same values as 001_data.sql's own row for company 2.
+UPDATE companies SET
+    name = 'Rénov Alpes Sàrl',
+    email = 'contact@renovalpes.ch',
+    phone = '+41798765432',
+    iban = 'CH9300762011623852957',
+    street = 'Avenue de la Gare 22',
+    postal_code = '1950',
+    city = 'Sion',
+    country = 'Switzerland',
+    logo = NULL,
+    header_image = NULL,
+    vat_rate = 8.1,
+    vat_number = 'CHE-321.654.987 VAT',
+    payment_terms = 'Payment due within 30 days net, no discount.
+A late payment interest of 5% per annum will be charged on overdue payments.'
+WHERE id = 2;
+
+-- Same as 004_set_demo_company_language.sql.
+UPDATE users SET language = 'EN' WHERE company_id = 2;
 
 -- ==========================================
 -- CLIENTS
