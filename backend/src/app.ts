@@ -116,7 +116,7 @@ app.get("/", (req, res) => {
 // controllers/services — just `throw new NotFoundError(...)` etc.
 app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof AppError) {
-    res.status(err.statusCode).json({ message: err.message });
+    res.status(err.statusCode).json(err.code ? { message: err.message, code: err.code } : { message: err.message });
     return;
   }
   console.error(err);

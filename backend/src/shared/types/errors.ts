@@ -1,5 +1,8 @@
+// `code`, when set, is sent along with the message - a stable value the
+// frontend can map to its own translated text (the message itself is
+// English, for logs and API users).
 export class AppError extends Error {
-    constructor(message: string, public statusCode: number) {
+    constructor(message: string, public statusCode: number, public code?: string) {
         super(message);
     }
 }

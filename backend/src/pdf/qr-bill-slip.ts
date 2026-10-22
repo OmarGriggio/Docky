@@ -3,6 +3,7 @@ import { getCompanyByIdServ } from "../modules/companies/company.service";
 import { AppError } from "../shared/types/errors";
 import { SwissQrBillDto } from "./swiss-qr-bill/swiss-qr-bill.types";
 import { validateSwissQrBill } from "./swiss-qr-bill/swiss-qr-bill.validator";
+import { SwissQrBillValidationError } from "./swiss-qr-bill/swiss-qr-bill.generator";
 import { buildQrBillCreditor, toIsoCountryCode } from "./templates/dto/swiss-qr-bill.dto";
 import { PDF_LABELS } from "./templates/pdf-labels";
 import { renderSwissQrBillSvg } from "./templates/swiss-qr-bill.svg";
@@ -87,7 +88,7 @@ export const generateQrBillSlipSvgServ = async (company_id: number, input: QrBil
 
     const errors = validateSwissQrBill(dto);
     if (errors.length > 0) {
-        throw new AppError(errors.map(error => error.message).join(" - "), 400);
+        throw new SwissQrBillValidationError(errors, dto);
     }
 
     const debtorLines = hasDebtor ? [name, complement, street, postalCodeCity] : null;

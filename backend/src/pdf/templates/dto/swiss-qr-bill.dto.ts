@@ -13,7 +13,8 @@ export const buildQrBillCreditor = (company: Company): QrBillCreditor => ({
     addressLine1: company.street ?? "",
     addressLine2: `${company.postal_code ?? ""} ${company.city ?? ""}`.trim(),
     country: toIsoCountryCode(company.country),
-    iban: company.iban ?? "",
+    // Typed with spaces in Profil ("CH93 0076 ...") is still the same IBAN.
+    iban: (company.iban ?? "").replace(/\s+/g, "").toUpperCase(),
 });
 
 export const createSwissQrBillDto = (
