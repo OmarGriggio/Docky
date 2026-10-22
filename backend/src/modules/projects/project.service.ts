@@ -12,6 +12,7 @@ import { createDocumentInDB } from "../documents/document.repository";
 import { generateDocumentNumber } from "../documents/document.service";
 import { AppError, NotFoundError } from "../../shared/types/errors";
 import { withTransaction } from "../../shared/config/database";
+import { getClientByIdFromDB } from "../clients/client.repository";
 
 export const getAllProjectsServ = async (company_id: number, includeArchived = false) => {
   return await getProjectsFromDB(company_id, includeArchived);
@@ -39,6 +40,9 @@ export const addProjectServ = async (projectData: CreateProjectData, company_id:
   }
 
   const client_id = projectData.client_id;
+  if (!(await getClientByIdFromDB(client_id, company_id))) {
+    throw new NotFoundError("Client not found");
+  }
   return await withTransaction(() => createProjectWithDocument(projectData, client_id, company_id));
 };
 

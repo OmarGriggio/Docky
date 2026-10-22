@@ -20,6 +20,9 @@ export const getResourcesByTypeServ = async (type: string, company_id: number, i
 };
 
 export const addResourceServ = async (resourceData: Omit<Resource, "id" | "company_id" | "is_active">, company_id: number) => {
+  if (resourceData.parent_resource_id != null && !(await getResourceByIdFromDB(resourceData.parent_resource_id, company_id))) {
+    throw new NotFoundError("Parent resource not found");
+  }
   const existingResource = await getResourceByCodeFromDB(resourceData.code, company_id);
   if (existingResource) {
     throw new ConflictError("Resource code already exists");

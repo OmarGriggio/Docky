@@ -10,6 +10,7 @@ import {
 import { getDocumentByIdFromDB } from "./document.repository";
 import { getSectionByIdFromDB } from "./document_section.repository";
 import { recomputeDocumentTotalsServ, assertContentEditableServ, assertContentEditableByIdServ } from "./document.service";
+import { getResourceByIdFromDB } from "../catalog/resource.repository";
 import { NotFoundError } from "../../shared/types/errors";
 
 export const getLinesForDocumentServ = async (document_id: number, company_id: number, includeArchived = false) => {
@@ -36,6 +37,10 @@ export const addLineServ = async (
   const section = await getSectionByIdFromDB(lineData.section_id, company_id);
   if (!section || section.document_id !== document_id) {
     throw new NotFoundError("Section not found");
+  }
+
+  if (lineData.resource_id != null && !(await getResourceByIdFromDB(lineData.resource_id, company_id))) {
+    throw new NotFoundError("Resource not found");
   }
 
   const position = await getNextPositionForSectionFromDB(lineData.section_id);

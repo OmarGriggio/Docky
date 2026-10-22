@@ -18,6 +18,7 @@ import {
 import { getLinesByDocumentIdFromDB, createLineInDB } from "./document_line.repository";
 import { getSectionsByDocumentIdFromDB, createSectionInDB } from "./document_section.repository";
 import { getClientByIdFromDB } from "../clients/client.repository";
+import { getAddressByIdFromDB } from "../clients/address.repository";
 import { clientDisplayName } from "../clients/client.display";
 import { getProjectByDocumentIdFromDB, createProjectInDB } from "../projects/project.repository";
 import { getResourceByIdFromDB } from "../catalog/resource.repository";
@@ -74,6 +75,18 @@ export const generateDocumentNumber = async (company_id: number, type: DocumentT
 
 // Both are percentages - anything outside 0-100 would make a total negative
 // or nonsensical, whatever the frontend's own inputs allow.
+// documents.address_id (the "Lieu/Bâtiment") has to be one of this same
+// client's own addresses - not another client's, nor another company's.
+const assertClientAddress = async (address_id: number | null | undefined, client_id: number, company_id: number) => {
+  if (address_id == null) {
+    return;
+  }
+  const address = await getAddressByIdFromDB(address_id, company_id);
+  if (!address || address.client_id !== client_id) {
+    throw new NotFoundError("Address not found");
+  }
+};
+
 const assertValidRates = (discount: number, vat_rate: number) => {
   if (!(discount >= 0 && discount <= 100)) {
     throw new AppError("discount must be between 0 and 100", 400);
@@ -98,6 +111,7 @@ export const addDocumentServ = async (documentData: CreateDocumentData, company_
   if (!client) {
     throw new NotFoundError("Client not found");
   }
+  await assertClientAddress(documentData.address_id, client.id, company_id);
 
   // A quote is where the need gets defined - it never derives from anything.
   // Only an INVOICE can point at the PROJECT document it bills, via
@@ -166,6 +180,7 @@ export const updateDocumentServ = async (id: number, company_id: number, documen
   if (!client) {
     throw new NotFoundError("Client not found");
   }
+  await assertClientAddress(documentData.address_id, client.id, company_id);
 
   await updateDocumentInDB(id, company_id, documentData);
   // discount/vat_rate may have just changed - the stored totals were
