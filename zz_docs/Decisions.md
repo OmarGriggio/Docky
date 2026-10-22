@@ -114,6 +114,10 @@ The frontend used to save a document's sections/lines by archiving each one and 
 
 **How transactions are passed down**: `withTransaction(work)` + `db()` in `shared/config/database.ts`, with the transaction's connection carried by Node's `AsyncLocalStorage` - repositories call `db().query(...)` and automatically join whatever transaction is running. **Turned down**: an explicit `client` parameter on every repository function (the textbook way, but threaded through every service and every call site for the three flows that need it).
 
+## A sent invoice is frozen: cancel and duplicate to correct it (2026-10-22)
+
+An invoice is editable only as a `DRAFT`; once `SENT` its header, sections and lines are locked server-side, and its status only moves forward (`PAID` or `CANCELLED`, never back to `DRAFT`). To correct one, it's cancelled and duplicated into a new invoice with a new number. The client holds the sent invoice under its number - rewriting it afterwards would leave two different documents with the same number (and a reminder quoting an amount that doesn't match the one the client has), which Swiss bookkeeping (art. 957a CO) doesn't allow. **Turned down**: keeping `SENT` editable (what the app did until then); a dedicated credit note (avoir) document type - the proper accounting answer, but a new type with its own numbering and PDF, more than "cancel + duplicate" is worth for now. A quote, on the other hand, stays editable while `SENT`: nothing is owed yet, and it's routinely adjusted after talking with the client.
+
 ## One invoice per chantier, unless cancelled (2026-10-22)
 
 `POST /document` refuses a second invoice for a chantier already invoiced (409); a cancelled or archived invoice doesn't count, so a wrong invoice gets cancelled and redone. **Turned down**: several partial invoices per chantier (deposits, progress billing - real in construction, but a feature of its own: what's left to bill, which lines each invoice covers). Revisit if progress billing is ever asked for.
