@@ -1,12 +1,17 @@
 name: Deploy
 
-# Runs on every push to main (the only branch this repo uses - see the
-# Workflow section in CLAUDE.md). Tests and builds gate the deploy: the
+# Runs on every push to main (the deploy branch - day-to-day work happens on
+# develop, see the Workflow section in CLAUDE.md). Tests and builds gate the deploy: the
 # ssh step only runs if both jobs below succeed.
 on:
   push:
     branches: [main]
   workflow_dispatch:
+
+# Read-only GitHub token - nothing here writes to the repo; the deploy goes
+# through its own SSH key, not this token.
+permissions:
+  contents: read
 
 jobs:
   test-backend:
@@ -51,7 +56,9 @@ jobs:
       # automates those exact steps instead of building/pushing images to a
       # registry. Revisit if the VPS ever struggles with the build load.
       - name: SSH and redeploy
-        uses: appleboy/ssh-action@v1.0.3
+        # Pinned to the commit behind tag v1.0.3, not the tag itself: a tag
+        # can be moved, and this step holds the server's deploy SSH key.
+        uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262 # v1.0.3
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
