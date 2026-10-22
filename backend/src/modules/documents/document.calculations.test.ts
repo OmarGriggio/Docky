@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { computeDocumentTotals } from "./document.calculations";
+import { computeDocumentTotals, lineTotal } from "./document.calculations";
 
 describe("computeDocumentTotals", () => {
 
@@ -65,6 +65,18 @@ describe("computeDocumentTotals", () => {
     const result = computeDocumentTotals(lines, 0);
 
     expect(result).toEqual({ amount_excl_vat: 100, amount_incl_vat: 100 });
+  });
+
+});
+
+describe("lineTotal", () => {
+
+  it("applies the line's own discount", () => {
+    expect(lineTotal({ quantity: 4, unit_price: 25, discount: 10 })).toBe(90);
+  });
+
+  it("treats a missing discount as none", () => {
+    expect(lineTotal({ quantity: 3, unit_price: 10, discount: null })).toBe(30);
   });
 
 });

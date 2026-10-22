@@ -3,13 +3,17 @@ import { clientDisplayName } from "../../../modules/clients/client.display";
 import { DocumentComplete } from "../../../modules/documents/document_complete.types";
 import { Company } from "../../../modules/companies/company.types";
 import { SwissQrBillDto } from "../../swiss-qr-bill/swiss-qr-bill.types";
+import { PDF_LABELS, toPdfLanguage } from "../pdf-labels";
+import { resolveBillingAddress } from "./shared";
 
 export const createSwissQrBillDto = (
     document: DocumentComplete,
     client: ClientWithAddresses,
     company: Company,
 ): SwissQrBillDto => {
-    const address = client.addresses[0];
+    // Same address the invoice itself is printed to - see shared.ts.
+    const address = resolveBillingAddress(client);
+    const labels = PDF_LABELS[toPdfLanguage(client.language)];
 
     return {
         creditor: {
@@ -28,7 +32,7 @@ export const createSwissQrBillDto = (
         payment: {
             amount: document.amount_incl_vat,
             currency: "CHF",
-            additionalInfo: `Facture ${document.number}`,
+            additionalInfo: `${labels.invoice} ${document.number}`,
         },
     };
 };

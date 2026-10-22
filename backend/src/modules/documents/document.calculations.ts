@@ -11,6 +11,12 @@ export interface LineForCalculation {
 
 const round2 = (value: number) => Math.round(value * 100) / 100;
 
+// One line's own total, its own discount% applied - also what the PDFs print
+// per line and per section, so they always add up to amount_excl_vat.
+export const lineTotal = (line: LineForCalculation): number => {
+  return line.quantity * line.unit_price * (1 - (line.discount ?? 0) / 100);
+};
+
 // amount_excl_vat is the sum of each line's own total (quantity × unit price
 // × (1 − line discount%)), with the document's own discount% applied on top
 // of that sum. amount_incl_vat then applies the document's single vat_rate
@@ -21,10 +27,7 @@ export const computeDocumentTotals = (
   documentDiscount: number,
   vatRate = 0
 ): { amount_excl_vat: number; amount_incl_vat: number } => {
-  const subtotal = lines.reduce((sum, line) => {
-    const lineTotal = line.quantity * line.unit_price * (1 - (line.discount ?? 0) / 100);
-    return sum + lineTotal;
-  }, 0);
+  const subtotal = lines.reduce((sum, line) => sum + lineTotal(line), 0);
 
   const amount_excl_vat = round2(subtotal * (1 - documentDiscount / 100));
   const amount_incl_vat = round2(amount_excl_vat * (1 + vatRate / 100));

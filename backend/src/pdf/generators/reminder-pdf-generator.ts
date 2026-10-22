@@ -7,6 +7,7 @@ import { getTemplateServ } from "../../modules/documents/document_template.servi
 import { AppError } from "../../shared/types/errors";
 import { DocumentPdfGenerator, PdfSource } from "./document-pdf-generator";
 import { PreparedQrBill, prepareQrBill, renderQrBillPage } from "./qr-bill-page";
+import { toPdfLanguage } from "../templates/pdf-labels";
 
 interface PreparedReminder {
     reminder: ReminderDto;
@@ -30,8 +31,9 @@ export class ReminderPdfGenerator extends DocumentPdfGenerator<PreparedReminder>
     protected async prepare(source: PdfSource): Promise<PreparedReminder> {
         const { document, client, company } = source;
 
-        // Falls back to the default text when the company has none.
-        const template = await getTemplateServ("REMINDER", company.id);
+        // Falls back to the default text (in the client's own language) when
+        // the company has none.
+        const template = await getTemplateServ("REMINDER", company.id, toPdfLanguage(client.language));
 
         return {
             reminder: createReminderDto(document, client, company, template?.introduction ?? ""),

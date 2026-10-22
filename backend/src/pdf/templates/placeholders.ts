@@ -14,11 +14,3 @@ export const fillPlaceholders = (text: string, values: Record<string, string>): 
         return Object.prototype.hasOwnProperty.call(values, name) ? values[name] : match;
     });
 };
-
-export const formatLongDate = (value: Date): string => {
-    return new Date(value).toLocaleDateString("fr-CH", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-    });
-};

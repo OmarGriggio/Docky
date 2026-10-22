@@ -10,6 +10,17 @@ export const DEFAULT_REMINDER_TEXT =
     "Si votre paiement a été effectué entre-temps, nous vous prions de ne pas tenir compte de ce rappel.\n\n" +
     "Nous vous remercions de votre compréhension et vous adressons nos meilleures salutations.";
 
+// Same text in English - picked by the reminder PDF for a client whose
+// language is EN (see reminder-pdf-generator.ts), when the company hasn't
+// written its own.
+export const DEFAULT_REMINDER_TEXT_EN =
+    "According to our records, invoice No. {{numero_facture}} dated {{date_facture}}, " +
+    "for an amount of {{montant}}, which fell due on {{date_echeance}}, remains unpaid to date.\n\n" +
+    "We kindly ask you to settle it at your earliest convenience, " +
+    "using the payment slip on page 2.\n\n" +
+    "If your payment has been made in the meantime, please disregard this reminder.\n\n" +
+    "Thank you for your understanding. Kind regards.";
+
 // A QUOTE/INVOICE introduction when the company has no template saved for
 // that type yet (see getTemplateServ): just the greeting, with the client's
 // title filled in at PDF time - see pdf/templates/document.placeholders.ts.

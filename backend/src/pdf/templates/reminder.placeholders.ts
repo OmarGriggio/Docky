@@ -1,4 +1,4 @@
-import { formatLongDate } from "./placeholders";
+import { formatLongDate, PdfLanguage } from "./pdf-labels";
 
 // The {{placeholders}} a company can use in its payment reminder text (a
 // document_templates row of type REMINDER): numero_facture, date_facture,
@@ -17,14 +17,15 @@ export const buildReminderValues = (
     invoice: { number: string; date: Date; due_date: Date | null; amount_incl_vat: number },
     clientName: string,
     companyName: string,
-    today: Date
+    today: Date,
+    language: PdfLanguage = "FR"
 ): Record<string, string> => {
     return {
         numero_facture: invoice.number,
-        date_facture: formatLongDate(invoice.date),
+        date_facture: formatLongDate(invoice.date, language),
         // Empty (not "—"/"0") without a due date - the invoice has none to
         // be late against.
-        date_echeance: invoice.due_date ? formatLongDate(invoice.due_date) : "",
+        date_echeance: invoice.due_date ? formatLongDate(invoice.due_date, language) : "",
         montant: `${invoice.amount_incl_vat.toFixed(2)} CHF`,
         jours_retard: invoice.due_date ? String(daysOverdue(invoice.due_date, today)) : "",
         client: clientName,

@@ -4,6 +4,7 @@ import { createSwissQrBillDto } from "../templates/dto/swiss-qr-bill.dto";
 import { generateSwissQrBillImage } from "../swiss-qr-bill/swiss-qr-bill.generator";
 import { SwissQrBillDto } from "../swiss-qr-bill/swiss-qr-bill.types";
 import { PdfSource } from "./document-pdf-generator";
+import { PdfLanguage, toPdfLanguage } from "../templates/pdf-labels";
 
 // The Swiss QR-bill always needs the bottom 105mm of whatever page it ends
 // up on entirely to itself (it's drawn by absolute position, not the
@@ -15,13 +16,14 @@ const QR_BILL_MIN_REMAINING_HEIGHT = mm(105) + 20;
 export interface PreparedQrBill {
     dto: SwissQrBillDto;
     imageBytes: Buffer;
+    language: PdfLanguage;
 }
 
 // Shared by the invoice and the payment reminder - both end with the same
 // payment slip.
 export const prepareQrBill = async ({ document, client, company }: PdfSource): Promise<PreparedQrBill> => {
     const dto = createSwissQrBillDto(document, client, company);
-    return { dto, imageBytes: await generateSwissQrBillImage(dto) };
+    return { dto, imageBytes: await generateSwissQrBillImage(dto), language: toPdfLanguage(client.language) };
 };
 
 // `shareCurrentPage`: draw it onto the page being written if there's still
@@ -36,7 +38,7 @@ export const renderQrBillPage = async (
     if (!shareCurrentPage || pdf.remainingHeight() < QR_BILL_MIN_REMAINING_HEIGHT) {
         pdf.newPage();
     }
-    await SwissQrBillTemplate.render(pdf, qrBill.dto, qrBill.imageBytes);
+    await SwissQrBillTemplate.render(pdf, qrBill.dto, qrBill.imageBytes, qrBill.language);
 
     // Whichever page the QR-bill ended up on (fresh or shared with the
     // details' own tail) - its strict official layout has no room for a

@@ -1,6 +1,7 @@
 import { getTemplateByTypeFromDB, upsertTemplateInDB } from "./document_template.repository";
 import { DocumentTemplate, DocumentTemplateType } from "./document_template.types";
-import { DEFAULT_DOCUMENT_CONCLUSION, DEFAULT_DOCUMENT_INTRODUCTION, DEFAULT_REMINDER_TEXT } from "./document_template.defaults";
+import { DEFAULT_DOCUMENT_CONCLUSION, DEFAULT_DOCUMENT_INTRODUCTION, DEFAULT_REMINDER_TEXT, DEFAULT_REMINDER_TEXT_EN } from "./document_template.defaults";
+import { Language } from "../users/user.types";
 
 // Nothing saved yet for a QUOTE/INVOICE is still a normal state (not a
 // NotFoundError): the form just starts from the default below - only the
@@ -10,15 +11,18 @@ import { DEFAULT_DOCUMENT_CONCLUSION, DEFAULT_DOCUMENT_INTRODUCTION, DEFAULT_REM
 // so it falls back to the default text when nothing (or only blank text) was
 // saved - same value the profile form pre-fills with. A row that exists is
 // always returned as saved (a blank introduction there is deliberate).
-export const getTemplateServ = async (type: DocumentTemplateType, company_id: number): Promise<DocumentTemplate> => {
+// `defaultLanguage` only picks which default REMINDER text that fallback is
+// (the reminder PDF passes its client's own language).
+export const getTemplateServ = async (type: DocumentTemplateType, company_id: number, defaultLanguage: Language = "FR"): Promise<DocumentTemplate> => {
   const template: DocumentTemplate | null = await getTemplateByTypeFromDB(type, company_id);
 
   if (type === "REMINDER") {
+    const defaultText = defaultLanguage === "EN" ? DEFAULT_REMINDER_TEXT_EN : DEFAULT_REMINDER_TEXT;
     return {
       id: template?.id ?? 0,
       company_id,
       type,
-      introduction: template?.introduction?.trim() ? template.introduction : DEFAULT_REMINDER_TEXT,
+      introduction: template?.introduction?.trim() ? template.introduction : defaultText,
       conclusion: null,
       due_days: null,
     };

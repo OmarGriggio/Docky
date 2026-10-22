@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { fillPlaceholders } from "./placeholders";
 import { buildDocumentValues, DEFAULT_CLIENT_TITLE } from "./document.placeholders";
+import { formatLongDate, toPdfLanguage } from "./pdf-labels";
 
 const values = {
     numero_facture: "FAC-2026-0002",
@@ -50,6 +51,27 @@ describe("buildDocumentValues", () => {
     it("falls back to Madame, Monsieur when the client has no title", () => {
         expect(buildDocumentValues(document, null, null).titre_client).toBe(DEFAULT_CLIENT_TITLE);
         expect(buildDocumentValues(document, "  ", null).titre_client).toBe("Madame, Monsieur");
+    });
+
+});
+
+describe("PDF language", () => {
+
+    const document = { date: new Date(2026, 8, 24), amount_incl_vat: 1234.5 };
+
+    it("greets an English client in English when they have no title", () => {
+        expect(buildDocumentValues(document, null, null, "EN").titre_client).toBe("Dear Sir or Madam");
+    });
+
+    it("formats dates in the client's own language", () => {
+        expect(formatLongDate(document.date, "FR")).toBe("24 septembre 2026");
+        expect(formatLongDate(document.date, "EN")).toBe("24 September 2026");
+    });
+
+    it("falls back to French for a language without labels yet", () => {
+        expect(toPdfLanguage("EN")).toBe("EN");
+        expect(toPdfLanguage("DE")).toBe("FR");
+        expect(toPdfLanguage("IT")).toBe("FR");
     });
 
 });
