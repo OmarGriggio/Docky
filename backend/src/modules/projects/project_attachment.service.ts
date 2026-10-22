@@ -5,10 +5,16 @@ import {
   createAttachmentInDB,
   deleteAttachmentFromDB,
   archiveAttachmentInDB,
-  unarchiveAttachmentInDB
+  unarchiveAttachmentInDB,
+  getStorageUsedByCompanyFromDB
 } from "./project_attachment.repository";
 import { getProjectByIdFromDB } from "./project.repository";
-import { NotFoundError } from "../../shared/types/errors";
+import { AppError, NotFoundError } from "../../shared/types/errors";
+
+// Per company, every project attachment together - enough for a small
+// company's plans and site photos, and what keeps one company (or the
+// public demo account) from filling the disk MinIO shares with Postgres.
+const STORAGE_QUOTA_BYTES = 500 * 1024 * 1024;
 
 export const getAttachmentsForProjectServ = async (project_id: number, company_id: number, includeArchived = false) => {
   const project = await getProjectByIdFromDB(project_id, company_id);
@@ -39,6 +45,11 @@ export const addAttachmentServ = async (
   const project = await getProjectByIdFromDB(project_id, company_id);
   if (!project) {
     throw new NotFoundError("Project not found");
+  }
+
+  const used = await getStorageUsedByCompanyFromDB(company_id);
+  if (used + fileData.size_bytes > STORAGE_QUOTA_BYTES) {
+    throw new AppError("Storage quota reached (500 MB per company)", 413);
   }
 
   return await createAttachmentInDB({

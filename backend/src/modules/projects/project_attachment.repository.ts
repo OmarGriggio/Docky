@@ -9,6 +9,16 @@ export const getAttachmentsByProjectIdFromDB = async (project_id: number, includ
   return result.rows;
 };
 
+// Bytes of every attachment a company has stored, archived ones included
+// (archiving hides a file, its object stays in storage).
+export const getStorageUsedByCompanyFromDB = async (company_id: number): Promise<number> => {
+  const result = await db().query(
+    "SELECT COALESCE(SUM(size_bytes), 0)::bigint AS used FROM project_attachments WHERE company_id = $1",
+    [company_id]
+  );
+  return Number(result.rows[0].used);
+};
+
 export const getAttachmentByIdFromDB = async (id: number, company_id: number) => {
   const result = await db().query(
     "SELECT * FROM project_attachments WHERE id = $1 AND company_id = $2",

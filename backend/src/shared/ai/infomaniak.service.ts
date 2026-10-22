@@ -31,8 +31,11 @@ export const chatCompletionServ = async (
     });
 
     if (!response.ok) {
+        // The upstream body is logged here, never sent back to the client -
+        // it can carry account/quota details that are none of its business.
         const body = await response.text();
-        throw new AppError(`Infomaniak AI request failed (${response.status}): ${body}`, 502);
+        console.error(`Infomaniak AI request failed (${response.status}): ${body}`);
+        throw new AppError("The document scanner is unavailable right now", 502);
     }
 
     const data = await response.json();

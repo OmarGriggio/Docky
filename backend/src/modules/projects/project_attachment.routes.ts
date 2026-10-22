@@ -8,6 +8,7 @@ import {
 } from "./project_attachment.controller";
 import { uploadAttachment } from "./project_attachment.upload";
 import { authenticate } from "../../shared/middlewares/auth.middleware";
+import { attachmentUploadRateLimiter } from "../../shared/middlewares/rate-limit.middleware";
 
 const router = Router();
 
@@ -15,7 +16,7 @@ router.use(authenticate);
 
 router.get("/", getProjectAttachments);
 
-router.post("/:projectId", uploadAttachment, uploadProjectAttachment);
+router.post("/:projectId", attachmentUploadRateLimiter, uploadAttachment, uploadProjectAttachment);
 
 // Authenticated and company-scoped (unlike /uploads/*splat in app.ts, which
 // only ever serves public company logos) - attachments can be private
