@@ -99,7 +99,10 @@ export const drawLetterHead = async (
 
 // The page 1 recap's one line per section, then the grand totals - the
 // stored amounts (documents.amount_excl_vat/amount_incl_vat), never re-added
-// here, so the PDF always matches the app and {{montant}}.
+// here, so the PDF always matches the app and {{montant}}. With a discount,
+// the sections' subtotal and the discount itself (in CHF, the difference
+// down to the stored total excl. VAT) are printed too, so the reader can
+// follow from one figure to the next.
 export const drawTotals = (
     pdf: PdfWriter,
     { sections, discount, vatRate, amountExclVat, amountInclVat, language }: {
@@ -121,7 +124,9 @@ export const drawTotals = (
     pdf.line();
 
     if (discount > 0) {
-        pdf.text(`${labels.discount} : ${discount}%`, { marginTop: 10 });
+        const subtotal = sections.reduce((sum, section) => sum + section.total, 0);
+        pdf.text(`${labels.subtotal} : ${subtotal.toFixed(2)} CHF`, { marginTop: 10 });
+        pdf.text(`${labels.discount} ${discount}% : -${(subtotal - amountExclVat).toFixed(2)} CHF`);
     }
     pdf.text(`${labels.totalExclVat} : ${amountExclVat.toFixed(2)} CHF`, { marginTop: discount > 0 ? 0 : 10 });
     if (vatRate > 0) {

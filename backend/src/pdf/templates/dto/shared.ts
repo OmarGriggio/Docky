@@ -5,6 +5,8 @@ import { DocumentComplete } from "../../../modules/documents/document_complete.t
 import { lineTotal } from "../../../modules/documents/document.calculations";
 import { ClientDto, CompanyDto, DocumentSectionDto } from "../document.types";
 
+const round2 = (value: number) => Math.round(value * 100) / 100;
+
 // document.sections/lines are already scoped to this document and active-only
 // (the repository queries default to is_active = true) - but neither comes
 // back ordered by `position` from the DB (lines have no ORDER BY at all), so
@@ -21,13 +23,13 @@ export const buildSections = (document: DocumentComplete): DocumentSectionDto[] 
                     quantity: line.quantity,
                     unit: line.unit,
                     unitPrice: line.unit_price,
-                    total: lineTotal(line),
+                    total: round2(lineTotal(line)),
                 }));
             return {
                 title: section.title,
                 description: section.description,
                 lines,
-                total: lines.reduce((sum, line) => sum + line.total, 0),
+                total: round2(lines.reduce((sum, line) => sum + line.total, 0)),
             };
         })
         // A section with every line archived (or none added yet) has
