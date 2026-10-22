@@ -76,6 +76,13 @@ export class DocumentService {
     return this.http.get(`${API_BASE}/pdf/quote/${id}`, { responseType: 'blob' });
   }
 
+  // A standalone Swiss QR-bill payment slip (no document behind it), as an
+  // SVG at its official 210 × 105 mm size - see the backend's
+  // pdf/qr-bill-slip.ts.
+  getQrBillSlip(payer: { name: string; complement: string; street: string; postalCodeCity: string; country: string | null; amount: number | null; language: string }) {
+    return this.http.post(`${API_BASE}/pdf/qr-bill-slip`, payer, { responseType: 'text' });
+  }
+
   getReminderPdf(id: number) {
     return this.http.get(`${API_BASE}/pdf/reminder/${id}`, { responseType: 'blob' });
   }

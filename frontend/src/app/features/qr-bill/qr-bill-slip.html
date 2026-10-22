@@ -1,0 +1,65 @@
+<div class="flex flex-col gap-6 p-4">
+  <p-card [header]="'qrBill.title' | transloco" styleClass="ui-card--elevated w-full max-w-160">
+    <form class="flex flex-col gap-4" (ngSubmit)="generate()">
+      <p-select
+        class="w-full"
+        [options]="clientOptions()"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="selectedClientId()"
+        (ngModelChange)="onClientChange($event)"
+        name="client"
+        [filter]="true"
+        filterBy="label"
+        [filterPlaceholder]="'qrBill.searchClient' | transloco"
+        [placeholder]="'qrBill.pickClient' | transloco"
+        [showClear]="true"
+      />
+
+      <p-floatlabel variant="on">
+        <input pInputText id="qrName" class="w-full" name="name" [ngModel]="name()" (ngModelChange)="name.set($event)" />
+        <label for="qrName">{{ 'qrBill.name' | transloco }}</label>
+      </p-floatlabel>
+
+      <p-floatlabel variant="on">
+        <input pInputText id="qrComplement" class="w-full" name="complement" [ngModel]="complement()" (ngModelChange)="complement.set($event)" />
+        <label for="qrComplement">{{ 'qrBill.complement' | transloco }}</label>
+      </p-floatlabel>
+
+      <p-floatlabel variant="on">
+        <input pInputText id="qrStreet" class="w-full" name="street" [ngModel]="street()" (ngModelChange)="street.set($event)" />
+        <label for="qrStreet">{{ 'qrBill.street' | transloco }}</label>
+      </p-floatlabel>
+
+      <p-floatlabel variant="on">
+        <input pInputText id="qrPostalCodeCity" class="w-full" name="postalCodeCity" [ngModel]="postalCodeCity()" (ngModelChange)="postalCodeCity.set($event)" />
+        <label for="qrPostalCodeCity">{{ 'qrBill.postalCodeCity' | transloco }}</label>
+      </p-floatlabel>
+
+      <p-floatlabel variant="on">
+        <p-inputnumber inputId="qrAmount" class="w-full" styleClass="w-full" name="amount" [ngModel]="amount()" (ngModelChange)="amount.set($event)" mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="2" [min]="0" locale="de-CH" />
+        <label for="qrAmount">{{ 'qrBill.amount' | transloco }}</label>
+      </p-floatlabel>
+
+      @if (errorMessage()) {
+        <p class="text-sm text-red-600 m-0">{{ errorMessage() }}</p>
+      }
+
+      <div class="flex justify-end">
+        <p-button type="submit" [label]="'qrBill.generate' | transloco" [loading]="generating()" />
+      </div>
+    </form>
+  </p-card>
+
+  @if (slipUrl(); as url) {
+    <div class="flex flex-col gap-2 overflow-x-auto">
+      <p class="text-sm text-gray-600 m-0">{{ 'qrBill.clickToCopy' | transloco }}</p>
+      <button type="button" class="p-0 border border-gray-300 bg-white cursor-copy self-start shrink-0" [title]="'qrBill.clickToCopy' | transloco" (click)="copy()">
+        <img [src]="url" alt="QR-bill" class="block" style="width: 210mm; height: 105mm" />
+      </button>
+      @if (copyMessage()) {
+        <p class="text-sm text-green-700 m-0">{{ copyMessage() }}</p>
+      }
+    </div>
+  }
+</div>

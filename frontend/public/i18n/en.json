@@ -9,6 +9,7 @@
     "documents": "Documents",
     "quotes": "Quotes",
     "invoices": "Invoices",
+    "qrBill": "QR-bill",
     "resources": "Resources",
     "material": "Material",
     "service": "Service",
@@ -366,5 +367,21 @@
     "logoUpdateError": "Couldn't update the logo.",
     "headerImageUpdated": "The header image has been updated.",
     "headerImageUpdateError": "Couldn't update the header image."
+  },
+  "qrBill": {
+    "title": "QR-bill payment slip",
+    "pickClient": "Pick a client (optional)",
+    "searchClient": "Search a client...",
+    "name": "Name",
+    "complement": "Address complement",
+    "street": "Street and number",
+    "postalCodeCity": "Postcode and town",
+    "amount": "Amount CHF (optional)",
+    "generate": "Generate",
+    "clickToCopy": "Click the slip to copy it, then paste it into Word or Excel.",
+    "copied": "Slip copied to the clipboard.",
+    "copyError": "Couldn't copy the slip to the clipboard.",
+    "invalid": "Invalid data: a name and a postcode/town are needed, an amount between 0.01 and 999,999,999.99, and the company's IBAN and address must be filled in (Profile).",
+    "generateError": "Couldn't generate the slip."
   }
 }

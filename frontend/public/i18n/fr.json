@@ -9,6 +9,7 @@
     "documents": "Documents",
     "quotes": "Offres",
     "invoices": "Factures",
+    "qrBill": "Bulletin QR",
     "resources": "Ressources",
     "material": "Matériel",
     "service": "Service",
@@ -366,5 +367,21 @@
     "logoUpdateError": "Impossible de mettre à jour le logo.",
     "headerImageUpdated": "L'image d'en-tête a été mise à jour.",
     "headerImageUpdateError": "Impossible de mettre à jour l'image d'en-tête."
+  },
+  "qrBill": {
+    "title": "Bulletin QR",
+    "pickClient": "Choisir un client (facultatif)",
+    "searchClient": "Rechercher un client...",
+    "name": "Nom",
+    "complement": "Complément",
+    "street": "Rue et numéro",
+    "postalCodeCity": "NPA et ville",
+    "amount": "Montant CHF (facultatif)",
+    "generate": "Valider",
+    "clickToCopy": "Cliquez sur le bulletin pour le copier, puis collez-le dans Word ou Excel.",
+    "copied": "Bulletin copié dans le presse-papier.",
+    "copyError": "Impossible de copier le bulletin dans le presse-papier.",
+    "invalid": "Données invalides : il faut au moins un nom et un NPA/ville, un montant entre 0.01 et 999 999 999.99, et l'IBAN et l'adresse de l'entreprise doivent être renseignés (Profil).",
+    "generateError": "Impossible de générer le bulletin."
   }
 }

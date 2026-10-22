@@ -205,6 +205,13 @@ export class NavBar {
       ]
     },
     {
+      label: 'nav.qrBill',
+      icon: 'pi pi-qrcode',
+      links: [
+        { label: 'nav.qrBill', path: '/qr-bill' }
+      ]
+    },
+    {
       label: 'nav.resources',
       icon: 'pi pi-box',
       links: [

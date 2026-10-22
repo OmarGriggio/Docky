@@ -65,6 +65,14 @@ export const routes: Routes = [
     data: { breadcrumb: typedList('nav.documents', { QUOTE: 'nav.quotes', INVOICE: 'nav.invoices' }) }
   },
   {
+    // A standalone Swiss QR-bill payment slip, copied into the user's own
+    // Word/Excel documents - see qr-bill-slip.ts.
+    path: 'qr-bill',
+    loadComponent: () => import('./features/qr-bill/qr-bill-slip').then(m => m.QrBillSlip),
+    canActivate: [authGuard],
+    data: { breadcrumb: 'nav.qrBill' }
+  },
+  {
     // Must come before documents/:id, or ":id" would greedily match "new".
     path: 'documents/new',
     loadComponent: () => import('./features/documents/document-form/document-form').then(m => m.DocumentForm),
