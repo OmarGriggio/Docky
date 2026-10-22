@@ -125,9 +125,9 @@ export class ProjectListComponent implements OnInit {
   });
 
   // The invoice already billing each chantier, keyed by the chantier's own
-  // PROJECT document id (an invoice's parent_document_id) - a cancelled one
-  // doesn't count, same rule the backend enforces when creating one (see
-  // document.service.ts's addDocumentServ). Drives "Facturer" vs "Voir la
+  // PROJECT document id (an invoice's parent_document_id) - archived ones
+  // included, only a cancelled one doesn't count, same rule the backend
+  // enforces when creating one (see document.service.ts's addDocumentServ). Drives "Facturer" vs "Voir la
   // facture" below.
   private invoices = signal<Document[]>([]);
   private invoiceByProjectDocumentId = computed(() => {
@@ -172,7 +172,7 @@ export class ProjectListComponent implements OnInit {
       error: err => console.error("project-list : " + err)
     });
 
-    this.documentService.getDocuments('INVOICE').subscribe({
+    this.documentService.getDocuments('INVOICE', true).subscribe({
       next: data => this.invoices.set(data),
       error: err => console.error("project-list : " + err)
     });

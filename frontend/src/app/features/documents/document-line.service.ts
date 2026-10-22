@@ -21,15 +21,6 @@ export class DocumentLineService {
     });
   }
 
-  createLine(line: Omit<DocumentLine, 'id' | 'company_id' | 'position' | 'is_active'>) {
-    return this.http.post<DocumentLine>(`${API_BASE}/document-line`, line);
-  }
-
-  archiveLine(id: number) {
-    return this.http.patch<DocumentLine>(`${API_BASE}/document-line/${id}/archive`, {});
-  }
-
-  unarchiveLine(id: number) {
-    return this.http.patch<DocumentLine>(`${API_BASE}/document-line/${id}/unarchive`, {});
-  }
+  // Read-only on purpose: lines are written all at once, with their sections,
+  // through DocumentService.replaceContent.
 }

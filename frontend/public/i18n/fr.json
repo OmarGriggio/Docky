@@ -298,6 +298,7 @@
       "totalInclVat": "Total TTC",
       "chooseClient": "Choisis un client.",
       "saveError": "Impossible d'enregistrer le document. Réessaie dans un instant.",
+      "incompleteLine": "Chaque ligne a besoin d'un libellé, d'une quantité et d'un prix.",
       "scanButton": "Scanner un document",
       "scanDialogTitle": "Scanner un document",
       "scanAction": "Scanner",
@@ -381,7 +382,7 @@
     "clickToCopy": "Cliquez sur le bulletin pour le copier, puis collez-le dans Word ou Excel.",
     "copied": "Bulletin copié dans le presse-papier.",
     "copyError": "Impossible de copier le bulletin dans le presse-papier.",
-    "invalid": "Données invalides : il faut au moins un nom et un NPA/ville, un montant entre 0.01 et 999 999 999.99, et l'IBAN et l'adresse de l'entreprise doivent être renseignés (Profil).",
+    "invalid": "Données invalides : il faut au moins un nom et un NPA/ville, chaque ligne doit tenir sur le bulletin, le montant doit être entre 0.01 et 999 999 999.99, et l'IBAN et l'adresse de l'entreprise doivent être renseignés (Profil).",
     "generateError": "Impossible de générer le bulletin."
   }
 }

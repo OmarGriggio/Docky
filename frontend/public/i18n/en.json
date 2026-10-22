@@ -298,6 +298,7 @@
       "totalInclVat": "Total incl. VAT",
       "chooseClient": "Choose a client.",
       "saveError": "Could not save the document. Try again in a moment.",
+      "incompleteLine": "Each line needs a label, a quantity and a price.",
       "scanButton": "Scan a document",
       "scanDialogTitle": "Scan a document",
       "scanAction": "Scan",
@@ -381,7 +382,7 @@
     "clickToCopy": "Click the slip to copy it, then paste it into Word or Excel.",
     "copied": "Slip copied to the clipboard.",
     "copyError": "Couldn't copy the slip to the clipboard.",
-    "invalid": "Invalid data: a name and a postcode/town are needed, an amount between 0.01 and 999,999,999.99, and the company's IBAN and address must be filled in (Profile).",
+    "invalid": "Invalid data: a name and a postcode/town are needed, every line must fit on the slip, the amount must be between 0.01 and 999,999,999.99, and the company's IBAN and address must be filled in (Profile).",
     "generateError": "Couldn't generate the slip."
   }
 }

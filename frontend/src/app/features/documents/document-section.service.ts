@@ -33,10 +33,6 @@ export class DocumentSectionService {
     return this.http.get<SectionWithProject[]>(`${API_BASE}/document-section/scheduled`);
   }
 
-  createSection(section: Omit<DocumentSection, 'id' | 'company_id' | 'position' | 'is_active'>) {
-    return this.http.post<DocumentSection>(`${API_BASE}/document-section`, section);
-  }
-
   updateSection(id: number, section: Pick<DocumentSection, 'date_start' | 'date_end'>) {
     return this.http.put<DocumentSection>(`${API_BASE}/document-section/${id}`, section);
   }
@@ -45,11 +41,6 @@ export class DocumentSectionService {
     return this.http.patch<DocumentSection>(`${API_BASE}/document-section/${id}/note`, { note });
   }
 
-  archiveSection(id: number) {
-    return this.http.patch<DocumentSection>(`${API_BASE}/document-section/${id}/archive`, {});
-  }
-
-  unarchiveSection(id: number) {
-    return this.http.patch<DocumentSection>(`${API_BASE}/document-section/${id}/unarchive`, {});
-  }
+  // A section's own content (title, lines...) is never written one by one
+  // any more - see DocumentService.replaceContent.
 }

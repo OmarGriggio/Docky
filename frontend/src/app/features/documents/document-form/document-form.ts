@@ -663,6 +663,16 @@ export class DocumentForm implements OnInit {
       return;
     }
 
+    // Caught here rather than as a 400 from the backend - a line whose
+    // quantity or price was emptied (p-inputnumber gives null) can't be saved.
+    const incompleteLine = this.sections().some(section =>
+      section.lines.some(line => line.quantity === null || line.unit_price === null || !line.label.trim())
+    );
+    if (incompleteLine) {
+      this.errorMessage.set(this.transloco.translate('documents.form.incompleteLine'));
+      return;
+    }
+
     this.errorMessage.set(null);
     this.submitting.set(true);
 
@@ -710,6 +720,13 @@ export class DocumentForm implements OnInit {
         status: 'DRAFT',
       }));
 
+      // The document exists from here on, whatever happens to its content
+      // below - a retry after a failed save has to update this one, not
+      // create a second one (which, for a chantier's invoice, the backend
+      // would refuse: a chantier is invoiced once).
+      this.editingDocumentId.set(document.id);
+      this.documentNumber.set(document.number);
+
       await firstValueFrom(this.documentService.replaceContent(document.id, this.contentForApi()));
 
       this.router.navigate(['/documents'], { queryParams: { type: this.type } });
@@ -723,8 +740,9 @@ export class DocumentForm implements OnInit {
   // The whole draft as one payload - sent in a single request (see
   // DocumentService.replaceContent), both for a brand new document and an
   // edited one: the backend archives whatever was there and recreates it all
-  // in one transaction, so a failed save never leaves the document half-
-  // rewritten. No scheduling UI on this page (a QUOTE/INVOICE's own sections
+  // in one transaction, so a failed save never leaves the content half-
+  // rewritten (a new document's header is its own request before it, see
+  // submit()). No scheduling UI on this page (a QUOTE/INVOICE's own sections
   // don't need one, only a chantier's might, handled separately).
   private contentForApi(): DocumentContentSection[] {
     return this.sections().map(section => ({

@@ -59,6 +59,8 @@
             (ngModelChange)="discount.set($event)"
             mode="decimal"
             [minFractionDigits]="2"
+            [min]="0"
+            [max]="100"
             suffix=" %"
           />
           <label for="discount">{{ 'documents.form.discount' | transloco }}</label>
@@ -72,6 +74,8 @@
             (ngModelChange)="vatRate.set($event)"
             mode="decimal"
             [minFractionDigits]="1"
+            [min]="0"
+            [max]="100"
             suffix=" %"
           />
           <label for="vatRate">{{ 'clients.form.vatNumber' | transloco }}</label>
