@@ -12,7 +12,8 @@ import {
   acceptDocumentInDB,
   updateDocumentStatusInDB,
   getInvoiceForProjectDocumentFromDB,
-  archiveDocumentContentInDB
+  archiveDocumentContentInDB,
+  getDocumentByIdForUpdateFromDB
 } from "./document.repository";
 import { getLinesByDocumentIdFromDB, createLineInDB } from "./document_line.repository";
 import { getSectionsByDocumentIdFromDB, createSectionInDB } from "./document_section.repository";
@@ -115,8 +116,8 @@ export const addDocumentServ = async (documentData: CreateDocumentData, company_
     if (!project || project.status !== "COMPLETED") {
       throw new ConflictError("Project must be completed before it can be invoiced");
     }
-    // One chantier, one invoice - unless the earlier one was cancelled (or
-    // archived), in which case it gets billed again.
+    // One chantier, one invoice - unless the earlier one was cancelled, in
+    // which case it gets billed again (an archived one still counts).
     if (await getInvoiceForProjectDocumentFromDB(projectDocument.id, company_id)) {
       throw new ConflictError("This project has already been invoiced");
     }
@@ -195,8 +196,8 @@ const SETTABLE_STATUSES: Record<string, DocumentStatus[]> = {
 export const assertContentEditableServ = async (document: Document, company_id: number) => {
   if (document.type === "PROJECT") {
     const project = await getProjectByDocumentIdFromDB(document.id, company_id);
-    if (!project || project.status === "COMPLETED") {
-      throw new ConflictError("A completed project's resources can no longer be changed");
+    if (!project || !project.is_active || project.status === "COMPLETED") {
+      throw new ConflictError("A completed or archived project's resources can no longer be changed");
     }
     return;
   }
@@ -205,7 +206,22 @@ export const assertContentEditableServ = async (document: Document, company_id: 
   }
 };
 
+// Same rule, from a document id - for a single line/section write (see
+// document_line.service.ts, document_section.service.ts).
+export const assertContentEditableByIdServ = async (document_id: number, company_id: number) => {
+  const document = await getDocumentByIdFromDB(document_id, company_id);
+  if (!document) {
+    throw new NotFoundError("Document not found");
+  }
+  await assertContentEditableServ(document, company_id);
+};
+
 const LINE_TYPES: DocumentLineType[] = ["MATERIAL", "SERVICE"];
+// Generous for a construction quote/invoice - a cap so one request can't
+// hold a transaction (and its connection) open for thousands of inserts.
+const MAX_CONTENT_LINES = 500;
+
+const isPercentage = (value: unknown) => typeof value === "number" && value >= 0 && value <= 100;
 
 // Replaces a document's whole content (every section and line) in one
 // transaction: the current ones are archived, the given ones created fresh,
@@ -216,24 +232,38 @@ export const replaceDocumentContentServ = async (id: number, company_id: number,
   if (!Array.isArray(sections) || sections.some(section => !Array.isArray(section?.lines))) {
     throw new AppError("sections must be an array of sections, each with its own lines array", 400);
   }
+  const lines = sections.flatMap(section => section.lines);
+  if (lines.length > MAX_CONTENT_LINES) {
+    throw new AppError(`A document can have at most ${MAX_CONTENT_LINES} lines`, 400);
+  }
+  if (sections.some(section => typeof section.title !== "string" || !section.title.trim())) {
+    throw new AppError("Each section needs a title", 400);
+  }
   // document_lines.type has no CHECK constraint of its own - this is the
   // only place that keeps it to the two kinds the rest of the app knows.
-  const invalidLine = sections.flatMap(section => section.lines).find(line =>
-    !LINE_TYPES.includes(line.type) || !Number.isFinite(line.quantity) || !Number.isFinite(line.unit_price)
+  const invalidLine = lines.find(line =>
+    !LINE_TYPES.includes(line.type) ||
+    typeof line.label !== "string" || !line.label.trim() ||
+    !Number.isFinite(line.quantity) ||
+    !Number.isFinite(line.unit_price) ||
+    (line.discount != null && !isPercentage(line.discount))
   );
   if (invalidLine) {
-    throw new AppError("Each line needs a type (MATERIAL or SERVICE), a quantity and a unit price", 400);
+    throw new AppError("Each line needs a type (MATERIAL or SERVICE), a label, a quantity, a unit price, and a discount between 0 and 100", 400);
   }
 
   return await withTransaction(async () => {
-    const document = await getDocumentByIdFromDB(id, company_id);
+    // Locked until this transaction ends: a concurrent save, or a status
+    // change (e.g. to PAID) on the same document, waits instead of slipping
+    // in between this check and the rewrite below.
+    const document = await getDocumentByIdForUpdateFromDB(id, company_id);
     if (!document) {
       throw new NotFoundError("Document not found");
     }
     await assertContentEditableServ(document, company_id);
 
     // A line may only point at one of this company's own catalog resources.
-    const resourceIds = new Set(sections.flatMap(section => section.lines.map(line => line.resource_id)).filter(id => id !== null));
+    const resourceIds = new Set(lines.map(line => line.resource_id).filter((id): id is number => id != null));
     for (const resource_id of resourceIds) {
       if (!(await getResourceByIdFromDB(resource_id, company_id))) {
         throw new NotFoundError("Resource not found");
@@ -283,6 +313,7 @@ export const updateDocumentStatusServ = async (id: number, company_id: number, s
     throw new NotFoundError("Document not found");
   }
   if (
+    !document.is_active ||
     document.status === null ||
     !EDITABLE_STATUSES.includes(document.status) ||
     !(SETTABLE_STATUSES[document.type] ?? []).includes(status)
@@ -290,7 +321,11 @@ export const updateDocumentStatusServ = async (id: number, company_id: number, s
     throw new ConflictError("This document's status can't be changed this way");
   }
 
-  return await updateDocumentStatusInDB(id, company_id, status);
+  const updated = await updateDocumentStatusInDB(id, company_id, status);
+  if (!updated) {
+    throw new ConflictError("This document's status can't be changed this way");
+  }
+  return updated;
 };
 
 // Turns an accepted quote into a chantier: creates a brand new PROJECT

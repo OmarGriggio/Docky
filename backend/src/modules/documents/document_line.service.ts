@@ -9,17 +9,8 @@ import {
 } from "./document_line.repository";
 import { getDocumentByIdFromDB } from "./document.repository";
 import { getSectionByIdFromDB } from "./document_section.repository";
-import { recomputeDocumentTotalsServ, assertContentEditableServ } from "./document.service";
+import { recomputeDocumentTotalsServ, assertContentEditableServ, assertContentEditableByIdServ } from "./document.service";
 import { NotFoundError } from "../../shared/types/errors";
-
-// Same rule for every line change - see assertContentEditableServ.
-const assertLineEditable = async (document_id: number, company_id: number) => {
-  const document = await getDocumentByIdFromDB(document_id, company_id);
-  if (!document) {
-    throw new NotFoundError("Document not found");
-  }
-  await assertContentEditableServ(document, company_id);
-};
 
 export const getLinesForDocumentServ = async (document_id: number, company_id: number, includeArchived = false) => {
   const document = await getDocumentByIdFromDB(document_id, company_id);
@@ -61,7 +52,7 @@ export const archiveLineServ = async (id: number, company_id: number) => {
   if (!line) {
     throw new NotFoundError("Line not found");
   }
-  await assertLineEditable(line.document_id, company_id);
+  await assertContentEditableByIdServ(line.document_id, company_id);
 
   const archived = await archiveLineInDB(id, company_id);
   await recomputeDocumentTotalsServ(line.document_id, company_id);
@@ -74,7 +65,7 @@ export const unarchiveLineServ = async (id: number, company_id: number) => {
   if (!line) {
     throw new NotFoundError("Line not found");
   }
-  await assertLineEditable(line.document_id, company_id);
+  await assertContentEditableByIdServ(line.document_id, company_id);
 
   const unarchived = await unarchiveLineInDB(id, company_id);
   await recomputeDocumentTotalsServ(line.document_id, company_id);

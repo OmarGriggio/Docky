@@ -13,18 +13,7 @@ import {
 } from "./document_section.repository";
 import { getDocumentByIdFromDB } from "./document.repository";
 import { NotFoundError } from "../../shared/types/errors";
-import { assertContentEditableServ } from "./document.service";
-
-// Adding/archiving a section changes the document's content - same rule as
-// its lines (see assertContentEditableServ). Scheduling one (dates) or its
-// calendar note doesn't: that's planning, not content, so those stay open.
-const assertSectionEditable = async (document_id: number, company_id: number) => {
-  const document = await getDocumentByIdFromDB(document_id, company_id);
-  if (!document) {
-    throw new NotFoundError("Document not found");
-  }
-  await assertContentEditableServ(document, company_id);
-};
+import { assertContentEditableServ, assertContentEditableByIdServ } from "./document.service";
 
 export const getSectionsForDocumentServ = async (document_id: number, company_id: number, includeArchived = false) => {
   const document = await getDocumentByIdFromDB(document_id, company_id);
@@ -58,6 +47,9 @@ export const addSectionServ = async (
   return await createSectionInDB({ ...sectionData, document_id, company_id, position, is_active: true });
 };
 
+// Scheduling a section (its dates) or its calendar note is planning, not
+// content - unlike adding/archiving one, it stays open on a closed document
+// or chantier (see assertContentEditableServ).
 export const updateSectionServ = async (id: number, company_id: number, data: UpdateDocumentSectionData) => {
   const section = await getSectionByIdFromDB(id, company_id);
   if (!section) {
@@ -79,7 +71,7 @@ export const archiveSectionServ = async (id: number, company_id: number) => {
   if (!section) {
     throw new NotFoundError("Section not found");
   }
-  await assertSectionEditable(section.document_id, company_id);
+  await assertContentEditableByIdServ(section.document_id, company_id);
   return await archiveSectionInDB(id, company_id);
 };
 
@@ -88,6 +80,6 @@ export const unarchiveSectionServ = async (id: number, company_id: number) => {
   if (!section) {
     throw new NotFoundError("Section not found");
   }
-  await assertSectionEditable(section.document_id, company_id);
+  await assertContentEditableByIdServ(section.document_id, company_id);
   return await unarchiveSectionInDB(id, company_id);
 };

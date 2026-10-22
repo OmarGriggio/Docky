@@ -47,11 +47,6 @@ export type CreateDocumentData = Omit<
   "id" | "company_id" | "number" | "amount_excl_vat" | "amount_incl_vat"
 >;
 
-// What a caller sends to edit an already-existing document (see
-// updateDocumentServ) - deliberately narrower than CreateDocumentData:
-// type/number/status/parent_document_id are never editable this way, each
-// has its own dedicated flow instead (acceptQuoteServ for status,
-// archive/unarchive for is_active).
 // A document's whole content, sent in one go by PUT /document/:id/content
 // (see replaceDocumentContentServ) - its sections in order, each with its
 // own lines in order. Positions come from that order, ids are all new.
@@ -74,6 +69,12 @@ export interface DocumentContentSection {
   lines: DocumentContentLine[];
 }
 
+// What a caller sends to edit an already-existing document (see
+// updateDocumentServ) - deliberately narrower than CreateDocumentData:
+// type/number/status/parent_document_id are never editable this way, each
+// has its own dedicated flow instead (updateDocumentStatusServ/acceptQuoteServ
+// for status, archive/unarchive for is_active, PUT /document/:id/content for
+// its sections and lines).
 export type UpdateDocumentData = Pick<
   Document,
   "client_id" | "address_id" | "reference_client" | "date" | "discount" | "vat_rate" | "introduction" | "conclusion" | "payment_terms" | "due_date"

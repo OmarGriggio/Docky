@@ -53,6 +53,6 @@ export const updateDocumentStatus = async (req: Request, res: Response) => {
 };
 
 export const replaceDocumentContent = async (req: Request, res: Response) => {
-  const document = await replaceDocumentContentServ(Number(req.params.id), req.user.company_id, req.body.sections);
+  const document = await replaceDocumentContentServ(Number(req.params.id), req.user.company_id, req.body?.sections);
   res.json(document);
 };

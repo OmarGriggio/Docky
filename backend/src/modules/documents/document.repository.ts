@@ -47,6 +47,17 @@ export const getDocumentByIdFromDB = async (id: number, company_id: number) => {
   return result.rows[0] ?? null;
 };
 
+// Same, but locks the row until the current transaction ends (see
+// withTransaction) - a concurrent status change or content save on the same
+// document waits for this one instead of interleaving with it.
+export const getDocumentByIdForUpdateFromDB = async (id: number, company_id: number) => {
+  const result = await db().query(
+    "SELECT * FROM documents WHERE id = $1 AND company_id = $2 FOR UPDATE",
+    [id, company_id]
+  );
+  return result.rows[0] ?? null;
+};
+
 // Used by generateDocumentNumber (document.service.ts) to find the next
 // sequence number for a given company/type/year. numberPrefix already
 // includes the trailing "-" (e.g. "FAC-2026-"), and since the sequence is a
@@ -117,14 +128,15 @@ export const acceptDocumentInDB = async (id: number, company_id: number): Promis
   return result.rows[0] ?? null;
 };
 
-// The invoice already billing this chantier (its PROJECT document), if any -
-// a cancelled or archived one doesn't count, the chantier can be invoiced
-// again after that.
+// The invoice already billing this chantier (its PROJECT document), if any.
+// Only a cancelled one doesn't count - an archived invoice still billed the
+// work (archiving is tidying up a list, not undoing an invoice), so it keeps
+// the chantier from being invoiced a second time.
 export const getInvoiceForProjectDocumentFromDB = async (project_document_id: number, company_id: number): Promise<Document | null> => {
   const result = await db().query(
     `SELECT * FROM documents
       WHERE parent_document_id = $1 AND company_id = $2 AND type = 'INVOICE'
-        AND is_active = true AND status <> 'CANCELLED'
+        AND status <> 'CANCELLED'
       LIMIT 1`,
     [project_document_id, company_id]
   );
@@ -144,15 +156,19 @@ export const archiveDocumentContentInDB = async (document_id: number, company_id
   );
 };
 
-export const updateDocumentStatusInDB = async (id: number, company_id: number, status: DocumentStatus): Promise<Document> => {
+// Only from a still-open, active document (DRAFT/SENT) - null otherwise.
+// Checked in the UPDATE itself for the same reason as acceptDocumentInDB: a
+// REJECTED racing an accept on the same quote waits for it, then matches
+// nothing instead of overwriting ACCEPTED.
+export const updateDocumentStatusInDB = async (id: number, company_id: number, status: DocumentStatus): Promise<Document | null> => {
   const query = `
     UPDATE documents SET status = $1
-      WHERE id = $2 AND company_id = $3
+      WHERE id = $2 AND company_id = $3 AND status IN ('DRAFT', 'SENT') AND is_active = true
     RETURNING *;
   `;
 
   const result = await db().query(query, [status, id, company_id]);
-  return result.rows[0];
+  return result.rows[0] ?? null;
 };
 
 export const updateDocumentInDB = async (
