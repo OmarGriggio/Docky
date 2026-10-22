@@ -17,27 +17,27 @@
       />
 
       <p-floatlabel variant="on">
-        <input pInputText id="qrName" class="w-full" name="name" [ngModel]="name()" (ngModelChange)="name.set($event)" />
+        <input pInputText id="qrName" class="w-full" name="name" [ngModel]="name()" (ngModelChange)="onFieldChange('name', $event)" />
         <label for="qrName">{{ 'qrBill.name' | transloco }}</label>
       </p-floatlabel>
 
       <p-floatlabel variant="on">
-        <input pInputText id="qrComplement" class="w-full" name="complement" [ngModel]="complement()" (ngModelChange)="complement.set($event)" />
+        <input pInputText id="qrComplement" class="w-full" name="complement" [ngModel]="complement()" (ngModelChange)="onFieldChange('complement', $event)" />
         <label for="qrComplement">{{ 'qrBill.complement' | transloco }}</label>
       </p-floatlabel>
 
       <p-floatlabel variant="on">
-        <input pInputText id="qrStreet" class="w-full" name="street" [ngModel]="street()" (ngModelChange)="street.set($event)" />
+        <input pInputText id="qrStreet" class="w-full" name="street" [ngModel]="street()" (ngModelChange)="onFieldChange('street', $event)" />
         <label for="qrStreet">{{ 'qrBill.street' | transloco }}</label>
       </p-floatlabel>
 
       <p-floatlabel variant="on">
-        <input pInputText id="qrPostalCodeCity" class="w-full" name="postalCodeCity" [ngModel]="postalCodeCity()" (ngModelChange)="postalCodeCity.set($event)" />
+        <input pInputText id="qrPostalCodeCity" class="w-full" name="postalCodeCity" [ngModel]="postalCodeCity()" (ngModelChange)="onFieldChange('postalCodeCity', $event)" />
         <label for="qrPostalCodeCity">{{ 'qrBill.postalCodeCity' | transloco }}</label>
       </p-floatlabel>
 
       <p-floatlabel variant="on">
-        <p-inputnumber inputId="qrAmount" class="w-full" styleClass="w-full" name="amount" [ngModel]="amount()" (ngModelChange)="amount.set($event)" mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="2" [min]="0" locale="de-CH" />
+        <p-inputnumber inputId="qrAmount" class="w-full" styleClass="w-full" name="amount" [ngModel]="amount()" (ngModelChange)="onFieldChange('amount', $event)" mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="2" [min]="0" locale="de-CH" />
         <label for="qrAmount">{{ 'qrBill.amount' | transloco }}</label>
       </p-floatlabel>
 
@@ -55,7 +55,7 @@
     <div class="flex flex-col gap-2 overflow-x-auto">
       <p class="text-sm text-gray-600 m-0">{{ 'qrBill.clickToCopy' | transloco }}</p>
       <button type="button" class="p-0 border border-gray-300 bg-white cursor-copy self-start shrink-0" [title]="'qrBill.clickToCopy' | transloco" (click)="copy()">
-        <img [src]="url" alt="QR-bill" class="block" style="width: 210mm; height: 105mm" />
+        <img [src]="url" [alt]="'qrBill.title' | transloco" class="block" style="width: 210mm; height: 105mm" />
       </button>
       @if (copyMessage()) {
         <p class="text-sm text-green-700 m-0">{{ copyMessage() }}</p>

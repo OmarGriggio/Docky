@@ -59,8 +59,9 @@ export class QrBillSlip implements OnInit {
   // Optional - left empty, the slip prints a blank amount box for the payer.
   amount = signal<number | null>(null);
   // Not a field on the page - taken from the picked client's address, so a
-  // foreign client's slip still carries the right country code.
-  private country: string | null = null;
+  // foreign client's slip still carries the right country code. Dropped once
+  // the postcode/town is retyped (likely another place) or the client cleared.
+  private country = signal<string | null>(null);
 
   generating = signal(false);
   errorMessage = signal<string | null>(null);
@@ -87,8 +88,14 @@ export class QrBillSlip implements OnInit {
   // one if none is primary) - all still editable afterwards.
   onClientChange(clientId: number | null): void {
     this.selectedClientId.set(clientId);
+    this.svg.set(null);
     const client = this.clients().find(c => c.id === clientId);
     if (!client) {
+      this.name.set('');
+      this.complement.set('');
+      this.street.set('');
+      this.postalCodeCity.set('');
+      this.country.set(null);
       return;
     }
 
@@ -99,7 +106,22 @@ export class QrBillSlip implements OnInit {
     this.complement.set(address?.attention ?? '');
     this.street.set(address?.street ?? '');
     this.postalCodeCity.set(address ? `${address.postal_code ?? ''} ${address.city ?? ''}`.trim() : '');
-    this.country = address?.country ?? null;
+    this.country.set(address?.country ?? null);
+  }
+
+  // Any field typed in by hand: the slip shown below no longer matches it
+  // (cleared until generated again, so a stale one can't be copied), and a
+  // retyped postcode/town may not be in the picked client's country any more.
+  onFieldChange(field: 'name' | 'complement' | 'street' | 'postalCodeCity' | 'amount', value: string | number | null): void {
+    if (field === 'amount') {
+      this.amount.set(value as number | null);
+    } else {
+      this[field].set((value as string) ?? '');
+      if (field === 'postalCodeCity') {
+        this.country.set(null);
+      }
+    }
+    this.svg.set(null);
   }
 
   generate(): void {
@@ -117,7 +139,7 @@ export class QrBillSlip implements OnInit {
       complement: this.complement(),
       street: this.street(),
       postalCodeCity: this.postalCodeCity(),
-      country: this.country,
+      country: this.country(),
       amount: this.amount(),
       language,
     }).subscribe({
