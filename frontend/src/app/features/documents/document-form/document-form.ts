@@ -504,7 +504,7 @@ export class DocumentForm implements OnInit {
         // shared/models/document.ts) - never editable through this page
         // either way, though nothing currently routes one here.
         this.locked.set(source.status === null || !EDITABLE_STATUSES.includes(source.status));
-        this.date.set(new Date(source.date));
+        this.date.set(fromDateOnly(source.date));
         this.dueDate.set(source.due_date ? fromDateOnly(source.due_date) : null);
         this.dueDateTouched = true;
         this.referenceClient.set(source.reference_client ?? '');
@@ -678,7 +678,7 @@ export class DocumentForm implements OnInit {
           client_id: clientId,
           address_id: this.addressId(),
           reference_client: this.referenceClient().trim() || null,
-          date: this.date().toISOString(),
+          date: toDateOnly(this.date()),
           discount: this.discount(),
           vat_rate: this.vatRate(),
           payment_terms: this.paymentTerms,
@@ -702,7 +702,7 @@ export class DocumentForm implements OnInit {
         // INVOICE points at the picked chantier's own PROJECT document, not
         // the Project row's id (see selectedProjectDocumentId).
         parent_document_id: this.type === 'INVOICE' ? this.selectedProjectDocumentId : null,
-        date: this.date().toISOString(),
+        date: toDateOnly(this.date()),
         discount: this.discount(),
         vat_rate: this.vatRate(),
         payment_terms: this.paymentTerms,
