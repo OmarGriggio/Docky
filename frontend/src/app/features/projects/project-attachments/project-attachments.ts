@@ -127,7 +127,9 @@ export class ProjectAttachments implements OnInit {
       },
       error: err => {
         console.error('project-attachments : ' + err);
-        this.errorMessage.set(this.transloco.translate('projects.attachments.uploadError'));
+        // 413: the company's storage quota (or the file's own size limit) -
+        // worth saying so, a plain "couldn't add it" would just get retried.
+        this.errorMessage.set(this.transloco.translate(err?.status === 413 ? 'projects.attachments.tooLarge' : 'projects.attachments.uploadError'));
         this.uploading.set(false);
       }
     });

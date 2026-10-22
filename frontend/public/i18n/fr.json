@@ -186,7 +186,8 @@
       "none": "Aucune pièce jointe.",
       "loadError": "Impossible de charger les pièces jointes.",
       "onlyPdf": "Seuls les fichiers PDF sont acceptés.",
-      "uploadError": "Impossible d'ajouter la pièce jointe."
+      "uploadError": "Impossible d'ajouter la pièce jointe.",
+      "tooLarge": "Fichier trop volumineux, ou espace de stockage de l'entreprise plein (500 Mo)."
     },
     "resources": {
       "readonlyNotice": "Chantier clôturé - les ressources ne sont plus modifiables.",

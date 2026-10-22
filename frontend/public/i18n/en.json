@@ -186,7 +186,8 @@
       "none": "No attachments.",
       "loadError": "Could not load the attachments.",
       "onlyPdf": "Only PDF files are accepted.",
-      "uploadError": "Could not add the attachment."
+      "uploadError": "Could not add the attachment.",
+      "tooLarge": "File too large, or the company's storage space is full (500 MB)."
     },
     "resources": {
       "readonlyNotice": "Project closed - resources can no longer be edited.",

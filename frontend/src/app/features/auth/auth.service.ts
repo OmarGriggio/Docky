@@ -1,9 +1,8 @@
 import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, catchError, finalize, map, shareReplay, switchMap, tap, throwError } from 'rxjs';
+import { Observable, catchError, finalize, map, shareReplay, tap, throwError } from 'rxjs';
 import { TranslocoService } from '@jsverse/transloco';
 import { AuthResponse, LoginPayload, RegisterPayload, UserRole } from '../../shared/models/auth';
-import { Company } from '../../shared/models/company';
 import { User } from '../../shared/models/user';
 import { environment } from '../../../environments/environment';
 
@@ -116,35 +115,19 @@ export class AuthService {
     );
   }
 
+  // One request: the backend creates the company and its first ADMIN together,
+  // in one transaction (see user.service.ts's createUserService) - no more
+  // separate POST /company first, which let anyone claim an empty company.
   register(payload: RegisterPayload) {
-    const company: Omit<Company, 'id'> = {
-      name: payload.companyName,
-      email: null,
-      phone: null,
-      iban: null,
-      street: null,
-      postal_code: null,
-      city: null,
-      country: null,
-      logo: null,
-      header_image: null,
-      vat_rate: 8.1,
-      vat_number: null,
-      payment_terms: null,
-    };
-
-    return this.http.post<Company>(`${API_BASE}/company`, company).pipe(
-      switchMap(createdCompany =>
-        this.http.post<User>(`${API_BASE}/user`, {
-          company_id: createdCompany.id,
-          firstname: payload.firstname,
-          lastname: payload.lastname,
-          email: payload.email,
-          passwordHash: payload.password,
-        })
-      )
-    );
+    return this.http.post<User>(`${API_BASE}/user`, {
+      companyName: payload.companyName,
+      firstname: payload.firstname,
+      lastname: payload.lastname,
+      email: payload.email,
+      passwordHash: payload.password,
+    });
   }
+
 
   // Exchanges the refresh token for a new access token. The refresh token
   // itself lives only in the httpOnly cookie the browser sends automatically
