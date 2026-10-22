@@ -157,21 +157,29 @@ export const addDocumentServ = async (documentData: CreateDocumentData, company_
   });
 };
 
-// Editable while the client hasn't answered yet (or before it's even been
-// sent) - once a quote is ACCEPTED it's the frozen record a chantier was
-// born from (see zz_docs/Project Definition.md's lifecycle), and once
-// REJECTED/an invoice is PAID/CANCELLED there's nothing left to correct. A
-// PROJECT document's status is always null (its lifecycle lives on
+// Whether a quote/invoice's header, sections and lines can still change:
+// - a quote while the client hasn't answered yet (DRAFT or SENT) - once
+//   ACCEPTED it's the frozen record a chantier was born from (see
+//   zz_docs/Project Definition.md's lifecycle), once REJECTED it's over;
+// - an invoice only while it's a DRAFT. Once SENT, the client holds it under
+//   its number - it isn't rewritten afterwards (Swiss bookkeeping, art. 957a
+//   CO); a wrong one is CANCELLED and duplicated into a new invoice instead.
+// A PROJECT document's status is always null (its lifecycle lives on
 // projects.status instead), so it's never editable through this generic
-// flow either.
-const EDITABLE_STATUSES: DocumentStatus[] = ["DRAFT", "SENT"];
+// flow either - see assertContentEditableServ for its own rule.
+const isOpenForEditing = (document: Pick<Document, "type" | "status">): boolean => {
+  if (document.type === "INVOICE") {
+    return document.status === "DRAFT";
+  }
+  return document.status === "DRAFT" || document.status === "SENT";
+};
 
 export const updateDocumentServ = async (id: number, company_id: number, documentData: UpdateDocumentData) => {
   const document = await getDocumentByIdFromDB(id, company_id);
   if (!document) {
     throw new NotFoundError("Document not found");
   }
-  if (document.status === null || !EDITABLE_STATUSES.includes(document.status)) {
+  if (!isOpenForEditing(document)) {
     throw new ConflictError("This document can no longer be edited");
   }
   assertValidRates(documentData.discount, documentData.vat_rate);
@@ -190,20 +198,20 @@ export const updateDocumentServ = async (id: number, company_id: number, documen
 };
 
 // Statuses settable straight from the list (see document-list.ts's own
-// onStatusEditComplete), per document type. A quote toggles DRAFT<->SENT or
-// gets REJECTED by the client (ACCEPTED has its own dedicated flow,
-// acceptQuoteServ, since it spawns a chantier); an invoice can additionally
-// be marked PAID or CANCELLED. REJECTED/PAID/CANCELLED are terminal: the
-// document's *current* status must still be in EDITABLE_STATUSES, so once
-// there it can't be changed back this way (a frozen record, see the comment
-// on EDITABLE_STATUSES above).
-const SETTABLE_STATUSES: Record<string, DocumentStatus[]> = {
-  QUOTE: ["DRAFT", "SENT", "REJECTED"],
-  INVOICE: ["DRAFT", "SENT", "PAID", "CANCELLED"],
+// onStatusEditComplete), per document type and current status. A quote
+// toggles DRAFT<->SENT or gets REJECTED by the client (ACCEPTED has its own
+// dedicated flow, acceptQuoteServ, since it spawns a chantier). An invoice
+// goes forward only: a SENT one can be PAID or CANCELLED but never back to
+// DRAFT, which would reopen it for editing (see isOpenForEditing).
+// REJECTED/ACCEPTED/PAID/CANCELLED are terminal - nothing is settable from
+// them.
+const SETTABLE_STATUSES: Record<string, Partial<Record<DocumentStatus, DocumentStatus[]>>> = {
+  QUOTE: { DRAFT: ["SENT", "REJECTED"], SENT: ["DRAFT", "REJECTED"] },
+  INVOICE: { DRAFT: ["SENT", "PAID", "CANCELLED"], SENT: ["PAID", "CANCELLED"] },
 };
 
 // Whether a document's sections/lines can still change: a QUOTE/INVOICE
-// while it's open (EDITABLE_STATUSES, same rule as updateDocumentServ), a
+// while it's open (isOpenForEditing, same rule as updateDocumentServ), a
 // PROJECT while its chantier is still in progress - once COMPLETED, its
 // ledger is exactly what an invoice gets built from (see
 // zz_migrations/000_base.sql's comment on projects.status). The frontend
@@ -216,7 +224,7 @@ export const assertContentEditableServ = async (document: Document, company_id: 
     }
     return;
   }
-  if (document.status === null || !EDITABLE_STATUSES.includes(document.status)) {
+  if (!isOpenForEditing(document)) {
     throw new ConflictError("This document can no longer be edited");
   }
 };
@@ -327,12 +335,9 @@ export const updateDocumentStatusServ = async (id: number, company_id: number, s
   if (!document) {
     throw new NotFoundError("Document not found");
   }
-  if (
-    !document.is_active ||
-    document.status === null ||
-    !EDITABLE_STATUSES.includes(document.status) ||
-    !(SETTABLE_STATUSES[document.type] ?? []).includes(status)
-  ) {
+  const current: DocumentStatus | null = document.status;
+  const settable = current ? SETTABLE_STATUSES[document.type]?.[current] ?? [] : [];
+  if (!document.is_active || !settable.includes(status)) {
     throw new ConflictError("This document's status can't be changed this way");
   }
 
