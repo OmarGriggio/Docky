@@ -1,4 +1,4 @@
-import { pool } from "../../shared/config/database";
+import { db } from "../../shared/config/database";
 import { CreateLoginHistoryData } from "./login_history.types";
 
 export const createLoginHistoryEntryInDB = async (data: CreateLoginHistoryData) => {
@@ -8,7 +8,7 @@ export const createLoginHistoryEntryInDB = async (data: CreateLoginHistoryData) 
     RETURNING *;
   `;
 
-  const result = await pool.query(query, [data.user_id, data.email, data.success, data.ip_address, data.user_agent]);
+  const result = await db().query(query, [data.user_id, data.email, data.success, data.ip_address, data.user_agent]);
   return result.rows[0];
 };
 
@@ -27,6 +27,6 @@ export const getLoginHistoryFromDB = async (limit: number) => {
     LIMIT $1;
   `;
 
-  const result = await pool.query(query, [limit]);
+  const result = await db().query(query, [limit]);
   return result.rows;
 };

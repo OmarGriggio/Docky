@@ -1,4 +1,4 @@
-import { pool } from "../../shared/config/database";
+import { db } from "../../shared/config/database";
 import { CreateUserData, Language, PublicUser } from "./user.types";
 
 // Every column except password_hash - what any response sent back to a client
@@ -6,17 +6,17 @@ import { CreateUserData, Language, PublicUser } from "./user.types";
 const PUBLIC_COLUMNS = "id, company_id, role, last_name, first_name, email, created_at, updated_at, last_login_at, is_active, language";
 
 export const getUsersFromDB = async (company_id: number) => {
-    const result = await pool.query(`SELECT ${PUBLIC_COLUMNS} FROM users WHERE company_id = $1`, [company_id]);
+    const result = await db().query(`SELECT ${PUBLIC_COLUMNS} FROM users WHERE company_id = $1`, [company_id]);
     return result.rows;
 };
 
 export const getUserByEmail = async (email: string) => {
-    const result = await pool.query("SELECT * FROM users where email = $1", [email]);
+    const result = await db().query("SELECT * FROM users where email = $1", [email]);
     return result.rows[0];
 };
 
 export const getUserByIdForCompany = async (id: Number, company_id: number) => {
-    const result = await pool.query(
+    const result = await db().query(
         `SELECT ${PUBLIC_COLUMNS} FROM users WHERE id = $1 AND company_id = $2`,
         [id, company_id]
     );
@@ -24,7 +24,7 @@ export const getUserByIdForCompany = async (id: Number, company_id: number) => {
 };
 
 export const deleteUserDB = async (id: Number, company_id: number) => {
-    const result = await pool.query(
+    const result = await db().query(
         `DELETE FROM users WHERE id = $1 AND company_id = $2 RETURNING ${PUBLIC_COLUMNS}`,
         [id, company_id]
     );
@@ -56,12 +56,12 @@ export const createUserDB = async (
       userData.passwordHash
     ];
 
-    const result = await pool.query(query, values);
+    const result = await db().query(query, values);
     return result.rows[0];
 };
 
 export const updateUserLanguageDB = async (id: number, language: Language) => {
-    const result = await pool.query(
+    const result = await db().query(
         `UPDATE users SET language = $1 WHERE id = $2 RETURNING ${PUBLIC_COLUMNS}`,
         [language, id]
     );

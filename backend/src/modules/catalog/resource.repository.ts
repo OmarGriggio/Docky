@@ -1,11 +1,11 @@
-import { pool } from "../../shared/config/database";
+import { db } from "../../shared/config/database";
 import { Resource, UpdateResourceData } from "./resource.types";
 
 export const getResourcesFromDB = async (company_id: number, includeArchived = false) => {
   const query = includeArchived
     ? "SELECT * FROM resources WHERE company_id = $1 ORDER BY id"
     : "SELECT * FROM resources WHERE company_id = $1 AND is_active = true ORDER BY id";
-  const result = await pool.query(query, [company_id]);
+  const result = await db().query(query, [company_id]);
   return result.rows;
 };
 
@@ -13,12 +13,12 @@ export const getResourcesByTypeFromDB = async (type: string, company_id: number,
   const query = includeArchived
     ? "SELECT * FROM resources WHERE type = $1 AND company_id = $2 ORDER BY id"
     : "SELECT * FROM resources WHERE type = $1 AND company_id = $2 AND is_active = true ORDER BY id";
-  const result = await pool.query(query, [type, company_id]);
+  const result = await db().query(query, [type, company_id]);
   return result.rows;
 };
 
 export const getResourceByIdFromDB = async (id: number, company_id: number) => {
-  const result = await pool.query(
+  const result = await db().query(
     "SELECT * FROM resources WHERE id = $1 AND company_id = $2",
     [id, company_id]
   );
@@ -29,7 +29,7 @@ export const getResourceByIdFromDB = async (id: number, company_id: number) => {
 // zz_migrations/000_base.sql (resources_company_id_code_active_key): an archived
 // resource's code is free to reuse.
 export const getResourceByCodeFromDB = async (code: string, company_id: number) => {
-  const result = await pool.query(
+  const result = await db().query(
     "SELECT * FROM resources WHERE code = $1 AND company_id = $2 AND is_active = true",
     [code, company_id]
   );
@@ -67,7 +67,7 @@ export const createResourceInDB = async (
     resource.is_active
   ];
 
-  const result = await pool.query(query, values);
+  const result = await db().query(query, values);
   return result.rows[0];
 };
 
@@ -78,7 +78,7 @@ export const updateResourceInDB = async (id: number, company_id: number, data: U
     RETURNING *;
   `;
 
-  const result = await pool.query(query, [data.code, data.name, data.unit, data.selling_price, data.purchase_price, id, company_id]);
+  const result = await db().query(query, [data.code, data.name, data.unit, data.selling_price, data.purchase_price, id, company_id]);
   return result.rows[0];
 };
 
@@ -89,7 +89,7 @@ export const archiveResourceInDB = async (id: number, company_id: number): Promi
     RETURNING *;
   `;
 
-  const result = await pool.query(query, [id, company_id]);
+  const result = await db().query(query, [id, company_id]);
   return result.rows[0];
 };
 
@@ -100,6 +100,6 @@ export const unarchiveResourceInDB = async (id: number, company_id: number): Pro
     RETURNING *;
   `;
 
-  const result = await pool.query(query, [id, company_id]);
+  const result = await db().query(query, [id, company_id]);
   return result.rows[0];
 };

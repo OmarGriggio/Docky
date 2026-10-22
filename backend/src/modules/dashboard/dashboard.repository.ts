@@ -1,4 +1,4 @@
-import { pool } from "../../shared/config/database";
+import { db } from "../../shared/config/database";
 import { OpenInvoicesTotal, PaidAmountByClient } from "./dashboard.types";
 
 // Sums amount_incl_vat (what the client actually paid, VAT included) across
@@ -18,7 +18,7 @@ export const getPaidAmountByClientFromDB = async (company_id: number): Promise<P
     ORDER BY total_paid DESC;
   `;
 
-  const result = await pool.query(query, [company_id]);
+  const result = await db().query(query, [company_id]);
   return result.rows;
 };
 
@@ -35,6 +35,6 @@ export const getOpenInvoicesTotalFromDB = async (company_id: number): Promise<Op
     WHERE company_id = $1 AND type = 'INVOICE' AND status = 'SENT';
   `;
 
-  const result = await pool.query(query, [company_id]);
+  const result = await db().query(query, [company_id]);
   return result.rows[0];
 };

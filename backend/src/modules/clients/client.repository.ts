@@ -1,4 +1,4 @@
-import { pool } from "../../shared/config/database";
+import { db } from "../../shared/config/database";
 import {Client, UpdateClientData} from "./client.types"
 
 // Without an explicit ORDER BY, Postgres doesn't guarantee row order at
@@ -9,23 +9,23 @@ export const getClientsFromDB = async (company_id: number, includeArchived = fal
   const query = includeArchived
     ? "SELECT * FROM clients where company_id = $1 ORDER BY id"
     : "SELECT * FROM clients where company_id = $1 AND is_active = true ORDER BY id";
-  const result = await pool.query(query, [company_id]);
+  const result = await db().query(query, [company_id]);
   return result.rows;
 };
 
 export const getClientByIdFromDB = async (id: number, company_id: number) => {
-  const result = await pool.query("SELECT * FROM clients where id = $1 AND company_id = $2", [id, company_id]);
+  const result = await db().query("SELECT * FROM clients where id = $1 AND company_id = $2", [id, company_id]);
   return result.rows[0] ?? null;
 };
 
 export const getClientByNumber = async (client_number: string) => {
-  const result = await pool.query("SELECT * FROM clients where client_number = $1", [client_number]);
+  const result = await db().query("SELECT * FROM clients where client_number = $1", [client_number]);
   return result.rows[0] ?? null;
 };
 
 
 export const getClientByEmail = async (email: string) => {
-  const result = await pool.query("SELECT * FROM clients where email = $1", [email]);
+  const result = await db().query("SELECT * FROM clients where email = $1", [email]);
   return result.rows[0] ?? null;
 };
 
@@ -65,7 +65,7 @@ export const createClientInDB = async (
       client.note
     ];
 
-    const result = await pool.query(query, values);
+    const result = await db().query(query, values);
     return result.rows[0];
 };
 
@@ -105,7 +105,7 @@ export const updateClientInDB = async (
       company_id
     ];
 
-    const result = await pool.query(query, values);
+    const result = await db().query(query, values);
     return result.rows[0];
 };
 
@@ -119,7 +119,7 @@ export const archiveClientInDB = async (
     RETURNING *;
   `;
 
-    const result = await pool.query(query, [id, company_id]);
+    const result = await db().query(query, [id, company_id]);
     return result.rows[0];
 };
 
@@ -133,6 +133,6 @@ export const unarchiveClientInDB = async (
     RETURNING *;
   `;
 
-    const result = await pool.query(query, [id, company_id]);
+    const result = await db().query(query, [id, company_id]);
     return result.rows[0];
 };

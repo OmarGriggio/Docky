@@ -1,18 +1,18 @@
-import { pool } from "../../shared/config/database";
+import { db } from "../../shared/config/database";
 import { Address, UpdateAddressData } from "./address.types";
 
 export const getAddressesFromDB = async (company_id: number) => {
-  const result = await pool.query("SELECT * FROM addresses WHERE company_id = $1 ORDER BY id", [company_id]);
+  const result = await db().query("SELECT * FROM addresses WHERE company_id = $1 ORDER BY id", [company_id]);
   return result.rows;
 };
 
 export const getAddressesByClientIdFromDB = async (client_id: number) => {
-  const result = await pool.query("SELECT * FROM addresses WHERE client_id = $1 ORDER BY id", [client_id]);
+  const result = await db().query("SELECT * FROM addresses WHERE client_id = $1 ORDER BY id", [client_id]);
   return result.rows;
 };
 
 export const getAddressByIdFromDB = async (id: number, company_id: number) => {
-  const result = await pool.query(
+  const result = await db().query(
     "SELECT * FROM addresses WHERE id = $1 AND company_id = $2",
     [id, company_id]
   );
@@ -26,7 +26,7 @@ export const updateAddressInDB = async (id: number, company_id: number, data: Up
     RETURNING *;
   `;
 
-  const result = await pool.query(query, [data.attention, data.street, data.postal_code, data.city, data.country, id, company_id]);
+  const result = await db().query(query, [data.attention, data.street, data.postal_code, data.city, data.country, id, company_id]);
   return result.rows[0];
 };
 
@@ -37,12 +37,12 @@ export const deleteAddressInDB = async (id: number, company_id: number): Promise
     RETURNING *;
   `;
 
-  const result = await pool.query(query, [id, company_id]);
+  const result = await db().query(query, [id, company_id]);
   return result.rows[0];
 };
 
 export const unsetPrimaryForClientInDB = async (client_id: number, company_id: number) => {
-  await pool.query(
+  await db().query(
     "UPDATE addresses SET is_primary = false WHERE client_id = $1 AND company_id = $2 AND is_primary = true",
     [client_id, company_id]
   );
@@ -77,6 +77,6 @@ export const createAddressInDB = async (
     address.country
   ];
 
-  const result = await pool.query(query, values);
+  const result = await db().query(query, values);
   return result.rows[0];
 };

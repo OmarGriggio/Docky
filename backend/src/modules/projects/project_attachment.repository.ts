@@ -1,16 +1,16 @@
-import { pool } from "../../shared/config/database";
+import { db } from "../../shared/config/database";
 import { ProjectAttachment } from "./project_attachment.types";
 
 export const getAttachmentsByProjectIdFromDB = async (project_id: number, includeArchived = false) => {
   const query = includeArchived
     ? "SELECT * FROM project_attachments WHERE project_id = $1 ORDER BY created_at DESC"
     : "SELECT * FROM project_attachments WHERE project_id = $1 AND is_active = true ORDER BY created_at DESC";
-  const result = await pool.query(query, [project_id]);
+  const result = await db().query(query, [project_id]);
   return result.rows;
 };
 
 export const getAttachmentByIdFromDB = async (id: number, company_id: number) => {
-  const result = await pool.query(
+  const result = await db().query(
     "SELECT * FROM project_attachments WHERE id = $1 AND company_id = $2",
     [id, company_id]
   );
@@ -44,12 +44,12 @@ export const createAttachmentInDB = async (
     attachment.is_active
   ];
 
-  const result = await pool.query(query, values);
+  const result = await db().query(query, values);
   return result.rows[0];
 };
 
 export const deleteAttachmentFromDB = async (id: number, company_id: number): Promise<void> => {
-  await pool.query(
+  await db().query(
     "DELETE FROM project_attachments WHERE id = $1 AND company_id = $2",
     [id, company_id]
   );
@@ -62,7 +62,7 @@ export const archiveAttachmentInDB = async (id: number, company_id: number): Pro
     RETURNING *;
   `;
 
-  const result = await pool.query(query, [id, company_id]);
+  const result = await db().query(query, [id, company_id]);
   return result.rows[0];
 };
 
@@ -73,6 +73,6 @@ export const unarchiveAttachmentInDB = async (id: number, company_id: number): P
     RETURNING *;
   `;
 
-  const result = await pool.query(query, [id, company_id]);
+  const result = await db().query(query, [id, company_id]);
   return result.rows[0];
 };

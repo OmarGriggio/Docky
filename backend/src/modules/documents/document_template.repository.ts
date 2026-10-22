@@ -1,8 +1,8 @@
-import { pool } from "../../shared/config/database";
+import { db } from "../../shared/config/database";
 import { DocumentTemplate, DocumentTemplateType } from "./document_template.types";
 
 export const getTemplateByTypeFromDB = async (type: DocumentTemplateType, company_id: number) => {
-  const result = await pool.query(
+  const result = await db().query(
     "SELECT * FROM document_templates WHERE type = $1 AND company_id = $2",
     [type, company_id]
   );
@@ -24,6 +24,6 @@ export const upsertTemplateInDB = async (
 
   const values = [template.company_id, template.type, template.introduction, template.conclusion, template.due_days];
 
-  const result = await pool.query(query, values);
+  const result = await db().query(query, values);
   return result.rows[0];
 };

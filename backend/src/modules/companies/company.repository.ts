@@ -1,13 +1,13 @@
-import { pool } from "../../shared/config/database";
+import { db } from "../../shared/config/database";
 import { Company } from "./company.types";
 
 export const getCompaniesFromDB = async () => {
-  const result = await pool.query("SELECT * FROM companies");
+  const result = await db().query("SELECT * FROM companies");
   return result.rows;
 };
 
 export const getCompanyByIdFromDB = async (id: number) => {
-  const result = await pool.query("SELECT * FROM companies where id = $1", [id]);
+  const result = await db().query("SELECT * FROM companies where id = $1", [id]);
   return result.rows[0] ?? null;
 };
 
@@ -36,7 +36,7 @@ export const createCompanyInDB = async (
       company.vat_number,
       company.payment_terms
     ];
-    const result = await pool.query(query, values);
+    const result = await db().query(query, values);
     return result.rows[0];
 };
 
@@ -79,12 +79,12 @@ export const updateCompanyInDB = async (
       company.payment_terms,
       id
     ];
-    const result = await pool.query(query, values);
+    const result = await db().query(query, values);
     return result.rows[0] ?? null;
 };
 
 export const updateCompanyLogoInDB = async (id: number, logo: string) => {
-    const result = await pool.query(
+    const result = await db().query(
         "UPDATE companies SET logo = $1 WHERE id = $2 RETURNING *",
         [logo, id]
     );
@@ -92,7 +92,7 @@ export const updateCompanyLogoInDB = async (id: number, logo: string) => {
 };
 
 export const updateCompanyHeaderImageInDB = async (id: number, headerImage: string) => {
-    const result = await pool.query(
+    const result = await db().query(
         "UPDATE companies SET header_image = $1 WHERE id = $2 RETURNING *",
         [headerImage, id]
     );
@@ -105,7 +105,7 @@ export const updateCompanyHeaderImageInDB = async (id: number, headerImage: stri
 // above, so the main form's own updateCompanyInDB (full-row PUT) doesn't
 // have to be involved just to change this one field.
 export const updateCompanyPaymentTermsInDB = async (id: number, paymentTerms: string | null) => {
-    const result = await pool.query(
+    const result = await db().query(
         "UPDATE companies SET payment_terms = $1 WHERE id = $2 RETURNING *",
         [paymentTerms, id]
     );
