@@ -90,7 +90,7 @@ Language is a per-user setting (`users.language`), switchable without a reload �
 
 ## `POST /user`: a single route for two uses (public registration + adding an employee)
 
-Kept one `POST /user`, no `authenticate` at the route level — `createUserService` tells "public registration" and "admin adding an employee" apart by whether a valid token is present. Matches the frontend's existing `POST /company` → `POST /user` registration flow (can't be logged in before your account exists). **Hardened along the way** (see [Difficulties.md](Difficulties.md)): the unauthenticated path used to let anyone add themselves as `ADMIN` on any existing `company_id` by guessing it — now only works if that company has zero users yet, so it can only bootstrap a brand-new company.
+Kept one `POST /user`, no `authenticate` at the route level — `createUserService` tells "public registration" and "admin adding an employee" apart by whether a valid token is present (can't be logged in before your account exists). **Hardened twice** (see [Difficulties.md](Difficulties.md)): the unauthenticated path first let anyone add themselves as `ADMIN` on any existing `company_id` by guessing it; then it was limited to a company with zero users yet - which still let anyone claim a company created but not yet given a user. **Now (2026-10-22)**: the public path takes a `companyName` and creates the company and its first `ADMIN` in one transaction, it never takes a `company_id` at all, and `POST /company` is `PLATFORM_ADMIN` only. **Turned down**: keeping the two calls and only rate-limiting them (the claim stays possible, just slower).
 
 ## File storage: self-hosted MinIO (S3 API), not local disk
 

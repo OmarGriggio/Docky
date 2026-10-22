@@ -132,7 +132,7 @@ Full field-level definitions are in [zz_docs/Data Definition.md](zz_docs/Data%20
 
 ## API overview
 
-All routes are prefixed by their resource name and return JSON. All are protected by the JWT `authenticate` middleware, except `/auth/login`/`/auth/refresh`/`/auth/logout`, the public registration (`POST /company`, `POST /user`) and the company logos (`/uploads/...`, read by plain `<img>` tags).
+All routes are prefixed by their resource name and return JSON. All are protected by the JWT `authenticate` middleware, except `/auth/login`/`/auth/refresh`/`/auth/logout`, the public registration (`POST /user`, which creates the company and its first admin together) and the company logos (`/uploads/...`, read by plain `<img>` tags).
 
 | Resource                | Base path                  |
 | ----------------------- | --------------------------- |
@@ -219,6 +219,7 @@ cp backend/.env.example backend/.env
 | `DB_NAME`     | PostgreSQL database name                                         |
 | `JWT_SECRET`  | Secret used to sign/verify access tokens                        |
 | `JWT_REFRESH_SECRET` | Secret used to sign/verify refresh tokens (separate from `JWT_SECRET`) |
+| `COOKIE_SECURE` | `true` in production (HTTPS) to mark the refresh-token cookie `Secure`; leave unset locally |
 | `S3_ENDPOINT` | File storage endpoint (`http://minio:9000`, the Compose service) |
 | `S3_REGION` | File storage region |
 | `S3_ACCESS_KEY` | File storage access key |
