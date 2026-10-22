@@ -124,6 +124,22 @@ export class ProjectListComponent implements OnInit {
     return names;
   });
 
+  // The invoice already billing each chantier, keyed by the chantier's own
+  // PROJECT document id (an invoice's parent_document_id) - a cancelled one
+  // doesn't count, same rule the backend enforces when creating one (see
+  // document.service.ts's addDocumentServ). Drives "Facturer" vs "Voir la
+  // facture" below.
+  private invoices = signal<Document[]>([]);
+  private invoiceByProjectDocumentId = computed(() => {
+    const invoices = new Map<number, Document>();
+    for (const invoice of this.invoices()) {
+      if (invoice.parent_document_id !== null && invoice.status !== 'CANCELLED') {
+        invoices.set(invoice.parent_document_id, invoice);
+      }
+    }
+    return invoices;
+  });
+
   private projectDocumentsById = computed(() => {
     const documents = new Map<number, Document>();
     for (const document of this.projectDocuments()) {
@@ -153,6 +169,11 @@ export class ProjectListComponent implements OnInit {
     // still needs to resolve for the "Lieu" column.
     this.documentService.getDocuments('PROJECT', true).subscribe({
       next: data => this.projectDocuments.set(data),
+      error: err => console.error("project-list : " + err)
+    });
+
+    this.documentService.getDocuments('INVOICE').subscribe({
+      next: data => this.invoices.set(data),
       error: err => console.error("project-list : " + err)
     });
 
@@ -238,10 +259,21 @@ export class ProjectListComponent implements OnInit {
         label: this.transloco.translate('projects.attachmentsTitle'),
         command: () => this.openAttachmentsDialog(project)
       },
-      ...(project.status === 'IN_PROGRESS'
-        ? [{ label: this.transloco.translate('projects.closeAction'), command: () => this.completeProject(project) }]
-        : [{ label: this.transloco.translate('projects.invoiceAction'), command: () => this.invoiceProject(project) }])
+      ...this.statusAction(project)
     ];
+  }
+
+  // A chantier is closed first, then invoiced once - after that, a link to
+  // its invoice instead of a second "Facturer" the backend would refuse.
+  private statusAction(project: Project): MenuItem[] {
+    if (project.status === 'IN_PROGRESS') {
+      return [{ label: this.transloco.translate('projects.closeAction'), command: () => this.completeProject(project) }];
+    }
+    const invoice = this.invoiceByProjectDocumentId().get(project.document_id);
+    if (invoice) {
+      return [{ label: this.transloco.translate('projects.viewInvoiceAction'), command: () => this.router.navigate(['/documents', invoice.id]) }];
+    }
+    return [{ label: this.transloco.translate('projects.invoiceAction'), command: () => this.invoiceProject(project) }];
   }
 
   // Only reachable once COMPLETED (the only other status - see

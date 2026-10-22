@@ -11,8 +11,6 @@ import { Card } from 'primeng/card';
 import { Dialog } from 'primeng/dialog';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { DocumentService } from '../document.service';
-import { DocumentSectionService } from '../document-section.service';
-import { DocumentLineService } from '../document-line.service';
 import { DocumentCompleteService } from '../document-complete.service';
 import { DocumentTemplateService } from '../document-template.service';
 import { DocumentScannerService, ExtractedDocumentData } from '../../document-scanner/document-scanner.service';
@@ -24,7 +22,7 @@ import { Client } from '../../../shared/models/client';
 import { Address } from '../../../shared/models/address';
 import { Project } from '../../../shared/models/project';
 import { Company } from '../../../shared/models/company';
-import { DocumentStatus, DocumentType } from '../../../shared/models/document';
+import { DocumentContentSection, DocumentStatus, DocumentType } from '../../../shared/models/document';
 import { DocumentComplete } from '../../../shared/models/document-complete';
 import { addDays, fromDateOnly, toDateOnly, fillPlaceholders, formatLongDate, DEFAULT_CLIENT_TITLE } from '../../../shared/utils/display';
 import { DocumentHeader } from './document-header/document-header';
@@ -68,8 +66,6 @@ export class DocumentForm implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private documentService = inject(DocumentService);
-  private documentSectionService = inject(DocumentSectionService);
-  private documentLineService = inject(DocumentLineService);
   private documentCompleteService = inject(DocumentCompleteService);
   private documentTemplateService = inject(DocumentTemplateService);
   private clientService = inject(ClientService);
@@ -687,7 +683,7 @@ export class DocumentForm implements OnInit {
           conclusion: this.conclusion(),
         }));
 
-        await this.replaceSectionsAndLines(editingId);
+        await firstValueFrom(this.documentService.replaceContent(editingId, this.contentForApi()));
 
         this.router.navigate(['/documents'], { queryParams: { type: this.type } });
         return;
@@ -714,7 +710,7 @@ export class DocumentForm implements OnInit {
         status: 'DRAFT',
       }));
 
-      await this.createSectionsAndLines(document.id);
+      await firstValueFrom(this.documentService.replaceContent(document.id, this.contentForApi()));
 
       this.router.navigate(['/documents'], { queryParams: { type: this.type } });
     } catch (err) {
@@ -724,60 +720,29 @@ export class DocumentForm implements OnInit {
     }
   }
 
-  // Sections (then their lines) sequentially, not in parallel - a line needs
-  // its section's real id, which only exists once that section's own POST
-  // resolves.
-  private async createSectionsAndLines(documentId: number): Promise<void> {
-    for (const section of this.sections()) {
-      const createdSection = await firstValueFrom(this.documentSectionService.createSection({
-        document_id: documentId,
-        title: section.title,
-        description: section.description.trim() || null,
-        // No scheduling UI on this page yet (see document_sections'
-        // date_start/date_end - a QUOTE/INVOICE's own sections don't need
-        // one, only a chantier's might, handled separately).
-        date_start: null,
-        date_end: null,
-        note: null,
-      }));
-
-      for (const line of section.lines) {
-        await firstValueFrom(this.documentLineService.createLine({
-          document_id: documentId,
-          section_id: createdSection.id,
-          type: line.type,
-          label: line.label,
-          quantity: line.quantity ?? 0,
-          unit: line.unit,
-          unit_price: line.unit_price,
-          discount: line.discount,
-          resource_id: line.resource_id,
-        }));
-      }
-    }
-  }
-
-  // "Modifier" has no per-line diffing against what's already stored - it
-  // archives every currently-active section/line (same archive-instead-of-
-  // delete convention as everywhere else) and recreates them all fresh from
-  // this page's edited draft, exactly like a brand new document's own
-  // sections/lines. Lines first, then sections - so nothing active is ever
-  // left under an already-archived section, even for the brief moment while
-  // this loop is running.
-  private async replaceSectionsAndLines(documentId: number): Promise<void> {
-    const [existingSections, existingLines] = await Promise.all([
-      firstValueFrom(this.documentSectionService.getSections(documentId)),
-      firstValueFrom(this.documentLineService.getLines(documentId)),
-    ]);
-
-    for (const line of existingLines) {
-      await firstValueFrom(this.documentLineService.archiveLine(line.id));
-    }
-    for (const section of existingSections) {
-      await firstValueFrom(this.documentSectionService.archiveSection(section.id));
-    }
-
-    await this.createSectionsAndLines(documentId);
+  // The whole draft as one payload - sent in a single request (see
+  // DocumentService.replaceContent), both for a brand new document and an
+  // edited one: the backend archives whatever was there and recreates it all
+  // in one transaction, so a failed save never leaves the document half-
+  // rewritten. No scheduling UI on this page (a QUOTE/INVOICE's own sections
+  // don't need one, only a chantier's might, handled separately).
+  private contentForApi(): DocumentContentSection[] {
+    return this.sections().map(section => ({
+      title: section.title,
+      description: section.description.trim() || null,
+      date_start: null,
+      date_end: null,
+      note: null,
+      lines: section.lines.map(line => ({
+        type: line.type,
+        label: line.label,
+        quantity: line.quantity ?? 0,
+        unit: line.unit,
+        unit_price: line.unit_price,
+        discount: line.discount,
+        resource_id: line.resource_id,
+      })),
+    }));
   }
 
 }

@@ -11,6 +11,7 @@ import { DatePicker } from 'primeng/datepicker';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { DocumentSectionService } from '../../documents/document-section.service';
 import { DocumentLineService } from '../../documents/document-line.service';
+import { DocumentService } from '../../documents/document.service';
 import { ResourceService } from '../../resources/resource.service';
 import { Project } from '../../../shared/models/project';
 import { Resource } from '../../../shared/models/resource';
@@ -38,6 +39,9 @@ interface DraftSection {
   // `new Date(iso)`/`.toISOString()` round-trip is exactly right here.
   date_start: Date | null;
   date_end: Date | null;
+  // Not editable here (it's written from the calendar), only carried
+  // through so saving this page doesn't wipe it.
+  note: string | null;
   lines: DraftLine[];
 }
 
@@ -46,11 +50,10 @@ let nextId = 1;
 // The chantier's own resource ledger IS its backing PROJECT document now
 // (project_resources is gone - see zz_docs/Decisions.md and
 // document.service.ts's acceptQuoteServ on the backend), so this edits that
-// document's own sections/lines. Same "local draft, one Save button,
-// archive-old+create-new" pattern as document-form.ts's own edit mode -
-// document_lines has no in-place update endpoint, only create/archive, so
-// there's no cheaper way to persist a quantity tweak than rebuilding
-// everything on save.
+// document's own sections/lines. Same "local draft, one Save button" pattern
+// as document-form.ts's own edit mode - the whole draft goes to
+// PUT /document/:id/content, which archives the old content and recreates it
+// in one transaction (document_lines has no in-place update endpoint).
 @Component({
   selector: 'app-project-resources',
   standalone: true,
@@ -63,6 +66,7 @@ export class ProjectResources implements OnInit {
 
   private documentSectionService = inject(DocumentSectionService);
   private documentLineService = inject(DocumentLineService);
+  private documentService = inject(DocumentService);
   private resourceService = inject(ResourceService);
   private transloco = inject(TranslocoService);
 
@@ -118,6 +122,7 @@ export class ProjectResources implements OnInit {
             description: section.description,
             date_start: section.date_start ? new Date(section.date_start) : null,
             date_end: section.date_end ? new Date(section.date_end) : null,
+            note: section.note,
             lines: lines
               .filter(line => line.section_id === section.id)
               .sort((a, b) => a.position - b.position)
@@ -143,7 +148,7 @@ export class ProjectResources implements OnInit {
   addSection(): void {
     this.sections.update(sections => [
       ...sections,
-      { id: nextId++, title: '', description: null, date_start: null, date_end: null, lines: [] }
+      { id: nextId++, title: '', description: null, date_start: null, date_end: null, note: null, lines: [] }
     ]);
   }
 
@@ -234,42 +239,24 @@ export class ProjectResources implements OnInit {
     const documentId = this.project().document_id;
 
     try {
-      const [existingSections, existingLines] = await Promise.all([
-        firstValueFrom(this.documentSectionService.getSections(documentId)),
-        firstValueFrom(this.documentLineService.getLines(documentId)),
-      ]);
-
-      for (const line of existingLines) {
-        await firstValueFrom(this.documentLineService.archiveLine(line.id));
-      }
-      for (const section of existingSections) {
-        await firstValueFrom(this.documentSectionService.archiveSection(section.id));
-      }
-
-      for (const section of this.sections()) {
-        const createdSection = await firstValueFrom(this.documentSectionService.createSection({
-          document_id: documentId,
-          title: section.title || this.transloco.translate('projects.resources.defaultSectionTitle'),
-          description: section.description,
-          date_start: section.date_start ? section.date_start.toISOString() : null,
-          date_end: section.date_end ? section.date_end.toISOString() : null,
-          note: null,
-        }));
-
-        for (const line of section.lines) {
-          await firstValueFrom(this.documentLineService.createLine({
-            document_id: documentId,
-            section_id: createdSection.id,
-            type: line.type,
-            label: line.label,
-            quantity: line.quantity ?? 0,
-            unit: line.unit,
-            unit_price: line.unit_price,
-            discount: 0,
-            resource_id: line.resource_id,
-          }));
-        }
-      }
+      // One request, one transaction server-side (see
+      // DocumentService.replaceContent) - all saved or nothing.
+      await firstValueFrom(this.documentService.replaceContent(documentId, this.sections().map(section => ({
+        title: section.title || this.transloco.translate('projects.resources.defaultSectionTitle'),
+        description: section.description,
+        date_start: section.date_start ? section.date_start.toISOString() : null,
+        date_end: section.date_end ? section.date_end.toISOString() : null,
+        note: section.note,
+        lines: section.lines.map(line => ({
+          type: line.type,
+          label: line.label,
+          quantity: line.quantity ?? 0,
+          unit: line.unit,
+          unit_price: line.unit_price,
+          discount: 0,
+          resource_id: line.resource_id,
+        })),
+      }))));
 
       this.load();
     } catch (err) {

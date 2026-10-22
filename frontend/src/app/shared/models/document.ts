@@ -1,3 +1,5 @@
+import { DocumentLineType } from './document-line';
+
 // PROJECT is a chantier itself - see shared/models/project.ts. Its own
 // document_sections/document_lines are that chantier's resource ledger.
 export type DocumentType = 'QUOTE' | 'INVOICE' | 'PROJECT';
@@ -33,4 +35,26 @@ export interface Document {
   payment_terms: string | null;
   due_date: string | null;
   is_active: boolean;
+}
+
+// A document's whole content, saved in one request (PUT /document/:id/content,
+// see DocumentService.replaceContent) - sections in order, each with its own
+// lines in order; positions come from that order.
+export interface DocumentContentLine {
+  type: DocumentLineType;
+  label: string;
+  quantity: number;
+  unit: string | null;
+  unit_price: number;
+  discount: number;
+  resource_id: number | null;
+}
+
+export interface DocumentContentSection {
+  title: string;
+  description: string | null;
+  date_start: string | null;
+  date_end: string | null;
+  note: string | null;
+  lines: DocumentContentLine[];
 }

@@ -221,7 +221,7 @@ export class DocumentListComponent implements OnInit {
   statusOptionsFor(document: Document): { label: string; value: DocumentStatus }[] {
     return document.type === 'INVOICE'
       ? [this.statusOption('DRAFT'), this.statusOption('SENT'), this.statusOption('PAID'), this.statusOption('CANCELLED')]
-      : [this.statusOption('DRAFT'), this.statusOption('SENT'), this.statusOption('ACCEPTED')];
+      : [this.statusOption('DRAFT'), this.statusOption('SENT'), this.statusOption('ACCEPTED'), this.statusOption('REJECTED')];
   }
 
   // Snapshotted right as a cell enters edit mode (before the select's own

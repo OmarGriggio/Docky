@@ -167,6 +167,7 @@
     "newTypePlaceholder": "Nouveau type (ex. Parquets)",
     "closeAction": "Clôturer",
     "invoiceAction": "Facturer",
+    "viewInvoiceAction": "Voir la facture",
     "archiveConfirm": "Archiver le chantier {{name}} ?",
     "completeTitle": "Clôture du chantier",
     "completeMessage": "Clôturer ce chantier verrouille ses quantités et permet de le facturer. Continuer ?",

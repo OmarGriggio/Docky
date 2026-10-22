@@ -167,6 +167,7 @@
     "newTypePlaceholder": "New type (e.g. Flooring)",
     "closeAction": "Close",
     "invoiceAction": "Invoice",
+    "viewInvoiceAction": "View invoice",
     "archiveConfirm": "Archive project {{name}}?",
     "completeTitle": "Project closing",
     "completeMessage": "Closing this project locks its quantities and allows invoicing it. Continue?",

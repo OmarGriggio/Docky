@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Document, DocumentType, DocumentStatus } from '../../shared/models/document';
+import { Document, DocumentType, DocumentStatus, DocumentContentSection } from '../../shared/models/document';
 import { environment } from '../../../environments/environment';
 
 const API_BASE = environment.apiUrl;
@@ -38,6 +38,13 @@ export class DocumentService {
   // whatever was loaded) rather than omitted.
   updateDocument(id: number, document: Pick<Document, 'client_id' | 'address_id' | 'reference_client' | 'date' | 'discount' | 'vat_rate' | 'introduction' | 'conclusion' | 'payment_terms' | 'due_date'>) {
     return this.http.put<Document>(`${API_BASE}/document/${id}`, document);
+  }
+
+  // Replaces every section and line at once, in one transaction server-side
+  // (see document.service.ts's replaceDocumentContentServ) - all of it is
+  // saved or none of it, unlike one request per line.
+  replaceContent(id: number, sections: DocumentContentSection[]) {
+    return this.http.put<Document>(`${API_BASE}/document/${id}/content`, { sections });
   }
 
   archiveDocument(id: number) {
