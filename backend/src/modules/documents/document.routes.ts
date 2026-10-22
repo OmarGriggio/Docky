@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createDocument, updateDocument, archiveDocument, unarchiveDocument, getDocuments, getDocument, acceptQuote, updateDocumentStatus } from "./document.controller";
+import { createDocument, updateDocument, archiveDocument, unarchiveDocument, getDocuments, getDocument, acceptQuote, updateDocumentStatus, replaceDocumentContent } from "./document.controller";
 import { authenticate } from "../../shared/middlewares/auth.middleware";
 
 const router = Router();
@@ -13,6 +13,8 @@ router.get("/:id", getDocument);
 router.post("/", createDocument);
 
 router.put("/:id", updateDocument);
+
+router.put("/:id/content", replaceDocumentContent);
 
 router.patch("/:id/archive", archiveDocument);
 

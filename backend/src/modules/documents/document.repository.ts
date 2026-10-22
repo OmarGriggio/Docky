@@ -1,4 +1,4 @@
-import { pool } from "../../shared/config/database";
+import { db } from "../../shared/config/database";
 import { Document, UpdateDocumentData, DocumentStatus } from "./document.types";
 
 // client_id is an optional extra narrowing on top of company_id - used by
@@ -18,7 +18,7 @@ export const getDocumentsFromDB = async (company_id: number, includeArchived = f
   }
 
   const query = `SELECT * FROM documents WHERE ${conditions.join(" AND ")} ORDER BY id`;
-  const result = await pool.query(query, values);
+  const result = await db().query(query, values);
   return result.rows;
 };
 
@@ -35,12 +35,12 @@ export const getDocumentsByTypeFromDB = async (type: string, company_id: number,
   }
 
   const query = `SELECT * FROM documents WHERE ${conditions.join(" AND ")} ORDER BY id`;
-  const result = await pool.query(query, values);
+  const result = await db().query(query, values);
   return result.rows;
 };
 
 export const getDocumentByIdFromDB = async (id: number, company_id: number) => {
-  const result = await pool.query(
+  const result = await db().query(
     "SELECT * FROM documents WHERE id = $1 AND company_id = $2",
     [id, company_id]
   );
@@ -53,7 +53,7 @@ export const getDocumentByIdFromDB = async (id: number, company_id: number) => {
 // fixed-width, zero-padded suffix, ORDER BY number DESC correctly returns the
 // highest one lexicographically.
 export const getLastDocumentNumberFromDB = async (company_id: number, numberPrefix: string): Promise<string | null> => {
-  const result = await pool.query(
+  const result = await db().query(
     `SELECT number FROM documents
      WHERE company_id = $1 AND number LIKE $2
      ORDER BY number DESC
@@ -75,7 +75,7 @@ export const updateDocumentTotalsInDB = async (
     RETURNING *;
   `;
 
-  const result = await pool.query(query, [amount_excl_vat, amount_incl_vat, id, company_id]);
+  const result = await db().query(query, [amount_excl_vat, amount_incl_vat, id, company_id]);
   return result.rows[0];
 };
 
@@ -86,7 +86,7 @@ export const archiveDocumentInDB = async (id: number, company_id: number): Promi
     RETURNING *;
   `;
 
-  const result = await pool.query(query, [id, company_id]);
+  const result = await db().query(query, [id, company_id]);
   return result.rows[0];
 };
 
@@ -97,19 +97,51 @@ export const unarchiveDocumentInDB = async (id: number, company_id: number): Pro
     RETURNING *;
   `;
 
-  const result = await pool.query(query, [id, company_id]);
+  const result = await db().query(query, [id, company_id]);
   return result.rows[0];
 };
 
-export const acceptDocumentInDB = async (id: number, company_id: number): Promise<Document> => {
+// Only from a still-open quote (DRAFT/SENT, not archived) - null otherwise.
+// Checked in the UPDATE itself rather than by a separate read first: inside
+// acceptQuoteServ's transaction, a second concurrent accept waits on this
+// row's lock, then finds the status already ACCEPTED and matches nothing -
+// so one quote can never spawn two chantiers.
+export const acceptDocumentInDB = async (id: number, company_id: number): Promise<Document | null> => {
   const query = `
     UPDATE documents SET status = 'ACCEPTED'
-      WHERE id = $1 AND company_id = $2
+      WHERE id = $1 AND company_id = $2 AND status IN ('DRAFT', 'SENT') AND is_active = true
     RETURNING *;
   `;
 
-  const result = await pool.query(query, [id, company_id]);
-  return result.rows[0];
+  const result = await db().query(query, [id, company_id]);
+  return result.rows[0] ?? null;
+};
+
+// The invoice already billing this chantier (its PROJECT document), if any -
+// a cancelled or archived one doesn't count, the chantier can be invoiced
+// again after that.
+export const getInvoiceForProjectDocumentFromDB = async (project_document_id: number, company_id: number): Promise<Document | null> => {
+  const result = await db().query(
+    `SELECT * FROM documents
+      WHERE parent_document_id = $1 AND company_id = $2 AND type = 'INVOICE'
+        AND is_active = true AND status <> 'CANCELLED'
+      LIMIT 1`,
+    [project_document_id, company_id]
+  );
+  return result.rows[0] ?? null;
+};
+
+// Archives every active section and line of a document at once (archive
+// instead of delete, same as one at a time) - see replaceDocumentContentServ.
+export const archiveDocumentContentInDB = async (document_id: number, company_id: number): Promise<void> => {
+  await db().query(
+    "UPDATE document_lines SET is_active = false WHERE document_id = $1 AND company_id = $2 AND is_active = true",
+    [document_id, company_id]
+  );
+  await db().query(
+    "UPDATE document_sections SET is_active = false WHERE document_id = $1 AND company_id = $2 AND is_active = true",
+    [document_id, company_id]
+  );
 };
 
 export const updateDocumentStatusInDB = async (id: number, company_id: number, status: DocumentStatus): Promise<Document> => {
@@ -119,7 +151,7 @@ export const updateDocumentStatusInDB = async (id: number, company_id: number, s
     RETURNING *;
   `;
 
-  const result = await pool.query(query, [status, id, company_id]);
+  const result = await db().query(query, [status, id, company_id]);
   return result.rows[0];
 };
 
@@ -159,7 +191,7 @@ export const updateDocumentInDB = async (
     company_id
   ];
 
-  const result = await pool.query(query, values);
+  const result = await db().query(query, values);
   return result.rows[0];
 };
 
@@ -210,6 +242,6 @@ export const createDocumentInDB = async (
     document.due_date
   ];
 
-  const result = await pool.query(query, values);
+  const result = await db().query(query, values);
   return result.rows[0];
 };

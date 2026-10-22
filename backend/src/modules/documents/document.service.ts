@@ -1,4 +1,4 @@
-import { CreateDocumentData, UpdateDocumentData, DocumentType, DocumentStatus } from "./document.types";
+import { CreateDocumentData, UpdateDocumentData, DocumentType, DocumentStatus, Document, DocumentContentSection } from "./document.types";
 import {
   getDocumentsFromDB,
   getDocumentsByTypeFromDB,
@@ -10,15 +10,20 @@ import {
   unarchiveDocumentInDB,
   updateDocumentTotalsInDB,
   acceptDocumentInDB,
-  updateDocumentStatusInDB
+  updateDocumentStatusInDB,
+  getInvoiceForProjectDocumentFromDB,
+  archiveDocumentContentInDB
 } from "./document.repository";
 import { getLinesByDocumentIdFromDB, createLineInDB } from "./document_line.repository";
 import { getSectionsByDocumentIdFromDB, createSectionInDB } from "./document_section.repository";
 import { getClientByIdFromDB } from "../clients/client.repository";
 import { clientDisplayName } from "../clients/client.display";
 import { getProjectByDocumentIdFromDB, createProjectInDB } from "../projects/project.repository";
-import { NotFoundError, ConflictError } from "../../shared/types/errors";
+import { getResourceByIdFromDB } from "../catalog/resource.repository";
+import { AppError, NotFoundError, ConflictError } from "../../shared/types/errors";
+import { withTransaction } from "../../shared/config/database";
 import { computeDocumentTotals } from "./document.calculations";
+import { DocumentLineType } from "./document_line.types";
 
 export const getAllDocumentsServ = async (company_id: number, includeArchived = false, client_id?: number) => {
   return await getDocumentsFromDB(company_id, includeArchived, client_id);
@@ -66,6 +71,17 @@ export const generateDocumentNumber = async (company_id: number, type: DocumentT
   return `${prefix}${nextSequence}`;
 };
 
+// Both are percentages - anything outside 0-100 would make a total negative
+// or nonsensical, whatever the frontend's own inputs allow.
+const assertValidRates = (discount: number, vat_rate: number) => {
+  if (!(discount >= 0 && discount <= 100)) {
+    throw new AppError("discount must be between 0 and 100", 400);
+  }
+  if (!(vat_rate >= 0 && vat_rate <= 100)) {
+    throw new AppError("vat_rate must be between 0 and 100", 400);
+  }
+};
+
 export const addDocumentServ = async (documentData: CreateDocumentData, company_id: number) => {
   // A PROJECT document is always created together with its projects row, in
   // one go - see project.service.ts's addProjectServ (a chantier created by
@@ -74,6 +90,8 @@ export const addDocumentServ = async (documentData: CreateDocumentData, company_
   if (documentData.type === "PROJECT") {
     throw new ConflictError("A PROJECT document can't be created directly - create a project instead");
   }
+
+  assertValidRates(documentData.discount, documentData.vat_rate);
 
   const client = await getClientByIdFromDB(documentData.client_id, company_id);
   if (!client) {
@@ -97,6 +115,11 @@ export const addDocumentServ = async (documentData: CreateDocumentData, company_
     if (!project || project.status !== "COMPLETED") {
       throw new ConflictError("Project must be completed before it can be invoiced");
     }
+    // One chantier, one invoice - unless the earlier one was cancelled (or
+    // archived), in which case it gets billed again.
+    if (await getInvoiceForProjectDocumentFromDB(projectDocument.id, company_id)) {
+      throw new ConflictError("This project has already been invoiced");
+    }
   }
 
   const number = await generateDocumentNumber(company_id, documentData.type);
@@ -104,8 +127,19 @@ export const addDocumentServ = async (documentData: CreateDocumentData, company_
   // amount_excl_vat/amount_incl_vat are always computed from the document's
   // lines (see recomputeDocumentTotalsServ) — a freshly created document has
   // none yet, so it always starts at 0, whatever the request body sent for
-  // those fields.
-  return await createDocumentInDB({ ...documentData, parent_document_id, company_id, number, amount_excl_vat: 0, amount_incl_vat: 0 });
+  // those fields. Same for status and is_active: every document starts as an
+  // active draft, a status only changes through its own flows afterwards
+  // (updateDocumentStatusServ, acceptQuoteServ).
+  return await createDocumentInDB({
+    ...documentData,
+    parent_document_id,
+    company_id,
+    number,
+    status: "DRAFT",
+    is_active: true,
+    amount_excl_vat: 0,
+    amount_incl_vat: 0,
+  });
 };
 
 // Editable while the client hasn't answered yet (or before it's even been
@@ -125,6 +159,7 @@ export const updateDocumentServ = async (id: number, company_id: number, documen
   if (document.status === null || !EDITABLE_STATUSES.includes(document.status)) {
     throw new ConflictError("This document can no longer be edited");
   }
+  assertValidRates(documentData.discount, documentData.vat_rate);
 
   const client = await getClientByIdFromDB(documentData.client_id, company_id);
   if (!client) {
@@ -139,15 +174,107 @@ export const updateDocumentServ = async (id: number, company_id: number, documen
 };
 
 // Statuses settable straight from the list (see document-list.ts's own
-// onStatusEditComplete), per document type. A quote only toggles
-// DRAFT<->SENT (ACCEPTED/REJECTED have their own dedicated flow,
-// acceptQuoteServ); an invoice can additionally be marked PAID or
-// CANCELLED. Both are terminal: the document's *current* status must still
-// be in EDITABLE_STATUSES, so once PAID/CANCELLED it can't be changed back
-// this way (a frozen record, see the comment on EDITABLE_STATUSES above).
+// onStatusEditComplete), per document type. A quote toggles DRAFT<->SENT or
+// gets REJECTED by the client (ACCEPTED has its own dedicated flow,
+// acceptQuoteServ, since it spawns a chantier); an invoice can additionally
+// be marked PAID or CANCELLED. REJECTED/PAID/CANCELLED are terminal: the
+// document's *current* status must still be in EDITABLE_STATUSES, so once
+// there it can't be changed back this way (a frozen record, see the comment
+// on EDITABLE_STATUSES above).
 const SETTABLE_STATUSES: Record<string, DocumentStatus[]> = {
-  QUOTE: ["DRAFT", "SENT"],
+  QUOTE: ["DRAFT", "SENT", "REJECTED"],
   INVOICE: ["DRAFT", "SENT", "PAID", "CANCELLED"],
+};
+
+// Whether a document's sections/lines can still change: a QUOTE/INVOICE
+// while it's open (EDITABLE_STATUSES, same rule as updateDocumentServ), a
+// PROJECT while its chantier is still in progress - once COMPLETED, its
+// ledger is exactly what an invoice gets built from (see
+// zz_migrations/000_base.sql's comment on projects.status). The frontend
+// locks the same cases, but this is the rule that actually holds.
+export const assertContentEditableServ = async (document: Document, company_id: number) => {
+  if (document.type === "PROJECT") {
+    const project = await getProjectByDocumentIdFromDB(document.id, company_id);
+    if (!project || project.status === "COMPLETED") {
+      throw new ConflictError("A completed project's resources can no longer be changed");
+    }
+    return;
+  }
+  if (document.status === null || !EDITABLE_STATUSES.includes(document.status)) {
+    throw new ConflictError("This document can no longer be edited");
+  }
+};
+
+const LINE_TYPES: DocumentLineType[] = ["MATERIAL", "SERVICE"];
+
+// Replaces a document's whole content (every section and line) in one
+// transaction: the current ones are archived, the given ones created fresh,
+// totals recomputed once. Either all of it lands or none of it - a dropped
+// connection halfway can't leave a document half-emptied, as the previous
+// one-request-per-line save from the frontend could.
+export const replaceDocumentContentServ = async (id: number, company_id: number, sections: DocumentContentSection[]) => {
+  if (!Array.isArray(sections) || sections.some(section => !Array.isArray(section?.lines))) {
+    throw new AppError("sections must be an array of sections, each with its own lines array", 400);
+  }
+  // document_lines.type has no CHECK constraint of its own - this is the
+  // only place that keeps it to the two kinds the rest of the app knows.
+  const invalidLine = sections.flatMap(section => section.lines).find(line =>
+    !LINE_TYPES.includes(line.type) || !Number.isFinite(line.quantity) || !Number.isFinite(line.unit_price)
+  );
+  if (invalidLine) {
+    throw new AppError("Each line needs a type (MATERIAL or SERVICE), a quantity and a unit price", 400);
+  }
+
+  return await withTransaction(async () => {
+    const document = await getDocumentByIdFromDB(id, company_id);
+    if (!document) {
+      throw new NotFoundError("Document not found");
+    }
+    await assertContentEditableServ(document, company_id);
+
+    // A line may only point at one of this company's own catalog resources.
+    const resourceIds = new Set(sections.flatMap(section => section.lines.map(line => line.resource_id)).filter(id => id !== null));
+    for (const resource_id of resourceIds) {
+      if (!(await getResourceByIdFromDB(resource_id, company_id))) {
+        throw new NotFoundError("Resource not found");
+      }
+    }
+
+    await archiveDocumentContentInDB(id, company_id);
+
+    for (const [sectionIndex, section] of sections.entries()) {
+      const createdSection = await createSectionInDB({
+        company_id,
+        document_id: id,
+        position: sectionIndex + 1,
+        title: section.title,
+        description: section.description ?? null,
+        date_start: section.date_start ? new Date(section.date_start) : null,
+        date_end: section.date_end ? new Date(section.date_end) : null,
+        note: section.note ?? null,
+        is_active: true,
+      });
+
+      for (const [lineIndex, line] of section.lines.entries()) {
+        await createLineInDB({
+          company_id,
+          document_id: id,
+          section_id: createdSection.id,
+          position: lineIndex + 1,
+          type: line.type,
+          label: line.label,
+          quantity: line.quantity,
+          unit: line.unit ?? null,
+          unit_price: line.unit_price,
+          discount: line.discount ?? 0,
+          resource_id: line.resource_id ?? null,
+          is_active: true,
+        });
+      }
+    }
+
+    return await recomputeDocumentTotalsServ(id, company_id);
+  });
 };
 
 export const updateDocumentStatusServ = async (id: number, company_id: number, status: DocumentStatus) => {
@@ -174,7 +301,15 @@ export const updateDocumentStatusServ = async (id: number, company_id: number, s
 // A hand-typed line (no resource_id) contributes nothing - there's no
 // catalog resource to attach it to; a section left with none of those is
 // skipped entirely rather than created empty.
+//
+// All in one transaction, the quote's own status flipped first (see
+// acceptDocumentInDB): a failure halfway leaves nothing behind (no orphan
+// PROJECT document), and a double click can't create two chantiers.
 export const acceptQuoteServ = async (id: number, company_id: number) => {
+  return await withTransaction(() => acceptQuoteInTransaction(id, company_id));
+};
+
+const acceptQuoteInTransaction = async (id: number, company_id: number) => {
   const quote = await getDocumentByIdFromDB(id, company_id);
   if (!quote) {
     throw new NotFoundError("Document not found");
@@ -182,8 +317,10 @@ export const acceptQuoteServ = async (id: number, company_id: number) => {
   if (quote.type !== "QUOTE") {
     throw new ConflictError("Only a quote can be accepted");
   }
-  if (quote.status === "ACCEPTED") {
-    throw new ConflictError("This quote has already been accepted");
+
+  const accepted = await acceptDocumentInDB(id, company_id);
+  if (!accepted) {
+    throw new ConflictError("Only an active draft or sent quote can be accepted");
   }
 
   const client = await getClientByIdFromDB(quote.client_id, company_id);
@@ -266,7 +403,7 @@ export const acceptQuoteServ = async (id: number, company_id: number) => {
     name: clientDisplayName(client),
   });
 
-  return await acceptDocumentInDB(id, company_id);
+  return accepted;
 };
 
 // The actual math lives in document.calculations.ts (computeDocumentTotals) — this

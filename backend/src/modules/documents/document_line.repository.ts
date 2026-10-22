@@ -1,8 +1,8 @@
-import { pool } from "../../shared/config/database";
+import { db } from "../../shared/config/database";
 import { DocumentLine } from "./document_line.types";
 
 export const getDocumentLinesFromDB = async (company_id: number) => {
-  const result = await pool.query("SELECT * FROM document_lines WHERE company_id = $1", [company_id]);
+  const result = await db().query("SELECT * FROM document_lines WHERE company_id = $1", [company_id]);
   return result.rows;
 };
 
@@ -10,12 +10,12 @@ export const getLinesByDocumentIdFromDB = async (document_id: number, includeArc
   const query = includeArchived
     ? "SELECT * FROM document_lines WHERE document_id = $1"
     : "SELECT * FROM document_lines WHERE document_id = $1 AND is_active = true";
-  const result = await pool.query(query, [document_id]);
+  const result = await db().query(query, [document_id]);
   return result.rows;
 };
 
 export const getLineByIdFromDB = async (id: number, company_id: number) => {
-  const result = await pool.query(
+  const result = await db().query(
     "SELECT * FROM document_lines WHERE id = $1 AND company_id = $2",
     [id, company_id]
   );
@@ -24,7 +24,7 @@ export const getLineByIdFromDB = async (id: number, company_id: number) => {
 
 // Position is scoped within a section now, not the whole document.
 export const getNextPositionForSectionFromDB = async (section_id: number): Promise<number> => {
-  const result = await pool.query(
+  const result = await db().query(
     "SELECT COALESCE(MAX(position), 0) + 1 AS next_position FROM document_lines WHERE section_id = $1",
     [section_id]
   );
@@ -68,7 +68,7 @@ export const createLineInDB = async (
     line.is_active
   ];
 
-  const result = await pool.query(query, values);
+  const result = await db().query(query, values);
   return result.rows[0];
 };
 
@@ -79,7 +79,7 @@ export const archiveLineInDB = async (id: number, company_id: number): Promise<D
     RETURNING *;
   `;
 
-  const result = await pool.query(query, [id, company_id]);
+  const result = await db().query(query, [id, company_id]);
   return result.rows[0];
 };
 
@@ -90,6 +90,6 @@ export const unarchiveLineInDB = async (id: number, company_id: number): Promise
     RETURNING *;
   `;
 
-  const result = await pool.query(query, [id, company_id]);
+  const result = await db().query(query, [id, company_id]);
   return result.rows[0];
 };

@@ -11,6 +11,7 @@ import { CreateProjectData, UpdateProjectData } from "./project.types";
 import { createDocumentInDB } from "../documents/document.repository";
 import { generateDocumentNumber } from "../documents/document.service";
 import { AppError, NotFoundError } from "../../shared/types/errors";
+import { withTransaction } from "../../shared/config/database";
 
 export const getAllProjectsServ = async (company_id: number, includeArchived = false) => {
   return await getProjectsFromDB(company_id, includeArchived);
@@ -30,16 +31,23 @@ export const getProjectByIdServ = async (id: number, company_id: number) => {
 // resource ledger (document_sections/document_lines added afterwards from
 // the chantier detail page, through the same endpoints a QUOTE/INVOICE
 // already uses - nothing project-specific there).
+// One transaction for both rows, so a failure between the two never leaves
+// an orphan PROJECT document behind.
 export const addProjectServ = async (projectData: CreateProjectData, company_id: number) => {
   if (!projectData.client_id) {
     throw new AppError("A project needs a client", 400);
   }
 
+  const client_id = projectData.client_id;
+  return await withTransaction(() => createProjectWithDocument(projectData, client_id, company_id));
+};
+
+const createProjectWithDocument = async (projectData: CreateProjectData, client_id: number, company_id: number) => {
   const number = await generateDocumentNumber(company_id, "PROJECT");
 
   const document = await createDocumentInDB({
     company_id,
-    client_id: projectData.client_id,
+    client_id,
     address_id: null,
     reference_client: null,
     parent_document_id: null,

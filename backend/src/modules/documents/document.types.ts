@@ -1,3 +1,5 @@
+import { DocumentLineType } from "./document_line.types";
+
 // PROJECT is a chantier itself - see projects/project.types.ts. Its own
 // document_sections/document_lines are that chantier's resource ledger.
 export type DocumentType = "QUOTE" | "INVOICE" | "PROJECT";
@@ -50,6 +52,28 @@ export type CreateDocumentData = Omit<
 // type/number/status/parent_document_id are never editable this way, each
 // has its own dedicated flow instead (acceptQuoteServ for status,
 // archive/unarchive for is_active).
+// A document's whole content, sent in one go by PUT /document/:id/content
+// (see replaceDocumentContentServ) - its sections in order, each with its
+// own lines in order. Positions come from that order, ids are all new.
+export interface DocumentContentLine {
+  type: DocumentLineType;
+  label: string;
+  quantity: number;
+  unit: string | null;
+  unit_price: number;
+  discount?: number;
+  resource_id: number | null;
+}
+
+export interface DocumentContentSection {
+  title: string;
+  description: string | null;
+  date_start?: Date | string | null;
+  date_end?: Date | string | null;
+  note?: string | null;
+  lines: DocumentContentLine[];
+}
+
 export type UpdateDocumentData = Pick<
   Document,
   "client_id" | "address_id" | "reference_client" | "date" | "discount" | "vat_rate" | "introduction" | "conclusion" | "payment_terms" | "due_date"

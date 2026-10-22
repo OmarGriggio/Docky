@@ -1,4 +1,4 @@
-import { pool } from "../../shared/config/database";
+import { db } from "../../shared/config/database";
 import { Project, ProjectListItem, CreateProjectData, UpdateProjectData } from "./project.types";
 
 // Ordered so the chantiers needing attention soonest surface first: among
@@ -43,12 +43,12 @@ export const getProjectsFromDB = async (company_id: number, includeArchived = fa
        LEFT JOIN documents quote ON quote.id = pd.parent_document_id
        WHERE p.company_id = $1 AND p.is_active = true
        ORDER BY (p.status = 'COMPLETED'), closest.date_start IS NULL, ABS(EXTRACT(EPOCH FROM (closest.date_start - NOW()))), p.id`;
-  const result = await pool.query(query, [company_id]);
+  const result = await db().query(query, [company_id]);
   return result.rows;
 };
 
 export const getProjectByIdFromDB = async (id: number, company_id: number) => {
-  const result = await pool.query(
+  const result = await db().query(
     `SELECT p.*, pt.label AS project_type
      FROM projects p
      LEFT JOIN project_types pt ON pt.id = p.project_type_id
@@ -62,7 +62,7 @@ export const getProjectByIdFromDB = async (id: number, company_id: number) => {
 // by (see document.service.ts's addDocumentServ, which validates an
 // INVOICE's parent_document_id this way).
 export const getProjectByDocumentIdFromDB = async (document_id: number, company_id: number) => {
-  const result = await pool.query(
+  const result = await db().query(
     "SELECT * FROM projects WHERE document_id = $1 AND company_id = $2",
     [document_id, company_id]
   );
@@ -94,7 +94,7 @@ export const createProjectInDB = async (
     project.note ?? null
   ];
 
-  const result = await pool.query(query, values);
+  const result = await db().query(query, values);
   return result.rows[0];
 };
 
@@ -120,7 +120,7 @@ export const updateProjectInDB = async (
     LEFT JOIN project_types pt ON pt.id = u.project_type_id;
   `;
 
-  const result = await pool.query(query, [data.name, data.project_type_id, id, company_id]);
+  const result = await db().query(query, [data.name, data.project_type_id, id, company_id]);
   return result.rows[0];
 };
 
@@ -134,7 +134,7 @@ export const archiveProjectInDB = async (
     RETURNING *;
   `;
 
-  const result = await pool.query(query, [id, company_id]);
+  const result = await db().query(query, [id, company_id]);
   return result.rows[0];
 };
 
@@ -148,7 +148,7 @@ export const unarchiveProjectInDB = async (
     RETURNING *;
   `;
 
-  const result = await pool.query(query, [id, company_id]);
+  const result = await db().query(query, [id, company_id]);
   return result.rows[0];
 };
 
@@ -166,6 +166,6 @@ export const completeProjectInDB = async (
     RETURNING *;
   `;
 
-  const result = await pool.query(query, [id, company_id]);
+  const result = await db().query(query, [id, company_id]);
   return result.rows[0];
 };

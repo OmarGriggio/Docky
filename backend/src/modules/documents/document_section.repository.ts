@@ -1,11 +1,11 @@
-import { pool } from "../../shared/config/database";
+import { db } from "../../shared/config/database";
 import { DocumentSection, UpdateDocumentSectionData, UpdateDocumentSectionNoteData, SectionWithProject } from "./document_section.types";
 
 export const getSectionsByDocumentIdFromDB = async (document_id: number, includeArchived = false) => {
   const query = includeArchived
     ? "SELECT * FROM document_sections WHERE document_id = $1 ORDER BY position"
     : "SELECT * FROM document_sections WHERE document_id = $1 AND is_active = true ORDER BY position";
-  const result = await pool.query(query, [document_id]);
+  const result = await db().query(query, [document_id]);
   return result.rows;
 };
 
@@ -29,7 +29,7 @@ export const getUnscheduledSectionsFromDB = async (company_id: number): Promise<
       AND p.is_active = true
     ORDER BY p.name, ds.position;
   `;
-  const result = await pool.query(query, [company_id]);
+  const result = await db().query(query, [company_id]);
   return result.rows;
 };
 
@@ -50,12 +50,12 @@ export const getScheduledSectionsFromDB = async (company_id: number): Promise<Se
       AND p.is_active = true
     ORDER BY ds.date_start;
   `;
-  const result = await pool.query(query, [company_id]);
+  const result = await db().query(query, [company_id]);
   return result.rows;
 };
 
 export const getSectionByIdFromDB = async (id: number, company_id: number) => {
-  const result = await pool.query(
+  const result = await db().query(
     "SELECT * FROM document_sections WHERE id = $1 AND company_id = $2",
     [id, company_id]
   );
@@ -63,7 +63,7 @@ export const getSectionByIdFromDB = async (id: number, company_id: number) => {
 };
 
 export const getNextPositionForDocumentFromDB = async (document_id: number): Promise<number> => {
-  const result = await pool.query(
+  const result = await db().query(
     "SELECT COALESCE(MAX(position), 0) + 1 AS next_position FROM document_sections WHERE document_id = $1",
     [document_id]
   );
@@ -101,7 +101,7 @@ export const createSectionInDB = async (
     section.is_active
   ];
 
-  const result = await pool.query(query, values);
+  const result = await db().query(query, values);
   return result.rows[0];
 };
 
@@ -116,7 +116,7 @@ export const updateSectionInDB = async (
     RETURNING *;
   `;
 
-  const result = await pool.query(query, [data.date_start, data.date_end, id, company_id]);
+  const result = await db().query(query, [data.date_start, data.date_end, id, company_id]);
   return result.rows[0];
 };
 
@@ -131,7 +131,7 @@ export const updateSectionNoteInDB = async (
     RETURNING *;
   `;
 
-  const result = await pool.query(query, [data.note, id, company_id]);
+  const result = await db().query(query, [data.note, id, company_id]);
   return result.rows[0];
 };
 
@@ -142,7 +142,7 @@ export const archiveSectionInDB = async (id: number, company_id: number): Promis
     RETURNING *;
   `;
 
-  const result = await pool.query(query, [id, company_id]);
+  const result = await db().query(query, [id, company_id]);
   return result.rows[0];
 };
 
@@ -153,6 +153,6 @@ export const unarchiveSectionInDB = async (id: number, company_id: number): Prom
     RETURNING *;
   `;
 
-  const result = await pool.query(query, [id, company_id]);
+  const result = await db().query(query, [id, company_id]);
   return result.rows[0];
 };
