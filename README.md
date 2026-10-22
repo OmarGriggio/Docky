@@ -215,6 +215,7 @@ The `zz_docs/` folder contains the detailed specs this project is built from:
 - [Project Definition.md](zz_docs/Project%20Definition.md) — problem statement, user types, user journeys
 - [Data Definition.md](zz_docs/Data%20Definition.md) — entities, fields, relations
 - [Architecture.md](zz_docs/Architecture.md) — architecture decisions and folder conventions
+- [Deployment.md](zz_docs/Deployment.md) — VPS/SSH/HTTPS setup, CI/CD, the redeploy command, the weekly demo reset cron
 - [Decisions.md](zz_docs/Decisions.md) — trade-off log for choices that had more than one reasonable option, with what was picked and what was turned down, and why
 - [zz_docs/note/](zz_docs/note/) — personal notes taken while learning Express, npm, and setting up the dev environment
 
