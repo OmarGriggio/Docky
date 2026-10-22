@@ -37,9 +37,21 @@ app.use(express.json(), cors(), cookieParser());
 // Streams from MinIO/S3 instead of local disk - companies/company.upload.ts
 // uploads there too now. Express 5 needs a named wildcard (*splat, not a
 // bare *); req.params.splat comes back as an array of path segments.
+// Public (no auth) on purpose, since <img> tags can't send a bearer token - so
+// it only ever serves the company logo/header keys company.controller.ts
+// builds, never anything else in the bucket (project attachments live there
+// too, under companies/{id}/projects/..., and go through their own
+// authenticated route instead).
+const PUBLIC_UPLOAD_KEY = /^companies\/\d+\/(logo|header)\.(jpg|png)$/;
+
 app.get("/uploads/*splat", async (req, res) => {
   const segments = req.params.splat;
   const key = Array.isArray(segments) ? segments.join("/") : segments;
+
+  if (!PUBLIC_UPLOAD_KEY.test(key)) {
+    res.sendStatus(404);
+    return;
+  }
 
   const file = await getFileServ(key);
   if (!file) {
