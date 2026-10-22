@@ -15,7 +15,17 @@ export const getUserByEmail = async (email: string) => {
     return result.rows[0];
 };
 
-export const getUserByIdForCompany = async (id: Number, company_id: number) => {
+// Any company - for POST /auth/refresh, which only has the token's own
+// userId and must check the account still exists and is active.
+export const getActiveUserByIdFromDB = async (id: number) => {
+    const result = await db().query(
+        `SELECT ${PUBLIC_COLUMNS} FROM users WHERE id = $1 AND is_active IS NOT FALSE`,
+        [id]
+    );
+    return result.rows[0] ?? null;
+};
+
+export const getUserByIdForCompany = async (id: number, company_id: number) => {
     const result = await db().query(
         `SELECT ${PUBLIC_COLUMNS} FROM users WHERE id = $1 AND company_id = $2`,
         [id, company_id]
@@ -23,7 +33,7 @@ export const getUserByIdForCompany = async (id: Number, company_id: number) => {
     return result.rows[0] ?? null;
 };
 
-export const deleteUserDB = async (id: Number, company_id: number) => {
+export const deleteUserDB = async (id: number, company_id: number) => {
     const result = await db().query(
         `DELETE FROM users WHERE id = $1 AND company_id = $2 RETURNING ${PUBLIC_COLUMNS}`,
         [id, company_id]

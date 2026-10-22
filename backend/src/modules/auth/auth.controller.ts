@@ -7,12 +7,13 @@ const REFRESH_TOKEN_COOKIE = "docky_refresh_token";
 
 // httpOnly so front-end JS can never read it (mitigates XSS stealing it);
 // SameSite=Lax as a first CSRF mitigation (see zz_docs/Decisions.md for why
-// not Strict). secure is off for now - the app has no HTTPS/domain yet (see
-// CLAUDE.md's "Known gaps"), and a Secure cookie is silently dropped by the
-// browser over plain HTTP. Flip to true once TLS is in place.
+// not Strict). secure from COOKIE_SECURE (backend/.env): "true" in prod,
+// which is HTTPS-only, so the cookie never travels over plain HTTP; left
+// unset locally, where a Secure cookie would be silently dropped by the
+// browser over http://localhost.
 const REFRESH_TOKEN_COOKIE_OPTIONS = {
     httpOnly: true,
-    secure: false,
+    secure: process.env.COOKIE_SECURE === "true",
     sameSite: "lax" as const,
     path: "/",
 };

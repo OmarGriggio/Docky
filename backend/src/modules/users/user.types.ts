@@ -27,6 +27,9 @@ export type PublicUser = Omit<User, 'password_hash'>;
 
 export interface CreateUserData {
   company_id: number;
+  // Public self-registration only: the name of the brand-new company this
+  // first ADMIN creates along with their account (see createUserService).
+  companyName?: string;
   role: Role,
   firstname: string;
   lastname: string;

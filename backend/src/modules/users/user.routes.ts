@@ -2,6 +2,7 @@ import { Router } from "express";
 import { getAllUsersController, createUserController, deleteUserController, updateUserLanguage } from "./user.controller";
 import { authenticate } from "../../shared/middlewares/auth.middleware";
 import { requireRole } from "../../shared/middlewares/role.middleware";
+import { registrationRateLimiter } from "../../shared/middlewares/rate-limit.middleware";
 
 
 const router = Router();
@@ -17,8 +18,8 @@ router.get("/", authenticate, requireRole("PLATFORM_ADMIN"), getAllUsersControll
 // No `authenticate` here on purpose — this route doubles as public company
 // self-registration (no token exists yet at that point). See the comment in
 // user.service.ts's createUserService for how the two flows are told apart and
-// what each one is allowed to do.
-router.post("/", createUserController);
+// what each one is allowed to do. Rate-limited per IP when public.
+router.post("/", registrationRateLimiter, createUserController);
 
 router.delete("/:id", authenticate, requireRole("PLATFORM_ADMIN"), deleteUserController);
 

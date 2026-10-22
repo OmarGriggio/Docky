@@ -28,8 +28,9 @@ const requireCompanyAdminOrPlatformAdmin = (req: Request, res: Response, next: N
 
 router.get("/", authenticate, requireRole("PLATFORM_ADMIN"), getCompanies);
 router.get("/:id", authenticate, requireOwnCompanyOrPlatformAdmin, getCompany);
-// No `authenticate` here on purpose — this is public company self-registration.
-router.post("/", createCompany);
+// PLATFORM_ADMIN only - public self-registration creates its own company
+// through POST /user now (see user.service.ts's createUserService).
+router.post("/", authenticate, requireRole("PLATFORM_ADMIN"), createCompany);
 router.put("/:id", authenticate, requireCompanyAdminOrPlatformAdmin, updateCompany);
 router.post("/:id/logo", authenticate, requireCompanyAdminOrPlatformAdmin, uploadLogo, uploadCompanyLogo);
 router.post("/:id/header-image", authenticate, requireCompanyAdminOrPlatformAdmin, uploadHeaderImage, uploadCompanyHeaderImage);

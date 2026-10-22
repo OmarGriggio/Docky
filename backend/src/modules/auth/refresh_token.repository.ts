@@ -8,6 +8,15 @@ export const hashToken = (token: string): string => {
   return crypto.createHash("sha256").update(token).digest("hex");
 };
 
+// Every still-valid session of one user - when the account is deleted or
+// deactivated, none of its refresh tokens may keep minting access tokens.
+export const revokeAllRefreshTokensOfUserInDB = async (user_id: number) => {
+  await db().query(
+    `UPDATE refresh_tokens SET revoked_at = NOW() WHERE user_id = $1 AND revoked_at IS NULL`,
+    [user_id]
+  );
+};
+
 export const createRefreshTokenInDB = async (user_id: number, token: string, expires_at: Date) => {
   const query = `
     INSERT INTO refresh_tokens (user_id, token_hash, expires_at)

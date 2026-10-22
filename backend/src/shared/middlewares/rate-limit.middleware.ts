@@ -9,14 +9,38 @@ export const loginRateLimiter = rateLimit({
 });
 
 // Each scan is a billed Infomaniak AI call, unlike a login attempt - keyed
-// by the authenticated user (not IP, see auth.middleware.ts - this runs
-// after it) so one person spamming it doesn't also throttle everyone else
-// behind the same office/company IP.
+// by the authenticated user's company (not IP, see auth.middleware.ts - this
+// runs after it), so neither one person spamming it throttles everyone else
+// behind the same office IP, nor does adding users multiply the budget.
 export const documentScannerRateLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  limit: 10, // 10 scans per user per hour
+  limit: 20, // 20 scans per company per hour
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req) => String(req.user.userId),
+  keyGenerator: (req) => `company:${req.user.company_id}`,
   message: { message: "Too many document scans, please try again later" },
+});
+
+// Public self-registration (POST /user with no token) - each one creates a
+// company and an account, with its own document-scanner quota, so creating
+// them in a loop has to be slowed down. Per IP; an authenticated
+// PLATFORM_ADMIN adding employees (a token is present) isn't counted.
+export const registrationRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  limit: 5, // 5 registrations per IP per hour
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => Boolean(req.headers.authorization),
+  message: { message: "Too many registrations, please try again later" },
+});
+
+// Project attachments (up to 20 MB each) - on top of the per-company storage
+// quota (project_attachment.service.ts), a cap on how fast it can be used up.
+export const attachmentUploadRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  limit: 60, // 60 uploads per company per hour
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => `company:${req.user.company_id}`,
+  message: { message: "Too many uploads, please try again later" },
 });

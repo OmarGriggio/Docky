@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import { getUserByEmail } from "../users/user.repository";
+import { getUserByEmail, getActiveUserByIdFromDB } from "../users/user.repository";
 import { LoginUserData, User } from "../users/user.types";
 import { getCompanyByIdFromDB } from "../companies/company.repository";
 import { NotFoundError, UnauthorizedError } from "../../shared/types/errors";
@@ -17,22 +17,30 @@ import {
 } from "./refresh_token.repository";
 import { recordLoginAttemptServ } from "./login_history.service";
 
+// A real bcrypt hash of nothing in particular - compared against when the
+// email doesn't exist, so an unknown email takes as long to reject as a
+// wrong password (otherwise the response time alone tells which emails have
+// an account).
+const DUMMY_PASSWORD_HASH = bcrypt.hashSync("docky-timing-equalizer", 10);
+
 // ip/userAgent come from the request (see auth.controller.ts) purely to be
 // recorded in login_history - nothing else here needs them.
 export const authUserService = async (loginData: LoginUserData, ip: string | null, userAgent: string | null) => {
   const user: User | undefined = await getUserByEmail(loginData.email)
+
+  const isPasswordValid = await bcrypt.compare(
+    String(loginData.passwordHash ?? ""),
+    user?.password_hash ?? DUMMY_PASSWORD_HASH
+  );
 
   if (!user) {
     await recordLoginAttemptServ({ user_id: null, email: loginData.email, success: false, ip_address: ip, user_agent: userAgent });
     throw new UnauthorizedError();
   }
 
-  const isPasswordValid = await bcrypt.compare(
-    loginData.passwordHash,
-    user.password_hash
-  );
-
-  if (!isPasswordValid) {
+  // A deactivated account is refused like a wrong password - no hint that
+  // it exists.
+  if (!isPasswordValid || user.is_active === false) {
     await recordLoginAttemptServ({ user_id: user.id, email: loginData.email, success: false, ip_address: ip, user_agent: userAgent });
     throw new UnauthorizedError();
   }
@@ -109,12 +117,20 @@ export const refreshAccessTokenServ = async (refreshToken: string) => {
     throw new UnauthorizedError();
   }
 
+  // The account itself, read again - not the claims frozen into the refresh
+  // token 7 days ago: a deleted or deactivated user gets nothing, and a
+  // changed role/language applies from the next access token on.
+  const user = await getActiveUserByIdFromDB(payload.userId);
+  if (!user) {
+    throw new UnauthorizedError();
+  }
+
   const token = generateAccessToken({
-    userId: payload.userId,
-    email: payload.email,
-    role: payload.role,
-    company_id: payload.company_id,
-    language: payload.language
+    userId: user.id,
+    email: user.email,
+    role: user.role,
+    company_id: user.company_id,
+    language: user.language
   });
 
   return { token };
