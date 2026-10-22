@@ -1,10 +1,10 @@
 # Docky
 
-A SaaS platform that helps small construction companies manage clients, suppliers, materials, quotes and invoices — instead of juggling spreadsheets and expensive, clunky software.
+A SaaS platform that helps small construction companies manage clients, a catalog of materials and services, quotes, job sites and invoices — instead of juggling spreadsheets and expensive, clunky software.
 
 This is a personal project I'm building end-to-end to practice full-stack development with Angular, Node.js/Express and PostgreSQL, and to get comfortable with SaaS architecture (multi-company data, auth, layered backend design).
 
-*Last updated: 10.09.2026*
+*Last updated: 22.10.2026*
 
 ## Live demo
 
@@ -37,10 +37,11 @@ Many small and medium construction businesses still handle their quotes and invo
 Docky aims to be a simple, focused SaaS where a construction company can:
 
 - manage its clients,
-- keep a catalog of ressources,
-- quickly build quotes and invoices,
-- add ressources (materials and labor) to a quote/invoice and get totals automatically,
-- keep a history of past invoices.
+- keep a catalog of resources (materials and services),
+- quickly build quotes and invoices, with totals, discount and VAT computed automatically,
+- turn an accepted quote into a job site ("chantier"), plan it on a calendar, then invoice it,
+- print quotes, invoices and payment reminders as PDFs, invoices with a Swiss QR-bill,
+- keep a history of past documents.
 
 Three types of users are planned: **employees** (day-to-day usage), **company admins** (manage their company's data and staff) and a **platform admin** (manages the SaaS itself, subscriptions and companies). Full details are in [zz_docs/Project Definition.md](zz_docs/Project%20Definition.md).
 
@@ -57,10 +58,11 @@ Three types of users are planned: **employees** (day-to-day usage), **company ad
 - [x] Multi-tenant data isolation between companies, and archive (soft-delete) instead of hard delete for business records
 - [x] Refresh token stored in an httpOnly cookie (not readable by frontend JS, mitigates XSS token theft)
 - [x] Platform-admin company impersonation, login history/audit trail
-- [ ] Automated tests (Vitest is wired up and passing on both sides, but only covers a couple of pure functions so far — not real coverage yet)
+- [x] Document lifecycle rules enforced server-side (only open documents editable, a completed chantier locked and invoiced once), multi-step writes in a single transaction
+- [ ] Automated tests (Vitest is wired up and passing on both sides, but only covers pure functions so far: totals, placeholders, PDF language, a few frontend helpers - not real coverage yet)
 - [x] Database migrations (incremental, numbered files in `zz_migrations/`, auto-applied on backend startup)
-- [ ] PDF documents rendered in the client's own language (`clients.language` is stored, but quote/invoice PDFs still always render in French)
-- [ ] AI-assisted document scanner — extract structured data (reference, project/building, address, amount) from an uploaded scanned document via an LLM, to prefill a form instead of retyping it by hand
+- [x] Quote, invoice and payment reminder PDFs (invoices and reminders with a Swiss QR-bill), printed in the client's own language (French or English so far)
+- [x] AI-assisted document scanner — extracts structured data (reference, project/building, address, amount) from an uploaded scanned document via an LLM (Infomaniak AI), to prefill a new invoice instead of retyping it by hand
 
 **Frontend**
 - [x] Angular app skeleton with routing (every route lazy-loaded)
@@ -68,6 +70,8 @@ Three types of users are planned: **employees** (day-to-day usage), **company ad
 - [x] Authentication flow / login and registration screens
 - [x] Invoice and quote creation, with per-project resource prefill and default intro/conclusion templates
 - [x] Dashboard: paid amount per client as a bar chart (`p-chart`/Chart.js)
+- [x] Chantiers: resource ledger, file attachments, calendar planning
+- [x] French and English UI (Transloco), per-user language setting
 
 **Ops**
 - [x] Docker Compose for local dev; separate multi-stage production images (compiled, non-root), deployed behind an Nginx gateway
@@ -91,19 +95,22 @@ Three types of users are planned: **employees** (day-to-day usage), **company ad
 Docky/
 ├── backend/                  # Express + TypeScript REST API
 │   └── src/
-│       ├── modules/          # One folder per domain (clients, suppliers,
-│       │                     #   projects, documents, users, companies,
-│       │                     #   catalog...), each with its own
+│       ├── modules/          # One folder per domain (clients, catalog,
+│       │                     #   projects, documents, calendar, dashboard,
+│       │                     #   document-scanner, users, companies, auth),
+│       │                     #   each with its own
 │       │                     #   controller/service/repository/routes/types
 │       ├── pdf/               # PDF & Swiss QR-bill generation
 │       └── shared/
 │           ├── middlewares/   # auth, roles, rate limiting
 │           ├── types/         # typed HTTP errors
-│           └── config/        # DB connection
+│           ├── config/        # DB connection (+ transactions), S3 client
+│           ├── storage/       # file storage (MinIO/S3)
+│           └── ai/            # LLM client for the document scanner
 ├── frontend/                  # Angular application
 │   └── src/app/
 │       ├── shared/             # Shared models/components
-│       └── features/           # Feature modules (clients, suppliers, documents...)
+│       └── features/           # Feature modules (clients, documents, projects...)
 ├── zz_docs/                    # Project specs, architecture & decisions log
 └── zz_migrations/              # Schema (000_base.sql) & seed data (001_data.sql),
                                  #   run on first boot by Postgres' own
@@ -116,34 +123,39 @@ The core entities and how they relate:
 
 - **Company** — owns everything below; the tenant in this multi-company SaaS
 - **User** — belongs to one company, has a role (employee/admin/platform_admin)
-- **Client** — belongs to a company, can have several invoices
-- **Resource** — a catalog item (material, labor, subcontracting or other), priced by one or more suppliers
-- **Project** — a client's job site, optionally linked to a document
-- **Document** — a quote or an invoice issued to a client, made of document lines
-- **Document line** — a resource or a labor entry on a document
+- **Client** — belongs to a company, has addresses, quotes, invoices and job sites
+- **Resource** — a catalog item, either a material or a service (labor)
+- **Document** — a quote, an invoice, or a job site's own resource ledger, made of sections of priced lines
+- **Project** ("chantier") — a job site, born from an accepted quote (or created by hand), planned on the calendar and invoiced once completed
 
 Full field-level definitions are in [zz_docs/Data Definition.md](zz_docs/Data%20Definition.md).
 
 ## API overview
 
-All routes are prefixed by their resource name and return JSON. All are protected by the JWT `authenticate` middleware.
+All routes are prefixed by their resource name and return JSON. All are protected by the JWT `authenticate` middleware, except `/auth/login`/`/auth/refresh`/`/auth/logout`, the public registration (`POST /company`, `POST /user`) and the company logos (`/uploads/...`, read by plain `<img>` tags).
 
-| Resource               | Base path                  |
+| Resource                | Base path                  |
 | ----------------------- | --------------------------- |
-| Auth                    | `/auth/login`                |
+| Auth                    | `/auth` (login, refresh, logout, impersonate) |
+| Login history           | `/login-history`             |
 | Users                   | `/user`                      |
+| Companies               | `/company`                   |
 | Clients                 | `/client`                    |
 | Addresses               | `/address`                   |
-| Suppliers               | `/supplier`                  |
 | Resources               | `/resource`                  |
-| Resource supplier prices | `/resource-supplier-price`  |
-| Documents               | `/document`                  |
+| Resource units          | `/resource-unit`             |
+| Documents               | `/document` (+ `/:id/content`, `/:id/accept`, `/:id/status`) |
+| Document sections       | `/document-section`          |
 | Document lines          | `/document-line`             |
 | Documents (with lines)  | `/document-complete`         |
-| Companies               | `/company`                   |
+| Document templates      | `/document-template`         |
 | Projects                | `/project`                   |
 | Project types           | `/project-type`              |
-| Invoice PDF             | `/pdf/invoice/:id`           |
+| Project attachments     | `/project-attachment`        |
+| Calendar notes          | `/calendar-note`             |
+| Dashboard               | `/dashboard`                 |
+| Document scanner        | `/document-scanner`          |
+| PDFs                    | `/pdf/invoice/:id`, `/pdf/quote/:id`, `/pdf/reminder/:id` |
 
 ## Getting started
 
@@ -193,6 +205,8 @@ cp backend/.env.example backend/.env
 | `POSTGRES_PORT`           | Host port mapped to Postgres' `5432` |
 | `BACKEND_CONTAINER_NAME`  | Name of the backend container        |
 | `BACKEND_PORT`            | Host port mapped to the API's `3000` |
+| `MINIO_ROOT_USER`         | MinIO (file storage) admin user      |
+| `MINIO_ROOT_PASSWORD`     | MinIO admin password                 |
 
 **`backend/.env`** — loaded by the Express app itself at runtime:
 
@@ -205,6 +219,11 @@ cp backend/.env.example backend/.env
 | `DB_NAME`     | PostgreSQL database name                                         |
 | `JWT_SECRET`  | Secret used to sign/verify access tokens                        |
 | `JWT_REFRESH_SECRET` | Secret used to sign/verify refresh tokens (separate from `JWT_SECRET`) |
+| `S3_ENDPOINT` | File storage endpoint (`http://minio:9000`, the Compose service) |
+| `S3_REGION` | File storage region |
+| `S3_ACCESS_KEY` | File storage access key |
+| `S3_SECRET_KEY` | File storage secret key |
+| `S3_BUCKET` | Bucket for logos and project attachments (created on startup) |
 | `INFOMANIAK_AI_PRODUCT_ID` | Product ID for Infomaniak's AI Tools, used by the document scanner |
 | `INFOMANIAK_AI_API_TOKEN`  | API token for Infomaniak's AI Tools                             |
 
@@ -217,6 +236,7 @@ The `zz_docs/` folder contains the detailed specs this project is built from:
 - [Architecture.md](zz_docs/Architecture.md) — architecture decisions and folder conventions
 - [Deployment.md](zz_docs/Deployment.md) — VPS/SSH/HTTPS setup, CI/CD, the redeploy command, the weekly demo reset cron
 - [Decisions.md](zz_docs/Decisions.md) — trade-off log for choices that had more than one reasonable option, with what was picked and what was turned down, and why
+- [Difficulties.md](zz_docs/Difficulties.md) — problems actually hit while building this, and how they were diagnosed and fixed
 - [zz_docs/note/](zz_docs/note/) — personal notes taken while learning Express, npm, and setting up the dev environment
 
 ## Author
