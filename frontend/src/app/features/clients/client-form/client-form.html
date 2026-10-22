@@ -8,15 +8,17 @@
     />
   </div>
 
-  <p-floatlabel variant="on">
-    <input pInputText id="last_name" formControlName="last_name" />
-    <label for="last_name">{{ 'clients.columnLastName' | transloco }}</label>
-  </p-floatlabel>
+  @if (!isProfessional) {
+    <p-floatlabel variant="on">
+      <input pInputText id="last_name" formControlName="last_name" />
+      <label for="last_name">{{ 'clients.columnLastName' | transloco }}</label>
+    </p-floatlabel>
 
-  <p-floatlabel variant="on">
-    <input pInputText id="first_name" formControlName="first_name" />
-    <label for="first_name">{{ 'clients.columnFirstName' | transloco }}</label>
-  </p-floatlabel>
+    <p-floatlabel variant="on">
+      <input pInputText id="first_name" formControlName="first_name" />
+      <label for="first_name">{{ 'clients.columnFirstName' | transloco }}</label>
+    </p-floatlabel>
+  }
 
   <p-floatlabel variant="on">
     <input pInputText id="title" formControlName="title" />

@@ -57,7 +57,9 @@ export class ClientForm implements OnInit {
 
   constructor() {
     this.form.controls.isProfessional.valueChanges.subscribe(isProfessional => {
-      if (!isProfessional) {
+      if (isProfessional) {
+        this.form.patchValue({ last_name: '', first_name: '' });
+      } else {
         this.form.patchValue({ company_name: '', vat_number: '' });
       }
     });
