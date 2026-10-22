@@ -1,29 +1,29 @@
 <div class="auth-page">
-  <p-card header="Créer un compte" styleClass="ui-card--elevated auth-card">
+  <p-card [header]="'auth.register.title' | transloco" styleClass="ui-card--elevated auth-card">
     <form [formGroup]="form" (ngSubmit)="submit()" class="ui-form">
       <p-floatlabel variant="on" class="ui-form__full">
         <input pInputText id="companyName" formControlName="companyName" />
-        <label for="companyName">Nom de l'entreprise</label>
+        <label for="companyName">{{ 'auth.register.companyName' | transloco }}</label>
       </p-floatlabel>
 
       <p-floatlabel variant="on">
         <input pInputText id="firstname" formControlName="firstname" />
-        <label for="firstname">Prénom</label>
+        <label for="firstname">{{ 'auth.register.firstName' | transloco }}</label>
       </p-floatlabel>
 
       <p-floatlabel variant="on">
         <input pInputText id="lastname" formControlName="lastname" />
-        <label for="lastname">Nom</label>
+        <label for="lastname">{{ 'auth.register.lastName' | transloco }}</label>
       </p-floatlabel>
 
       <p-floatlabel variant="on">
         <input pInputText id="email" type="email" formControlName="email" />
-        <label for="email">Email</label>
+        <label for="email">{{ 'auth.email' | transloco }}</label>
       </p-floatlabel>
 
       <p-floatlabel variant="on">
         <input pInputText id="password" type="password" formControlName="password" />
-        <label for="password">Mot de passe</label>
+        <label for="password">{{ 'auth.password' | transloco }}</label>
       </p-floatlabel>
 
       @if (errorMessage()) {
@@ -31,8 +31,8 @@
       }
 
       <div class="ui-form__actions auth-form-actions">
-        <a routerLink="/login">J'ai déjà un compte</a>
-        <p-button type="submit" label="Créer le compte" />
+        <a routerLink="/login">{{ 'auth.register.hasAccount' | transloco }}</a>
+        <p-button type="submit" [label]="'auth.register.submit' | transloco" />
       </div>
     </form>
   </p-card>

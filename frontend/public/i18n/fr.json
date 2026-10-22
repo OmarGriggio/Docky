@@ -79,7 +79,8 @@
     "archive": "Archiver",
     "unarchive": "Restaurer",
     "delete": "Supprimer",
-    "detail": "Détail"
+    "detail": "Détail",
+    "save": "Enregistrer"
   },
   "clients": {
     "newClient": "Nouveau client",
@@ -310,5 +311,59 @@
     "paidByClient": "Montant payé par client",
     "noPaidInvoices": "Aucune facture payée pour l'instant.",
     "paidAmount": "Montant payé"
+  },
+  "demoBanner": {
+    "message": "Vous êtes sur l'entreprise de démonstration : vous pouvez tester librement toutes les fonctionnalités. Les données de cette entreprise sont réinitialisées chaque dimanche à 02h00."
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Mot de passe",
+    "login": {
+      "title": "Connexion",
+      "submit": "Se connecter",
+      "error": "Email ou mot de passe incorrect."
+    },
+    "register": {
+      "title": "Créer un compte",
+      "companyName": "Nom de l'entreprise",
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "hasAccount": "J'ai déjà un compte",
+      "submit": "Créer le compte",
+      "error": "Impossible de créer le compte. Cet email est peut-être déjà utilisé."
+    }
+  },
+  "profile": {
+    "title": "Mon entreprise",
+    "name": "Nom de l'entreprise",
+    "email": "Email",
+    "phone": "Téléphone",
+    "iban": "IBAN",
+    "street": "Rue",
+    "postalCode": "NPA",
+    "city": "Ville",
+    "country": "Pays",
+    "vatRate": "TVA par défaut",
+    "vatNumber": "N° TVA",
+    "logo": "Logo",
+    "logoAlt": "Logo de l'entreprise",
+    "chooseLogo": "Choisir un logo",
+    "headerImage": "Image d'en-tête des factures (affichée tout en haut)",
+    "headerImageAlt": "Image d'en-tête des factures",
+    "chooseHeaderImage": "Choisir une image d'en-tête",
+    "dropImage": "Glissez-déposez une image ici (JPG ou PNG, 5 Mo max).",
+    "invalidFileType": "Type de fichier invalide : ",
+    "invalidFileTypeDetail": "types autorisés : {0}.",
+    "fileTooLarge": "Fichier trop volumineux : ",
+    "fileTooLargeDetail": "taille maximale : {0}.",
+    "adminOnly": "Seul un administrateur peut modifier les informations de l'entreprise.",
+    "companyNotFound": "Impossible de retrouver votre entreprise.",
+    "loadError": "Impossible de charger les données de l'entreprise.",
+    "updated": "Les données de l'entreprise ont été mises à jour.",
+    "updateError": "Impossible de mettre à jour les données de l'entreprise.",
+    "logoUpdated": "Le logo a été mis à jour.",
+    "logoUpdateError": "Impossible de mettre à jour le logo.",
+    "headerImageUpdated": "L'image d'en-tête a été mise à jour.",
+    "headerImageUpdateError": "Impossible de mettre à jour l'image d'en-tête."
   }
 }

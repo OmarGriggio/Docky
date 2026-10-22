@@ -5,12 +5,13 @@ import { InputText } from 'primeng/inputtext';
 import { FloatLabel } from 'primeng/floatlabel';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { AuthService } from '../auth.service';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, InputText, FloatLabel, Button, Card],
+  imports: [ReactiveFormsModule, RouterLink, InputText, FloatLabel, Button, Card, TranslocoPipe],
   templateUrl: './register.html',
   styleUrl: './register.css',
 })
@@ -19,6 +20,7 @@ export class Register {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private router = inject(Router);
+  private transloco = inject(TranslocoService);
 
   form = this.fb.nonNullable.group({
     companyName: ['', Validators.required],
@@ -43,7 +45,7 @@ export class Register {
       },
       error: err => {
         console.error('register : ' + err);
-        this.errorMessage.set('Impossible de créer le compte. Cet email est peut-être déjà utilisé.');
+        this.errorMessage.set(this.transloco.translate('auth.register.error'));
       }
     });
   }

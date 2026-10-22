@@ -5,12 +5,13 @@ import { InputText } from 'primeng/inputtext';
 import { FloatLabel } from 'primeng/floatlabel';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { AuthService } from '../auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, InputText, FloatLabel, Button, Card],
+  imports: [ReactiveFormsModule, RouterLink, InputText, FloatLabel, Button, Card, TranslocoPipe],
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
@@ -19,6 +20,7 @@ export class Login {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private router = inject(Router);
+  private transloco = inject(TranslocoService);
 
   form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -40,7 +42,7 @@ export class Login {
       },
       error: err => {
         console.error('login : ' + err);
-        this.errorMessage.set('Email ou mot de passe incorrect.');
+        this.errorMessage.set(this.transloco.translate('auth.login.error'));
       }
     });
   }

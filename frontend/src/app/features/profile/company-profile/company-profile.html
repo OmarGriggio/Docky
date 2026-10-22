@@ -1,63 +1,63 @@
 <div class="profile-page">
-  <p-card header="Mon entreprise" styleClass="ui-card--elevated profile-card">
+  <p-card [header]="'profile.title' | transloco" styleClass="ui-card--elevated profile-card">
     @if (loading()) {
-      <p>Chargement...</p>
+      <p>{{ 'common.loading' | transloco }}</p>
     } @else {
       <form [formGroup]="form" (ngSubmit)="submit()" class="ui-form">
         <p-floatlabel variant="on">
           <input pInputText id="name" formControlName="name" />
-          <label for="name">Nom de l'entreprise</label>
+          <label for="name">{{ 'profile.name' | transloco }}</label>
         </p-floatlabel>
 
         <p-floatlabel variant="on">
           <input pInputText id="email" type="email" formControlName="email" />
-          <label for="email">Email</label>
+          <label for="email">{{ 'profile.email' | transloco }}</label>
         </p-floatlabel>
 
         <p-floatlabel variant="on">
           <input pInputText id="phone" formControlName="phone" />
-          <label for="phone">Téléphone</label>
+          <label for="phone">{{ 'profile.phone' | transloco }}</label>
         </p-floatlabel>
 
         <p-floatlabel variant="on">
           <input pInputText id="iban" formControlName="iban" />
-          <label for="iban">IBAN</label>
+          <label for="iban">{{ 'profile.iban' | transloco }}</label>
         </p-floatlabel>
 
         <p-floatlabel variant="on">
           <input pInputText id="street" formControlName="street" />
-          <label for="street">Rue</label>
+          <label for="street">{{ 'profile.street' | transloco }}</label>
         </p-floatlabel>
 
         <p-floatlabel variant="on">
           <input pInputText id="postal_code" formControlName="postal_code" />
-          <label for="postal_code">NPA</label>
+          <label for="postal_code">{{ 'profile.postalCode' | transloco }}</label>
         </p-floatlabel>
 
         <p-floatlabel variant="on">
           <input pInputText id="city" formControlName="city" />
-          <label for="city">Ville</label>
+          <label for="city">{{ 'profile.city' | transloco }}</label>
         </p-floatlabel>
 
         <p-floatlabel variant="on">
           <input pInputText id="country" formControlName="country" />
-          <label for="country">Pays</label>
+          <label for="country">{{ 'profile.country' | transloco }}</label>
         </p-floatlabel>
 
         <p-floatlabel variant="on">
           <p-inputnumber inputId="vat_rate" formControlName="vat_rate" mode="decimal" [minFractionDigits]="1" suffix=" %" />
-          <label for="vat_rate">TVA par défaut</label>
+          <label for="vat_rate">{{ 'profile.vatRate' | transloco }}</label>
         </p-floatlabel>
 
         <p-floatlabel variant="on">
           <input pInputText id="vat_number" formControlName="vat_number" placeholder="CHE-123.456.789 TVA" />
-          <label for="vat_number">N° TVA</label>
+          <label for="vat_number">{{ 'profile.vatNumber' | transloco }}</label>
         </p-floatlabel>
 
         <div class="ui-form__full flex flex-col gap-2">
-          <span class="text-sm font-medium">Logo</span>
+          <span class="text-sm font-medium">{{ 'profile.logo' | transloco }}</span>
           @if (logoUrl()) {
-            <img [src]="logoUrl()" alt="Logo de l'entreprise" class="max-h-24 max-w-48 object-contain self-start" />
+            <img [src]="logoUrl()" [alt]="'profile.logoAlt' | transloco" class="max-h-24 max-w-48 object-contain self-start" />
           }
           @if (canManageCompany()) {
             <p-fileupload
@@ -69,15 +69,15 @@
               [multiple]="false"
               [auto]="true"
               [customUpload]="true"
-              chooseLabel="Choisir un logo"
-              invalidFileTypeMessageSummary="Type de fichier invalide : "
-              invalidFileTypeMessageDetail="types autorisés : {0}."
-              invalidFileSizeMessageSummary="Fichier trop volumineux : "
-              invalidFileSizeMessageDetail="taille maximale : {0}."
+              [chooseLabel]="'profile.chooseLogo' | transloco"
+              [invalidFileTypeMessageSummary]="'profile.invalidFileType' | transloco"
+              [invalidFileTypeMessageDetail]="'profile.invalidFileTypeDetail' | transloco"
+              [invalidFileSizeMessageSummary]="'profile.fileTooLarge' | transloco"
+              [invalidFileSizeMessageDetail]="'profile.fileTooLargeDetail' | transloco"
               (uploadHandler)="uploadLogo($event, logoUpload)"
             >
               <ng-template #empty>
-                <p class="m-0 text-sm text-gray-500">Glissez-déposez une image ici (JPG ou PNG, 5 Mo max).</p>
+                <p class="m-0 text-sm text-gray-500">{{ 'profile.dropImage' | transloco }}</p>
               </ng-template>
             </p-fileupload>
           }
@@ -87,9 +87,9 @@
         </div>
 
         <div class="ui-form__full flex flex-col gap-2">
-          <span class="text-sm font-medium">Image d'en-tête des factures (affichée tout en haut)</span>
+          <span class="text-sm font-medium">{{ 'profile.headerImage' | transloco }}</span>
           @if (headerImageUrl()) {
-            <img [src]="headerImageUrl()" alt="Image d'en-tête des factures" class="max-h-24 max-w-full object-contain self-start" />
+            <img [src]="headerImageUrl()" [alt]="'profile.headerImageAlt' | transloco" class="max-h-24 max-w-full object-contain self-start" />
           }
           @if (canManageCompany()) {
             <p-fileupload
@@ -101,15 +101,15 @@
               [multiple]="false"
               [auto]="true"
               [customUpload]="true"
-              chooseLabel="Choisir une image d'en-tête"
-              invalidFileTypeMessageSummary="Type de fichier invalide : "
-              invalidFileTypeMessageDetail="types autorisés : {0}."
-              invalidFileSizeMessageSummary="Fichier trop volumineux : "
-              invalidFileSizeMessageDetail="taille maximale : {0}."
+              [chooseLabel]="'profile.chooseHeaderImage' | transloco"
+              [invalidFileTypeMessageSummary]="'profile.invalidFileType' | transloco"
+              [invalidFileTypeMessageDetail]="'profile.invalidFileTypeDetail' | transloco"
+              [invalidFileSizeMessageSummary]="'profile.fileTooLarge' | transloco"
+              [invalidFileSizeMessageDetail]="'profile.fileTooLargeDetail' | transloco"
               (uploadHandler)="uploadHeaderImage($event, headerImageUpload)"
             >
               <ng-template #empty>
-                <p class="m-0 text-sm text-gray-500">Glissez-déposez une image ici (JPG ou PNG, 5 Mo max).</p>
+                <p class="m-0 text-sm text-gray-500">{{ 'profile.dropImage' | transloco }}</p>
               </ng-template>
             </p-fileupload>
           }
@@ -119,7 +119,7 @@
         </div>
 
         @if (!canManageCompany()) {
-          <p class="ui-form__full">Seul un administrateur peut modifier les informations de l'entreprise.</p>
+          <p class="ui-form__full">{{ 'profile.adminOnly' | transloco }}</p>
         }
 
         @if (successMessage()) {
@@ -132,7 +132,7 @@
 
         @if (canManageCompany()) {
           <div class="ui-form__actions">
-            <p-button type="submit" label="Enregistrer" />
+            <p-button type="submit" [label]="'common.save' | transloco" />
           </div>
         }
       </form>

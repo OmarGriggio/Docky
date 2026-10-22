@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { Drawer } from 'primeng/drawer';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { AuthService } from '../../features/auth/auth.service';
 
 // A dismissible bottom drawer telling the demo company's admin they're on a
@@ -8,7 +9,7 @@ import { AuthService } from '../../features/auth/auth.service';
 @Component({
   selector: 'app-demo-banner',
   standalone: true,
-  imports: [Drawer],
+  imports: [Drawer, TranslocoPipe],
   templateUrl: './demo-banner.html',
 })
 export class DemoBanner {

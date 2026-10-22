@@ -7,12 +7,13 @@ import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { FileUpload, FileUploadHandlerEvent } from 'primeng/fileupload';
 import { CompanyService } from '../company.service';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { AuthService } from '../../auth/auth.service';
 
 @Component({
   selector: 'app-company-profile',
   standalone: true,
-  imports: [ReactiveFormsModule, InputText, InputNumber, FloatLabel, Button, Card, FileUpload],
+  imports: [ReactiveFormsModule, InputText, InputNumber, FloatLabel, Button, Card, FileUpload, TranslocoPipe],
   templateUrl: './company-profile.html',
   styleUrl: './company-profile.css',
 })
@@ -21,6 +22,7 @@ export class CompanyProfile implements OnInit {
   private fb = inject(FormBuilder);
   private companyService = inject(CompanyService);
   private authService = inject(AuthService);
+  private transloco = inject(TranslocoService);
 
   form = this.fb.nonNullable.group({
     name: ['', Validators.required],
@@ -79,7 +81,7 @@ export class CompanyProfile implements OnInit {
     this.companyId = this.authService.currentUser()?.company_id ?? null;
 
     if (this.companyId === null) {
-      this.errorMessage.set('Impossible de retrouver votre entreprise.');
+      this.errorMessage.set(this.transloco.translate('profile.companyNotFound'));
       this.loading.set(false);
       return;
     }
@@ -109,7 +111,7 @@ export class CompanyProfile implements OnInit {
       },
       error: err => {
         console.error('profile : ' + err);
-        this.errorMessage.set('Impossible de charger les données de l\'entreprise.');
+        this.errorMessage.set(this.transloco.translate('profile.loadError'));
         this.loading.set(false);
       }
     });
@@ -130,11 +132,11 @@ export class CompanyProfile implements OnInit {
       payment_terms: this.paymentTerms(),
     }).subscribe({
       next: () => {
-        this.successMessage.set('Les données de l\'entreprise ont été mises à jour.');
+        this.successMessage.set(this.transloco.translate('profile.updated'));
       },
       error: err => {
         console.error('profile : ' + err);
-        this.errorMessage.set('Impossible de mettre à jour les données de l\'entreprise.');
+        this.errorMessage.set(this.transloco.translate('profile.updateError'));
       }
     });
   }
@@ -154,12 +156,12 @@ export class CompanyProfile implements OnInit {
       next: company => {
         this.logoPath.set(company.logo);
         upload.clear();
-        this.successMessage.set('Le logo a été mis à jour.');
+        this.successMessage.set(this.transloco.translate('profile.logoUpdated'));
       },
       error: err => {
         console.error('profile : ' + err);
         upload.clear();
-        this.logoErrorMessage.set('Impossible de mettre à jour le logo.');
+        this.logoErrorMessage.set(this.transloco.translate('profile.logoUpdateError'));
       }
     });
   }
@@ -176,12 +178,12 @@ export class CompanyProfile implements OnInit {
       next: company => {
         this.headerImagePath.set(company.header_image);
         upload.clear();
-        this.successMessage.set("L'image d'en-tête a été mise à jour.");
+        this.successMessage.set(this.transloco.translate('profile.headerImageUpdated'));
       },
       error: err => {
         console.error('profile : ' + err);
         upload.clear();
-        this.headerImageErrorMessage.set("Impossible de mettre à jour l'image d'en-tête.");
+        this.headerImageErrorMessage.set(this.transloco.translate('profile.headerImageUpdateError'));
       }
     });
   }

@@ -79,7 +79,8 @@
     "archive": "Archive",
     "unarchive": "Restore",
     "delete": "Delete",
-    "detail": "Detail"
+    "detail": "Detail",
+    "save": "Save"
   },
   "clients": {
     "newClient": "New client",
@@ -310,5 +311,59 @@
     "paidByClient": "Amount paid by client",
     "noPaidInvoices": "No paid invoices yet.",
     "paidAmount": "Amount paid"
+  },
+  "demoBanner": {
+    "message": "You're on the demo company: feel free to try every feature. This company's data is reset every Sunday at 02:00."
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "login": {
+      "title": "Log in",
+      "submit": "Log in",
+      "error": "Incorrect email or password."
+    },
+    "register": {
+      "title": "Create an account",
+      "companyName": "Company name",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "hasAccount": "I already have an account",
+      "submit": "Create account",
+      "error": "Couldn't create the account. This email may already be in use."
+    }
+  },
+  "profile": {
+    "title": "My company",
+    "name": "Company name",
+    "email": "Email",
+    "phone": "Phone",
+    "iban": "IBAN",
+    "street": "Street",
+    "postalCode": "Postcode",
+    "city": "City",
+    "country": "Country",
+    "vatRate": "Default VAT rate",
+    "vatNumber": "VAT number",
+    "logo": "Logo",
+    "logoAlt": "Company logo",
+    "chooseLogo": "Choose a logo",
+    "headerImage": "Invoice header image (shown at the very top)",
+    "headerImageAlt": "Invoice header image",
+    "chooseHeaderImage": "Choose a header image",
+    "dropImage": "Drag and drop an image here (JPG or PNG, 5 MB max).",
+    "invalidFileType": "Invalid file type: ",
+    "invalidFileTypeDetail": "allowed types: {0}.",
+    "fileTooLarge": "File too large: ",
+    "fileTooLargeDetail": "maximum size: {0}.",
+    "adminOnly": "Only an administrator can edit the company's details.",
+    "companyNotFound": "Couldn't find your company.",
+    "loadError": "Couldn't load the company's details.",
+    "updated": "The company's details have been updated.",
+    "updateError": "Couldn't update the company's details.",
+    "logoUpdated": "The logo has been updated.",
+    "logoUpdateError": "Couldn't update the logo.",
+    "headerImageUpdated": "The header image has been updated.",
+    "headerImageUpdateError": "Couldn't update the header image."
   }
 }
