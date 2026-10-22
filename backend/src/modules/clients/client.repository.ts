@@ -18,14 +18,17 @@ export const getClientByIdFromDB = async (id: number, company_id: number) => {
   return result.rows[0] ?? null;
 };
 
-export const getClientByNumber = async (client_number: string) => {
-  const result = await db().query("SELECT * FROM clients where client_number = $1", [client_number]);
+// Both scoped to the company: a client number or email only has to be unique
+// within a company (see zz_migrations/006_client_number_unique_per_company.sql),
+// and looking across companies would tell one company about another's clients.
+export const getClientByNumber = async (client_number: string, company_id: number) => {
+  const result = await db().query("SELECT * FROM clients where client_number = $1 AND company_id = $2", [client_number, company_id]);
   return result.rows[0] ?? null;
 };
 
 
-export const getClientByEmail = async (email: string) => {
-  const result = await db().query("SELECT * FROM clients where email = $1", [email]);
+export const getClientByEmail = async (email: string, company_id: number) => {
+  const result = await db().query("SELECT * FROM clients where email = $1 AND company_id = $2", [email, company_id]);
   return result.rows[0] ?? null;
 };
 

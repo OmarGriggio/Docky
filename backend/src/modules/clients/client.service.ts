@@ -18,10 +18,10 @@ export const getClientByIdServ = async (id: number, company_id: number): Promise
 };
 
 export const addClientServ = async (clientData: Omit<Client, "id" | "company_id" | "language">, company_id: number) => {
-  const existingClient = await getClientByNumber(clientData.client_number);
+  const existingClient = await getClientByNumber(clientData.client_number, company_id);
   if (!existingClient) {
     if (clientData.email) {
-      const clientMail = await getClientByEmail(clientData.email)
+      const clientMail = await getClientByEmail(clientData.email, company_id)
       if (!clientMail) {
         return await createClientInDB({ ...clientData, company_id });
       } else {
@@ -43,7 +43,7 @@ export const updateClientServ = async (id: number, company_id: number, data: Upd
   // Same uniqueness rule as addClientServ - only re-checked if the email
   // actually changed, and excluding this client's own current row.
   if (data.email && data.email !== client.email) {
-    const existing = await getClientByEmail(data.email);
+    const existing = await getClientByEmail(data.email, company_id);
     if (existing) {
       throw new ConflictError("Client email already exists");
     }
