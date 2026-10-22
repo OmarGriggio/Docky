@@ -31,7 +31,7 @@ export const getQuotePdf =async (req: Request, res: Response) => {
 
 // The standalone payment slip (no document behind it) - see qr-bill-slip.ts.
 export const getQrBillSlip = async (req: Request, res: Response) => {
-  const svg = await generateQrBillSlipSvgServ(req.user.company_id, req.body);
+  const svg = await generateQrBillSlipSvgServ(req.user.company_id, req.body ?? {});
 
   res.setHeader("Content-Type", "image/svg+xml");
   res.send(svg);

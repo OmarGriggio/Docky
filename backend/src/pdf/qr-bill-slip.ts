@@ -1,3 +1,4 @@
+import { PDFDocument, PDFFont, StandardFonts } from "pdf-lib";
 import { getCompanyByIdServ } from "../modules/companies/company.service";
 import { AppError } from "../shared/types/errors";
 import { SwissQrBillDto } from "./swiss-qr-bill/swiss-qr-bill.types";
@@ -20,6 +21,29 @@ export interface QrBillSlipInput {
     amount?: number | null;
     language?: string;
 }
+
+// The narrowest column a payer/creditor line is printed in: the receipt's,
+// 52 mm at 8pt (the payment part fits 87 mm at 10pt, wider in proportion).
+// Measured with Helvetica's own metrics (pdf-lib ships them) - a line
+// that doesn't fit would run over the payment part or the QR code.
+const RECEIPT_COLUMN_MM = 52;
+const RECEIPT_VALUE_PT = 8;
+const PT_TO_MM = 25.4 / 72;
+
+let helvetica: Promise<PDFFont> | null = null;
+const getHelvetica = () => helvetica ??= PDFDocument.create().then(doc => doc.embedFont(StandardFonts.Helvetica));
+
+const fitsReceiptColumn = async (value: string): Promise<boolean> => {
+    let widthPt: number;
+    try {
+        widthPt = (await getHelvetica()).widthOfTextAtSize(value, RECEIPT_VALUE_PT);
+    } catch {
+        // A character Helvetica's WinAnsi encoding doesn't cover - estimate
+        // from an average glyph width instead.
+        widthPt = value.length * RECEIPT_VALUE_PT * 0.6;
+    }
+    return widthPt * PT_TO_MM <= RECEIPT_COLUMN_MM;
+};
 
 const clean = (value: unknown) => (typeof value === "string" ? value.trim() : "");
 
@@ -66,6 +90,14 @@ export const generateQrBillSlipSvgServ = async (company_id: number, input: QrBil
         throw new AppError(errors.map(error => error.message).join(" - "), 400);
     }
 
+    const debtorLines = hasDebtor ? [name, complement, street, postalCodeCity] : null;
+    const printed = [dto.creditor.name, dto.creditor.addressLine1, dto.creditor.addressLine2, ...(debtorLines ?? [])];
+    for (const value of printed) {
+        if (!(await fitsReceiptColumn(value))) {
+            throw new AppError(`Too long to fit on the slip: "${value}"`, 400);
+        }
+    }
+
     const labels = PDF_LABELS[input.language === "EN" ? "EN" : "FR"];
-    return renderSwissQrBillSvg(dto, labels, hasDebtor ? [name, complement, street, postalCodeCity] : null);
+    return renderSwissQrBillSvg(dto, labels, debtorLines);
 };
