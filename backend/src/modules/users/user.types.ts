@@ -23,6 +23,8 @@ export interface User {
   language: Language;
 }
 
+export type PublicUser = Omit<User, 'password_hash'>;
+
 export interface CreateUserData {
   company_id: number;
   role: Role,
