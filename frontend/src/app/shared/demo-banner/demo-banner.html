@@ -1,7 +1,7 @@
 @if (isDemoCompany()) {
   <p-drawer [(visible)]="visible" position="bottom" [modal]="false" styleClass="ui-demo-drawer !bg-orange-50" [style]="{ height: 'auto' }">
     <ng-template #header>
-      <p class="text-sm text-orange-900 whitespace-nowrap m-0">{{ 'demoBanner.message' | transloco }}</p>
+      <p class="text-sm text-orange-900 md:whitespace-nowrap m-0">{{ 'demoBanner.message' | transloco }}</p>
     </ng-template>
   </p-drawer>
 }
