@@ -33,6 +33,9 @@ export class DocumentTextBlock {
   field = input.required<'introduction' | 'conclusion'>();
   type = input.required<DocumentType>();
   placeholder = input('');
+  // A document that can no longer be edited: just the text, no editor and
+  // no "Modifier le texte" link.
+  locked = input(false);
   // How the PDF will print a text ({{placeholders}} filled in) - shown in the
   // read-only preview. Passed in since it depends on the form's own values.
   resolve = input.required<(text: string) => string>();

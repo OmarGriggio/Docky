@@ -1,16 +1,18 @@
 <div class="border-t border-b border-dashed border-[#ddd] py-6 mb-6">
   <div class="flex items-center justify-between mb-4">
     <h2 class="m-0">{{ 'documents.sections.details' | transloco }}</h2>
-    <div class="flex items-center gap-2 flex-wrap">
-      <p-button
-        size="small"
-        type="button"
-        [label]="'projects.resources.addSection' | transloco"
-        icon="pi pi-plus"
-        severity="secondary"
-        (onClick)="addSection()"
-      />
-    </div>
+    @if (!locked()) {
+      <div class="flex items-center gap-2 flex-wrap">
+        <p-button
+          size="small"
+          type="button"
+          [label]="'projects.resources.addSection' | transloco"
+          icon="pi pi-plus"
+          severity="secondary"
+          (onClick)="addSection()"
+        />
+      </div>
+    }
   </div>
 
   @if (sections().length === 0) {
@@ -29,15 +31,18 @@
           [placeholder]="'projects.resources.sectionTitlePlaceholder' | transloco"
           [ngModel]="section.title"
           (ngModelChange)="updateSectionTitle(section.id, $event)"
+          [disabled]="locked()"
         />
-        <p-button
-          size="small"
-          type="button"
-          icon="pi pi-trash"
-          severity="danger"
-          [text]="true"
-          (onClick)="removeSection(section.id)"
-        />
+        @if (!locked()) {
+          <p-button
+            size="small"
+            type="button"
+            icon="pi pi-trash"
+            severity="danger"
+            [text]="true"
+            (onClick)="removeSection(section.id)"
+          />
+        }
       </div>
 
       <textarea
@@ -48,6 +53,7 @@
         [placeholder]="'projects.resources.descriptionPlaceholder' | transloco"
         [ngModel]="section.description"
         (ngModelChange)="updateSectionDescription(section.id, $event)"
+        [disabled]="locked()"
       ></textarea>
 
       <div class="overflow-x-auto">
@@ -98,6 +104,7 @@
                     optionValue="value"
                     [ngModel]="line.type"
                     (ngModelChange)="updateLine(section.id, line.id, { type: $event })"
+                    [disabled]="locked()"
                     appendTo="body"
                   />
                 </td>
@@ -109,6 +116,7 @@
                     class="block"
                     [ngModel]="line.label"
                     (ngModelChange)="updateLine(section.id, line.id, { label: $event })"
+                    [disabled]="locked()"
                   />
                 </td>
                 <td class="py-[0.3rem] px-[0.2rem] align-middle">
@@ -117,6 +125,7 @@
                     [fluid]="true"
                     [ngModel]="line.quantity"
                     (ngModelChange)="updateLine(section.id, line.id, { quantity: $event })"
+                    [disabled]="locked()"
                     mode="decimal"
                     [minFractionDigits]="2"
                     [placeholder]="lineQuantityLabel(line.type)"
@@ -131,6 +140,7 @@
                     optionValue="value"
                     [ngModel]="line.unit"
                     (ngModelChange)="updateLine(section.id, line.id, { unit: $event })"
+                    [disabled]="locked()"
                     appendTo="body"
                   >
                     <ng-template #item let-option>
@@ -163,6 +173,7 @@
                     [fluid]="true"
                     [ngModel]="line.unit_price"
                     (ngModelChange)="updateLine(section.id, line.id, { unit_price: $event })"
+                    [disabled]="locked()"
                     mode="decimal"
                     [minFractionDigits]="2" [useGrouping]="false" [maxFractionDigits]="2" />
                 </td>
@@ -170,19 +181,22 @@
                   {{ lineTotal(line) | price }}
                 </td>
                 <td class="py-[0.3rem] px-[0.2rem] align-middle">
-                  <p-button
-                    size="small"
-                    type="button"
-                    icon="pi pi-trash"
-                    severity="danger"
-                    [text]="true"
-                    (onClick)="removeLine(section.id, line.id)"
-                  />
+                  @if (!locked()) {
+                    <p-button
+                      size="small"
+                      type="button"
+                      icon="pi pi-trash"
+                      severity="danger"
+                      [text]="true"
+                      (onClick)="removeLine(section.id, line.id)"
+                    />
+                  }
                 </td>
               </tr>
             }
 
             <!-- Inline "add a line" row -->
+            @if (!locked()) {
             <tr class="bg-[#fafafa]">
               @let draft = newLineFor(section.id);
               <td class="py-[0.3rem] px-[0.2rem] align-middle">
@@ -272,6 +286,7 @@
                 />
               </td>
             </tr>
+            }
           </tbody>
           <tfoot>
             <tr>
@@ -287,6 +302,7 @@
         </table>
       </div>
 
+      @if (!locked()) {
       <div class="flex justify-end mt-3">
         <p-select
           size="small"
@@ -311,6 +327,7 @@
           </ng-template>
         </p-select>
       </div>
+      }
     </div>
   }
 </div>

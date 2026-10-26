@@ -84,11 +84,12 @@
         [placeholder]="'documents.form.introPlaceholder' | transloco"
         [type]="type"
         [resolve]="resolvePlaceholders"
+        [locked]="locked()"
         [(text)]="introduction"
       />
     </div>
 
-    <app-document-sections [(sections)]="sections" [type]="type" />
+    <app-document-sections [(sections)]="sections" [type]="type" [locked]="locked()" />
 
     <div class="ui-form mb-4">
       @if (type === 'INVOICE') {
@@ -98,6 +99,7 @@
             inputId="discount"
             [ngModel]="discount()"
             (ngModelChange)="discount.set($event)"
+            [disabled]="locked()"
             mode="decimal"
             [minFractionDigits]="2"
             [min]="0"
@@ -113,6 +115,7 @@
             inputId="vatRate"
             [ngModel]="vatRate()"
             (ngModelChange)="vatRate.set($event)"
+            [disabled]="locked()"
             mode="decimal"
             [minFractionDigits]="1"
             [min]="0"
@@ -128,6 +131,7 @@
           [placeholder]="'documents.form.conclusionPlaceholder' | transloco"
           [type]="type"
           [resolve]="resolvePlaceholders"
+          [locked]="locked()"
           [(text)]="conclusion"
         />
       </div>

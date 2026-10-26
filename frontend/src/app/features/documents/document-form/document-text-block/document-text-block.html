@@ -1,4 +1,8 @@
-@if (editing() || !text()) {
+@if (locked()) {
+  @if (text()) {
+    <p class="text-sm text-[#333] m-0 whitespace-pre-wrap">{{ resolve()(text()) }}</p>
+  }
+} @else if (editing() || !text()) {
   <textarea
     pTextarea
     pSize="small"

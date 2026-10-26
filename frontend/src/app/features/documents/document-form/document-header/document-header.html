@@ -22,12 +22,12 @@
     </div>
 
     <p-floatlabel variant="on">
-      <p-datepicker inputId="date" [ngModel]="date()" (ngModelChange)="onDateChange($event)" dateFormat="dd.mm.yy" />
+      <p-datepicker inputId="date" [ngModel]="date()" (ngModelChange)="onDateChange($event)" dateFormat="dd.mm.yy" [disabled]="locked()" />
       <label for="date">{{ 'projects.columnDate' | transloco }}</label>
     </p-floatlabel>
 
     <p-floatlabel variant="on">
-      <p-datepicker inputId="due_date" [ngModel]="dueDate()" (ngModelChange)="dueDate.set($event)" dateFormat="dd.mm.yy" [showClear]="true" />
+      <p-datepicker inputId="due_date" [ngModel]="dueDate()" (ngModelChange)="dueDate.set($event)" dateFormat="dd.mm.yy" [showClear]="!locked()" [disabled]="locked()" />
       <label for="due_date">{{ (type() === 'QUOTE' ? 'documents.header.validUntil' : 'documents.columnDueDate') | transloco }}</label>
     </p-floatlabel>
   </div>
@@ -55,24 +55,24 @@
 
     @if (manualRecipient()) {
       <p-floatlabel variant="on" class="w-full">
-        <input pInputText pSize="small" id="recipient_name" maxlength="70" [ngModel]="recipientName()" (ngModelChange)="recipientName.set($event)" [fluid]="true" />
+        <input pInputText pSize="small" id="recipient_name" maxlength="70" [ngModel]="recipientName()" (ngModelChange)="recipientName.set($event)" [disabled]="locked()" [fluid]="true" />
         <label for="recipient_name">{{ 'documents.header.recipientName' | transloco }}</label>
       </p-floatlabel>
       <p-floatlabel variant="on" class="w-full">
-        <input pInputText pSize="small" id="recipient_complement" maxlength="70" [ngModel]="recipientComplement()" (ngModelChange)="recipientComplement.set($event)" [fluid]="true" />
+        <input pInputText pSize="small" id="recipient_complement" maxlength="70" [ngModel]="recipientComplement()" (ngModelChange)="recipientComplement.set($event)" [disabled]="locked()" [fluid]="true" />
         <label for="recipient_complement">{{ 'documents.header.recipientComplement' | transloco }}</label>
       </p-floatlabel>
       <p-floatlabel variant="on" class="w-full">
-        <input pInputText pSize="small" id="recipient_street" maxlength="70" [ngModel]="recipientStreet()" (ngModelChange)="recipientStreet.set($event)" [fluid]="true" />
+        <input pInputText pSize="small" id="recipient_street" maxlength="70" [ngModel]="recipientStreet()" (ngModelChange)="recipientStreet.set($event)" [disabled]="locked()" [fluid]="true" />
         <label for="recipient_street">{{ 'documents.header.recipientStreet' | transloco }}</label>
       </p-floatlabel>
       <div class="flex gap-2">
         <p-floatlabel variant="on" class="w-24 shrink-0">
-          <input pInputText pSize="small" id="recipient_postal_code" maxlength="16" [ngModel]="recipientPostalCode()" (ngModelChange)="recipientPostalCode.set($event)" [fluid]="true" />
+          <input pInputText pSize="small" id="recipient_postal_code" maxlength="16" [ngModel]="recipientPostalCode()" (ngModelChange)="recipientPostalCode.set($event)" [disabled]="locked()" [fluid]="true" />
           <label for="recipient_postal_code">{{ 'documents.header.recipientPostalCode' | transloco }}</label>
         </p-floatlabel>
         <p-floatlabel variant="on" class="flex-1 min-w-0">
-          <input pInputText pSize="small" id="recipient_city" maxlength="35" [ngModel]="recipientCity()" (ngModelChange)="recipientCity.set($event)" [fluid]="true" />
+          <input pInputText pSize="small" id="recipient_city" maxlength="35" [ngModel]="recipientCity()" (ngModelChange)="recipientCity.set($event)" [disabled]="locked()" [fluid]="true" />
           <label for="recipient_city">{{ 'documents.header.recipientCity' | transloco }}</label>
         </p-floatlabel>
       </div>
@@ -86,6 +86,7 @@
         optionValue="value"
         [ngModel]="clientId()"
         (ngModelChange)="clientChange.emit($event)"
+        [disabled]="locked()"
         [fluid]="true"
       >
         <ng-template #footer>
@@ -121,7 +122,7 @@
         optionValue="value"
         [ngModel]="addressId()" (ngModelChange)="addressId.set($event)"
         [showClear]="true"
-        [disabled]="clientId() === null"
+        [disabled]="locked() || clientId() === null"
         [fluid]="true"
       >
         <ng-template #footer>
@@ -140,7 +141,7 @@
 
     @if (type() === 'INVOICE') {
       <p-floatlabel variant="on" class="w-full">
-        <input pInputText pSize="small" id="reference_client" [ngModel]="referenceClient()" (ngModelChange)="referenceClient.set($event)" [fluid]="true" />
+        <input pInputText pSize="small" id="reference_client" [ngModel]="referenceClient()" (ngModelChange)="referenceClient.set($event)" [disabled]="locked()" [fluid]="true" />
         <label for="reference_client">{{ 'documents.header.referenceClient' | transloco }}</label>
       </p-floatlabel>
     }

@@ -38,6 +38,9 @@ export class DocumentSections implements OnInit {
 
   sections = model<DraftSection[]>([]);
   type = input.required<DocumentType>();
+  // A document that can no longer be edited (see document-form.ts's
+  // isOpenForEditing): every field read-only, every add/remove hidden.
+  locked = input(false);
 
   readonly lineTotal = lineTotal;
   readonly sectionTotal = sectionTotal;
