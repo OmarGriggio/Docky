@@ -119,10 +119,12 @@ export class Header {
     }
     const path = '/' + parsed.root.children['primary']?.segments.map(segment => segment.path).join('/');
 
-    // A navigation that replaces the current page (replaceUrl - e.g. a new
-    // document, once saved, becoming documents/:id) replaces its entry too,
-    // instead of leaving the page it replaced behind in the trail.
-    const replaced = this.router.lastSuccessfulNavigation()?.extras.replaceUrl === true;
+    // A page that replaces the current one (a new document, once saved,
+    // becoming documents/:id - see document-form.ts) replaces its entry too,
+    // instead of leaving the page it replaced behind in the trail. An
+    // explicit flag, not replaceUrl itself: the router also sets replaceUrl
+    // on back/forward and on the very first navigation.
+    const replaced = this.router.lastSuccessfulNavigation()?.extras.state?.['replaceTrail'] === true;
     const kept = replaced ? trail.slice(0, -1) : trail;
     this.setTrail([...kept, { label, path, queryParams, key: url }].slice(-MAX_STORED));
   }

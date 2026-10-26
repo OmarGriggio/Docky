@@ -102,8 +102,12 @@ export class DocumentForm implements OnInit {
   recipientPostalCode = signal('');
   recipientCity = signal('');
 
+  // Switching between a picked client and a typed-in recipient keeps the
+  // chantier this invoice bills ("Facturer") and the lines imported from it:
+  // it's still the same work being invoiced, only who it's addressed to
+  // changes. Dropping the link would let the chantier be invoiced twice.
   onManualRecipientChange(manual: boolean): void {
-    this.onClientChange(manual ? this.placeholderClient()?.id ?? null : null);
+    this.onClientChange(manual ? this.placeholderClient()?.id ?? null : null, null, true);
   }
 
   // From a document being edited, duplicated or invoiced from its chantier -
@@ -200,10 +204,10 @@ export class DocumentForm implements OnInit {
   // Only meaningful in edit mode - a fresh draft always says "généré
   // automatiquement" instead (see the template).
   documentNumber = signal<string | null>(null);
-  // A document past DRAFT/SENT is a frozen record (see
-  // zz_docs/Project Definition.md's lifecycle) - the backend rejects the PUT
-  // regardless, this just avoids letting the user fill out a form that can
-  // never actually save.
+  // A document no longer open for editing (see isOpenForEditing above - a
+  // quote past SENT, an invoice past DRAFT) - the backend rejects the PUT
+  // regardless, this just makes every field read-only so the user doesn't
+  // fill out a form that can never actually save.
   locked = signal(false);
 
   get pageTitle(): string {
@@ -285,6 +289,10 @@ export class DocumentForm implements OnInit {
   // "Document enregistré" under the toolbar after a save - the page stays
   // open now instead of going back to the list.
   saveMessage = signal<string | null>(null);
+  // Set by submit() when it navigates here right after creating the
+  // document - read from the navigation itself (not history.state, which
+  // would survive a reload and show the message again).
+  private readonly justCreated = this.router.currentNavigation()?.extras.state?.['saved'] === true;
 
   // The document's own status - DRAFT for a new one, the saved one when
   // editing (loadForEdit). Only shown here (the status bar in the toolbar,
@@ -565,7 +573,7 @@ export class DocumentForm implements OnInit {
   private loadForEdit(id: number): void {
     this.editingDocumentId.set(id);
     // Just created by this same form (see submit()) - say so.
-    if (history.state?.saved) {
+    if (this.justCreated) {
       this.saveMessage.set(this.transloco.translate('documents.form.saved'));
     }
 
@@ -650,12 +658,15 @@ export class DocumentForm implements OnInit {
   // this client's addresses have even loaded - passed through here instead
   // of set separately afterwards, since setting it after would race this
   // method's own async call (whichever HTTP call resolved last would win).
-  onClientChange(clientId: number | null, preferredAddressId: number | null = null): void {
+  onClientChange(clientId: number | null, preferredAddressId: number | null = null, keepProject = false): void {
     this.selectedClientId.set(clientId);
     // A project picked for a previous client no longer makes sense - and
     // neither does whatever it had imported (onProjectChange(null) already
-    // clears both).
-    this.onProjectChange(null);
+    // clears both). Except when only the recipient mode switches (see
+    // onManualRecipientChange).
+    if (!keepProject) {
+      this.onProjectChange(null);
+    }
     this.addressId.set(preferredAddressId);
 
     if (clientId === null) {
@@ -792,6 +803,12 @@ export class DocumentForm implements OnInit {
       this.errorMessage.set(this.transloco.translate('documents.form.recipientRequired'));
       return;
     }
+    // Same limit as the backend's resolveRecipient: the QR-bill puts the
+    // complement and the street on one 70-character line ("complement, street").
+    if (this.manualRecipient() && [this.recipientComplement().trim(), this.recipientStreet().trim()].filter(Boolean).join(', ').length > 70) {
+      this.errorMessage.set(this.transloco.translate('documents.form.recipientTooLong'));
+      return;
+    }
 
     this.errorMessage.set(null);
     this.saveMessage.set(null);
@@ -857,7 +874,7 @@ export class DocumentForm implements OnInit {
       // blank form again) - its title, number, breadcrumb and "Aperçu" all
       // follow, and a reload opens this same document. The "saved" flag
       // carries the confirmation over to the page that loads (loadForEdit).
-      this.router.navigate(['/documents', document.id], { replaceUrl: true, state: { saved: true } });
+      this.router.navigate(['/documents', document.id], { replaceUrl: true, state: { saved: true, replaceTrail: true } });
     } catch (err) {
       console.error('document-form : ' + err);
       this.submitting.set(false);

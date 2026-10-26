@@ -133,7 +133,8 @@
     "addressForm": {
       "attentionOptional": "Attention (optionnel)",
       "primary": "Adresse principale"
-    }
+    },
+    "placeholderName": "Non défini"
   },
   "resources": {
     "title": "Ressources",
@@ -315,7 +316,8 @@
       "scanTruncated": "Document tronqué avant l'analyse (trop long).",
       "recipientRequired": "Saisie manuelle : le nom, le NPA et la ville sont obligatoires.",
       "preview": "Aperçu",
-      "saved": "Document enregistré."
+      "saved": "Document enregistré.",
+      "recipientTooLong": "Saisie manuelle : le complément et la rue ensemble ne peuvent pas dépasser 68 caractères (limite du bulletin QR)."
     },
     "pdfError": "Impossible de générer le PDF."
   },
@@ -401,6 +403,7 @@
     "COMPANY_IBAN_MISSING": "L'IBAN de votre entreprise n'est pas renseigné : ajoutez-le dans Profil pour générer le bulletin QR.",
     "COMPANY_IBAN_INVALID": "L'IBAN de votre entreprise est invalide (21 caractères, commençant par CH ou LI) : corrigez-le dans Profil.",
     "COMPANY_ADDRESS_INCOMPLETE": "L'adresse de votre entreprise est incomplète (nom, rue, NPA, ville, pays) : complétez-la dans Profil.",
-    "QR_BILL_INVALID": "L'adresse du client ne permet pas de générer le bulletin QR (pays inconnu ou ligne trop longue)."
+    "QR_BILL_INVALID": "L'adresse du client ne permet pas de générer le bulletin QR (pays inconnu ou ligne trop longue).",
+    "QR_BILL_AMOUNT_INVALID": "Le montant ne permet pas de générer le bulletin QR : il doit être compris entre 0.01 et 999 999 999.99 CHF (une facture vide ou à 0 n'a rien à payer)."
   }
 }

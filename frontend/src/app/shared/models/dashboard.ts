@@ -6,6 +6,9 @@ export interface PaidAmountByClient {
   company_name: string | null;
   first_name: string | null;
   last_name: string | null;
+  // The "Non défini" client - every document made out to a recipient typed
+  // by hand, grouped (see shared/models/client.ts).
+  is_placeholder: boolean;
   total_paid: number;
 }
 

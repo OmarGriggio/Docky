@@ -117,8 +117,15 @@ export class ProjectListComponent implements OnInit {
   expandedRowKeys: Record<number, boolean> = {};
 
   private clientNames = computed(() => {
+    // Read first so the "Non défini" label below follows a language switch
+    // (see CLAUDE.md's Transloco gotcha).
+    this.transloco.activeLang();
     const names = new Map<number, string>();
     for (const client of this.clients()) {
+      if (client.is_placeholder) {
+        names.set(client.id, this.transloco.translate('clients.placeholderName'));
+        continue;
+      }
       names.set(client.id, client.company_name || `${client.first_name ?? ''} ${client.last_name ?? ''}`.trim());
     }
     return names;
@@ -216,6 +223,11 @@ export class ProjectListComponent implements OnInit {
   // to the client's primary address, else whichever comes first.
   location(project: Project): string {
     const document = this.projectDocumentsById().get(project.document_id);
+    // A chantier for a recipient typed by hand (the "Non défini" client)
+    // carries that recipient on its own PROJECT document.
+    if (document?.recipient_name) {
+      return [document.recipient_street, document.recipient_city].filter(Boolean).join(', ') || '—';
+    }
     const clientAddresses = this.addresses().filter(a => a.client_id === project.client_id);
     const address = clientAddresses.find(a => a.id === document?.address_id)
       ?? clientAddresses.find(a => a.is_primary)

@@ -58,6 +58,9 @@ export class Dashboard implements OnInit {
   }
 
   private clientName(row: PaidAmountByClient): string {
+    if (row.is_placeholder) {
+      return this.transloco.translate('clients.placeholderName');
+    }
     return row.company_name || `${row.first_name ?? ''} ${row.last_name ?? ''}`.trim();
   }
 

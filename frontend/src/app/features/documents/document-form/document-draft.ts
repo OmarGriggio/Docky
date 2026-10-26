@@ -33,7 +33,9 @@ export interface DraftSection {
   lines: DraftLine[];
 }
 
-export const round2 = (value: number) => Math.round(value * 100) / 100;
+// Half up, to the cent - same as the backend's document.calculations.ts
+// (Number.EPSILON: 15.195 * 100 is 1519.4999... in floating point).
+export const round2 = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
 
 // Local ids only (never sent to the backend), one counter for every draft
 // section/line on the page so two of them never collide.

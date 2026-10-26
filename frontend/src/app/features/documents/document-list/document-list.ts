@@ -202,11 +202,10 @@ export class DocumentListComponent implements OnInit {
     this.loadDocuments();
   }
 
-  // A document past DRAFT/SENT is a frozen record (see
-  // zz_docs/Project Definition.md's lifecycle) - matches document-form.ts's
-  // own EDITABLE_STATUSES/document.service.ts's on the backend. Also gates
-  // the Statut column's own editability (see statusOptions/onStatusChange
-  // below) - public for the template.
+  // Whether the Statut cell can still be changed from the list: a document
+  // past DRAFT/SENT has reached a final status (see document.service.ts's
+  // SETTABLE_STATUSES - a SENT invoice still moves on to PAID/CANCELLED, even
+  // though its content is frozen). Public for the template.
   isEditable(document: Document): boolean {
     return document.status === 'DRAFT' || document.status === 'SENT';
   }
@@ -252,6 +251,11 @@ export class DocumentListComponent implements OnInit {
   onStatusEditComplete(event: TableEditCompleteEvent): void {
     const document = event.index !== undefined ? this.documents()[event.index] : undefined;
     if (!document || document.status === null) {
+      return;
+    }
+    // The cell was opened and closed again without picking anything else -
+    // nothing to save (the backend refuses a "change" to the same status).
+    if (document.status === this.statusBeforeEdit) {
       return;
     }
 

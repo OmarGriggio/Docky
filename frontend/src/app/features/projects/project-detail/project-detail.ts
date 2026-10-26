@@ -59,6 +59,22 @@ export class ProjectDetail implements OnInit {
 
         this.documentService.getDocument(documentId).subscribe({
           next: document => {
+            // A chantier for a recipient typed by hand: that recipient, not
+            // the "Non défini" placeholder (which has no address at all).
+            if (client.is_placeholder && document.recipient_name) {
+              this.clientName.set(document.recipient_name);
+              this.address.set({
+                id: 0,
+                client_id: client.id,
+                is_primary: true,
+                attention: document.recipient_complement,
+                street: document.recipient_street ?? '',
+                postal_code: document.recipient_postal_code ?? '',
+                city: document.recipient_city ?? '',
+                country: 'Suisse',
+              });
+              return;
+            }
             const chosen = client.addresses.find(a => a.id === document.address_id);
             this.address.set(chosen ?? client.addresses.find(a => a.is_primary) ?? client.addresses[0] ?? null);
           },

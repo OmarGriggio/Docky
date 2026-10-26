@@ -28,7 +28,7 @@ export const apiErrorCode = async (err: unknown): Promise<string | null> => {
 
 // The QR-bill codes the backend can send (see swiss-qr-bill.generator.ts's
 // errorCodeFor) - each has its own translated message under `qrBillErrors.*`.
-const QR_BILL_ERROR_CODES = ['COMPANY_IBAN_MISSING', 'COMPANY_IBAN_INVALID', 'COMPANY_ADDRESS_INCOMPLETE', 'QR_BILL_INVALID'];
+const QR_BILL_ERROR_CODES = ['COMPANY_IBAN_MISSING', 'COMPANY_IBAN_INVALID', 'COMPANY_ADDRESS_INCOMPLETE', 'QR_BILL_AMOUNT_INVALID', 'QR_BILL_INVALID'];
 
 // The translation key to show for a failed PDF/QR-bill request: a precise one
 // when the backend said what's wrong, `fallbackKey` otherwise.

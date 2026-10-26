@@ -133,7 +133,8 @@
     "addressForm": {
       "attentionOptional": "Attention (optional)",
       "primary": "Primary address"
-    }
+    },
+    "placeholderName": "Not specified"
   },
   "resources": {
     "title": "Resources",
@@ -315,7 +316,8 @@
       "scanTruncated": "Document truncated before analysis (too long).",
       "recipientRequired": "Typed-in recipient: the name, postcode and town are required.",
       "preview": "Preview",
-      "saved": "Document saved."
+      "saved": "Document saved.",
+      "recipientTooLong": "Typed-in recipient: the complement and the street together can't exceed 68 characters (the QR-bill's limit)."
     },
     "pdfError": "Couldn't generate the PDF."
   },
@@ -401,6 +403,7 @@
     "COMPANY_IBAN_MISSING": "Your company's IBAN isn't filled in: add it in Profile to generate the QR-bill.",
     "COMPANY_IBAN_INVALID": "Your company's IBAN is invalid (21 characters, starting with CH or LI): correct it in Profile.",
     "COMPANY_ADDRESS_INCOMPLETE": "Your company's address is incomplete (name, street, postcode, town, country): complete it in Profile.",
-    "QR_BILL_INVALID": "The client's address can't be used for the QR-bill (unknown country or a line too long)."
+    "QR_BILL_INVALID": "The client's address can't be used for the QR-bill (unknown country or a line too long).",
+    "QR_BILL_AMOUNT_INVALID": "The amount can't go on a QR-bill: it must be between 0.01 and 999,999,999.99 CHF (an empty or zero invoice has nothing to pay)."
   }
 }
