@@ -60,6 +60,7 @@ A company's own customer - a private individual or a business.
 - title *(the greeting printed on documents, e.g. "Monsieur", "Dear Sir/Madam")*
 - email, phone, note
 - language *(`FR` | `EN` | `DE` | `IT`)* - the language its quotes, invoices and reminders are printed in (FR/EN labels only so far, DE/IT fall back to French)
+- placeholder flag - each company has exactly one **"Non défini"** client: what a document made out to a recipient typed by hand points at. Fixed (greeting "Madame, Monsieur", language FR), hidden from the clients list
 
 ## Relations
 
@@ -129,6 +130,7 @@ A quote, an invoice, or a project's own resource ledger - one table for all thre
 - amount excl. VAT, amount incl. VAT - always computed from the lines, never typed in
 - introduction, conclusion, payment terms *(free text printed on the PDF, with `{{placeholders}}`)*
 - parent document - what it was derived from: a project's own accepted quote, or an invoice's project
+- recipient *(only when made out to "Non défini")* - name, complement, street, postcode, town typed by hand, printed instead of a client's own name and address (country: Switzerland)
 
 ## Relations
 
