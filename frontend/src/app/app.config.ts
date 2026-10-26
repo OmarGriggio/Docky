@@ -7,6 +7,7 @@ import Aura from '@primeuix/themes/aura';
 
 import { routes } from './app.routes';
 import { authInterceptor } from './features/auth/auth.interceptor';
+import { provideServiceWorker } from '@angular/service-worker';
 import { TranslocoHttpLoader } from './transloco-loader';
 
 export const appConfig: ApplicationConfig = {
@@ -34,6 +35,14 @@ export const appConfig: ApplicationConfig = {
         prodMode: !isDevMode(),
       },
       loader: TranslocoHttpLoader,
+    }),
+    // Makes Docky installable on a phone's home screen and caches the app
+    // shell (JS/CSS/translations, see ngsw-config.json) - never API data:
+    // /api/** always goes to the network. Prod builds only, `ng serve` stays
+    // as before.
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000'
     }),
   ]
 };
