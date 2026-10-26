@@ -2,11 +2,9 @@ import { ClientWithAddresses } from "../../../modules/clients/client.types";
 import { clientDisplayName } from "../../../modules/clients/client.display";
 import { Company } from "../../../modules/companies/company.types";
 import { DocumentComplete } from "../../../modules/documents/document_complete.types";
-import { lineTotal } from "../../../modules/documents/document.calculations";
+import { lineTotal, round2 } from "../../../modules/documents/document.calculations";
 import { ClientDto, CompanyDto, DocumentSectionDto } from "../document.types";
 import { DocumentRecipient } from "../../../modules/documents/document.types";
-
-const round2 = (value: number) => Math.round(value * 100) / 100;
 
 // document.sections/lines are already scoped to this document and active-only
 // (the repository queries default to is_active = true) - but neither comes
@@ -24,7 +22,7 @@ export const buildSections = (document: DocumentComplete): DocumentSectionDto[] 
                     quantity: line.quantity,
                     unit: line.unit,
                     unitPrice: line.unit_price,
-                    total: round2(lineTotal(line)),
+                    total: lineTotal(line),
                 }));
             return {
                 title: section.title,

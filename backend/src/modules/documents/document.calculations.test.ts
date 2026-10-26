@@ -80,3 +80,22 @@ describe("lineTotal", () => {
   });
 
 });
+
+describe("line rounding", () => {
+
+  it("rounds each line to the cent, half up", () => {
+    expect(lineTotal({ quantity: 1.5, unit_price: 10.13, discount: 0 })).toBe(15.2);
+    expect(lineTotal({ quantity: 1, unit_price: 1.005, discount: 0 })).toBe(1.01);
+  });
+
+  it("adds up the rounded lines, so the total matches what each line prints", () => {
+    const lines = [
+      { quantity: 0.5, unit_price: 10, discount: 0 },
+      { quantity: 1.5, unit_price: 10.13, discount: 0 },
+      { quantity: 0.5, unit_price: 10.29, discount: 0 },
+    ];
+    // 5.00 + 15.20 + 5.15 - not 25.34 from the unrounded 5 + 15.195 + 5.145.
+    expect(computeDocumentTotals(lines, 0).amount_excl_vat).toBe(25.35);
+  });
+
+});
