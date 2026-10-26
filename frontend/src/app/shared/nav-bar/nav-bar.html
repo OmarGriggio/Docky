@@ -1,13 +1,13 @@
 @if (isAuthenticated()) {
   <nav
-    class="flex flex-row flex-wrap items-center gap-1 w-full h-auto py-2 px-2 bg-white border-b border-gray-200
-           md:flex-col md:h-screen md:sticky md:top-0 md:z-20 md:border-b-0 md:border-r md:py-4 transition-[width] duration-150"
+    class="fixed bottom-0 inset-x-0 z-30 flex flex-row flex-nowrap items-center justify-around gap-0.5 w-full h-14 px-1 pb-[env(safe-area-inset-bottom)] bg-white border-t border-gray-200
+           md:justify-start md:gap-1 md:inset-x-auto md:bottom-auto md:flex-col md:h-screen md:sticky md:top-0 md:z-20 md:border-t-0 md:border-r md:py-4 md:pb-4 transition-[width] duration-150"
     [class]="navWidthClasses()"
   >
   
     <button
       type="button"
-      class="flex items-center justify-center w-6 h-6 rounded-full bg-(--p-primary-color) text-white shadow-md hover:opacity-90 transition-opacity cursor-pointer border-0
+      class="hidden md:flex items-center justify-center w-6 h-6 rounded-full bg-(--p-primary-color) text-white shadow-md hover:opacity-90 transition-opacity cursor-pointer border-0
              md:absolute md:top-5 md:-right-3.5 md:z-10"
       [attr.aria-label]="(expanded() ? 'nav.collapse' : 'nav.expand') | transloco"
       [attr.title]="(expanded() ? 'nav.collapse' : 'nav.expand') | transloco"
@@ -19,7 +19,7 @@
     <!-- The app's identity, not a control (the header's breadcrumb trail
          replaced the old "Retour" button). -->
     <div
-      class="flex items-center h-10 mb-2 pb-2 border-b border-gray-200 select-none"
+      class="hidden md:flex items-center h-10 mb-2 pb-2 border-b border-gray-200 select-none"
       [class]="expanded() ? 'gap-3 px-3 md:w-full' : 'justify-center w-10'"
     >
       <img src="favicon.png" alt="" class="w-7 h-7 shrink-0" />
@@ -35,7 +35,7 @@
             <i [class]="item.icon"></i>
             <span [class]="labelClasses()">{{ item.label | transloco }}</span>
           </summary>
-          <div class="absolute left-[calc(100%+0.5rem)] top-0 min-w-35 bg-white border border-gray-200 rounded-md shadow-lg p-1 z-1">
+          <div class="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 md:bottom-auto md:mb-0 md:translate-x-0 md:left-[calc(100%+0.5rem)] md:top-0 min-w-35 bg-white border border-gray-200 rounded-md shadow-lg p-1 z-1">
             @for (link of item.links; track link.label) {
               <a [routerLink]="link.path" [queryParams]="link.queryParams" class="block px-3 py-2 rounded text-gray-800 no-underline text-sm whitespace-nowrap hover:bg-gray-100" (click)="group.open = false">{{ link.label | transloco }}</a>
             }
@@ -53,7 +53,7 @@
       }
     }
 
-    <div class="flex flex-row md:flex-col items-center md:items-stretch gap-1 ml-auto md:ml-0 md:mt-auto pt-0 md:pt-3 border-t-0 md:border-t md:border-gray-200 min-w-0 md:w-full">
+    <div class="flex flex-row md:flex-col items-center md:items-stretch gap-1 md:mt-auto pt-0 md:pt-3 border-t-0 md:border-t md:border-gray-200 min-w-0 md:w-full">
       @if (isImpersonating()) {
         <button type="button" [class]="linkClasses() + ' text-amber-700 hover:bg-amber-100'" (click)="returnToPlatformView()">
           <i class="pi pi-sign-out"></i>
@@ -61,9 +61,8 @@
         </button>
       }
       <!-- Same <details> flyout as Documents/Ressources above, but opening
-           upward (above the button, on the rail) instead of to the right -
-           it sits at the very bottom. On the mobile top bar there's nothing
-           above it, so there it opens downward instead. -->
+           upward (above the button) instead of to the right - it sits at the
+           very bottom, of the desktop rail and of the mobile bottom bar alike. -->
       <details #accountGroup [class]="groupClasses()">
         <summary [class]="linkClasses() + ' list-none [&::-webkit-details-marker]:hidden'">
           <i class="pi pi-user"></i>

@@ -10,8 +10,12 @@
   padding: 1rem 20px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767.98px) {
   .layout {
     flex-direction: column;
+  }
+
+  .content {
+    padding: 0.75rem 12px calc(4.5rem + env(safe-area-inset-bottom));
   }
 }

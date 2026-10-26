@@ -87,8 +87,8 @@ export class NavBar {
   // between the two.
   labelClasses(): string {
     return this.expanded()
-      ? 'text-sm truncate min-w-0'
-      : 'absolute left-[calc(100%+0.5rem)] top-1/2 -translate-y-1/2 bg-gray-800 text-white text-xs px-2.5 py-1 rounded whitespace-nowrap opacity-0 invisible pointer-events-none transition-opacity duration-150 group-hover:opacity-100 group-hover:visible z-[1]';
+      ? 'hidden md:block text-sm truncate min-w-0'
+      : 'hidden md:block absolute left-[calc(100%+0.5rem)] top-1/2 -translate-y-1/2 bg-gray-800 text-white text-xs px-2.5 py-1 rounded whitespace-nowrap opacity-0 invisible pointer-events-none transition-opacity duration-150 group-hover:opacity-100 group-hover:visible z-[1]';
   }
 
   // "Déconnexion" in the account popup (see nav-bar.html) - used to live in
@@ -141,12 +141,12 @@ export class NavBar {
   // The account popup (see nav-bar.html): full labels while the rail is
   // expanded, just the icons - one 40px square each, like the rail's own
   // items, with the label as a native tooltip - while collapsed. Whole
-  // literal class strings again, for Tailwind's static scan. Opens upward on
-  // the desktop rail, downward on the mobile top bar (nothing above it).
+  // literal class strings again, for Tailwind's static scan. Opens upward,
+  // on the desktop rail as on the mobile bottom bar.
   accountMenuClasses(): string {
     return this.expanded()
-      ? 'absolute right-0 top-full mt-2 md:right-auto md:left-0 md:top-auto md:bottom-full md:mt-0 md:mb-2 min-w-44 bg-white border border-gray-200 rounded-md shadow-lg p-1 z-1'
-      : 'absolute right-0 top-full mt-2 md:right-auto md:left-0 md:top-auto md:bottom-full md:mt-0 md:mb-2 bg-white border border-gray-200 rounded-md shadow-lg p-1 z-1';
+      ? 'absolute right-0 bottom-full mb-2 md:right-auto md:left-0 min-w-44 bg-white border border-gray-200 rounded-md shadow-lg p-1 z-1'
+      : 'absolute right-0 bottom-full mb-2 md:right-auto md:left-0 bg-white border border-gray-200 rounded-md shadow-lg p-1 z-1';
   }
 
   accountItemClasses(): string {
