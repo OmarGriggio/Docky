@@ -27,9 +27,13 @@ export interface CompanyDto {
     logo: string | null;
 }
 
-// The client's own billing address - see dto/shared.ts's resolveBillingAddress.
+// The client's own billing address - see dto/shared.ts's resolveBillingAddress -
+// or the recipient typed by hand on a document made out to "Non défini".
 export interface ClientDto {
     name: string;
+    // Printed on a line of its own under the name when set (a typed-in
+    // recipient's "c/o ...", "Case postale ...").
+    complement?: string | null;
     street: string;
     city: string;
     postalCodeCity: string;

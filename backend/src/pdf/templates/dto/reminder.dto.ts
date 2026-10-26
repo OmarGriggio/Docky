@@ -10,7 +10,7 @@ import { buildClientDto, buildCompanyDto } from "./shared";
 // templateText is the raw REMINDER template (with its {{placeholders}}).
 export const createReminderDto = (document: DocumentComplete, client: ClientWithAddresses, company: Company, templateText: string): ReminderDto => {
     const language = toPdfLanguage(client.language);
-    const clientDto = buildClientDto(client);
+    const clientDto = buildClientDto(client, document);
     const today = new Date();
 
     return {

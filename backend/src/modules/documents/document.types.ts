@@ -36,7 +36,21 @@ export interface Document {
   payment_terms: string | null;
   due_date: Date | null;
   is_active: boolean;
+  // The recipient typed by hand when the document is made out to the
+  // "Non défini" placeholder client (see clients/client.types.ts) - printed
+  // instead of a client's own name/address. Always null for a real client
+  // (see document.service.ts's resolveRecipient). Country: Switzerland.
+  recipient_name: string | null;
+  recipient_complement: string | null;
+  recipient_street: string | null;
+  recipient_postal_code: string | null;
+  recipient_city: string | null;
 }
+
+export type DocumentRecipient = Pick<
+  Document,
+  "recipient_name" | "recipient_complement" | "recipient_street" | "recipient_postal_code" | "recipient_city"
+>;
 
 // What a caller sends to create a document: id/company_id are set by the
 // server, number is generated in document.service.ts (see
@@ -78,4 +92,4 @@ export interface DocumentContentSection {
 export type UpdateDocumentData = Pick<
   Document,
   "client_id" | "address_id" | "reference_client" | "date" | "discount" | "vat_rate" | "introduction" | "conclusion" | "payment_terms" | "due_date"
->;
+> & DocumentRecipient;

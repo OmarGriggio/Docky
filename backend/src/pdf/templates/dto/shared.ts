@@ -4,6 +4,7 @@ import { Company } from "../../../modules/companies/company.types";
 import { DocumentComplete } from "../../../modules/documents/document_complete.types";
 import { lineTotal } from "../../../modules/documents/document.calculations";
 import { ClientDto, CompanyDto, DocumentSectionDto } from "../document.types";
+import { DocumentRecipient } from "../../../modules/documents/document.types";
 
 const round2 = (value: number) => Math.round(value * 100) / 100;
 
@@ -54,7 +55,23 @@ export const buildCompanyDto = (company: Company): CompanyDto => ({
     logo: company.logo,
 });
 
-export const buildClientDto = (client: ClientWithAddresses): ClientDto => {
+// A document made out to the "Non défini" placeholder client prints the
+// recipient typed by hand on it instead (see document.service.ts's
+// resolveRecipient) - the placeholder itself has no name or address worth
+// printing.
+export const hasTypedRecipient = (client: ClientWithAddresses, document: DocumentRecipient): boolean =>
+    client.is_placeholder && !!document.recipient_name;
+
+export const buildClientDto = (client: ClientWithAddresses, document: DocumentRecipient): ClientDto => {
+    if (hasTypedRecipient(client, document)) {
+        return {
+            name: document.recipient_name ?? "",
+            complement: document.recipient_complement,
+            street: document.recipient_street ?? "",
+            city: document.recipient_city ?? "",
+            postalCodeCity: `${document.recipient_postal_code ?? ""} ${document.recipient_city ?? ""}`.trim(),
+        };
+    }
     const address = resolveBillingAddress(client);
     return {
         name: clientDisplayName(client),

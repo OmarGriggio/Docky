@@ -4,7 +4,7 @@ import { DocumentComplete } from "../../../modules/documents/document_complete.t
 import { Company } from "../../../modules/companies/company.types";
 import { QrBillCreditor, SwissQrBillDto } from "../../swiss-qr-bill/swiss-qr-bill.types";
 import { PDF_LABELS, toPdfLanguage } from "../pdf-labels";
-import { resolveBillingAddress } from "./shared";
+import { buildClientDto, hasTypedRecipient, resolveBillingAddress } from "./shared";
 
 // The company itself is always the creditor - shared by the invoice's own
 // QR-bill below and the standalone slip (pdf/qr-bill-slip.ts).
@@ -26,14 +26,26 @@ export const createSwissQrBillDto = (
     const address = resolveBillingAddress(client);
     const labels = PDF_LABELS[toPdfLanguage(client.language)];
 
+    // A recipient typed by hand: same lines as printed on the document, the
+    // complement folded in front of the street (the combined address format
+    // has no field of its own for it), always in Switzerland for now.
+    const recipient = hasTypedRecipient(client, document) ? buildClientDto(client, document) : null;
+
     return {
         creditor: buildQrBillCreditor(company),
-        debtor: {
-            name: clientDisplayName(client),
-            addressLine1: address ? address.street : "",
-            addressLine2: address ? `${address.postal_code ?? ""} ${address.city ?? ""}`.trim() : "",
-            country: toIsoCountryCode(address?.country ?? null),
-        },
+        debtor: recipient
+            ? {
+                name: recipient.name,
+                addressLine1: [recipient.complement, recipient.street].filter(Boolean).join(", "),
+                addressLine2: recipient.postalCodeCity,
+                country: "CH",
+            }
+            : {
+                name: clientDisplayName(client),
+                addressLine1: address ? address.street : "",
+                addressLine2: address ? `${address.postal_code ?? ""} ${address.city ?? ""}`.trim() : "",
+                country: toIsoCountryCode(address?.country ?? null),
+            },
         payment: {
             amount: document.amount_incl_vat,
             currency: "CHF",

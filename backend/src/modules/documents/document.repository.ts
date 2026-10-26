@@ -187,7 +187,12 @@ export const updateDocumentInDB = async (
       introduction = $7,
       conclusion = $8,
       payment_terms = $9,
-      due_date = $10
+      due_date = $10,
+      recipient_name = $13,
+      recipient_complement = $14,
+      recipient_street = $15,
+      recipient_postal_code = $16,
+      recipient_city = $17
       WHERE id = $11 AND company_id = $12
     RETURNING *;
   `;
@@ -204,7 +209,12 @@ export const updateDocumentInDB = async (
     data.payment_terms,
     data.due_date,
     id,
-    company_id
+    company_id,
+    data.recipient_name,
+    data.recipient_complement,
+    data.recipient_street,
+    data.recipient_postal_code,
+    data.recipient_city
   ];
 
   const result = await db().query(query, values);
@@ -232,9 +242,14 @@ export const createDocumentInDB = async (
       introduction,
       conclusion,
       payment_terms,
-      due_date
+      due_date,
+      recipient_name,
+      recipient_complement,
+      recipient_street,
+      recipient_postal_code,
+      recipient_city
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
     RETURNING *;
   `;
 
@@ -255,7 +270,12 @@ export const createDocumentInDB = async (
     document.introduction,
     document.conclusion,
     document.payment_terms,
-    document.due_date
+    document.due_date,
+    document.recipient_name,
+    document.recipient_complement,
+    document.recipient_street,
+    document.recipient_postal_code,
+    document.recipient_city
   ];
 
   const result = await db().query(query, values);

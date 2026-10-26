@@ -1,4 +1,5 @@
-import { CreateDocumentData, UpdateDocumentData, DocumentType, DocumentStatus, Document, DocumentContentSection } from "./document.types";
+import { CreateDocumentData, UpdateDocumentData, DocumentType, DocumentStatus, Document, DocumentContentSection, DocumentRecipient } from "./document.types";
+import { Client } from "../clients/client.types";
 import {
   getDocumentsFromDB,
   getDocumentsByTypeFromDB,
@@ -77,6 +78,47 @@ export const generateDocumentNumber = async (company_id: number, type: DocumentT
 // or nonsensical, whatever the frontend's own inputs allow.
 // documents.address_id (the "Lieu/Bâtiment") has to be one of this same
 // client's own addresses - not another client's, nor another company's.
+const NO_RECIPIENT: DocumentRecipient = {
+  recipient_name: null,
+  recipient_complement: null,
+  recipient_street: null,
+  recipient_postal_code: null,
+  recipient_city: null,
+};
+
+// Column widths of 008_add_document_recipient_columns.sql - also the QR-bill's
+// own limits for a name/address line.
+const RECIPIENT_MAX_LENGTHS: Record<keyof DocumentRecipient, number> = {
+  recipient_name: 70,
+  recipient_complement: 70,
+  recipient_street: 70,
+  recipient_postal_code: 16,
+  recipient_city: 35,
+};
+
+// A document made out to the "Non défini" placeholder needs its recipient
+// typed by hand - at least a name and a postcode + town (what a letter and
+// the QR-bill can't do without). A document for a real client never
+// carries one: whatever the body sent is dropped, its client's own address
+// is what prints.
+const resolveRecipient = (client: Client, data: Partial<DocumentRecipient>): DocumentRecipient => {
+  if (!client.is_placeholder) {
+    return NO_RECIPIENT;
+  }
+  const recipient = { ...NO_RECIPIENT };
+  for (const key of Object.keys(RECIPIENT_MAX_LENGTHS) as (keyof DocumentRecipient)[]) {
+    const value = typeof data[key] === "string" ? (data[key] as string).trim() : "";
+    if (value.length > RECIPIENT_MAX_LENGTHS[key]) {
+      throw new AppError(`${key} can't be longer than ${RECIPIENT_MAX_LENGTHS[key]} characters`, 400);
+    }
+    recipient[key] = value || null;
+  }
+  if (!recipient.recipient_name || !recipient.recipient_postal_code || !recipient.recipient_city) {
+    throw new AppError("A recipient typed by hand needs at least a name, a postcode and a town", 400);
+  }
+  return recipient;
+};
+
 const assertClientAddress = async (address_id: number | null | undefined, client_id: number, company_id: number) => {
   if (address_id == null) {
     return;
@@ -112,6 +154,7 @@ export const addDocumentServ = async (documentData: CreateDocumentData, company_
     throw new NotFoundError("Client not found");
   }
   await assertClientAddress(documentData.address_id, client.id, company_id);
+  const recipient = resolveRecipient(client, documentData);
 
   // A quote is where the need gets defined - it never derives from anything.
   // Only an INVOICE can point at the PROJECT document it bills, via
@@ -147,6 +190,7 @@ export const addDocumentServ = async (documentData: CreateDocumentData, company_
   // (updateDocumentStatusServ, acceptQuoteServ).
   return await createDocumentInDB({
     ...documentData,
+    ...recipient,
     parent_document_id,
     company_id,
     number,
@@ -189,8 +233,9 @@ export const updateDocumentServ = async (id: number, company_id: number, documen
     throw new NotFoundError("Client not found");
   }
   await assertClientAddress(documentData.address_id, client.id, company_id);
+  const recipient = resolveRecipient(client, documentData);
 
-  await updateDocumentInDB(id, company_id, documentData);
+  await updateDocumentInDB(id, company_id, { ...documentData, ...recipient });
   // discount/vat_rate may have just changed - the stored totals were
   // computed against the old ones, so the row just written back isn't the
   // final one; recomputeDocumentTotalsServ's own result is.
@@ -406,6 +451,13 @@ const acceptQuoteInTransaction = async (id: number, company_id: number) => {
     is_active: true,
     amount_excl_vat: 0,
     amount_incl_vat: 0,
+    // A quote made out to a recipient typed by hand keeps that recipient on
+    // its chantier (and the invoice built from it) - same "Non défini" client.
+    recipient_name: quote.recipient_name,
+    recipient_complement: quote.recipient_complement,
+    recipient_street: quote.recipient_street,
+    recipient_postal_code: quote.recipient_postal_code,
+    recipient_city: quote.recipient_city,
   });
 
   const sections = await getSectionsByDocumentIdFromDB(id);
@@ -455,7 +507,9 @@ const acceptQuoteInTransaction = async (id: number, company_id: number) => {
     company_id,
     document_id: projectDocument.id,
     client_id: quote.client_id,
-    name: clientDisplayName(client),
+    // Named after whoever it's for - the typed-in recipient when the client
+    // is the "Non défini" placeholder, which alone would say nothing.
+    name: (client.is_placeholder && quote.recipient_name) || clientDisplayName(client),
   });
 
   return accepted;

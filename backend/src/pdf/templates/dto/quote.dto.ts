@@ -18,7 +18,7 @@ export const createQuoteDto = (document: DocumentComplete, client: ClientWithAdd
         date: document.date,
         validUntil: document.due_date,
         company: buildCompanyDto(company),
-        client: buildClientDto(client),
+        client: buildClientDto(client, document),
         sections: buildSections(document),
         amountExclVat: document.amount_excl_vat,
         amountInclVat: document.amount_incl_vat,

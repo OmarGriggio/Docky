@@ -90,6 +90,9 @@ export const drawLetterHead = async (
     pdf.lowerCursorTo(pdf.remainingHeight() - 20);
 
     pdf.text(client.name, { bold: true, indent: 250 });
+    if (client.complement) {
+        pdf.text(client.complement, { indent: 250 });
+    }
     pdf.text(client.street, { indent: 250 });
     pdf.text(client.postalCodeCity, { indent: 250, marginBottom: 15 });
 

@@ -38,7 +38,7 @@ export const createInvoiceDto = (document: DocumentComplete, client: ClientWithA
             ...buildCompanyDto(company),
             vatNumber: company.vat_number,
         },
-        client: buildClientDto(client),
+        client: buildClientDto(client, document),
         location: resolveLocation(document, client),
         referenceClient: document.reference_client,
         sections: buildSections(document),
