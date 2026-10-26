@@ -74,10 +74,6 @@ export const generateDocumentNumber = async (company_id: number, type: DocumentT
   return `${prefix}${nextSequence}`;
 };
 
-// Both are percentages - anything outside 0-100 would make a total negative
-// or nonsensical, whatever the frontend's own inputs allow.
-// documents.address_id (the "Lieu/Bâtiment") has to be one of this same
-// client's own addresses - not another client's, nor another company's.
 const NO_RECIPIENT: DocumentRecipient = {
   recipient_name: null,
   recipient_complement: null,
@@ -101,6 +97,9 @@ const RECIPIENT_MAX_LENGTHS: Record<keyof DocumentRecipient, number> = {
 // the QR-bill can't do without). A document for a real client never
 // carries one: whatever the body sent is dropped, its client's own address
 // is what prints.
+const CONTROL_CHARACTERS = /[\x00-\x1F\x7F]/;
+const QR_ADDRESS_LINE_MAX = 70;
+
 const resolveRecipient = (client: Client, data: Partial<DocumentRecipient>): DocumentRecipient => {
   if (!client.is_placeholder) {
     return NO_RECIPIENT;
@@ -111,14 +110,28 @@ const resolveRecipient = (client: Client, data: Partial<DocumentRecipient>): Doc
     if (value.length > RECIPIENT_MAX_LENGTHS[key]) {
       throw new AppError(`${key} can't be longer than ${RECIPIENT_MAX_LENGTHS[key]} characters`, 400);
     }
+    // A line break or other control character would shift every field after
+    // it in the QR-bill's own line-based payload.
+    if (CONTROL_CHARACTERS.test(value)) {
+      throw new AppError(`${key} can't contain line breaks or control characters`, 400);
+    }
     recipient[key] = value || null;
   }
   if (!recipient.recipient_name || !recipient.recipient_postal_code || !recipient.recipient_city) {
     throw new AppError("A recipient typed by hand needs at least a name, a postcode and a town", 400);
   }
+  // The QR-bill folds the complement in front of the street on one 70-character
+  // line ("complement, street") - checked now rather than found out when the
+  // invoice's PDF fails, possibly once it's already sent and frozen.
+  const qrAddressLine = [recipient.recipient_complement, recipient.recipient_street].filter(Boolean).join(", ");
+  if (qrAddressLine.length > QR_ADDRESS_LINE_MAX) {
+    throw new AppError(`The complement and the street together can't be longer than ${QR_ADDRESS_LINE_MAX - 2} characters`, 400, "RECIPIENT_ADDRESS_TOO_LONG");
+  }
   return recipient;
 };
 
+// documents.address_id (the "Lieu/Bâtiment") has to be one of this same
+// client's own addresses - not another client's, nor another company's.
 const assertClientAddress = async (address_id: number | null | undefined, client_id: number, company_id: number) => {
   if (address_id == null) {
     return;
@@ -129,6 +142,8 @@ const assertClientAddress = async (address_id: number | null | undefined, client
   }
 };
 
+// Both are percentages - anything outside 0-100 would make a total negative
+// or nonsensical, whatever the frontend's own inputs allow.
 const assertValidRates = (discount: number, vat_rate: number) => {
   if (!(discount >= 0 && discount <= 100)) {
     throw new AppError("discount must be between 0 and 100", 400);
@@ -235,7 +250,10 @@ export const updateDocumentServ = async (id: number, company_id: number, documen
   await assertClientAddress(documentData.address_id, client.id, company_id);
   const recipient = resolveRecipient(client, documentData);
 
-  await updateDocumentInDB(id, company_id, { ...documentData, ...recipient });
+  const updated = await updateDocumentInDB(id, company_id, { ...documentData, ...recipient });
+  if (!updated) {
+    throw new ConflictError("This document can no longer be edited");
+  }
   // discount/vat_rate may have just changed - the stored totals were
   // computed against the old ones, so the row just written back isn't the
   // final one; recomputeDocumentTotalsServ's own result is.

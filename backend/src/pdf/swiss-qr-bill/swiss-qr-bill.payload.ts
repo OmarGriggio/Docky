@@ -12,6 +12,9 @@ import { SwissQrBillDto } from "./swiss-qr-bill.types";
 export function buildSwissQrBillPayload(dto: SwissQrBillDto): string {
     const { creditor, debtor, payment } = dto;
 
+    // One field per line: a line break (or any control character) inside a
+    // value - a client name typed with one - would shift every field after
+    // it, so it's flattened to a space.
     return [
         "SPC",
         "0200",
@@ -47,5 +50,5 @@ export function buildSwissQrBillPayload(dto: SwissQrBillDto): string {
 
         "EPD",
         "", "", "",
-    ].join("\n");
+    ].map(field => String(field).replace(/[\x00-\x1F\x7F]/g, " ")).join("\n");
 }

@@ -171,11 +171,15 @@ export const updateDocumentStatusInDB = async (id: number, company_id: number, s
   return result.rows[0] ?? null;
 };
 
+// Only while the document is still open for editing (a DRAFT, or a SENT
+// quote - document.service.ts's isOpenForEditing), checked in the UPDATE
+// itself: an edit racing a switch to SENT then matches nothing (null)
+// instead of rewriting an invoice that's just been sent.
 export const updateDocumentInDB = async (
   id: number,
   company_id: number,
   data: UpdateDocumentData
-): Promise<Document> => {
+): Promise<Document | null> => {
   const query = `
     UPDATE documents SET
       client_id = $1,
@@ -194,6 +198,7 @@ export const updateDocumentInDB = async (
       recipient_postal_code = $16,
       recipient_city = $17
       WHERE id = $11 AND company_id = $12
+        AND (status = 'DRAFT' OR (type = 'QUOTE' AND status = 'SENT'))
     RETURNING *;
   `;
 
@@ -218,7 +223,7 @@ export const updateDocumentInDB = async (
   ];
 
   const result = await db().query(query, values);
-  return result.rows[0];
+  return result.rows[0] ?? null;
 };
 
 export const createDocumentInDB = async (
