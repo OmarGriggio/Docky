@@ -1,4 +1,5 @@
 import { Component, HostListener, inject, signal, computed } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRouteSnapshot, NavigationEnd, Router, RouterLink } from '@angular/router';
 import { filter } from 'rxjs';
 import { Breadcrumb } from 'primeng/breadcrumb';
@@ -44,6 +45,7 @@ export class Header {
 
   private router = inject(Router);
   private transloco = inject(TranslocoService);
+  private translation = toSignal(this.transloco.selectTranslation());
 
   isAuthenticated = inject(AuthService).isAuthenticated;
 
@@ -56,9 +58,13 @@ export class Header {
 
   items = computed<MenuItem[]>(() => {
     // PrimeNG's Breadcrumb renders `label` as plain text (no pipe applied
-    // for us) - translated right here. Reading activeLang() first is what
-    // makes this computed re-run (and re-translate) on a language switch.
-    this.transloco.activeLang();
+    // for us) - translated right here, once the active language's file has
+    // loaded: reading activeLang() alone made this run before that, log a
+    // "Missing translation" and keep showing the raw key. `translation`
+    // emits again on every language switch, so the trail re-translates too.
+    if (!this.translation()) {
+      return [];
+    }
     const trail = this.trail();
     const visible = trail.slice(-MAX_VISIBLE);
     const items: MenuItem[] = visible.map((entry, index) => {
