@@ -282,6 +282,24 @@ export class DocumentForm implements OnInit {
   errorMessage = signal<string | null>(null);
   submitting = signal(false);
 
+  // The document's own status - DRAFT for a new one, the saved one when
+  // editing (loadForEdit). Only shown here (the status bar in the toolbar,
+  // see statusSteps); it's changed from the documents list, not this page.
+  status = signal<DocumentStatus>('DRAFT');
+
+  // The toolbar's status bar, Odoo-style: the path a document of this type
+  // goes through, its current step highlighted. The last step is whichever
+  // way it actually ended (ACCEPTED or REJECTED, PAID or CANCELLED) - or the
+  // usual happy ending while it's still open. A method, not a computed:
+  // `type` is a plain property, set from the route.
+  statusSteps(): DocumentStatus[] {
+    const current = this.status();
+    if (this.type === 'INVOICE') {
+      return ['DRAFT', 'SENT', current === 'CANCELLED' ? 'CANCELLED' : 'PAID'];
+    }
+    return ['DRAFT', 'SENT', current === 'REJECTED' ? 'REJECTED' : 'ACCEPTED'];
+  }
+
   documentSubtotal = computed(() =>
     round2(this.sections().reduce((sum, section) => sum + sectionTotal(section), 0))
   );
@@ -551,6 +569,9 @@ export class DocumentForm implements OnInit {
         // shared/models/document.ts) - never editable through this page
         // either way, though nothing currently routes one here.
         this.locked.set(!isOpenForEditing(source.type, source.status));
+        if (source.status) {
+          this.status.set(source.status);
+        }
         this.date.set(fromDateOnly(source.date));
         this.dueDate.set(source.due_date ? fromDateOnly(source.due_date) : null);
         this.dueDateTouched = true;

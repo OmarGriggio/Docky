@@ -1,16 +1,50 @@
 <div class="flex justify-center py-8 px-4">
   <p-card styleClass="ui-card--elevated w-full max-w-280">
-    @if (type === 'INVOICE' && editingDocumentId() === null) {
-      <div class="flex justify-end mb-4">
+    <div class="sticky top-0 z-10 -mx-5 -mt-5 mb-6 px-5 py-3 bg-white border-b border-gray-200 rounded-t-[inherit] flex flex-wrap items-center justify-between gap-3">
+      <div class="flex flex-wrap items-center gap-2">
+        <p-button
+          size="small"
+          type="button"
+          [label]="'documentTemplates.save' | transloco"
+          [loading]="submitting()"
+          [disabled]="locked()"
+          (onClick)="submit()"
+        />
         <p-button
           size="small"
           type="button"
           severity="secondary"
-          [outlined]="true"
-          [label]="'documents.form.scanButton' | transloco"
-          (onClick)="openScanDialog()"
+          [label]="'common.cancel' | transloco"
+          (onClick)="cancel()"
         />
+        @if (type === 'INVOICE' && editingDocumentId() === null) {
+          <p-button
+            size="small"
+            type="button"
+            severity="secondary"
+            [outlined]="true"
+            icon="pi pi-file-import"
+            [label]="'documents.form.scanButton' | transloco"
+            (onClick)="openScanDialog()"
+          />
+        }
       </div>
+
+      <div class="flex text-xs font-medium" role="list" [attr.aria-label]="'projects.columnStatus' | transloco">
+        @for (step of statusSteps(); track step; let first = $first) {
+          <span
+            role="listitem"
+            [attr.aria-current]="step === status() ? 'step' : null"
+            class="py-1.5 pr-4"
+            [class]="(first ? 'pl-3 [clip-path:polygon(0_0,calc(100%_-_8px)_0,100%_50%,calc(100%_-_8px)_100%,0_100%)]' : '-ml-1 pl-5 [clip-path:polygon(0_0,calc(100%_-_8px)_0,100%_50%,calc(100%_-_8px)_100%,0_100%,8px_50%)]')
+              + (step === status() ? ' bg-green-700 text-white' : ' bg-gray-100 text-gray-500')"
+          >{{ 'documents.status.' + step | transloco }}</span>
+        }
+      </div>
+    </div>
+
+    @if (errorMessage()) {
+      <p class="text-[#d32f2f] m-0 mb-4">{{ errorMessage() }}</p>
     }
 
     @if (scanTruncatedWarning()) {
@@ -114,27 +148,6 @@
       </div>
     </div>
 
-    @if (errorMessage()) {
-      <p class="text-[#d32f2f] m-0 mb-4">{{ errorMessage() }}</p>
-    }
-
-    <div class="ui-form__actions">
-      <p-button
-        size="small"
-        type="button"
-        [label]="'common.cancel' | transloco"
-        severity="secondary"
-        (onClick)="cancel()"
-      />
-      <p-button
-        size="small"
-        type="button"
-        [label]="'documentTemplates.save' | transloco"
-        [loading]="submitting()"
-        [disabled]="locked()"
-        (onClick)="submit()"
-      />
-    </div>
   </p-card>
 
   <p-dialog
