@@ -30,6 +30,7 @@ import { DocumentTextBlock } from './document-text-block/document-text-block';
 import { DocumentSections } from './document-sections/document-sections';
 import { DraftSection, nextDraftId, round2, sectionTotal, usedResourceIds } from './document-draft';
 import { matchClientByName } from './document-scan-match';
+import { qrBillErrorKey } from '../../../shared/utils/api-error';
 
 // Matches document.service.ts's own isOpenForEditing on the backend -
 // duplicated here purely so the form can hide/disable itself instead of
@@ -281,6 +282,9 @@ export class DocumentForm implements OnInit {
 
   errorMessage = signal<string | null>(null);
   submitting = signal(false);
+  // "Document enregistré" under the toolbar after a save - the page stays
+  // open now instead of going back to the list.
+  saveMessage = signal<string | null>(null);
 
   // The document's own status - DRAFT for a new one, the saved one when
   // editing (loadForEdit). Only shown here (the status bar in the toolbar,
@@ -560,6 +564,10 @@ export class DocumentForm implements OnInit {
   // this exact document instead of creating a new one.
   private loadForEdit(id: number): void {
     this.editingDocumentId.set(id);
+    // Just created by this same form (see submit()) - say so.
+    if (history.state?.saved) {
+      this.saveMessage.set(this.transloco.translate('documents.form.saved'));
+    }
 
     this.documentCompleteService.getDocumentComplete(id).subscribe({
       next: source => {
@@ -721,6 +729,40 @@ export class DocumentForm implements OnInit {
     this.importedSectionIds.clear();
   }
 
+  private onSaved(): void {
+    this.submitting.set(false);
+    this.saveMessage.set(this.transloco.translate('documents.form.saved'));
+  }
+
+  // "Aperçu" - the saved document's own PDF (what the backend has, so
+  // unsaved edits on the page aren't in it), in a new tab. The tab is opened
+  // right away, in the click itself: one opened later, once the PDF has
+  // arrived, is what popup blockers stop.
+  openPreview(): void {
+    const id = this.editingDocumentId();
+    if (id === null) {
+      return;
+    }
+    this.errorMessage.set(null);
+    const tab = window.open('', '_blank');
+    const pdf$ = this.type === 'INVOICE' ? this.documentService.getInvoicePdf(id) : this.documentService.getQuotePdf(id);
+    pdf$.subscribe({
+      next: blob => {
+        const url = URL.createObjectURL(blob);
+        if (tab) {
+          tab.location.href = url;
+        } else {
+          window.open(url, '_blank');
+        }
+      },
+      error: async err => {
+        console.error('document-form : ' + err);
+        tab?.close();
+        this.errorMessage.set(this.transloco.translate(await qrBillErrorKey(err, 'documents.pdfError')));
+      }
+    });
+  }
+
   cancel(): void {
     this.router.navigate(['/documents'], { queryParams: { type: this.type } });
   }
@@ -752,6 +794,7 @@ export class DocumentForm implements OnInit {
     }
 
     this.errorMessage.set(null);
+    this.saveMessage.set(null);
     this.submitting.set(true);
 
     try {
@@ -774,7 +817,7 @@ export class DocumentForm implements OnInit {
 
         await firstValueFrom(this.documentService.replaceContent(editingId, this.contentForApi()));
 
-        this.router.navigate(['/documents'], { queryParams: { type: this.type } });
+        this.onSaved();
         return;
       }
 
@@ -809,7 +852,12 @@ export class DocumentForm implements OnInit {
 
       await firstValueFrom(this.documentService.replaceContent(document.id, this.contentForApi()));
 
-      this.router.navigate(['/documents'], { queryParams: { type: this.type } });
+      // Same page, now editing the document it just created: documents/:id
+      // (replacing documents/new in the history, so "back" doesn't lead to a
+      // blank form again) - its title, number, breadcrumb and "Aperçu" all
+      // follow, and a reload opens this same document. The "saved" flag
+      // carries the confirmation over to the page that loads (loadForEdit).
+      this.router.navigate(['/documents', document.id], { replaceUrl: true, state: { saved: true } });
     } catch (err) {
       console.error('document-form : ' + err);
       this.submitting.set(false);

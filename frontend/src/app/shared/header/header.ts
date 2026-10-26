@@ -119,7 +119,12 @@ export class Header {
     }
     const path = '/' + parsed.root.children['primary']?.segments.map(segment => segment.path).join('/');
 
-    this.setTrail([...trail, { label, path, queryParams, key: url }].slice(-MAX_STORED));
+    // A navigation that replaces the current page (replaceUrl - e.g. a new
+    // document, once saved, becoming documents/:id) replaces its entry too,
+    // instead of leaving the page it replaced behind in the trail.
+    const replaced = this.router.lastSuccessfulNavigation()?.extras.replaceUrl === true;
+    const kept = replaced ? trail.slice(0, -1) : trail;
+    this.setTrail([...kept, { label, path, queryParams, key: url }].slice(-MAX_STORED));
   }
 
   // The last label the active route chain declares (see RouteBreadcrumb).

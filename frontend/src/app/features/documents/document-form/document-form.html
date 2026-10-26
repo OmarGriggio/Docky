@@ -17,6 +17,17 @@
           [label]="'common.cancel' | transloco"
           (onClick)="cancel()"
         />
+        @if (editingDocumentId() !== null) {
+          <p-button
+            size="small"
+            type="button"
+            severity="secondary"
+            [outlined]="true"
+            icon="pi pi-file-pdf"
+            [label]="'documents.form.preview' | transloco"
+            (onClick)="openPreview()"
+          />
+        }
         @if (type === 'INVOICE' && editingDocumentId() === null) {
           <p-button
             size="small"
@@ -45,6 +56,10 @@
 
     @if (errorMessage()) {
       <p class="text-[#d32f2f] m-0 mb-4">{{ errorMessage() }}</p>
+    }
+
+    @if (saveMessage()) {
+      <p class="text-green-700 m-0 mb-4">{{ saveMessage() }}</p>
     }
 
     @if (scanTruncatedWarning()) {

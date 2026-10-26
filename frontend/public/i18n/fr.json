@@ -313,7 +313,9 @@
       "scanError": "Impossible d'analyser ce document.",
       "scanRateLimited": "Trop de scans, réessaie plus tard.",
       "scanTruncated": "Document tronqué avant l'analyse (trop long).",
-      "recipientRequired": "Saisie manuelle : le nom, le NPA et la ville sont obligatoires."
+      "recipientRequired": "Saisie manuelle : le nom, le NPA et la ville sont obligatoires.",
+      "preview": "Aperçu",
+      "saved": "Document enregistré."
     },
     "pdfError": "Impossible de générer le PDF."
   },

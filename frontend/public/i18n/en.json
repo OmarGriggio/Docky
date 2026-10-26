@@ -313,7 +313,9 @@
       "scanError": "Could not analyze this document.",
       "scanRateLimited": "Too many scans, try again later.",
       "scanTruncated": "Document truncated before analysis (too long).",
-      "recipientRequired": "Typed-in recipient: the name, postcode and town are required."
+      "recipientRequired": "Typed-in recipient: the name, postcode and town are required.",
+      "preview": "Preview",
+      "saved": "Document saved."
     },
     "pdfError": "Couldn't generate the PDF."
   },
