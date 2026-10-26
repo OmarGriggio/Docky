@@ -91,6 +91,11 @@ VALUES
 
 UPDATE clients SET language = 'EN' WHERE company_id = 2;
 
+-- The "Non défini" placeholder survives the reset (see the DELETE above) -
+-- put back to its English values, same as 007_add_placeholder_client.sql.
+UPDATE clients SET company_name = 'Not specified', title = 'Dear Sir or Madam', language = 'EN'
+WHERE company_id = 2 AND is_placeholder = TRUE;
+
 -- ==========================================
 -- ADDRESSES
 -- ==========================================

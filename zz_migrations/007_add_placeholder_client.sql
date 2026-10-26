@@ -19,3 +19,10 @@ INSERT INTO clients (company_id, client_number, type, company_name, title, langu
 SELECT c.id, 'NON-DEFINI', 'PROFESSIONAL', 'Non défini', 'Madame, Monsieur', 'FR', TRUE, TRUE
 FROM companies c
 WHERE NOT EXISTS (SELECT 1 FROM clients cl WHERE cl.company_id = c.id AND cl.is_placeholder = TRUE);
+
+-- Company 2, the demo company, works entirely in English (see
+-- 004_set_demo_company_language.sql): its placeholder too, so a recruiter
+-- typing a recipient in gets an English PDF. Kept the same by
+-- scripts/reset-demo-company.sql.
+UPDATE clients SET company_name = 'Not specified', title = 'Dear Sir or Madam', language = 'EN'
+WHERE company_id = 2 AND is_placeholder = TRUE;

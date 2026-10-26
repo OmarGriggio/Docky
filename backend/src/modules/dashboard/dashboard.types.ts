@@ -10,6 +10,7 @@ export interface PaidAmountByClient {
   company_name: string | null;
   first_name: string | null;
   last_name: string | null;
+  is_placeholder: boolean;
   total_paid: number;
 }
 

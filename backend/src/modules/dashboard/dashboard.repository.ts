@@ -9,12 +9,12 @@ import { OpenInvoicesTotal, PaidAmountByClient } from "./dashboard.types";
 // total. Ordered highest-paying client first.
 export const getPaidAmountByClientFromDB = async (company_id: number): Promise<PaidAmountByClient[]> => {
   const query = `
-    SELECT c.id AS client_id, c.client_number, c.company_name, c.first_name, c.last_name,
+    SELECT c.id AS client_id, c.client_number, c.company_name, c.first_name, c.last_name, c.is_placeholder,
            SUM(d.amount_incl_vat) AS total_paid
     FROM documents d
     JOIN clients c ON c.id = d.client_id
     WHERE d.company_id = $1 AND d.type = 'INVOICE' AND d.status = 'PAID'
-    GROUP BY c.id, c.client_number, c.company_name, c.first_name, c.last_name
+    GROUP BY c.id, c.client_number, c.company_name, c.first_name, c.last_name, c.is_placeholder
     ORDER BY total_paid DESC;
   `;
 
