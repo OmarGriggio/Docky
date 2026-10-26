@@ -232,7 +232,9 @@
     "today": "Aujourd'hui",
     "month": "Mois",
     "week": "Semaine",
-    "day": "Jour"
+    "day": "Jour",
+    "list": "Liste",
+    "addNote": "Note"
   },
   "documents": {
     "columnNumber": "Numéro",

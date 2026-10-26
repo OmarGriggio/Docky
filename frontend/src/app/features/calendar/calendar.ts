@@ -1,11 +1,12 @@
-import { AfterViewInit, Component, effect, ElementRef, inject, OnInit, signal, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, DestroyRef, effect, ElementRef, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { FullCalendarComponent, FullCalendarModule } from '@fullcalendar/angular';
-import { CalendarOptions, EventClickArg, EventDropArg, EventHoveringArg, EventInput } from '@fullcalendar/core';
+import { CalendarOptions, EventClickArg, ToolbarInput, EventDropArg, EventHoveringArg, EventInput } from '@fullcalendar/core';
 import frLocale from '@fullcalendar/core/locales/fr';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
+import listPlugin from '@fullcalendar/list';
 import interactionPlugin, { DateClickArg, Draggable, EventReceiveArg, EventResizeDoneArg } from '@fullcalendar/interaction';
 import { Dialog } from 'primeng/dialog';
 import { Button } from 'primeng/button';
@@ -28,6 +29,11 @@ import { TabIndentDirective } from '../../shared/directives/tab-indent.directive
 // from a section's own (future: per-chantier) color.
 const NOTE_COLOR = '#9ca3af';
 
+// Same breakpoint as Tailwind's md (the nav-bar turns into a bottom bar
+// below it): a phone gets a week list instead of the month grid, which is
+// unreadable on a 6" screen.
+const MOBILE_QUERY = '(max-width: 767.98px)';
+
 @Component({
   selector: 'app-calendar',
   standalone: true,
@@ -41,6 +47,10 @@ export class CalendarPage implements OnInit, AfterViewInit {
   private documentLineService = inject(DocumentLineService);
   private calendarNoteService = inject(CalendarNoteService);
   private transloco = inject(TranslocoService);
+  private destroyRef = inject(DestroyRef);
+
+  private readonly mobileQuery = window.matchMedia(MOBILE_QUERY);
+  isMobile = signal(this.mobileQuery.matches);
 
   @ViewChild('fullCalendar') fullCalendar!: FullCalendarComponent;
   @ViewChild('unscheduledList') unscheduledListRef!: ElementRef<HTMLElement>;
@@ -96,22 +106,19 @@ export class CalendarPage implements OnInit, AfterViewInit {
   // below (Calendar.setOption(), not a full re-render) - a static object
   // here would only ever match the language active on first load.
   calendarOptions: CalendarOptions = {
-    plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
-    initialView: 'dayGridMonth',
+    plugins: [dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin],
+    initialView: this.isMobile() ? 'listWeek' : 'dayGridMonth',
     locales: [frLocale],
     locale: this.transloco.getActiveLang(),
     firstDay: 1,
     height: 'auto',
-    headerToolbar: {
-      left: 'prev,next today',
-      center: 'title',
-      right: 'dayGridMonth,timeGridWeek,timeGridDay',
-    },
+    ...this.toolbarsFor(this.isMobile()),
     buttonText: this.buttonTextFor(this.transloco.getActiveLang()),
     // timeGridWeek/timeGridDay only - dayGridMonth ignores these.
     slotMinTime: '06:00:00',
     slotMaxTime: '20:00:00',
-    editable: true,
+    // Drag & drop/resize is a desktop gesture - on a phone a tap is a tap.
+    editable: !this.isMobile(),
     eventReceive: info => this.onEventReceive(info),
     eventDrop: info => this.onEventDropOrResize(info),
     eventResize: info => this.onEventDropOrResize(info),
@@ -121,8 +128,38 @@ export class CalendarPage implements OnInit, AfterViewInit {
     dateClick: info => this.onDateClick(info),
   };
 
+  // Phone: the week as a list (the month grid one tap away), arrows and
+  // title on top, the view switch at the bottom where a thumb reaches it.
+  private toolbarsFor(mobile: boolean): { headerToolbar: ToolbarInput; footerToolbar: ToolbarInput | false } {
+    return mobile
+      ? {
+        headerToolbar: { left: 'prev,next', center: 'title', right: 'today' },
+        footerToolbar: { center: 'listWeek,dayGridMonth' },
+      }
+      : {
+        headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek' },
+        footerToolbar: false,
+      };
+  }
+
+  // A window resized (or a phone rotated) across the breakpoint switches the
+  // calendar over without a reload.
+  private readonly onMobileChange = (event: MediaQueryListEvent) => {
+    this.isMobile.set(event.matches);
+    const api = this.fullCalendar?.getApi();
+    if (!api) {
+      return;
+    }
+    const toolbars = this.toolbarsFor(event.matches);
+    api.setOption('headerToolbar', toolbars.headerToolbar);
+    api.setOption('footerToolbar', toolbars.footerToolbar);
+    api.setOption('editable', !event.matches);
+    api.changeView(event.matches ? 'listWeek' : 'dayGridMonth');
+  };
+
   private buttonTextFor(lang: string) {
     return {
+      list: this.transloco.translate('calendar.list', {}, lang),
       today: this.transloco.translate('calendar.today', {}, lang),
       month: this.transloco.translate('calendar.month', {}, lang),
       week: this.transloco.translate('calendar.week', {}, lang),
@@ -146,6 +183,8 @@ export class CalendarPage implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.loadUnscheduledSections();
+    this.mobileQuery.addEventListener('change', this.onMobileChange);
+    this.destroyRef.onDestroy(() => this.mobileQuery.removeEventListener('change', this.onMobileChange));
   }
 
   // The Draggable registration only needs to happen once - it delegates to
@@ -220,6 +259,19 @@ export class CalendarPage implements OnInit, AfterViewInit {
   // as a starting point (still freely editable before saving), same "drop
   // defaults to +1h in timed views, stays a bare date in month view"
   // convention as onEventReceive below for a dropped section.
+  // "+ Note" - a new note from now (the next full hour, one hour long),
+  // without having to find and tap a day first: the quick way in on a phone.
+  openNewNote(): void {
+    const start = new Date();
+    start.setHours(start.getHours() + 1, 0, 0, 0);
+    this.editingNoteId.set(null);
+    this.noteTitleDraft.set('');
+    this.noteDescriptionDraft.set('');
+    this.noteStartDraft.set(start);
+    this.noteEndDraft.set(new Date(start.getTime() + 60 * 60 * 1000));
+    this.noteDialogVisible.set(true);
+  }
+
   private onDateClick(info: DateClickArg): void {
     const start = new Date(info.date);
     const end = info.allDay ? start : new Date(start.getTime() + 60 * 60 * 1000);

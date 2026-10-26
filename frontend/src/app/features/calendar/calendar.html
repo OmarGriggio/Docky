@@ -1,11 +1,15 @@
 <div
-  class="flex gap-4 items-start flex-wrap bg-white border border-gray-200 rounded-lg shadow-sm p-4"
+  class="flex gap-4 items-start flex-wrap bg-white border border-gray-200 rounded-lg shadow-sm p-2 md:p-4"
 >
-  <div class="flex-1 min-w-80">
+  <div class="flex-1 min-w-0 md:min-w-80 [&_.fc-toolbar-title]:text-lg md:[&_.fc-toolbar-title]:text-2xl">
+    <div class="flex justify-end mb-2">
+      <p-button size="small" icon="pi pi-plus" [label]="'calendar.addNote' | transloco" (onClick)="openNewNote()" />
+    </div>
     <full-calendar #fullCalendar [options]="calendarOptions" />
   </div>
 
-  <div class="w-64 shrink-0 flex flex-col gap-2">
+  <!-- Dragging a section onto a day is a desktop gesture - hidden on a phone. -->
+  <div class="hidden md:flex w-64 shrink-0 flex-col gap-2">
     <h2 class="text-sm font-semibold text-gray-500 uppercase m-0">{{ 'calendar.unscheduledSections' | transloco }}</h2>
     @if (unscheduledSections().length === 0) {
       <p class="text-sm text-gray-500">{{ 'calendar.noUnscheduledSections' | transloco }}</p>
@@ -29,6 +33,7 @@
   [header]="selectedSection()?.project_name ?? ''"
   [modal]="true"
   [style]="{ width: '32rem' }"
+  [breakpoints]="{ '640px': '95vw' }"
 >
   @if (selectedSection(); as section) {
     <div class="flex flex-col gap-3">
@@ -93,6 +98,7 @@
   [header]="(editingNoteId() !== null ? 'calendar.editNote' : 'calendar.newNote') | transloco"
   [modal]="true"
   [style]="{ width: '28rem' }"
+  [breakpoints]="{ '640px': '95vw' }"
 >
   <div class="flex flex-col gap-4">
     <p-floatlabel variant="on">
@@ -120,6 +126,7 @@
           dateFormat="dd.mm.yy"
           [showTime]="true"
           hourFormat="24"
+          [autofocus]="false"
           [fluid]="true"
         />
         <label for="noteStart">{{ 'projects.resources.start' | transloco }}</label>
@@ -133,6 +140,7 @@
           dateFormat="dd.mm.yy"
           [showTime]="true"
           hourFormat="24"
+          [autofocus]="false"
           [fluid]="true"
         />
         <label for="noteEnd">{{ 'projects.resources.end' | transloco }}</label>
