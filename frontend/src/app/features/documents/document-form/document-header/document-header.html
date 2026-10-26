@@ -9,7 +9,17 @@
   </div>
 
   <div class="flex flex-col items-start sm:items-end gap-3 min-w-55">
-    <h2 class="m-0">{{ pageTitle() }}</h2>
+    <div class="flex flex-col items-start sm:items-end gap-1">
+      <h2 class="m-0">{{ pageTitle() }}</h2>
+
+      <p class="m-0 text-[0.8rem] text-[#888] italic">
+        @if (documentNumber(); as number) {
+          {{ 'documents.header.numberPrefix' | transloco: { number } }}
+        } @else {
+          {{ 'documents.header.numberGenerated' | transloco }}
+        }
+      </p>
+    </div>
 
     <p-floatlabel variant="on">
       <p-datepicker inputId="date" [ngModel]="date()" (ngModelChange)="onDateChange($event)" dateFormat="dd.mm.yy" />
@@ -20,14 +30,6 @@
       <p-datepicker inputId="due_date" [ngModel]="dueDate()" (ngModelChange)="dueDate.set($event)" dateFormat="dd.mm.yy" [showClear]="true" />
       <label for="due_date">{{ (type() === 'QUOTE' ? 'documents.header.validUntil' : 'documents.columnDueDate') | transloco }}</label>
     </p-floatlabel>
-
-    <p class="m-0 text-[0.8rem] text-[#888] italic">
-      @if (documentNumber(); as number) {
-        {{ 'documents.header.numberPrefix' | transloco: { number } }}
-      } @else {
-        {{ 'documents.header.numberGenerated' | transloco }}
-      }
-    </p>
   </div>
 </div>
 
