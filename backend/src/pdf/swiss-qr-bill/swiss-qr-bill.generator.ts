@@ -3,6 +3,7 @@ import { buildSwissQrBillPayload } from "./swiss-qr-bill.payload";
 import { SwissQrBillDto } from "./swiss-qr-bill.types";
 import { validateSwissQrBill } from "./swiss-qr-bill.validator";
 import { validateCreditor } from "./validators/creditor.validator";
+import { validatePayment } from "./validators/payment.validator";
 import { ValidationError } from "./validators/validation-error";
 import { AppError } from "../../shared/types/errors";
 
@@ -19,6 +20,11 @@ const errorCodeFor = (dto: SwissQrBillDto): string => {
     }
     if (creditorCodes.length > 0) {
         return "COMPANY_ADDRESS_INCOMPLETE";
+    }
+    // An empty invoice (0.00) or a 100% discount - nothing payable to put on
+    // a slip.
+    if (validatePayment(dto.payment).length > 0) {
+        return "QR_BILL_AMOUNT_INVALID";
     }
     return "QR_BILL_INVALID";
 };
