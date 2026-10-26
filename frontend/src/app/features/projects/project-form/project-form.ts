@@ -64,7 +64,7 @@ export class ProjectForm implements OnInit {
   ngOnInit(): void {
     this.clientService.getClients().subscribe({
       next: data => {
-        this.clients.set(data);
+        this.clients.set(data.filter(client => !client.is_placeholder));
       },
       error: err => {
         console.error("project-form : " + err);

@@ -48,6 +48,7 @@ export class QrBillSlip implements OnInit {
 
   clientOptions = computed(() =>
     this.clients()
+      .filter(client => !client.is_placeholder)
       .map(client => ({ label: clientDisplayName(client), value: client.id }))
       .sort((a, b) => a.label.localeCompare(b.label))
   );

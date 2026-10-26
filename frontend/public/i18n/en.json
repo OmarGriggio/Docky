@@ -264,7 +264,14 @@
       "addClient": "Add a client",
       "addAddress": "Add an address",
       "location": "Location",
-      "referenceClient": "Client reference"
+      "referenceClient": "Client reference",
+      "existingClient": "Existing client",
+      "manualRecipient": "Type it in",
+      "recipientName": "Name",
+      "recipientComplement": "Address complement",
+      "recipientStreet": "Street and number",
+      "recipientPostalCode": "Postcode",
+      "recipientCity": "Town"
     },
     "textBlock": {
       "placeholdersHint": "Variables:",
@@ -305,7 +312,8 @@
       "scanAction": "Scan",
       "scanError": "Could not analyze this document.",
       "scanRateLimited": "Too many scans, try again later.",
-      "scanTruncated": "Document truncated before analysis (too long)."
+      "scanTruncated": "Document truncated before analysis (too long).",
+      "recipientRequired": "Typed-in recipient: the name, postcode and town are required."
     },
     "pdfError": "Couldn't generate the PDF."
   },

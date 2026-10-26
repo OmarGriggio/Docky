@@ -22,7 +22,7 @@ import { Client } from '../../../shared/models/client';
 import { Address } from '../../../shared/models/address';
 import { Project } from '../../../shared/models/project';
 import { Company } from '../../../shared/models/company';
-import { DocumentContentSection, DocumentStatus, DocumentType } from '../../../shared/models/document';
+import { DocumentContentSection, DocumentRecipient, DocumentStatus, DocumentType } from '../../../shared/models/document';
 import { DocumentComplete } from '../../../shared/models/document-complete';
 import { addDays, fromDateOnly, toDateOnly, fillPlaceholders, formatLongDate, DEFAULT_CLIENT_TITLE } from '../../../shared/utils/display';
 import { DocumentHeader } from './document-header/document-header';
@@ -82,6 +82,52 @@ export class DocumentForm implements OnInit {
   companyLogoUrl = computed(() => this.companyService.getFileUrl(this.company()?.logo ?? null));
 
   clients = signal<Client[]>([]);
+
+  // The company's "Non défini" client - what a document whose recipient is
+  // typed by hand ("Saisie manuelle") is made out to. Never offered in the
+  // client picker itself (pickableClients).
+  placeholderClient = computed(() => this.clients().find(client => client.is_placeholder) ?? null);
+  pickableClients = computed(() => this.clients().filter(client => !client.is_placeholder));
+
+  // Manual mode is simply "the selected client is the placeholder" - no
+  // separate flag to keep in sync with selectedClientId.
+  manualRecipient = computed(() => {
+    const placeholder = this.placeholderClient();
+    return placeholder !== null && this.selectedClientId() === placeholder.id;
+  });
+  recipientName = signal('');
+  recipientComplement = signal('');
+  recipientStreet = signal('');
+  recipientPostalCode = signal('');
+  recipientCity = signal('');
+
+  onManualRecipientChange(manual: boolean): void {
+    this.onClientChange(manual ? this.placeholderClient()?.id ?? null : null);
+  }
+
+  // From a document being edited, duplicated or invoiced from its chantier -
+  // only meaningful when it's made out to the placeholder.
+  private applyRecipient(source: DocumentRecipient): void {
+    this.recipientName.set(source.recipient_name ?? '');
+    this.recipientComplement.set(source.recipient_complement ?? '');
+    this.recipientStreet.set(source.recipient_street ?? '');
+    this.recipientPostalCode.set(source.recipient_postal_code ?? '');
+    this.recipientCity.set(source.recipient_city ?? '');
+  }
+
+  // Null across the board for a real client - the backend drops them anyway
+  // (see document.service.ts's resolveRecipient).
+  private recipientForApi(): DocumentRecipient {
+    const manual = this.manualRecipient();
+    const value = (text: string) => (manual ? text.trim() || null : null);
+    return {
+      recipient_name: value(this.recipientName()),
+      recipient_complement: value(this.recipientComplement()),
+      recipient_street: value(this.recipientStreet()),
+      recipient_postal_code: value(this.recipientPostalCode()),
+      recipient_city: value(this.recipientCity()),
+    };
+  }
 
   // Creating a client from the header's "Ajouter un client" dialog: it's
   // added to the list and selected right away, same as picking an existing
@@ -364,6 +410,7 @@ export class DocumentForm implements OnInit {
     this.documentService.getDocument(project.document_id).subscribe({
       next: chantierDocument => {
         this.onClientChange(project.client_id, chantierDocument.address_id);
+        this.applyRecipient(chantierDocument);
         this.onProjectChange(project.id);
         this.loadProjectResources();
       },
@@ -393,6 +440,7 @@ export class DocumentForm implements OnInit {
     this.documentCompleteService.getDocumentComplete(sourceId).subscribe({
       next: source => {
         this.onClientChange(source.client_id, source.address_id);
+        this.applyRecipient(source);
 
         this.introduction.set(source.introduction ?? '');
         this.conclusion.set(source.conclusion ?? '');
@@ -480,7 +528,7 @@ export class DocumentForm implements OnInit {
       this.dueDateTouched = true;
     }
 
-    const match = matchClientByName(this.clients(), data.client_name_guess);
+    const match = matchClientByName(this.pickableClients(), data.client_name_guess);
     if (match) {
       this.onClientChange(match.id);
     }
@@ -509,6 +557,7 @@ export class DocumentForm implements OnInit {
         this.referenceClient.set(source.reference_client ?? '');
 
         this.onClientChange(source.client_id, source.address_id);
+        this.applyRecipient(source);
 
         this.introduction.set(source.introduction ?? '');
         this.conclusion.set(source.conclusion ?? '');
@@ -676,6 +725,11 @@ export class DocumentForm implements OnInit {
       return;
     }
 
+    if (this.manualRecipient() && (!this.recipientName().trim() || !this.recipientPostalCode().trim() || !this.recipientCity().trim())) {
+      this.errorMessage.set(this.transloco.translate('documents.form.recipientRequired'));
+      return;
+    }
+
     this.errorMessage.set(null);
     this.submitting.set(true);
 
@@ -694,6 +748,7 @@ export class DocumentForm implements OnInit {
           due_date: this.dueDateForApi(),
           introduction: this.introduction(),
           conclusion: this.conclusion(),
+          ...this.recipientForApi(),
         }));
 
         await firstValueFrom(this.documentService.replaceContent(editingId, this.contentForApi()));
@@ -721,6 +776,7 @@ export class DocumentForm implements OnInit {
         // Every document starts as a draft - status changes happen
         // afterwards, not at creation.
         status: 'DRAFT',
+        ...this.recipientForApi(),
       }));
 
       // The document exists from here on, whatever happens to its content

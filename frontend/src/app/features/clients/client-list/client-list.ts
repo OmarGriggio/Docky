@@ -137,7 +137,8 @@ export class ClientListComponent implements OnInit {
   private loadClients(): void {
     this.clientService.getClients(this.showArchived()).subscribe({
       next: data => {
-        this.clients.set(data);
+        // "Non défini" isn't a client of its own (see shared/models/client.ts).
+        this.clients.set(data.filter(client => !client.is_placeholder));
       },
       error: err => {
         console.error("client-list : " + err);

@@ -5,7 +5,7 @@ import { Client } from '../../../shared/models/client';
 const client = (overrides: Partial<Client> = {}): Client => ({
     id: 1, client_number: 'C0001', type: 'INDIVIDUAL', company_name: null, vat_number: null,
     last_name: null, first_name: null, title: null, email: 'a@b.ch', phone: null, note: null,
-    language: 'FR', is_active: true,
+    language: 'FR', is_active: true, is_placeholder: false,
     ...overrides,
 });
 

@@ -140,8 +140,10 @@ export class DocumentListComponent implements OnInit {
     });
   }
 
+  // A document made out to a recipient typed by hand (the "Non défini"
+  // client) shows that recipient - "Non défini" itself would say nothing.
   clientName(document: Document): string {
-    return this.clientNames().get(document.client_id) ?? '—';
+    return document.recipient_name ?? this.clientNames().get(document.client_id) ?? '—';
   }
 
   // document.status is null for a PROJECT document only (see
@@ -166,6 +168,9 @@ export class DocumentListComponent implements OnInit {
   // address (address_id) if it has one, else its client's primary address,
   // else whichever address of that client comes first.
   location(document: Document): string {
+    if (document.recipient_name) {
+      return document.recipient_street ?? document.recipient_city ?? '—';
+    }
     const clientAddresses = this.addresses().filter(a => a.client_id === document.client_id);
     const address = clientAddresses.find(a => a.id === document.address_id)
       ?? clientAddresses.find(a => a.is_primary)

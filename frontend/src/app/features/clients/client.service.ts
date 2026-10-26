@@ -24,7 +24,7 @@ export class ClientService {
 
   // language isn't set at creation - the backend defaults it to 'FR', see
   // client.types.ts's own addClientServ parameter type.
-  createClient(client: Omit<Client, 'id' | 'is_active' | 'language'>) {
+  createClient(client: Omit<Client, 'id' | 'is_active' | 'language' | 'is_placeholder'>) {
     return this.http.post<Client>(`${API_BASE}/client`, client);
   }
 

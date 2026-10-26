@@ -7,7 +7,8 @@ import { Select } from 'primeng/select';
 import { DatePicker } from 'primeng/datepicker';
 import { Button } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { SelectButton } from 'primeng/selectbutton';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { ClientForm } from '../../../clients/client-form/client-form';
 import { Client } from '../../../../shared/models/client';
 import { Address } from '../../../../shared/models/address';
@@ -25,13 +26,14 @@ import { clientDisplayName, addressLabel } from '../../../../shared/utils/displa
 @Component({
   selector: 'app-document-header',
   standalone: true,
-  imports: [FormsModule, InputText, FloatLabel, Select, DatePicker, Button, Dialog, ClientForm, TranslocoPipe],
+  imports: [FormsModule, InputText, FloatLabel, Select, DatePicker, Button, Dialog, SelectButton, ClientForm, TranslocoPipe],
   templateUrl: './document-header.html',
   host: { class: 'block' },
 })
 export class DocumentHeader {
 
   private router = inject(Router);
+  private transloco = inject(TranslocoService);
 
   company = input<Company | null>(null);
   logoUrl = input<string | null>(null);
@@ -60,6 +62,27 @@ export class DocumentHeader {
   dueDate = model<Date | null>(null);
   addressId = model<number | null>(null);
   referenceClient = model('');
+
+  // "Saisie manuelle": no client picked from the list - the recipient's
+  // name and address are typed below instead, and the document is made out
+  // to the company's "Non défini" client (see document-form.ts). Switching
+  // is handled by the form (it swaps the client), so not two-way here.
+  manualRecipient = input(false);
+  manualRecipientChange = output<boolean>();
+  recipientName = model('');
+  recipientComplement = model('');
+  recipientStreet = model('');
+  recipientPostalCode = model('');
+  recipientCity = model('');
+
+  // Rebuilt on every read (not cached) so the labels follow a language switch.
+  recipientModeOptions = computed(() => {
+    this.transloco.activeLang();
+    return [
+      { label: this.transloco.translate('documents.header.existingClient'), value: false },
+      { label: this.transloco.translate('documents.header.manualRecipient'), value: true },
+    ];
+  });
 
   clientChange = output<number | null>();
   clientCreated = output<Client>();

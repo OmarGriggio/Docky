@@ -35,7 +35,20 @@ export interface Document {
   payment_terms: string | null;
   due_date: string | null;
   is_active: boolean;
+  // The recipient typed by hand on a document made out to the "Non défini"
+  // client (null otherwise) - what its PDF prints instead of a client's
+  // own name and address. Country: Switzerland.
+  recipient_name: string | null;
+  recipient_complement: string | null;
+  recipient_street: string | null;
+  recipient_postal_code: string | null;
+  recipient_city: string | null;
 }
+
+export type DocumentRecipient = Pick<
+  Document,
+  'recipient_name' | 'recipient_complement' | 'recipient_street' | 'recipient_postal_code' | 'recipient_city'
+>;
 
 // A document's whole content, saved in one request (PUT /document/:id/content,
 // see DocumentService.replaceContent) - sections in order, each with its own

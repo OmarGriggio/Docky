@@ -21,6 +21,10 @@ export interface Client {
   note: string | null;
   language: ClientLanguage;
   is_active: boolean;
+  // The company's one "Non défini" client - what a document made out to a
+  // recipient typed by hand points at (see document-form.ts's manual mode).
+  // Never listed or picked as a client itself.
+  is_placeholder: boolean;
 }
 
 export interface ClientWithAddresses extends Client {

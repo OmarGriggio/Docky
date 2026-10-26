@@ -39,6 +39,41 @@
 
 <div class="flex justify-start sm:justify-end mb-6">
   <div class="flex flex-col gap-3 w-full max-w-70">
+    <p-selectbutton
+      size="small"
+      [options]="recipientModeOptions()"
+      optionLabel="label"
+      optionValue="value"
+      [allowEmpty]="false"
+      [ngModel]="manualRecipient()"
+      (ngModelChange)="manualRecipientChange.emit($event)"
+      [disabled]="locked()"
+    />
+
+    @if (manualRecipient()) {
+      <p-floatlabel variant="on" class="w-full">
+        <input pInputText pSize="small" id="recipient_name" maxlength="70" [ngModel]="recipientName()" (ngModelChange)="recipientName.set($event)" [fluid]="true" />
+        <label for="recipient_name">{{ 'documents.header.recipientName' | transloco }}</label>
+      </p-floatlabel>
+      <p-floatlabel variant="on" class="w-full">
+        <input pInputText pSize="small" id="recipient_complement" maxlength="70" [ngModel]="recipientComplement()" (ngModelChange)="recipientComplement.set($event)" [fluid]="true" />
+        <label for="recipient_complement">{{ 'documents.header.recipientComplement' | transloco }}</label>
+      </p-floatlabel>
+      <p-floatlabel variant="on" class="w-full">
+        <input pInputText pSize="small" id="recipient_street" maxlength="70" [ngModel]="recipientStreet()" (ngModelChange)="recipientStreet.set($event)" [fluid]="true" />
+        <label for="recipient_street">{{ 'documents.header.recipientStreet' | transloco }}</label>
+      </p-floatlabel>
+      <div class="flex gap-2">
+        <p-floatlabel variant="on" class="w-24 shrink-0">
+          <input pInputText pSize="small" id="recipient_postal_code" maxlength="16" [ngModel]="recipientPostalCode()" (ngModelChange)="recipientPostalCode.set($event)" [fluid]="true" />
+          <label for="recipient_postal_code">{{ 'documents.header.recipientPostalCode' | transloco }}</label>
+        </p-floatlabel>
+        <p-floatlabel variant="on" class="flex-1 min-w-0">
+          <input pInputText pSize="small" id="recipient_city" maxlength="35" [ngModel]="recipientCity()" (ngModelChange)="recipientCity.set($event)" [fluid]="true" />
+          <label for="recipient_city">{{ 'documents.header.recipientCity' | transloco }}</label>
+        </p-floatlabel>
+      </div>
+    } @else {
     <p-floatlabel variant="on" class="w-full">
       <p-select
         pSize="small"
@@ -98,6 +133,7 @@
       </p-select>
       <label for="address_id">{{ 'documents.header.location' | transloco }}</label>
     </p-floatlabel>
+    }
 
     @if (type() === 'INVOICE') {
       <p-floatlabel variant="on" class="w-full">

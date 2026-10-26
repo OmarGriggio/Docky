@@ -264,7 +264,14 @@
       "addClient": "Ajouter un client",
       "addAddress": "Ajouter une adresse",
       "location": "Lieu/Bâtiment",
-      "referenceClient": "Référence client"
+      "referenceClient": "Référence client",
+      "existingClient": "Client existant",
+      "manualRecipient": "Saisie manuelle",
+      "recipientName": "Nom",
+      "recipientComplement": "Complément",
+      "recipientStreet": "Rue et numéro",
+      "recipientPostalCode": "NPA",
+      "recipientCity": "Ville"
     },
     "textBlock": {
       "placeholdersHint": "Variables :",
@@ -305,7 +312,8 @@
       "scanAction": "Scanner",
       "scanError": "Impossible d'analyser ce document.",
       "scanRateLimited": "Trop de scans, réessaie plus tard.",
-      "scanTruncated": "Document tronqué avant l'analyse (trop long)."
+      "scanTruncated": "Document tronqué avant l'analyse (trop long).",
+      "recipientRequired": "Saisie manuelle : le nom, le NPA et la ville sont obligatoires."
     },
     "pdfError": "Impossible de générer le PDF."
   },

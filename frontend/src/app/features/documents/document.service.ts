@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Document, DocumentType, DocumentStatus, DocumentContentSection } from '../../shared/models/document';
+import { Document, DocumentType, DocumentStatus, DocumentContentSection, DocumentRecipient } from '../../shared/models/document';
 import { environment } from '../../../environments/environment';
 
 const API_BASE = environment.apiUrl;
@@ -36,7 +36,7 @@ export class DocumentService {
   // document-form.ts has no UI for them yet - the backend requires them on
   // every PUT body, so they always have to be sent explicitly (preserving
   // whatever was loaded) rather than omitted.
-  updateDocument(id: number, document: Pick<Document, 'client_id' | 'address_id' | 'reference_client' | 'date' | 'discount' | 'vat_rate' | 'introduction' | 'conclusion' | 'payment_terms' | 'due_date'>) {
+  updateDocument(id: number, document: Pick<Document, 'client_id' | 'address_id' | 'reference_client' | 'date' | 'discount' | 'vat_rate' | 'introduction' | 'conclusion' | 'payment_terms' | 'due_date'> & DocumentRecipient) {
     return this.http.put<Document>(`${API_BASE}/document/${id}`, document);
   }
 
