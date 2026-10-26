@@ -34,11 +34,21 @@ export const addClientServ = async (clientData: Omit<Client, "id" | "company_id"
   }
 }
 
+// The "Non défini" placeholder (see client.types.ts) is fixed: its greeting
+// and language are what every typed-in recipient's PDF uses, and archiving
+// it would hide every document made out that way.
+const assertNotPlaceholder = (client: Client) => {
+  if (client.is_placeholder) {
+    throw new ConflictError("The \"Non défini\" client can't be changed");
+  }
+};
+
 export const updateClientServ = async (id: number, company_id: number, data: UpdateClientData) => {
   const client = await getClientByIdFromDB(id, company_id);
   if (!client) {
     throw new NotFoundError("Client not found");
   }
+  assertNotPlaceholder(client);
 
   // Same uniqueness rule as addClientServ - only re-checked if the email
   // actually changed, and excluding this client's own current row.
@@ -57,6 +67,7 @@ export const archiveClientServ = async (id: number, company_id: number) => {
   if (!client) {
     throw new NotFoundError("Client not found");
   }
+  assertNotPlaceholder(client);
   return await archiveClientInDB(id, company_id);
 }
 
@@ -65,5 +76,6 @@ export const unarchiveClientServ = async (id: number, company_id: number) => {
   if (!client) {
     throw new NotFoundError("Client not found");
   }
+  assertNotPlaceholder(client);
   return await unarchiveClientInDB(id, company_id);
 }

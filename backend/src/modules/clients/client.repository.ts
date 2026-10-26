@@ -33,8 +33,20 @@ export const getClientByEmail = async (email: string, company_id: number) => {
 };
 
 
+// Same values as zz_migrations/007_add_placeholder_client.sql's backfill -
+// called when a company is created (see company.service.ts).
+export const createPlaceholderClientInDB = async (company_id: number): Promise<Client> => {
+    const result = await db().query(
+        `INSERT INTO clients (company_id, client_number, type, company_name, title, language, is_placeholder, is_active)
+         VALUES ($1, 'NON-DEFINI', 'PROFESSIONAL', 'Non défini', 'Madame, Monsieur', 'FR', TRUE, TRUE)
+         RETURNING *`,
+        [company_id]
+    );
+    return result.rows[0];
+};
+
 export const createClientInDB = async (
-    client: Omit<Client, "id" | "language">
+    client: Omit<Client, "id" | "language" | "is_placeholder">
 ): Promise<Client> => {
     const query = `
     INSERT INTO clients (

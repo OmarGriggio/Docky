@@ -9,7 +9,7 @@ import {
   deleteAddressInDB
 } from "./address.repository";
 import { getClientByIdFromDB } from "./client.repository";
-import { NotFoundError } from "../../shared/types/errors";
+import { NotFoundError, ConflictError } from "../../shared/types/errors";
 
 export const getAllAddressesServ = async (company_id: number) => {
   return await getAddressesFromDB(company_id);
@@ -22,6 +22,11 @@ export const addAddressServ = async (addressData: Omit<Address, "id" | "company_
   const client = await getClientByIdFromDB(addressData.client_id, company_id);
   if (!client) {
     throw new NotFoundError("Client not found");
+  }
+  // The "Non défini" placeholder has no addresses of its own - a typed-in
+  // recipient's address lives on the document (recipient_* columns).
+  if (client.is_placeholder) {
+    throw new ConflictError("The \"Non défini\" client can't have addresses");
   }
 
   const existing = await getAddressesByClientIdFromDB(addressData.client_id);

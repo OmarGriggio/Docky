@@ -25,6 +25,10 @@ export interface Client {
   note: string | null;
   language: ClientLanguage;
   is_active: boolean;
+  // The company's one "Non défini" client (zz_migrations/007_add_placeholder_client.sql):
+  // what a quote/invoice made out to a recipient typed by hand points at.
+  // Hidden from the clients list, never editable or archivable.
+  is_placeholder: boolean;
 }
 
 export interface ClientWithAddresses extends Client {

@@ -42,7 +42,7 @@ DELETE FROM project_attachments WHERE company_id = 2;
 DELETE FROM projects WHERE company_id = 2;
 DELETE FROM documents WHERE company_id = 2; -- cascades its own sections/lines
 DELETE FROM addresses WHERE company_id = 2;
-DELETE FROM clients WHERE company_id = 2;
+DELETE FROM clients WHERE company_id = 2 AND is_placeholder = FALSE; -- "Non défini" stays (see 007_add_placeholder_client.sql)
 DELETE FROM resources WHERE company_id = 2;
 DELETE FROM resource_units WHERE company_id = 2;
 DELETE FROM document_templates WHERE company_id = 2;

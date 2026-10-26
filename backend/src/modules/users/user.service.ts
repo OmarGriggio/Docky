@@ -1,6 +1,6 @@
 import { createUserDB, getUserByEmail, getUserByIdForCompany, getUsersFromDB, deleteUserDB, updateUserLanguageDB } from "./user.repository";
 import { CreateUserData, Language, Role } from "./user.types";
-import { createCompanyInDB } from "../companies/company.repository";
+import { addCompanyServ } from "../companies/company.service";
 import { revokeAllRefreshTokensOfUserInDB } from "../auth/refresh_token.repository";
 import { AppError, NotFoundError, ConflictError, ForbiddenError } from "../../shared/types/errors";
 import { TokenPayload } from "../../shared/middlewares/jwt.service";
@@ -72,7 +72,7 @@ export const createUserService = async (userData: CreateUserData, actor: TokenPa
   }
 
   return await withTransaction(async () => {
-    const company = await createCompanyInDB({
+    const company = await addCompanyServ({
       name: companyName,
       email: null,
       phone: null,

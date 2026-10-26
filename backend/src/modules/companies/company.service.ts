@@ -1,6 +1,8 @@
 import { Company } from "./company.types";
 import { createCompanyInDB, getCompanyByIdFromDB, getCompaniesFromDB, updateCompanyInDB, updateCompanyLogoInDB, updateCompanyHeaderImageInDB, updateCompanyPaymentTermsInDB } from "./company.repository";
 import { NotFoundError } from "../../shared/types/errors";
+import { createPlaceholderClientInDB } from "../clients/client.repository";
+import { withTransaction } from "../../shared/config/database";
 
 export const getAllCompaniesServ = async () => {
   return await getCompaniesFromDB();
@@ -14,8 +16,14 @@ export const getCompanyByIdServ = async (id: number): Promise<Company> => {
   return company;
 };
 
+// Every company starts with its "Non défini" placeholder client (see
+// client.types.ts) - created together, so none ever exists without one.
 export const addCompanyServ = async (companyData: Omit<Company, "id">) => {
-  return await createCompanyInDB(companyData);
+  return await withTransaction(async () => {
+    const company = await createCompanyInDB(companyData);
+    await createPlaceholderClientInDB(company.id);
+    return company;
+  });
 };
 
 export const updateCompanyServ = async (id: number, companyData: Omit<Company, "id">): Promise<Company> => {
