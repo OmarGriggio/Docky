@@ -32,136 +32,167 @@
   }
 </p-dialog>
 
-<p-table
-  [value]="filteredProjects()" dataKey="id" showGridlines size="small" [tableStyle]="{ 'min-width': '50rem' }"
-  editMode="row"
-  [expandedRowKeys]="expandedRowKeys"
->
-  <ng-template #header>
-    <tr>
-      <th style="width: 3rem"></th>
-      <th>{{ 'projects.columnName' | transloco }}</th>
-      <th>{{ 'projects.columnClient' | transloco }}</th>
-      <th>{{ 'projects.columnQuoteNumber' | transloco }}</th>
-      <th>{{ 'projects.columnLocation' | transloco }}</th>
-      <th>{{ 'projects.columnDate' | transloco }}</th>
-      <th>{{ 'clients.columnType' | transloco }}</th>
-      <th>{{ 'projects.columnStatus' | transloco }}</th>
-      <th></th>
-      <th></th>
-    </tr>
-  </ng-template>
-
-  <ng-template #emptymessage>
-    <tr>
-      <td colspan="10" class="text-center text-gray-500">{{ (search().trim() ? 'projects.noSearchResults' : 'projects.noProjects') | transloco }}</td>
-    </tr>
-  </ng-template>
-
-  <ng-template #body let-project let-editing="editing" let-rowIndex="rowIndex">
-    <tr [pEditableRow]="project">
-      <td>
-        <p-button
-          type="button" [text]="true" size="small"
-          [icon]="expandedRowKeys[project.id] ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
-          [pRowToggler]="project"
-        />
-      </td>
-      <td>
-        <p-cellEditor>
-          <ng-template #input>
-            <input pInputText [(ngModel)]="project.name" [fluid]="true" />
-          </ng-template>
-          <ng-template #output>
-            {{ project.name }}
-          </ng-template>
-        </p-cellEditor>
-      </td>
-
-      <!-- Not editable - which client/document a chantier is for never
-           changes once created. -->
-      <td>{{ clientName(project) }}</td>
-
-      <!-- Not editable - the quote this chantier was accepted from, if
-           any. -->
-      <td>{{ project.quote_number ?? '—' }}</td>
-
-      <!-- Not editable - lives on the chantier's own backing document
-           (address_id), same as document-list.ts's own "Lieu" column. -->
-      <td>{{ location(project) }}</td>
-
-      <!-- Editing this writes to the project's own first section's
-           date_start (see project-list.ts's onRowEditSave) - display still
-           reads the "closest to today across all sections" value, which
-           may differ from that first section once there's more than one. -->
-      <td>
-        <p-cellEditor>
-          <ng-template #input>
-            <p-datepicker [(ngModel)]="editingDates[project.id]" dateFormat="dd.mm.yy" [fluid]="true" appendTo="body" />
-          </ng-template>
-          <ng-template #output>
-            {{ date(project) ? (date(project) | sectionDate) : '—' }}
-          </ng-template>
-        </p-cellEditor>
-      </td>
-
-      <td>
-        <p-cellEditor>
-          <ng-template #input>
-            <p-select [(ngModel)]="project.project_type_id" [options]="typeOptions()" optionLabel="label" optionValue="value" [fluid]="true" appendTo="body">
-              <ng-template #footer>
-                <div class="flex gap-2 p-2 border-t border-surface-200">
-                  <input
-                    pInputText size="small" [fluid]="true"
-                    [placeholder]="'projects.newTypePlaceholder' | transloco"
-                    #newTypeInput
-                    (keydown.enter)="addProjectType(project, newTypeInput.value); newTypeInput.value = ''"
-                  />
-                  <p-button
-                    type="button" icon="pi pi-plus" size="small"
-                    (onClick)="addProjectType(project, newTypeInput.value); newTypeInput.value = ''"
-                  />
-                </div>
-              </ng-template>
-            </p-select>
-          </ng-template>
-          <ng-template #output>
-            <p-tag [value]="project.project_type" severity="secondary" />
-          </ng-template>
-        </p-cellEditor>
-      </td>
-
-      <!-- Not editable - see "Clôturer" in the row menu below instead. -->
-      <td><p-tag [value]="statusLabel(project)" [severity]="statusSeverity(project)" /></td>
-
-      <!-- No pencil at all once COMPLETED - quantities are locked, nothing
-           left to edit here (see "Facturer" in the row menu instead). -->
-      <td>
-        <div class="flex gap-1">
-          @if (!editing && project.status !== 'COMPLETED') {
-            <p-button type="button" pInitEditableRow icon="pi pi-pencil" [text]="true" severity="secondary" (click)="onRowEditInit(project)" />
-          } @else if (editing) {
-            <p-button type="button" pSaveEditableRow icon="pi pi-check" [text]="true" severity="success" (click)="onRowEditSave(project)" />
-            <p-button type="button" pCancelEditableRow icon="pi pi-times" [text]="true" severity="danger" (click)="onRowEditCancel(project)" />
-          }
-        </div>
-      </td>
-
-      <td>
-        <p-menu #menu [popup]="true" [model]="menuItems" appendTo="body"></p-menu>
-        <p-button size="small" icon="pi pi-ellipsis-v" [outlined]="true" (click)="openActionsMenu(menu, $event, project)"></p-button>
-      </td>
-    </tr>
-  </ng-template>
-
-  <ng-template #expandedrow let-project>
-    <tr>
-      <td colspan="10">
-        <app-document-ledger [documentId]="project.document_id" [columns]="1" />
-      </td>
-    </tr>
-  </ng-template>
-</p-table>
+<!-- On a phone, one card per chantier instead of the table (ten columns
+     can't fit): what it is, for whom, where, when - tapping it opens the
+     chantier, the ⋮ menu keeps every row action. No inline editing here, the
+     chantier's own page covers it. -->
+@if (isMobile()) {
+  <p-menu #mobileMenu [popup]="true" [model]="menuItems" appendTo="body" />
+  <div class="flex flex-col gap-2">
+    @for (project of filteredProjects(); track project.id) {
+      <div class="flex items-start gap-2 bg-white border border-gray-200 rounded-lg p-3">
+        <a [routerLink]="['/projects', project.id]" class="flex-1 min-w-0 flex flex-col gap-1 no-underline text-inherit">
+          <div class="flex items-start justify-between gap-2">
+            <span class="font-medium text-gray-900">{{ project.name }}</span>
+            <p-tag class="shrink-0" [value]="statusLabel(project)" [severity]="statusSeverity(project)" />
+          </div>
+          <span class="text-sm text-gray-600">{{ clientName(project) }}</span>
+          <span class="text-sm text-gray-500 truncate"><i class="pi pi-map-marker text-xs mr-1"></i>{{ location(project) }}</span>
+          <div class="flex items-center flex-wrap gap-2 text-sm text-gray-500">
+            <span><i class="pi pi-calendar text-xs mr-1"></i>{{ date(project) ? (date(project) | sectionDate) : ('dashboard.notPlanned' | transloco) }}</span>
+            @if (project.project_type) {
+              <p-tag [value]="project.project_type" severity="secondary" />
+            }
+          </div>
+        </a>
+        <p-button size="small" icon="pi pi-ellipsis-v" [outlined]="true" (click)="openActionsMenu(mobileMenu, $event, project)" />
+      </div>
+    } @empty {
+      <p class="text-center text-gray-500">{{ (search().trim() ? 'projects.noSearchResults' : 'projects.noProjects') | transloco }}</p>
+    }
+  </div>
+} @else {
+  <p-table
+    [value]="filteredProjects()" dataKey="id" showGridlines size="small" [tableStyle]="{ 'min-width': '50rem' }"
+    editMode="row"
+    [expandedRowKeys]="expandedRowKeys"
+  >
+    <ng-template #header>
+      <tr>
+        <th style="width: 3rem"></th>
+        <th>{{ 'projects.columnName' | transloco }}</th>
+        <th>{{ 'projects.columnClient' | transloco }}</th>
+        <th>{{ 'projects.columnQuoteNumber' | transloco }}</th>
+        <th>{{ 'projects.columnLocation' | transloco }}</th>
+        <th>{{ 'projects.columnDate' | transloco }}</th>
+        <th>{{ 'clients.columnType' | transloco }}</th>
+        <th>{{ 'projects.columnStatus' | transloco }}</th>
+        <th></th>
+        <th></th>
+      </tr>
+    </ng-template>
+  
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="10" class="text-center text-gray-500">{{ (search().trim() ? 'projects.noSearchResults' : 'projects.noProjects') | transloco }}</td>
+      </tr>
+    </ng-template>
+  
+    <ng-template #body let-project let-editing="editing" let-rowIndex="rowIndex">
+      <tr [pEditableRow]="project">
+        <td>
+          <p-button
+            type="button" [text]="true" size="small"
+            [icon]="expandedRowKeys[project.id] ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+            [pRowToggler]="project"
+          />
+        </td>
+        <td>
+          <p-cellEditor>
+            <ng-template #input>
+              <input pInputText [(ngModel)]="project.name" [fluid]="true" />
+            </ng-template>
+            <ng-template #output>
+              {{ project.name }}
+            </ng-template>
+          </p-cellEditor>
+        </td>
+  
+        <!-- Not editable - which client/document a chantier is for never
+             changes once created. -->
+        <td>{{ clientName(project) }}</td>
+  
+        <!-- Not editable - the quote this chantier was accepted from, if
+             any. -->
+        <td>{{ project.quote_number ?? '—' }}</td>
+  
+        <!-- Not editable - lives on the chantier's own backing document
+             (address_id), same as document-list.ts's own "Lieu" column. -->
+        <td>{{ location(project) }}</td>
+  
+        <!-- Editing this writes to the project's own first section's
+             date_start (see project-list.ts's onRowEditSave) - display still
+             reads the "closest to today across all sections" value, which
+             may differ from that first section once there's more than one. -->
+        <td>
+          <p-cellEditor>
+            <ng-template #input>
+              <p-datepicker [(ngModel)]="editingDates[project.id]" dateFormat="dd.mm.yy" [fluid]="true" appendTo="body" />
+            </ng-template>
+            <ng-template #output>
+              {{ date(project) ? (date(project) | sectionDate) : '—' }}
+            </ng-template>
+          </p-cellEditor>
+        </td>
+  
+        <td>
+          <p-cellEditor>
+            <ng-template #input>
+              <p-select [(ngModel)]="project.project_type_id" [options]="typeOptions()" optionLabel="label" optionValue="value" [fluid]="true" appendTo="body">
+                <ng-template #footer>
+                  <div class="flex gap-2 p-2 border-t border-surface-200">
+                    <input
+                      pInputText size="small" [fluid]="true"
+                      [placeholder]="'projects.newTypePlaceholder' | transloco"
+                      #newTypeInput
+                      (keydown.enter)="addProjectType(project, newTypeInput.value); newTypeInput.value = ''"
+                    />
+                    <p-button
+                      type="button" icon="pi pi-plus" size="small"
+                      (onClick)="addProjectType(project, newTypeInput.value); newTypeInput.value = ''"
+                    />
+                  </div>
+                </ng-template>
+              </p-select>
+            </ng-template>
+            <ng-template #output>
+              <p-tag [value]="project.project_type" severity="secondary" />
+            </ng-template>
+          </p-cellEditor>
+        </td>
+  
+        <!-- Not editable - see "Clôturer" in the row menu below instead. -->
+        <td><p-tag [value]="statusLabel(project)" [severity]="statusSeverity(project)" /></td>
+  
+        <!-- No pencil at all once COMPLETED - quantities are locked, nothing
+             left to edit here (see "Facturer" in the row menu instead). -->
+        <td>
+          <div class="flex gap-1">
+            @if (!editing && project.status !== 'COMPLETED') {
+              <p-button type="button" pInitEditableRow icon="pi pi-pencil" [text]="true" severity="secondary" (click)="onRowEditInit(project)" />
+            } @else if (editing) {
+              <p-button type="button" pSaveEditableRow icon="pi pi-check" [text]="true" severity="success" (click)="onRowEditSave(project)" />
+              <p-button type="button" pCancelEditableRow icon="pi pi-times" [text]="true" severity="danger" (click)="onRowEditCancel(project)" />
+            }
+          </div>
+        </td>
+  
+        <td>
+          <p-menu #menu [popup]="true" [model]="menuItems" appendTo="body"></p-menu>
+          <p-button size="small" icon="pi pi-ellipsis-v" [outlined]="true" (click)="openActionsMenu(menu, $event, project)"></p-button>
+        </td>
+      </tr>
+    </ng-template>
+  
+    <ng-template #expandedrow let-project>
+      <tr>
+        <td colspan="10">
+          <app-document-ledger [documentId]="project.document_id" [columns]="1" />
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+}
 
 <app-confirm-dialog
   [(visible)]="confirmVisible"

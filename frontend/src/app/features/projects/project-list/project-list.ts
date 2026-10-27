@@ -1,5 +1,5 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
@@ -27,11 +27,12 @@ import { ListToolbarComponent } from '../../../shared/components/list-toolbar/li
 import { DocumentLedger } from '../../../shared/components/document-ledger/document-ledger';
 import { SectionDatePipe } from '../../../shared/pipes/section-date.pipe';
 import { matchesSearch } from '../../../shared/utils/display';
+import { BreakpointService } from '../../../shared/services/breakpoint.service';
 
 @Component({
   selector: 'app-project-list',
   standalone: true,
-  imports: [ListToolbarComponent, TableModule, TagModule, Menu, Button, Dialog, InputText, Select, DatePicker, FormsModule, SectionDatePipe, ProjectForm, ProjectAttachments, ConfirmDialogComponent, DocumentLedger, TranslocoPipe],
+  imports: [ListToolbarComponent, RouterLink, TableModule, TagModule, Menu, Button, Dialog, InputText, Select, DatePicker, FormsModule, SectionDatePipe, ProjectForm, ProjectAttachments, ConfirmDialogComponent, DocumentLedger, TranslocoPipe],
   templateUrl: './project-list.html'
 })
 export class ProjectListComponent implements OnInit {
@@ -43,6 +44,8 @@ export class ProjectListComponent implements OnInit {
   private documentSectionService = inject(DocumentSectionService);
   private addressService = inject(AddressService);
   private transloco = inject(TranslocoService);
+
+  isMobile = inject(BreakpointService).isMobile;
 
   projects = signal<Project[]>([]);
   clients = signal<Client[]>([]);
