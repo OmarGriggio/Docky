@@ -1,10 +1,26 @@
-<div class="flex items-start -mt-16 -mb-4 -mr-5">
-  <div class="flex-1 min-w-0 flex justify-center pt-16 pb-8 px-4">
+<div class="flex flex-col md:flex-row md:items-start md:-mt-16 md:-mb-4 md:-mr-5">
+  <!-- On a phone, a row of chips above the page (scrolls sideways if they
+       don't fit) instead of the side menu, which would cover half of it. -->
+  <nav class="md:hidden flex gap-2 overflow-x-auto -mx-3 px-3 pb-3">
+    @for (item of items(); track item.routerLink) {
+      <a
+        [routerLink]="item.routerLink"
+        routerLinkActive="bg-emerald-600! text-white! border-emerald-600!"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="shrink-0 flex items-center gap-2 px-3 py-2 rounded-full border border-gray-300 bg-white text-sm text-gray-700 no-underline whitespace-nowrap"
+      >
+        <i [class]="item.icon"></i>
+        {{ item.label }}
+      </a>
+    }
+  </nav>
+
+  <div class="flex-1 min-w-0 flex justify-center md:pt-16 pb-8 md:px-4">
     <div class="w-full max-w-225">
       <router-outlet />
     </div>
   </div>
-  <div class="w-56 shrink-0 sticky top-0 z-20 h-screen bg-white border-l border-gray-200">
+  <div class="hidden md:block w-56 shrink-0 sticky top-0 z-20 h-screen bg-white border-l border-gray-200">
     <p-menu [model]="items()" class="block h-full" styleClass="w-full h-full border-0! rounded-none! [--p-menu-list-gap:0.5rem]" />
   </div>
 </div>

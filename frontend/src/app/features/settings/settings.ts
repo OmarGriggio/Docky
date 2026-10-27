@@ -1,5 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Menu } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
 import { translateSignal } from '@jsverse/transloco';
@@ -14,7 +14,7 @@ import { AuthService } from '../auth/auth.service';
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [Menu, RouterOutlet],
+  imports: [Menu, RouterOutlet, RouterLink, RouterLinkActive],
   templateUrl: './settings.html',
 })
 export class Settings {
