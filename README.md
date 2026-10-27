@@ -4,7 +4,7 @@ A SaaS platform that helps small construction companies manage clients, a catalo
 
 This is a personal project I'm building end-to-end to practice full-stack development with Angular, Node.js/Express and PostgreSQL, and to get comfortable with SaaS architecture (multi-company data, auth, layered backend design).
 
-*Last updated: 22.10.2026*
+*Last updated: 27.10.2026*
 
 ## Live demo
 
@@ -22,6 +22,7 @@ Feel free to click around !
 - [Live demo](#live-demo)
 - [About the project](#about-the-project)
 - [Project status](#project-status)
+- [Roadmap](#roadmap)
 - [Tech stack](#tech-stack)
 - [Project structure](#project-structure)
 - [Domain model](#domain-model)
@@ -41,6 +42,7 @@ Docky aims to be a simple, focused SaaS where a construction company can:
 - quickly build quotes and invoices, with totals, discount and VAT computed automatically,
 - turn an accepted quote into a job site ("chantier"), plan it on a calendar, then invoice it,
 - print quotes, invoices and payment reminders as PDFs, invoices with a Swiss QR-bill,
+- see at a glance which invoices are still waiting for their payment and which chantiers are ongoing,
 - keep a history of past documents.
 
 Three types of users are planned: **employees** (day-to-day usage), **company admins** (manage their company's data and staff) and a **platform admin** (manages the SaaS itself, subscriptions and companies). Full details are in [zz_docs/Project Definition.md](zz_docs/Project%20Definition.md).
@@ -59,9 +61,12 @@ Three types of users are planned: **employees** (day-to-day usage), **company ad
 - [x] Refresh token stored in an httpOnly cookie (not readable by frontend JS, mitigates XSS token theft)
 - [x] Platform-admin company impersonation, login history/audit trail
 - [x] Document lifecycle rules enforced server-side (only open documents editable, a completed chantier locked and invoiced once), multi-step writes in a single transaction
-- [ ] Automated tests (Vitest is wired up and passing on both sides, but only covers pure functions so far: totals, placeholders, PDF language, a few frontend helpers - not real coverage yet)
+- [ ] Automated tests (Vitest is wired up and passing on both sides - 31 backend, 53 frontend - but only covers pure functions so far: totals, placeholders, PDF language and amount formatting, a few frontend helpers - not real coverage yet)
 - [x] Database migrations (incremental, numbered files in `zz_migrations/`, auto-applied on backend startup)
-- [x] Quote, invoice and payment reminder PDFs (invoices and reminders with a Swiss QR-bill), printed in the client's own language (French or English so far)
+- [x] Quote, invoice and payment reminder PDFs (invoices and reminders with a Swiss QR-bill), printed in the client's own language (French or English so far). Invoices and quotes share one layout modelled on a real company's own Excel invoices: header image and footer (address, bank, IBAN, website) on every page, a one-line-per-section summary on page 1, the detailed sections on the following pages
+- [x] Early payment discount ("escompte"): rate, delay and minimum amount set once on the company, copied onto each new invoice and printed with it
+- [x] Standalone Swiss QR-bill slip: a bare payment slip for any payer, rendered at its official size and copied to the clipboard to paste into Word/Excel
+- [x] Quotes and invoices for a one-off recipient typed by hand, without creating a client first
 - [x] AI-assisted document scanner — extracts structured data (reference, project/building, address, amount) from an uploaded scanned document via an LLM (Infomaniak AI), to prefill a new invoice instead of retyping it by hand
 
 **Frontend**
@@ -69,14 +74,23 @@ Three types of users are planned: **employees** (day-to-day usage), **company ad
 - [x] Client, project, document and resource list/form features wired to the API, with archive/restore
 - [x] Authentication flow / login and registration screens
 - [x] Invoice and quote creation, with per-project resource prefill and default intro/conclusion templates
-- [x] Dashboard: paid amount per client as a bar chart (`p-chart`/Chart.js)
-- [x] Chantiers: resource ledger, file attachments, calendar planning
+- [x] Dashboard: sent invoices still waiting for their payment (overdue first, with their total), ongoing chantiers, and the paid amount per client as a bar chart (`p-chart`/Chart.js)
+- [x] Chantiers: resource ledger (read-only by default, with an explicit "Edit" mode), file attachments, calendar planning with free notes
+- [x] Usable on a phone: bottom navigation bar, lists shown as cards, a week list calendar, and installable on the home screen (PWA). Mainly a desktop app - phone screens show and act on data, the heaviest editing stays on desktop
 - [x] French and English UI (Transloco), per-user language setting
 
 **Ops**
 - [x] Docker Compose for local dev; separate multi-stage production images (compiled, non-root), deployed behind an Nginx gateway
 - [x] Deployed — HTTPS via a free [sslip.io](https://sslip.io) hostname + Let's Encrypt (no domain purchased yet)
 - [x] CI/CD: GitHub Actions runs backend/frontend tests and builds on every push to `main`, then auto-deploys over SSH if they pass
+
+## Roadmap
+
+What's planned next, roughly in that order:
+
+- **Sending documents by email, straight from the app** — invoices, quotes and payment reminders sent to the client with their PDF attached, instead of downloading the PDF and attaching it by hand in a mail client.
+- **Stock module** — keep track of the materials a company holds, what goes in and out, and what each chantier consumed from it.
+- **Long-term purchase tracking** — record what the company buys over time (materials, supplies), to follow its spending and the prices it actually pays.
 
 ## Tech stack
 
@@ -109,7 +123,7 @@ Docky/
 │           └── ai/            # LLM client for the document scanner
 ├── frontend/                  # Angular application
 │   └── src/app/
-│       ├── shared/             # Shared models/components
+│       ├── shared/             # Shared models, components, services and global styles
 │       └── features/           # Feature modules (clients, documents, projects...)
 ├── zz_docs/                    # Project specs, architecture & decisions log
 └── zz_migrations/              # Schema (000_base.sql) & seed data (001_data.sql),
@@ -155,7 +169,7 @@ All routes are prefixed by their resource name and return JSON. All are protecte
 | Calendar notes          | `/calendar-note`             |
 | Dashboard               | `/dashboard`                 |
 | Document scanner        | `/document-scanner`          |
-| PDFs                    | `/pdf/invoice/:id`, `/pdf/quote/:id`, `/pdf/reminder/:id` |
+| PDFs                    | `/pdf/invoice/:id`, `/pdf/quote/:id`, `/pdf/reminder/:id`, `/pdf/qr-bill-slip` |
 
 ## Getting started
 
