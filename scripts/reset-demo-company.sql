@@ -67,7 +67,16 @@ UPDATE companies SET
     vat_rate = 8.1,
     vat_number = 'CHE-321.654.987 VAT',
     payment_terms = 'Payment due within 30 days net, no discount.
-A late payment interest of 5% per annum will be charged on overdue payments.'
+A late payment interest of 5% per annum will be charged on overdue payments.',
+    -- 009/010's columns, back to their defaults - a visitor can set a
+    -- website, bank or early payment discount that every later visitor's
+    -- invoices would otherwise keep printing.
+    website = NULL,
+    bank_name = NULL,
+    bank_account = NULL,
+    early_payment_discount = 0,
+    early_payment_days = NULL,
+    early_payment_min_amount = 0
 WHERE id = 2;
 
 -- Same as 004_set_demo_company_language.sql.
