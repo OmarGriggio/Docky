@@ -81,7 +81,8 @@
     "unarchive": "Restaurer",
     "delete": "Supprimer",
     "detail": "Détail",
-    "save": "Enregistrer"
+    "save": "Enregistrer",
+    "edit": "Modifier"
   },
   "clients": {
     "newClient": "Nouveau client",

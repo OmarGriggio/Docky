@@ -1,6 +1,10 @@
 <div class="flex flex-col gap-4">
-  @if (readonly()) {
-    <p class="text-sm text-surface-500">{{ 'projects.resources.readonlyNotice' | transloco }}</p>
+  @if (locked()) {
+    <p class="text-sm text-gray-500">{{ 'projects.resources.readonlyNotice' | transloco }}</p>
+  } @else if (!editing() && !loading()) {
+    <div class="flex justify-end">
+      <p-button type="button" [label]="'common.edit' | transloco" icon="pi pi-pencil" size="small" (onClick)="startEditing()" />
+    </div>
   }
 
   @if (loading()) {
@@ -147,7 +151,8 @@
   }
 
   @if (!readonly()) {
-    <div class="flex justify-end">
+    <div class="flex justify-end gap-2">
+      <p-button type="button" [label]="'common.cancel' | transloco" severity="secondary" [text]="true" [disabled]="saving()" (onClick)="cancelEditing()" />
       <p-button type="button" [label]="'documentTemplates.save' | transloco" [loading]="saving()" (onClick)="save()" />
     </div>
   }

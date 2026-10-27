@@ -73,7 +73,13 @@ export class ProjectResources implements OnInit {
   // Once a chantier is closed, its resource ledger is exactly what an
   // invoice would be built from - no more changes past that point (see
   // zz_migrations/000_base.sql's comment on projects.status).
-  readonly = computed(() => this.project().status === 'COMPLETED');
+  locked = computed(() => this.project().status === 'COMPLETED');
+
+  // An open chantier is shown read-only too until "Modifier" is clicked -
+  // the page is mostly looked at, a stray click or scroll on a number field
+  // shouldn't change a quantity. Saving or cancelling goes back to reading.
+  editing = signal(false);
+  readonly = computed(() => this.locked() || !this.editing());
 
   resources = signal<Resource[]>([]);
   sections = signal<DraftSection[]>([]);
@@ -143,6 +149,19 @@ export class ProjectResources implements OnInit {
       this.errorMessage.set(this.transloco.translate('projects.resources.loadError'));
       this.loading.set(false);
     });
+  }
+
+  startEditing(): void {
+    if (!this.locked()) {
+      this.editing.set(true);
+    }
+  }
+
+  // Throws away the unsaved draft - reloads what's actually stored.
+  cancelEditing(): void {
+    this.editing.set(false);
+    this.errorMessage.set(null);
+    this.load();
   }
 
   addSection(): void {
@@ -258,6 +277,7 @@ export class ProjectResources implements OnInit {
         })),
       }))));
 
+      this.editing.set(false);
       this.load();
     } catch (err) {
       console.error('project-resources : ' + err);
