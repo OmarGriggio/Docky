@@ -1,5 +1,6 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { InputText } from 'primeng/inputtext';
 import { InputNumber } from 'primeng/inputnumber';
 import { FloatLabel } from 'primeng/floatlabel';
@@ -9,6 +10,14 @@ import { FileUpload, FileUploadHandlerEvent } from 'primeng/fileupload';
 import { CompanyService } from '../company.service';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { AuthService } from '../../auth/auth.service';
+
+// An early payment discount with no number of days to pay within means
+// nothing - the days are required as soon as there's a rate.
+const earlyPaymentDaysRequired: ValidatorFn = (group: AbstractControl): ValidationErrors | null => {
+  const discount = group.get('early_payment_discount')?.value ?? 0;
+  const days = group.get('early_payment_days')?.value;
+  return discount > 0 && (days === null || days === undefined) ? { earlyPaymentDaysRequired: true } : null;
+};
 
 @Component({
   selector: 'app-company-profile',
@@ -35,14 +44,25 @@ export class CompanyProfile implements OnInit {
     country: [''],
     vat_rate: [8.1, Validators.required],
     vat_number: [''],
-    website: [''],
-    bank_name: [''],
-    bank_account: [''],
-    // Same bounds the backend enforces (company.service.ts's
-    // normalizeEarlyPayment) - days only matter once there's a rate.
+    // The columns' own lengths, same as the backend checks (company.service.ts's
+    // normalizeCompanyData).
+    website: ['', Validators.maxLength(255)],
+    bank_name: ['', Validators.maxLength(100)],
+    bank_account: ['', Validators.maxLength(50)],
+    // Same bounds the backend enforces - days only matter once there's a
+    // rate, and are required then (earlyPaymentDaysRequired below).
     early_payment_discount: [0, [Validators.min(0), Validators.max(100)]],
     early_payment_days: [null as number | null, [Validators.min(1), Validators.max(365)]],
-    early_payment_min_amount: [0, Validators.min(0)],
+    early_payment_min_amount: [0, [Validators.min(0), Validators.max(9999999999.99)]],
+  }, { validators: earlyPaymentDaysRequired });
+
+  // Shown under the days field - the backend would refuse the save anyway,
+  // with nothing but the generic error to tell which field is wrong. Reads
+  // the form's status first so it re-evaluates on every change.
+  private formStatus = toSignal(this.form.statusChanges, { initialValue: this.form.status });
+  missingEarlyPaymentDays = computed(() => {
+    this.formStatus();
+    return this.form.hasError('earlyPaymentDaysRequired');
   });
 
   loading = signal(true);

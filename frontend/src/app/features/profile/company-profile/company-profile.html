@@ -85,6 +85,9 @@
           <p-inputnumber inputId="early_payment_days" formControlName="early_payment_days" [min]="1" [max]="365" [useGrouping]="false" />
           <label for="early_payment_days">{{ 'profile.earlyPaymentDays' | transloco }}</label>
         </p-floatlabel>
+        @if (missingEarlyPaymentDays()) {
+          <p class="ui-form__full m-0 text-sm text-red-600">{{ 'profile.earlyPaymentDaysRequired' | transloco }}</p>
+        }
 
         <p-floatlabel variant="on">
           <p-inputnumber inputId="early_payment_min_amount" formControlName="early_payment_min_amount" mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="2" [min]="0" prefix="CHF " />
