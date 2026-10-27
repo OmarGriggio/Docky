@@ -1,5 +1,5 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { TableModule, TableEditCompleteEvent, TableEditInitEvent } from 'primeng/table';
@@ -22,16 +22,18 @@ import { DocumentLedger } from '../../../shared/components/document-ledger/docum
 import { AppDatePipe } from '../../../shared/pipes/app-date.pipe';
 import { PricePipe } from '../../../shared/pipes/price.pipe';
 import { qrBillErrorKey } from '../../../shared/utils/api-error';
+import { BreakpointService } from '../../../shared/services/breakpoint.service';
 
 @Component({
   selector: 'app-document-list',
   standalone: true,
-  imports: [ListToolbarComponent, TableModule, TagModule, Button, Menu, Select, FormsModule, AppDatePipe, PricePipe, ConfirmDialogComponent, DocumentLedger, TranslocoPipe],
+  imports: [RouterLink, ListToolbarComponent, TableModule, TagModule, Button, Menu, Select, FormsModule, AppDatePipe, PricePipe, ConfirmDialogComponent, DocumentLedger, TranslocoPipe],
   templateUrl: './document-list.html'
 })
 export class DocumentListComponent implements OnInit {
 
   private route = inject(ActivatedRoute);
+  isMobile = inject(BreakpointService).isMobile;
   private router = inject(Router);
   private documentService = inject(DocumentService);
   private clientService = inject(ClientService);
@@ -258,13 +260,28 @@ export class DocumentListComponent implements OnInit {
     if (document.status === this.statusBeforeEdit) {
       return;
     }
+    this.saveStatus(document, document.status);
+  }
 
-    if (document.status === 'ACCEPTED' && this.statusBeforeEdit !== 'ACCEPTED') {
+  // The phone's own status select (document-list.html's cards - no table
+  // cell to edit there): same save path as the table's cell editor above,
+  // with the status before the change snapshotted the same way.
+  changeStatus(document: Document, status: DocumentStatus): void {
+    if (status === document.status) {
+      return;
+    }
+    this.statusBeforeEdit = document.status;
+    document.status = status;
+    this.saveStatus(document, status);
+  }
+
+  private saveStatus(document: Document, status: DocumentStatus): void {
+    if (status === 'ACCEPTED' && this.statusBeforeEdit !== 'ACCEPTED') {
       this.confirmAcceptQuote(document);
       return;
     }
 
-    this.documentService.updateStatus(document.id, document.status).subscribe({
+    this.documentService.updateStatus(document.id, status).subscribe({
       // Mutate the *same* document object in place with the server's
       // canonical value, rather than swapping in a new object - same
       // reasoning as every other list's own row-identity fix this session.

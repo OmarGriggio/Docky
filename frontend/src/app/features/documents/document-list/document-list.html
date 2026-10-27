@@ -10,94 +10,146 @@
   <p class="text-sm text-red-600 mt-0 mb-3">{{ pdfErrorMessage() }}</p>
 }
 
-<p-table [value]="filteredDocuments()" dataKey="id" showGridlines size="small" editMode="cell" (onEditInit)="onStatusEditInit($event)" (onEditComplete)="onStatusEditComplete($event)" [expandedRowKeys]="expandedRowKeys">
-  <ng-template #header>
-    <tr>
-      <th style="width: 3rem"></th>
-      <th>{{ 'documents.columnNumber' | transloco }}</th>
-      <th>{{ 'projects.columnClient' | transloco }}</th>
-      <th>{{ 'projects.columnLocation' | transloco }}</th>
-      <th>{{ 'projects.columnDate' | transloco }}</th>
-      <th>{{ 'documents.columnDueDate' | transloco }}</th>
-      <th>{{ 'documents.columnAmountExcl' | transloco }}</th>
-      <th>{{ 'documents.columnAmountIncl' | transloco }}</th>
-      <th>{{ 'documents.columnDiscount' | transloco }}</th>
-      <th>{{ 'projects.columnStatus' | transloco }}</th>
-      <th></th>
-      <th></th>
-    </tr>
-  </ng-template>
-
-  <ng-template #emptymessage>
-    <tr>
-      <td colspan="12" class="text-center text-gray-500">{{ (search().trim() ? 'documents.noSearchResults' : 'documents.noDocuments') | transloco }}</td>
-    </tr>
-  </ng-template>
-
-  <ng-template #body let-document let-rowIndex="rowIndex">
-    <tr>
-      <td>
-        <p-button
-          type="button" [text]="true" size="small"
-          [icon]="expandedRowKeys[document.id] ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
-          [pRowToggler]="document"
-        />
-      </td>
-      <td>{{ document.number }}</td>
-      <td>{{ clientName(document) }}</td>
-      <td>{{ location(document) }}</td>
-      <td>{{ document.date | appDate }}</td>
-      <td>
-        @if (overdueDays(document); as days) {
-          <div class="flex flex-wrap items-center gap-2">
-            <span class="font-semibold text-red-600">{{ document.due_date | appDate }}</span>
-            <i class="pi pi-exclamation-triangle text-red-600" [attr.title]="'documents.overdueTooltip' | transloco: { days }"></i>
+<!-- On a phone, one card per document instead of the table (same pattern as
+     project-list.html): tapping it opens the document, the status can still
+     be changed right there (changeStatus), PDF and ⋮ keep their actions. -->
+@if (isMobile()) {
+  <p-menu #mobileMenu [popup]="true" [model]="menuItems" appendTo="body" />
+  <div class="flex flex-col gap-2">
+    @for (document of filteredDocuments(); track document.id) {
+      <div class="flex flex-col gap-2 bg-white border border-gray-200 rounded-lg p-3">
+        <a [routerLink]="['/documents', document.id]" class="flex flex-col gap-1 no-underline text-inherit">
+          <div class="flex items-start justify-between gap-2">
+            <span class="font-medium text-gray-900">{{ document.number }}</span>
+            <span class="shrink-0 font-medium text-gray-900 whitespace-nowrap">{{ document.amount_incl_vat | price }} CHF</span>
           </div>
-        } @else {
-          {{ document.due_date | appDate }}
-        }
-      </td>
-      <td>{{ document.amount_excl_vat | price }}</td>
-      <td>{{ document.amount_incl_vat | price }}</td>
-      <td>{{ document.discount }}</td>
-      <td
-        [pEditableColumn]="document.status" pEditableColumnField="status" [pEditableColumnRowIndex]="rowIndex"
-        [pEditableColumnDisabled]="!isEditable(document)"
-      >
-        <p-cellEditor>
-          <ng-template #input>
+          <span class="text-sm text-gray-600">{{ clientName(document) }}</span>
+          <span class="text-sm text-gray-500 truncate"><i class="pi pi-map-marker text-xs mr-1"></i>{{ location(document) }}</span>
+          <span class="text-sm text-gray-500">
+            <i class="pi pi-calendar text-xs mr-1"></i>{{ document.date | appDate }}
+            @if (document.due_date) {
+              ·
+              @if (overdueDays(document); as days) {
+                <span class="font-semibold text-red-600">{{ document.due_date | appDate }} <i class="pi pi-exclamation-triangle text-xs"></i></span>
+              } @else {
+                {{ document.due_date | appDate }}
+              }
+            }
+          </span>
+        </a>
+        <div class="flex items-center gap-2">
+          @if (isEditable(document)) {
             <p-select
               size="small"
               [options]="statusOptionsFor(document)"
               optionLabel="label"
               optionValue="value"
-              [(ngModel)]="document.status"
+              [ngModel]="document.status"
+              (ngModelChange)="changeStatus(document, $event)"
               appendTo="body"
             />
-          </ng-template>
-          <ng-template #output>
+          } @else {
             <p-tag [value]="statusLabel(document)" [severity]="statusSeverity(document)" />
-          </ng-template>
-        </p-cellEditor>
-      </td>
-      <td class="w-12">
-        <p-button size="small" label="" icon="pi pi-file-pdf" [outlined]="true" (click)="openPdf(document)" />
-      </td>
-      <td class="w-12">
-        <p-menu #menu [popup]="true" [model]="menuItems" appendTo="body"></p-menu>
-        <p-button size="small" icon="pi pi-ellipsis-v" [outlined]="true" (click)="openActionsMenu(menu, $event, document)"></p-button>
-      </td>
-    </tr>
-  </ng-template>
+          }
+          <span class="flex-1"></span>
+          <p-button size="small" icon="pi pi-file-pdf" [outlined]="true" (click)="openPdf(document)" />
+          <p-button size="small" icon="pi pi-ellipsis-v" [outlined]="true" (click)="openActionsMenu(mobileMenu, $event, document)" />
+        </div>
+      </div>
+    } @empty {
+      <p class="text-center text-gray-500">{{ (search().trim() ? 'documents.noSearchResults' : 'documents.noDocuments') | transloco }}</p>
+    }
+  </div>
+} @else {
+  <p-table [value]="filteredDocuments()" dataKey="id" showGridlines size="small" editMode="cell" (onEditInit)="onStatusEditInit($event)" (onEditComplete)="onStatusEditComplete($event)" [expandedRowKeys]="expandedRowKeys">
+    <ng-template #header>
+      <tr>
+        <th style="width: 3rem"></th>
+        <th>{{ 'documents.columnNumber' | transloco }}</th>
+        <th>{{ 'projects.columnClient' | transloco }}</th>
+        <th>{{ 'projects.columnLocation' | transloco }}</th>
+        <th>{{ 'projects.columnDate' | transloco }}</th>
+        <th>{{ 'documents.columnDueDate' | transloco }}</th>
+        <th>{{ 'documents.columnAmountExcl' | transloco }}</th>
+        <th>{{ 'documents.columnAmountIncl' | transloco }}</th>
+        <th>{{ 'documents.columnDiscount' | transloco }}</th>
+        <th>{{ 'projects.columnStatus' | transloco }}</th>
+        <th></th>
+        <th></th>
+      </tr>
+    </ng-template>
 
-  <ng-template #expandedrow let-document>
-    <tr>
-      <td colspan="12">
-        <app-document-ledger [documentId]="document.id" [columns]="1" />
-      </td>
-    </tr>
-  </ng-template>
-</p-table>
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="12" class="text-center text-gray-500">{{ (search().trim() ? 'documents.noSearchResults' : 'documents.noDocuments') | transloco }}</td>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-document let-rowIndex="rowIndex">
+      <tr>
+        <td>
+          <p-button
+            type="button" [text]="true" size="small"
+            [icon]="expandedRowKeys[document.id] ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+            [pRowToggler]="document"
+          />
+        </td>
+        <td>{{ document.number }}</td>
+        <td>{{ clientName(document) }}</td>
+        <td>{{ location(document) }}</td>
+        <td>{{ document.date | appDate }}</td>
+        <td>
+          @if (overdueDays(document); as days) {
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="font-semibold text-red-600">{{ document.due_date | appDate }}</span>
+              <i class="pi pi-exclamation-triangle text-red-600" [attr.title]="'documents.overdueTooltip' | transloco: { days }"></i>
+            </div>
+          } @else {
+            {{ document.due_date | appDate }}
+          }
+        </td>
+        <td>{{ document.amount_excl_vat | price }}</td>
+        <td>{{ document.amount_incl_vat | price }}</td>
+        <td>{{ document.discount }}</td>
+        <td
+          [pEditableColumn]="document.status" pEditableColumnField="status" [pEditableColumnRowIndex]="rowIndex"
+          [pEditableColumnDisabled]="!isEditable(document)"
+        >
+          <p-cellEditor>
+            <ng-template #input>
+              <p-select
+                size="small"
+                [options]="statusOptionsFor(document)"
+                optionLabel="label"
+                optionValue="value"
+                [(ngModel)]="document.status"
+                appendTo="body"
+              />
+            </ng-template>
+            <ng-template #output>
+              <p-tag [value]="statusLabel(document)" [severity]="statusSeverity(document)" />
+            </ng-template>
+          </p-cellEditor>
+        </td>
+        <td class="w-12">
+          <p-button size="small" label="" icon="pi pi-file-pdf" [outlined]="true" (click)="openPdf(document)" />
+        </td>
+        <td class="w-12">
+          <p-menu #menu [popup]="true" [model]="menuItems" appendTo="body"></p-menu>
+          <p-button size="small" icon="pi pi-ellipsis-v" [outlined]="true" (click)="openActionsMenu(menu, $event, document)"></p-button>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template #expandedrow let-document>
+      <tr>
+        <td colspan="12">
+          <app-document-ledger [documentId]="document.id" [columns]="1" />
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+}
 
 <app-confirm-dialog
   [(visible)]="confirmVisible"
