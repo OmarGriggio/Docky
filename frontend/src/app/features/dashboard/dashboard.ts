@@ -7,6 +7,7 @@ import { DashboardService } from './dashboard.service';
 import { OpenInvoice, PaidAmountByClient, ProjectInProgress } from '../../shared/models/dashboard';
 import { clientDisplayName, daysFromToday, formatPrice, formatSectionDate, fromDateOnly } from '../../shared/utils/display';
 import { PricePipe } from '../../shared/pipes/price.pipe';
+import { BreakpointService } from '../../shared/services/breakpoint.service';
 
 // How an open invoice's due date reads in the "to be paid" table: a
 // translation key, its {{days}}, and the tag's color.
@@ -34,6 +35,8 @@ export class Dashboard implements OnInit {
 
   private dashboardService = inject(DashboardService);
   private transloco = inject(TranslocoService);
+
+  isMobile = inject(BreakpointService).isMobile;
 
   paidByClient = signal<PaidAmountByClient[]>([]);
   chartData = signal<BarChartData | null>(null);
