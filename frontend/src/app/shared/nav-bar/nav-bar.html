@@ -1,6 +1,6 @@
 @if (isAuthenticated()) {
   <nav
-    class="fixed bottom-0 inset-x-0 z-30 flex flex-row flex-nowrap items-center justify-around gap-0.5 w-full h-14 px-1 pb-[env(safe-area-inset-bottom)] bg-white border-t border-gray-200
+    class="fixed bottom-0 inset-x-0 z-30 flex flex-row flex-nowrap items-center justify-around gap-0.5 w-full h-[calc(3.5rem+env(safe-area-inset-bottom))] px-1 pb-[env(safe-area-inset-bottom)] bg-white border-t border-gray-200
            md:justify-start md:gap-1 md:inset-x-auto md:bottom-auto md:flex-col md:h-screen md:sticky md:top-0 md:z-20 md:border-t-0 md:border-r md:py-4 md:pb-4 transition-[width] duration-150"
     [class]="navWidthClasses()"
   >
