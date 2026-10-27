@@ -54,6 +54,43 @@
           <label for="vat_number">{{ 'profile.vatNumber' | transloco }}</label>
         </p-floatlabel>
 
+        <p class="ui-form__full m-0 text-sm text-gray-500">{{ 'profile.invoiceFooterHint' | transloco }}</p>
+
+        <p-floatlabel variant="on">
+          <input pInputText id="website" formControlName="website" placeholder="www.example.ch" />
+          <label for="website">{{ 'profile.website' | transloco }}</label>
+        </p-floatlabel>
+
+        <p-floatlabel variant="on">
+          <input pInputText id="bank_name" formControlName="bank_name" placeholder="BCBE" />
+          <label for="bank_name">{{ 'profile.bankName' | transloco }}</label>
+        </p-floatlabel>
+
+        <p-floatlabel variant="on">
+          <input pInputText id="bank_account" formControlName="bank_account" placeholder="01-200000-7" />
+          <label for="bank_account">{{ 'profile.bankAccount' | transloco }}</label>
+        </p-floatlabel>
+
+        <div class="ui-form__full flex flex-col gap-1">
+          <span class="text-sm font-medium">{{ 'profile.earlyPaymentTitle' | transloco }}</span>
+          <p class="m-0 text-sm text-gray-500">{{ 'profile.earlyPaymentHint' | transloco }}</p>
+        </div>
+
+        <p-floatlabel variant="on">
+          <p-inputnumber inputId="early_payment_discount" formControlName="early_payment_discount" mode="decimal" [minFractionDigits]="0" [maxFractionDigits]="2" [min]="0" [max]="100" suffix=" %" />
+          <label for="early_payment_discount">{{ 'profile.earlyPaymentDiscount' | transloco }}</label>
+        </p-floatlabel>
+
+        <p-floatlabel variant="on">
+          <p-inputnumber inputId="early_payment_days" formControlName="early_payment_days" [min]="1" [max]="365" [useGrouping]="false" />
+          <label for="early_payment_days">{{ 'profile.earlyPaymentDays' | transloco }}</label>
+        </p-floatlabel>
+
+        <p-floatlabel variant="on">
+          <p-inputnumber inputId="early_payment_min_amount" formControlName="early_payment_min_amount" mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="2" [min]="0" prefix="CHF " />
+          <label for="early_payment_min_amount">{{ 'profile.earlyPaymentMinAmount' | transloco }}</label>
+        </p-floatlabel>
+
         <div class="ui-form__full flex flex-col gap-2">
           <span class="text-sm font-medium">{{ 'profile.logo' | transloco }}</span>
           @if (logoUrl()) {

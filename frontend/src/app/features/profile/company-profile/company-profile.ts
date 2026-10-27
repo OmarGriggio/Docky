@@ -35,6 +35,14 @@ export class CompanyProfile implements OnInit {
     country: [''],
     vat_rate: [8.1, Validators.required],
     vat_number: [''],
+    website: [''],
+    bank_name: [''],
+    bank_account: [''],
+    // Same bounds the backend enforces (company.service.ts's
+    // normalizeEarlyPayment) - days only matter once there's a rate.
+    early_payment_discount: [0, [Validators.min(0), Validators.max(100)]],
+    early_payment_days: [null as number | null, [Validators.min(1), Validators.max(365)]],
+    early_payment_min_amount: [0, Validators.min(0)],
   });
 
   loading = signal(true);
@@ -99,6 +107,12 @@ export class CompanyProfile implements OnInit {
           country: company.country ?? '',
           vat_rate: company.vat_rate,
           vat_number: company.vat_number ?? '',
+          website: company.website ?? '',
+          bank_name: company.bank_name ?? '',
+          bank_account: company.bank_account ?? '',
+          early_payment_discount: company.early_payment_discount ?? 0,
+          early_payment_days: company.early_payment_days,
+          early_payment_min_amount: company.early_payment_min_amount ?? 0,
         });
         this.logoPath.set(company.logo);
         this.headerImagePath.set(company.header_image);
@@ -125,8 +139,12 @@ export class CompanyProfile implements OnInit {
     this.successMessage.set(null);
     this.errorMessage.set(null);
 
+    const value = this.form.getRawValue();
     this.companyService.updateCompany(this.companyId, {
-      ...this.form.getRawValue(),
+      ...value,
+      // An emptied number field comes back null - stored as "none" (0).
+      early_payment_discount: value.early_payment_discount ?? 0,
+      early_payment_min_amount: value.early_payment_min_amount ?? 0,
       logo: this.logoPath(),
       header_image: this.headerImagePath(),
       payment_terms: this.paymentTerms(),
