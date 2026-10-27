@@ -1,5 +1,5 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TableModule, TableRowExpandEvent } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
@@ -20,6 +20,7 @@ import { DocumentService } from '../../documents/document.service';
 import { Document } from '../../../shared/models/document';
 import { AppDatePipe } from '../../../shared/pipes/app-date.pipe';
 import { PricePipe } from '../../../shared/pipes/price.pipe';
+import { BreakpointService } from '../../../shared/services/breakpoint.service';
 
 // Stable shared reference for "no documents yet" - see document-list.ts's
 // own EMPTY_LINES for why (a freshly-allocated [] on every template check
@@ -29,7 +30,7 @@ const EMPTY_DOCUMENTS: Document[] = [];
 @Component({
   selector: 'app-client-list',
   standalone: true,
-  imports: [ListToolbarComponent, TableModule, TagModule, Menu, Button, Dialog, InputText, Select, FormsModule, AppDatePipe, PricePipe, ClientForm, ConfirmDialogComponent, TranslocoPipe],
+  imports: [RouterLink, ListToolbarComponent, TableModule, TagModule, Menu, Button, Dialog, InputText, Select, FormsModule, AppDatePipe, PricePipe, ClientForm, ConfirmDialogComponent, TranslocoPipe],
   templateUrl: './client-list.html',
   // Tried ChangeDetectionStrategy.OnPush here as an experiment - reverted.
   // It broke switching directly from one cell's edit mode to another
@@ -44,6 +45,7 @@ const EMPTY_DOCUMENTS: Document[] = [];
 export class ClientListComponent implements OnInit {
 
   private clientService = inject(ClientService);
+  isMobile = inject(BreakpointService).isMobile;
   private documentService = inject(DocumentService);
   private router = inject(Router);
   private transloco = inject(TranslocoService);

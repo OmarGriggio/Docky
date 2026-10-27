@@ -17,171 +17,202 @@
   }
 </p-dialog>
 
-<p-table [value]="filteredClients()" dataKey="id" showGridlines editMode="row" size="small" [expandedRowKeys]="expandedRowKeys" (onRowExpand)="onRowExpand($event)">
-  <ng-template #header>
-    <tr>
-      <th style="width: 3rem"></th>
-      <th>{{ 'clients.columnNumber' | transloco }}</th>
-      <th>{{ 'clients.columnType' | transloco }}</th>
-      <th>{{ 'clients.columnCompany' | transloco }}</th>
-      <th>{{ 'clients.columnFirstName' | transloco }}</th>
-      <th>{{ 'clients.columnLastName' | transloco }}</th>
-      <th>{{ 'clients.columnEmail' | transloco }}</th>
-      <th>{{ 'clients.columnPhone' | transloco }}</th>
-      <th>{{ 'clients.columnLanguage' | transloco }}</th>
-      <th></th>
-      <th></th>
-    </tr>
-  </ng-template>
-
-  <ng-template #emptymessage>
-    <tr>
-      <td colspan="11" class="text-center text-gray-500">{{ (search().trim() ? 'clients.noSearchResults' : 'clients.noClients') | transloco }}</td>
-    </tr>
-  </ng-template>
-
-  <ng-template #body let-client let-editing="editing" let-rowIndex="rowIndex">
-    <tr [pEditableRow]="client">
-      <td>
-        <p-button
-          type="button" [text]="true" size="small"
-          [icon]="expandedRowKeys[client.id] ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
-          [pRowToggler]="client"
-        />
-      </td>
-      <!-- Not editable - the client's stable business key. -->
-      <td>{{ client.client_number }}</td>
-
-      <td>
-        <p-cellEditor>
-          <ng-template #input>
-            <p-select [(ngModel)]="client.type" [options]="typeOptions()" optionLabel="label" optionValue="value" [fluid]="true" appendTo="body" />
-          </ng-template>
-          <ng-template #output>
-            {{ (client.type === 'PROFESSIONAL' ? 'clients.professional' : 'clients.individual') | transloco }}
-          </ng-template>
-        </p-cellEditor>
-      </td>
-
-      <td>
-        <p-cellEditor>
-          <ng-template #input>
-            <input pInputText [(ngModel)]="client.company_name" [fluid]="true" />
-          </ng-template>
-          <ng-template #output>
-            {{ client.company_name }}
-          </ng-template>
-        </p-cellEditor>
-      </td>
-
-      <td>
-        <p-cellEditor>
-          <ng-template #input>
-            <input pInputText [(ngModel)]="client.first_name" [fluid]="true" />
-          </ng-template>
-          <ng-template #output>
-            {{ client.first_name }}
-          </ng-template>
-        </p-cellEditor>
-      </td>
-
-      <td>
-        <p-cellEditor>
-          <ng-template #input>
-            <input pInputText [(ngModel)]="client.last_name" [fluid]="true" />
-          </ng-template>
-          <ng-template #output>
-            {{ client.last_name }}
-          </ng-template>
-        </p-cellEditor>
-      </td>
-
-      <td>
-        <p-cellEditor>
-          <ng-template #input>
-            <input pInputText [(ngModel)]="client.email" [fluid]="true" />
-          </ng-template>
-          <ng-template #output>
-            {{ client.email }}
-          </ng-template>
-        </p-cellEditor>
-      </td>
-
-      <td>
-        <p-cellEditor>
-          <ng-template #input>
-            <input pInputText [(ngModel)]="client.phone" [fluid]="true" />
-          </ng-template>
-          <ng-template #output>
-            {{ client.phone }}
-          </ng-template>
-        </p-cellEditor>
-      </td>
-
-      <td>
-        <p-cellEditor>
-          <ng-template #input>
-            <p-select [(ngModel)]="client.language" [options]="languageOptions()" optionLabel="label" optionValue="value" [fluid]="true" appendTo="body" />
-          </ng-template>
-          <ng-template #output>
-            {{ languageLabel(client.language) }}
-          </ng-template>
-        </p-cellEditor>
-      </td>
-
-      <td class="w-14">
-        <div class="flex gap-1">
-          @if (!editing) {
-            <p-button type="button" pInitEditableRow icon="pi pi-pencil" [text]="true" severity="secondary" (click)="onRowEditInit(client)" />
-          } @else {
-            <p-button type="button" pSaveEditableRow icon="pi pi-check" [text]="true" severity="success" (click)="onRowEditSave(client)" />
-            <p-button type="button" pCancelEditableRow icon="pi pi-times" [text]="true" severity="danger" (click)="onRowEditCancel(client)" />
+<!-- On a phone, one card per client instead of the table (same pattern as
+     project-list.html): tapping it opens the client, the ⋮ menu keeps every
+     row action. No inline editing here, the client's own page covers it. -->
+@if (isMobile()) {
+  <p-menu #mobileMenu [popup]="true" [model]="menuItems" appendTo="body" />
+  <div class="flex flex-col gap-2">
+    @for (client of filteredClients(); track client.id) {
+      <div class="flex items-start gap-2 bg-white border border-gray-200 rounded-lg p-3">
+        <a [routerLink]="['/clients', client.id]" class="flex-1 min-w-0 flex flex-col gap-1 no-underline text-inherit">
+          <div class="flex items-start justify-between gap-2">
+            <span class="font-medium text-gray-900">{{ client.company_name || ((client.first_name ?? '') + ' ' + (client.last_name ?? '')) }}</span>
+            <span class="shrink-0 text-sm text-gray-500">{{ client.client_number }}</span>
+          </div>
+          @if (client.company_name && (client.first_name || client.last_name)) {
+            <span class="text-sm text-gray-600">{{ client.first_name }} {{ client.last_name }}</span>
           }
-        </div>
-      </td>
+          @if (client.email) {
+            <span class="text-sm text-gray-500 truncate"><i class="pi pi-envelope text-xs mr-1"></i>{{ client.email }}</span>
+          }
+          @if (client.phone) {
+            <span class="text-sm text-gray-500"><i class="pi pi-phone text-xs mr-1"></i>{{ client.phone }}</span>
+          }
+        </a>
+        <p-button size="small" icon="pi pi-ellipsis-v" [outlined]="true" (click)="openActionsMenu(mobileMenu, $event, client)" />
+      </div>
+    } @empty {
+      <p class="text-center text-gray-500">{{ (search().trim() ? 'clients.noSearchResults' : 'clients.noClients') | transloco }}</p>
+    }
+  </div>
+} @else {
+  <p-table [value]="filteredClients()" dataKey="id" showGridlines editMode="row" size="small" [expandedRowKeys]="expandedRowKeys" (onRowExpand)="onRowExpand($event)">
+    <ng-template #header>
+      <tr>
+        <th style="width: 3rem"></th>
+        <th>{{ 'clients.columnNumber' | transloco }}</th>
+        <th>{{ 'clients.columnType' | transloco }}</th>
+        <th>{{ 'clients.columnCompany' | transloco }}</th>
+        <th>{{ 'clients.columnFirstName' | transloco }}</th>
+        <th>{{ 'clients.columnLastName' | transloco }}</th>
+        <th>{{ 'clients.columnEmail' | transloco }}</th>
+        <th>{{ 'clients.columnPhone' | transloco }}</th>
+        <th>{{ 'clients.columnLanguage' | transloco }}</th>
+        <th></th>
+        <th></th>
+      </tr>
+    </ng-template>
 
-      <td class="w-12">
-        <p-menu #menu [popup]="true" [model]="menuItems" appendTo="body"></p-menu>
-        <p-button size="small" icon="pi pi-ellipsis-v" [outlined]="true" (click)="openActionsMenu(menu, $event, client)"></p-button>
-      </td>
-    </tr>
-  </ng-template>
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="11" class="text-center text-gray-500">{{ (search().trim() ? 'clients.noSearchResults' : 'clients.noClients') | transloco }}</td>
+      </tr>
+    </ng-template>
 
-  <ng-template #expandedrow let-client>
-    <tr>
-      <!-- !-prefixed: overrides PrimeNG's own default cell padding
-           (higher-specificity descendant selector on p-table's own td),
-           which a plain Tailwind utility class wouldn't win against. -->
-      <td colspan="11" class="p-0!">
-        @if (isLoadingDocuments(client)) {
-          <p>{{ 'common.loading' | transloco }}</p>
-        } @else if (documentsFor(client).length === 0) {
-          <p>{{ 'clients.noDocuments' | transloco }}</p>
-        } @else {
-          <p-table [value]="documentsFor(client)" dataKey="id" size="small">
-            <ng-template #body let-document>
-              <!-- py-1!/text-xs!: go smaller than size="small" still allows -
-                   both need !important, same reasoning as the parent td's
-                   own p-0! above (PrimeNG's own cell padding/font-size rules
-                   outrank a plain Tailwind class here). -->
-              <tr class="bg-gray-100!">
-                <td class="w-12"></td>
-                <td class="py-1! text-xs!">{{ document.number }}</td>
-                <td class="py-1! text-xs!">{{ (document.type === 'QUOTE' ? 'clients.quote' : 'clients.invoice') | transloco }}</td>
-                <td class="py-1! text-xs!">{{ document.date | appDate }}</td>
-                <td class="py-1! text-xs!">{{ document.amount_incl_vat | price }}</td>
-                <td class="py-1! text-xs!"><p-tag [value]="statusLabel(document)" [severity]="statusSeverity(document)" /></td>
-                <td class="py-1! text-xs! w-12">
-                  <p-button label="" icon="pi pi-arrow-right" [text]="true" size="small" (click)="openDocument(document)" />
-                </td>
-              </tr>
+    <ng-template #body let-client let-editing="editing" let-rowIndex="rowIndex">
+      <tr [pEditableRow]="client">
+        <td>
+          <p-button
+            type="button" [text]="true" size="small"
+            [icon]="expandedRowKeys[client.id] ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+            [pRowToggler]="client"
+          />
+        </td>
+        <!-- Not editable - the client's stable business key. -->
+        <td>{{ client.client_number }}</td>
+
+        <td>
+          <p-cellEditor>
+            <ng-template #input>
+              <p-select [(ngModel)]="client.type" [options]="typeOptions()" optionLabel="label" optionValue="value" [fluid]="true" appendTo="body" />
             </ng-template>
-          </p-table>
-        }
-      </td>
-    </tr>
-  </ng-template>
-</p-table>
+            <ng-template #output>
+              {{ (client.type === 'PROFESSIONAL' ? 'clients.professional' : 'clients.individual') | transloco }}
+            </ng-template>
+          </p-cellEditor>
+        </td>
+
+        <td>
+          <p-cellEditor>
+            <ng-template #input>
+              <input pInputText [(ngModel)]="client.company_name" [fluid]="true" />
+            </ng-template>
+            <ng-template #output>
+              {{ client.company_name }}
+            </ng-template>
+          </p-cellEditor>
+        </td>
+
+        <td>
+          <p-cellEditor>
+            <ng-template #input>
+              <input pInputText [(ngModel)]="client.first_name" [fluid]="true" />
+            </ng-template>
+            <ng-template #output>
+              {{ client.first_name }}
+            </ng-template>
+          </p-cellEditor>
+        </td>
+
+        <td>
+          <p-cellEditor>
+            <ng-template #input>
+              <input pInputText [(ngModel)]="client.last_name" [fluid]="true" />
+            </ng-template>
+            <ng-template #output>
+              {{ client.last_name }}
+            </ng-template>
+          </p-cellEditor>
+        </td>
+
+        <td>
+          <p-cellEditor>
+            <ng-template #input>
+              <input pInputText [(ngModel)]="client.email" [fluid]="true" />
+            </ng-template>
+            <ng-template #output>
+              {{ client.email }}
+            </ng-template>
+          </p-cellEditor>
+        </td>
+
+        <td>
+          <p-cellEditor>
+            <ng-template #input>
+              <input pInputText [(ngModel)]="client.phone" [fluid]="true" />
+            </ng-template>
+            <ng-template #output>
+              {{ client.phone }}
+            </ng-template>
+          </p-cellEditor>
+        </td>
+
+        <td>
+          <p-cellEditor>
+            <ng-template #input>
+              <p-select [(ngModel)]="client.language" [options]="languageOptions()" optionLabel="label" optionValue="value" [fluid]="true" appendTo="body" />
+            </ng-template>
+            <ng-template #output>
+              {{ languageLabel(client.language) }}
+            </ng-template>
+          </p-cellEditor>
+        </td>
+
+        <td class="w-14">
+          <div class="flex gap-1">
+            @if (!editing) {
+              <p-button type="button" pInitEditableRow icon="pi pi-pencil" [text]="true" severity="secondary" (click)="onRowEditInit(client)" />
+            } @else {
+              <p-button type="button" pSaveEditableRow icon="pi pi-check" [text]="true" severity="success" (click)="onRowEditSave(client)" />
+              <p-button type="button" pCancelEditableRow icon="pi pi-times" [text]="true" severity="danger" (click)="onRowEditCancel(client)" />
+            }
+          </div>
+        </td>
+
+        <td class="w-12">
+          <p-menu #menu [popup]="true" [model]="menuItems" appendTo="body"></p-menu>
+          <p-button size="small" icon="pi pi-ellipsis-v" [outlined]="true" (click)="openActionsMenu(menu, $event, client)"></p-button>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template #expandedrow let-client>
+      <tr>
+        <!-- !-prefixed: overrides PrimeNG's own default cell padding
+             (higher-specificity descendant selector on p-table's own td),
+             which a plain Tailwind utility class wouldn't win against. -->
+        <td colspan="11" class="p-0!">
+          @if (isLoadingDocuments(client)) {
+            <p>{{ 'common.loading' | transloco }}</p>
+          } @else if (documentsFor(client).length === 0) {
+            <p>{{ 'clients.noDocuments' | transloco }}</p>
+          } @else {
+            <p-table [value]="documentsFor(client)" dataKey="id" size="small">
+              <ng-template #body let-document>
+                <!-- py-1!/text-xs!: go smaller than size="small" still allows -
+                     both need !important, same reasoning as the parent td's
+                     own p-0! above (PrimeNG's own cell padding/font-size rules
+                     outrank a plain Tailwind class here). -->
+                <tr class="bg-gray-100!">
+                  <td class="w-12"></td>
+                  <td class="py-1! text-xs!">{{ document.number }}</td>
+                  <td class="py-1! text-xs!">{{ (document.type === 'QUOTE' ? 'clients.quote' : 'clients.invoice') | transloco }}</td>
+                  <td class="py-1! text-xs!">{{ document.date | appDate }}</td>
+                  <td class="py-1! text-xs!">{{ document.amount_incl_vat | price }}</td>
+                  <td class="py-1! text-xs!"><p-tag [value]="statusLabel(document)" [severity]="statusSeverity(document)" /></td>
+                  <td class="py-1! text-xs! w-12">
+                    <p-button label="" icon="pi pi-arrow-right" [text]="true" size="small" (click)="openDocument(document)" />
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          }
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+}
 
 <app-confirm-dialog
   [(visible)]="confirmVisible"

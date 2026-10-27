@@ -15,6 +15,7 @@ import { ClientWithAddresses } from '../../../shared/models/client';
 import { Address } from '../../../shared/models/address';
 import { AddressForm } from '../../../shared/components/address-form/address-form';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
+import { BreakpointService } from '../../../shared/services/breakpoint.service';
 
 @Component({
   selector: 'app-client-detail',
@@ -26,6 +27,7 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
 export class ClientDetail implements OnInit {
 
   private route = inject(ActivatedRoute);
+  isMobile = inject(BreakpointService).isMobile;
   private clientService = inject(ClientService);
   private addressService = inject(AddressService);
   private transloco = inject(TranslocoService);

@@ -51,98 +51,121 @@
     </ng-template>
   </p-toolbar>
 
-  <p-table [value]="c.addresses" dataKey="id" showGridlines size="small" editMode="row">
-    <ng-template #header>
-      <tr>
-        <th>{{ 'clients.detail.addressAttention' | transloco }}</th>
-        <th>{{ 'clients.detail.addressStreet' | transloco }}</th>
-        <th>{{ 'clients.detail.addressPostalCode' | transloco }}</th>
-        <th>{{ 'clients.detail.addressCity' | transloco }}</th>
-        <th>{{ 'clients.detail.addressCountry' | transloco }}</th>
-        <th></th>
-        <th></th>
-        <th></th>
-      </tr>
-    </ng-template>
-    <ng-template #body let-address let-editing="editing">
-      <tr [pEditableRow]="address">
-        <td>
-          <p-cellEditor>
-            <ng-template #input>
-              <input pInputText [(ngModel)]="address.attention" [fluid]="true" />
-            </ng-template>
-            <ng-template #output>
-              {{ address.attention }}
-            </ng-template>
-          </p-cellEditor>
-        </td>
-
-        <td>
-          <p-cellEditor>
-            <ng-template #input>
-              <input pInputText [(ngModel)]="address.street" [fluid]="true" />
-            </ng-template>
-            <ng-template #output>
-              {{ address.street }}
-            </ng-template>
-          </p-cellEditor>
-        </td>
-
-        <td>
-          <p-cellEditor>
-            <ng-template #input>
-              <input pInputText [(ngModel)]="address.postal_code" [fluid]="true" />
-            </ng-template>
-            <ng-template #output>
-              {{ address.postal_code }}
-            </ng-template>
-          </p-cellEditor>
-        </td>
-
-        <td>
-          <p-cellEditor>
-            <ng-template #input>
-              <input pInputText [(ngModel)]="address.city" [fluid]="true" />
-            </ng-template>
-            <ng-template #output>
-              {{ address.city }}
-            </ng-template>
-          </p-cellEditor>
-        </td>
-
-        <td>
-          <p-cellEditor>
-            <ng-template #input>
-              <input pInputText [(ngModel)]="address.country" [fluid]="true" />
-            </ng-template>
-            <ng-template #output>
-              {{ address.country }}
-            </ng-template>
-          </p-cellEditor>
-        </td>
-
-        <td>
+  <!-- On a phone, one card per address instead of the table (same pattern
+       as project-list.html). -->
+  @if (isMobile()) {
+    <div class="flex flex-col gap-2 mt-2">
+      @for (address of c.addresses; track address.id) {
+        <div class="flex items-start gap-2 bg-white border border-gray-200 rounded-lg p-3">
+          <div class="flex-1 min-w-0 flex flex-col gap-1 text-sm text-gray-700">
+            @if (address.attention) {
+              <span class="font-medium text-gray-900">{{ address.attention }}</span>
+            }
+            <span>{{ address.street }}</span>
+            <span>{{ address.postal_code }} {{ address.city }}</span>
+            <span class="text-gray-500">{{ address.country }}</span>
+          </div>
           @if (address.is_primary) {
             <p-tag [value]="'clients.detail.addressPrimary' | transloco" severity="success" />
           }
-        </td>
-
-        <td>
-          <div class="flex gap-1">
-            @if (!editing) {
-              <p-button type="button" pInitEditableRow icon="pi pi-pencil" [text]="true" severity="secondary" (click)="onRowEditInit(address)" />
-            } @else {
-              <p-button type="button" pSaveEditableRow icon="pi pi-check" [text]="true" severity="success" (click)="onRowEditSave(address)" />
-              <p-button type="button" pCancelEditableRow icon="pi pi-times" [text]="true" severity="danger" (click)="onRowEditCancel(address)" />
-            }
-          </div>
-        </td>
-        <td>
           <p-button icon="pi pi-trash" severity="danger" [text]="true" (onClick)="deleteAddress(address)" />
-        </td>
-      </tr>
-    </ng-template>
-  </p-table>
+        </div>
+      }
+    </div>
+  } @else {
+  <p-table [value]="c.addresses" dataKey="id" showGridlines size="small" editMode="row">
+      <ng-template #header>
+        <tr>
+          <th>{{ 'clients.detail.addressAttention' | transloco }}</th>
+          <th>{{ 'clients.detail.addressStreet' | transloco }}</th>
+          <th>{{ 'clients.detail.addressPostalCode' | transloco }}</th>
+          <th>{{ 'clients.detail.addressCity' | transloco }}</th>
+          <th>{{ 'clients.detail.addressCountry' | transloco }}</th>
+          <th></th>
+          <th></th>
+          <th></th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-address let-editing="editing">
+        <tr [pEditableRow]="address">
+          <td>
+            <p-cellEditor>
+              <ng-template #input>
+                <input pInputText [(ngModel)]="address.attention" [fluid]="true" />
+              </ng-template>
+              <ng-template #output>
+                {{ address.attention }}
+              </ng-template>
+            </p-cellEditor>
+          </td>
+
+          <td>
+            <p-cellEditor>
+              <ng-template #input>
+                <input pInputText [(ngModel)]="address.street" [fluid]="true" />
+              </ng-template>
+              <ng-template #output>
+                {{ address.street }}
+              </ng-template>
+            </p-cellEditor>
+          </td>
+
+          <td>
+            <p-cellEditor>
+              <ng-template #input>
+                <input pInputText [(ngModel)]="address.postal_code" [fluid]="true" />
+              </ng-template>
+              <ng-template #output>
+                {{ address.postal_code }}
+              </ng-template>
+            </p-cellEditor>
+          </td>
+
+          <td>
+            <p-cellEditor>
+              <ng-template #input>
+                <input pInputText [(ngModel)]="address.city" [fluid]="true" />
+              </ng-template>
+              <ng-template #output>
+                {{ address.city }}
+              </ng-template>
+            </p-cellEditor>
+          </td>
+
+          <td>
+            <p-cellEditor>
+              <ng-template #input>
+                <input pInputText [(ngModel)]="address.country" [fluid]="true" />
+              </ng-template>
+              <ng-template #output>
+                {{ address.country }}
+              </ng-template>
+            </p-cellEditor>
+          </td>
+
+          <td>
+            @if (address.is_primary) {
+              <p-tag [value]="'clients.detail.addressPrimary' | transloco" severity="success" />
+            }
+          </td>
+
+          <td>
+            <div class="flex gap-1">
+              @if (!editing) {
+                <p-button type="button" pInitEditableRow icon="pi pi-pencil" [text]="true" severity="secondary" (click)="onRowEditInit(address)" />
+              } @else {
+                <p-button type="button" pSaveEditableRow icon="pi pi-check" [text]="true" severity="success" (click)="onRowEditSave(address)" />
+                <p-button type="button" pCancelEditableRow icon="pi pi-times" [text]="true" severity="danger" (click)="onRowEditCancel(address)" />
+              }
+            </div>
+          </td>
+          <td>
+            <p-button icon="pi pi-trash" severity="danger" [text]="true" (onClick)="deleteAddress(address)" />
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  }
 
   <p-dialog
     [(visible)]="addAddressDialogVisible"
