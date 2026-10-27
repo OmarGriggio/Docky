@@ -324,12 +324,33 @@
     "pdfError": "Impossible de générer le PDF."
   },
   "dashboard": {
-    "openInvoices": "Factures ouvertes",
-    "openInvoicesSingular": "{{count}} facture envoyée, pas encore payée",
-    "openInvoicesPlural": "{{count}} factures envoyées, pas encore payées",
+    "openTotal": "Total à encaisser",
+    "invoiceCountSingular": "{{count}} facture",
+    "invoiceCountPlural": "{{count}} factures",
     "paidByClient": "Montant payé par client",
     "noPaidInvoices": "Aucune facture payée pour l'instant.",
-    "paidAmount": "Montant payé"
+    "paidAmount": "Montant payé",
+    "toBePaid": "Factures à encaisser",
+    "noOpenInvoices": "Aucune facture en attente de paiement.",
+    "projectsInProgress": "Chantiers en cours",
+    "noProjectsInProgress": "Aucun chantier en cours.",
+    "columnNumber": "N°",
+    "columnClient": "Client",
+    "columnDate": "Date",
+    "columnDueDate": "Échéance",
+    "columnAmountInclVat": "Montant TTC",
+    "columnAmountExclVat": "Montant HT",
+    "columnStatus": "Statut",
+    "columnProject": "Chantier",
+    "columnType": "Type",
+    "columnNextDate": "Prochaine date",
+    "notPlanned": "Pas planifié",
+    "noDueDate": "Sans échéance",
+    "dueToday": "Échéance aujourd'hui",
+    "dueInOneDay": "Dans 1 jour",
+    "dueInDays": "Dans {{days}} jours",
+    "lateOneDay": "En retard de 1 jour",
+    "lateDays": "En retard de {{days}} jours"
   },
   "demoBanner": {
     "message": "Vous êtes sur l'entreprise de démonstration : vous pouvez tester librement toutes les fonctionnalités. Les données de cette entreprise sont réinitialisées chaque dimanche à 02h00."

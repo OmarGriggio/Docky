@@ -163,6 +163,15 @@ export const daysOverdue = (
   return days > 0 ? days : null;
 };
 
+// Whole days from today to a calendar day ('YYYY-MM-DD...', see
+// fromDateOnly) - 0 today, negative once it's past. The dashboard's "to be
+// paid" table words an invoice's due date with it ("in 3 days", "4 days
+// late").
+export const daysFromToday = (value: string, today: Date = new Date()): number => {
+  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  return Math.round((fromDateOnly(value).getTime() - startOfToday.getTime()) / 86400000);
+};
+
 // What a client with no title (clients.title NULL) is greeted with - matches
 // the backend's own fallback (pdf/templates/document.placeholders.ts).
 export const DEFAULT_CLIENT_TITLE = 'Madame, Monsieur';

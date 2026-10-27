@@ -324,12 +324,33 @@
     "pdfError": "Couldn't generate the PDF."
   },
   "dashboard": {
-    "openInvoices": "Open invoices",
-    "openInvoicesSingular": "{{count}} invoice sent, not yet paid",
-    "openInvoicesPlural": "{{count}} invoices sent, not yet paid",
+    "openTotal": "Total awaiting payment",
+    "invoiceCountSingular": "{{count}} invoice",
+    "invoiceCountPlural": "{{count}} invoices",
     "paidByClient": "Amount paid by client",
     "noPaidInvoices": "No paid invoices yet.",
-    "paidAmount": "Amount paid"
+    "paidAmount": "Amount paid",
+    "toBePaid": "Invoices awaiting payment",
+    "noOpenInvoices": "No invoice awaiting payment.",
+    "projectsInProgress": "Ongoing projects",
+    "noProjectsInProgress": "No ongoing project.",
+    "columnNumber": "No.",
+    "columnClient": "Client",
+    "columnDate": "Date",
+    "columnDueDate": "Due date",
+    "columnAmountInclVat": "Amount incl. VAT",
+    "columnAmountExclVat": "Amount excl. VAT",
+    "columnStatus": "Status",
+    "columnProject": "Project",
+    "columnType": "Type",
+    "columnNextDate": "Next date",
+    "notPlanned": "Not planned",
+    "noDueDate": "No due date",
+    "dueToday": "Due today",
+    "dueInOneDay": "In 1 day",
+    "dueInDays": "In {{days}} days",
+    "lateOneDay": "1 day overdue",
+    "lateDays": "{{days}} days overdue"
   },
   "demoBanner": {
     "message": "You're on the demo company: feel free to try every feature. This company's data is reset every Sunday at 02:00."

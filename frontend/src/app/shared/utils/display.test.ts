@@ -1,5 +1,21 @@
 import { describe, it, expect } from 'vitest';
-import { clientDisplayName, archiveActionLabel, formatFileSize, formatSectionDate, addressLabel, formatPrice, toDateOnly, fromDateOnly, addDays, daysOverdue, fillPlaceholders, matchesSearch } from './display';
+import { clientDisplayName, archiveActionLabel, formatFileSize, formatSectionDate, addressLabel, formatPrice, toDateOnly, fromDateOnly, addDays, daysOverdue, daysFromToday, fillPlaceholders, matchesSearch } from './display';
+
+describe('daysFromToday', () => {
+
+  const today = new Date(2026, 9, 27, 15, 30);
+
+  it('is 0 today, whatever the time of day', () => {
+    expect(daysFromToday('2026-10-27', today)).toBe(0);
+    expect(daysFromToday('2026-10-27T00:00:00.000Z', today)).toBe(0);
+  });
+
+  it('counts whole days ahead, and negative ones once past', () => {
+    expect(daysFromToday('2026-10-30', today)).toBe(3);
+    expect(daysFromToday('2026-09-30', today)).toBe(-27);
+  });
+
+});
 
 describe('clientDisplayName', () => {
 

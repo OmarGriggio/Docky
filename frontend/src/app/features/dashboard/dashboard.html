@@ -1,15 +1,89 @@
-<div class="flex flex-col gap-4 max-w-3xl">
-  @if (openInvoices(); as invoices) {
-    <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-4 max-w-xs">
-      <p class="text-sm text-gray-500 m-0 mb-1">{{ 'dashboard.openInvoices' | transloco }}</p>
-      <p class="text-2xl font-semibold m-0">{{ invoices.total_open | price }} CHF</p>
-      <p class="text-sm text-gray-500 m-0 mt-1">
-        {{ (invoices.count > 1 ? 'dashboard.openInvoicesPlural' : 'dashboard.openInvoicesSingular') | transloco: { count: invoices.count } }}
-      </p>
-    </div>
-  }
-
+<div class="flex flex-col gap-4 max-w-5xl">
+  <!-- Sent invoices still waiting for their payment, overdue first, and
+       what they add up to on the last line. -->
   <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-4">
+    <h2 class="text-lg font-medium mt-0 mb-2">{{ 'dashboard.toBePaid' | transloco }}</h2>
+
+    @if (openInvoiceRows().length === 0) {
+      <p class="text-sm text-gray-500 m-0">{{ 'dashboard.noOpenInvoices' | transloco }}</p>
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-150 border-collapse text-sm">
+          <thead>
+            <tr class="text-left text-gray-500 border-b border-gray-200">
+              <th class="py-2 pr-3 font-medium">{{ 'dashboard.columnNumber' | transloco }}</th>
+              <th class="py-2 pr-3 font-medium">{{ 'dashboard.columnClient' | transloco }}</th>
+              <th class="py-2 pr-3 font-medium">{{ 'dashboard.columnDate' | transloco }}</th>
+              <th class="py-2 pr-3 font-medium">{{ 'dashboard.columnDueDate' | transloco }}</th>
+              <th class="py-2 pr-3 font-medium text-right">{{ 'dashboard.columnAmountInclVat' | transloco }}</th>
+              <th class="py-2 font-medium">{{ 'dashboard.columnStatus' | transloco }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (invoice of openInvoiceRows(); track invoice.id) {
+              @let status = dueStatus(invoice);
+              <tr class="border-b border-gray-100 last:border-b-0">
+                <td class="py-2 pr-3"><a [routerLink]="['/documents', invoice.id]" class="text-emerald-700 no-underline hover:underline">{{ invoice.number }}</a></td>
+                <td class="py-2 pr-3">{{ clientName(invoice) }}</td>
+                <td class="py-2 pr-3">{{ formatDay(invoice.date) }}</td>
+                <td class="py-2 pr-3">{{ invoice.due_date ? formatDay(invoice.due_date) : '—' }}</td>
+                <td class="py-2 pr-3 text-right whitespace-nowrap">{{ invoice.amount_incl_vat | price }} CHF</td>
+                <td class="py-2"><p-tag [value]="status.key | transloco: { days: status.days }" [severity]="status.severity" /></td>
+              </tr>
+            }
+          </tbody>
+          <tfoot>
+            <tr class="border-t-2 border-gray-300 font-semibold">
+              <td class="py-2 pr-3" colspan="4">
+                {{ 'dashboard.openTotal' | transloco }}
+                <span class="font-normal text-gray-500">
+                  ({{ (openInvoiceRows().length > 1 ? 'dashboard.invoiceCountPlural' : 'dashboard.invoiceCountSingular') | transloco: { count: openInvoiceRows().length } }})
+                </span>
+              </td>
+              <td class="py-2 pr-3 text-right whitespace-nowrap">{{ openTotal() | price }} CHF</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    }
+  </div>
+
+  <!-- Ongoing chantiers, the one needing attention soonest first. -->
+  <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-4">
+    <h2 class="text-lg font-medium mt-0 mb-2">{{ 'dashboard.projectsInProgress' | transloco }}</h2>
+
+    @if (projectsInProgress().length === 0) {
+      <p class="text-sm text-gray-500 m-0">{{ 'dashboard.noProjectsInProgress' | transloco }}</p>
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-150 border-collapse text-sm">
+          <thead>
+            <tr class="text-left text-gray-500 border-b border-gray-200">
+              <th class="py-2 pr-3 font-medium">{{ 'dashboard.columnProject' | transloco }}</th>
+              <th class="py-2 pr-3 font-medium">{{ 'dashboard.columnClient' | transloco }}</th>
+              <th class="py-2 pr-3 font-medium">{{ 'dashboard.columnType' | transloco }}</th>
+              <th class="py-2 pr-3 font-medium">{{ 'dashboard.columnNextDate' | transloco }}</th>
+              <th class="py-2 font-medium text-right">{{ 'dashboard.columnAmountExclVat' | transloco }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (project of projectsInProgress(); track project.id) {
+              <tr class="border-b border-gray-100 last:border-b-0">
+                <td class="py-2 pr-3"><a [routerLink]="['/projects', project.id]" class="text-emerald-700 no-underline hover:underline">{{ project.name }}</a></td>
+                <td class="py-2 pr-3">{{ clientName(project) }}</td>
+                <td class="py-2 pr-3">{{ project.project_type ?? '—' }}</td>
+                <td class="py-2 pr-3">{{ project.closest_section_date ? formatSectionDate(project.closest_section_date) : ('dashboard.notPlanned' | transloco) }}</td>
+                <td class="py-2 text-right whitespace-nowrap">{{ project.amount_excl_vat | price }} CHF</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+
+  <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-4 max-w-3xl">
     <h2 class="text-lg font-medium mt-0 mb-2">{{ 'dashboard.paidByClient' | transloco }}</h2>
 
     @if (paidByClient().length === 0) {

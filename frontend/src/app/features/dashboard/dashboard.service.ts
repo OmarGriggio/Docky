@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { OpenInvoicesTotal, PaidAmountByClient } from '../../shared/models/dashboard';
+import { OpenInvoice, PaidAmountByClient, ProjectInProgress } from '../../shared/models/dashboard';
 import { environment } from '../../../environments/environment';
 
 const API_BASE = environment.apiUrl;
@@ -16,7 +16,11 @@ export class DashboardService {
     return this.http.get<PaidAmountByClient[]>(`${API_BASE}/dashboard/paid-by-client`);
   }
 
-  getOpenInvoicesTotal() {
-    return this.http.get<OpenInvoicesTotal>(`${API_BASE}/dashboard/open-invoices-total`);
+  getOpenInvoices() {
+    return this.http.get<OpenInvoice[]>(`${API_BASE}/dashboard/open-invoices`);
+  }
+
+  getProjectsInProgress() {
+    return this.http.get<ProjectInProgress[]>(`${API_BASE}/dashboard/projects-in-progress`);
   }
 }
