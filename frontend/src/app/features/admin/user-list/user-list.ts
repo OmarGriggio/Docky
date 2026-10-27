@@ -6,6 +6,7 @@ import { Button } from 'primeng/button';
 import { UserService } from '../user.service';
 import { User } from '../../../shared/models/user';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
+import { BreakpointService } from '../../../shared/services/breakpoint.service';
 
 @Component({
   selector: 'app-user-list',
@@ -16,6 +17,7 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
 export class UserListComponent implements OnInit {
 
   private userService = inject(UserService);
+  isMobile = inject(BreakpointService).isMobile;
 
   users = signal<User[]>([]);
 

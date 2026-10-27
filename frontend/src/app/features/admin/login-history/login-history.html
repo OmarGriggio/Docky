@@ -1,33 +1,53 @@
 <h3>Historique des connexions</h3>
 
-<p-table [value]="entries()" dataKey="id" showGridlines [tableStyle]="{ 'min-width': '60rem' }">
-  <ng-template #header>
-    <tr>
-      <th>Date</th>
-      <th>Statut</th>
-      <th>Email saisi</th>
-      <th>Utilisateur</th>
-      <th>Entreprise</th>
-      <th>Adresse IP</th>
-      <th>Navigateur</th>
-    </tr>
-  </ng-template>
+<!-- On a phone, one card per login attempt instead of the seven columns
+     (same pattern as project-list.html) - the browser string is left out,
+     too long to be any use there. -->
+@if (isMobile()) {
+  <div class="flex flex-col gap-2">
+    @for (entry of entries(); track entry.id) {
+      <div class="flex flex-col gap-1 bg-white border border-gray-200 rounded-lg p-3 text-sm">
+        <div class="flex items-start justify-between gap-2">
+          <span class="font-medium text-gray-900 truncate">{{ entry.email }}</span>
+          <p-tag [value]="entry.success ? 'Réussie' : 'Échouée'" [severity]="entry.success ? 'success' : 'danger'" />
+        </div>
+        <span class="text-gray-600">{{ userName(entry) }} · {{ entry.company_name ?? '—' }}</span>
+        <span class="text-gray-500">{{ entry.created_at | appDateTime }} · {{ entry.ip_address ?? '—' }}</span>
+      </div>
+    } @empty {
+      <p class="text-center text-gray-500">Aucune connexion enregistrée.</p>
+    }
+  </div>
+} @else {
+  <p-table [value]="entries()" dataKey="id" showGridlines [tableStyle]="{ 'min-width': '60rem' }">
+    <ng-template #header>
+      <tr>
+        <th>Date</th>
+        <th>Statut</th>
+        <th>Email saisi</th>
+        <th>Utilisateur</th>
+        <th>Entreprise</th>
+        <th>Adresse IP</th>
+        <th>Navigateur</th>
+      </tr>
+    </ng-template>
 
-  <ng-template #body let-entry>
-    <tr>
-      <td>{{ entry.created_at | appDateTime }}</td>
-      <td><p-tag [value]="entry.success ? 'Réussie' : 'Échouée'" [severity]="entry.success ? 'success' : 'danger'" /></td>
-      <td>{{ entry.email }}</td>
-      <td>{{ userName(entry) }}</td>
-      <td>{{ entry.company_name ?? '—' }}</td>
-      <td>{{ entry.ip_address ?? '—' }}</td>
-      <td class="max-w-80 truncate" [title]="entry.user_agent ?? ''">{{ entry.user_agent ?? '—' }}</td>
-    </tr>
-  </ng-template>
+    <ng-template #body let-entry>
+      <tr>
+        <td>{{ entry.created_at | appDateTime }}</td>
+        <td><p-tag [value]="entry.success ? 'Réussie' : 'Échouée'" [severity]="entry.success ? 'success' : 'danger'" /></td>
+        <td>{{ entry.email }}</td>
+        <td>{{ userName(entry) }}</td>
+        <td>{{ entry.company_name ?? '—' }}</td>
+        <td>{{ entry.ip_address ?? '—' }}</td>
+        <td class="max-w-80 truncate" [title]="entry.user_agent ?? ''">{{ entry.user_agent ?? '—' }}</td>
+      </tr>
+    </ng-template>
 
-  <ng-template #emptymessage>
-    <tr>
-      <td colspan="7">Aucune connexion enregistrée.</td>
-    </tr>
-  </ng-template>
-</p-table>
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="7">Aucune connexion enregistrée.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+}

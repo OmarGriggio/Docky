@@ -4,6 +4,7 @@ import { TagModule } from 'primeng/tag';
 import { LoginHistoryService } from '../login-history.service';
 import { LoginHistoryEntry } from '../../../shared/models/login-history';
 import { AppDateTimePipe } from '../../../shared/pipes/app-date-time.pipe';
+import { BreakpointService } from '../../../shared/services/breakpoint.service';
 
 @Component({
   selector: 'app-login-history',
@@ -14,6 +15,7 @@ import { AppDateTimePipe } from '../../../shared/pipes/app-date-time.pipe';
 export class LoginHistoryComponent implements OnInit {
 
   private loginHistoryService = inject(LoginHistoryService);
+  isMobile = inject(BreakpointService).isMobile;
 
   entries = signal<LoginHistoryEntry[]>([]);
 

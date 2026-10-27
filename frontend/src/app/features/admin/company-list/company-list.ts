@@ -5,6 +5,7 @@ import { Button } from 'primeng/button';
 import { CompanyService } from '../../profile/company.service';
 import { AuthService } from '../../auth/auth.service';
 import { Company } from '../../../shared/models/company';
+import { BreakpointService } from '../../../shared/services/breakpoint.service';
 
 // PLATFORM_ADMIN only (see app.routes.ts's own roleGuard on this route) -
 // picking a company here is the "impersonation" entry point: it swaps the
@@ -20,6 +21,7 @@ import { Company } from '../../../shared/models/company';
 export class CompanyListComponent implements OnInit {
 
   private companyService = inject(CompanyService);
+  isMobile = inject(BreakpointService).isMobile;
   private authService = inject(AuthService);
   private router = inject(Router);
 
