@@ -76,7 +76,7 @@ export class PdfWriter {
         this.cursorY -= marginTop;
         
         for (const paragraph of text.replace(/\t/g, " ").replace(/\r\n?/g, "\n").split("\n")) {
-            for (const line of this.wrapText(paragraph, font, size, maxWidth)) {
+            for (const line of this.wrapText(this.printable(paragraph, font), font, size, maxWidth)) {
                 this.ensureSpace();
 
                 this.page.drawText(line, {
@@ -92,6 +92,33 @@ export class PdfWriter {
         }
 
         this.cursorY -= marginBottom;
+    }
+
+    // The standard Helvetica fonts only cover WinAnsi (Latin-1 plus a few
+    // signs) - drawing or measuring anything else (an emoji, an arrow typed
+    // into a client's name) throws and the whole PDF fails. Every string
+    // drawn or measured goes through here first: what the font can't print
+    // becomes "?", the rest is left exactly as typed.
+    private readonly characterSets = new Map<PDFFont, Set<number>>();
+
+    private printable(text: string, font: PDFFont): string {
+        let characters = this.characterSets.get(font);
+        if (!characters) {
+            characters = new Set(font.getCharacterSet());
+            this.characterSets.set(font, characters);
+        }
+        let result = "";
+        for (const character of text) {
+            result += characters.has(character.codePointAt(0)!) ? character : "?";
+        }
+        return result;
+    }
+
+    /** `text` split into the lines text() would draw it on within `maxWidth` - for a block laid out by hand (drawTextAt), e.g. an address in a fixed column. */
+    wrapLines(text: string, maxWidth: number, options: PdfTextOptions = {}): string[] {
+        const font = options.bold ? this.boldFont : this.regularFont;
+        return text.replace(/\t/g, " ").replace(/\r\n?/g, "\n").split("\n")
+            .flatMap(paragraph => this.wrapText(this.printable(paragraph, font), font, options.size ?? 11, maxWidth));
     }
 
     private wrapText(text: string, font: PDFFont, size: number, maxWidth: number): string[] {
@@ -138,7 +165,7 @@ export class PdfWriter {
 
         let x = this.options.margin;
         for (const column of table.columns) {
-            this.page.drawText(column.title, {
+            this.page.drawText(this.printable(column.title, this.boldFont), {
                 x,
                 y: this.cursorY,
                 size: 11,
@@ -157,7 +184,7 @@ export class PdfWriter {
             x = this.options.margin;
             for (const column of table.columns) {
                 const value = row[column.key];
-                this.page.drawText(value == null ? "" : String(value), {
+                this.page.drawText(this.printable(value == null ? "" : String(value), this.regularFont), {
                     x,
                     y: this.cursorY,
                     size: 11,
@@ -225,11 +252,12 @@ export class PdfWriter {
     /** Draws text at an explicit position, bypassing the flowing text cursor. */
     drawTextAt(text: string, x: number, y: number, options: PdfTextOptions = {}) {
         const color = options.color ?? { r: 0, g: 0, b: 0 };
-        this.page.drawText(text, {
+        const font = options.bold ? this.boldFont : this.regularFont;
+        this.page.drawText(this.printable(text, font), {
             x,
             y,
             size: options.size ?? 11,
-            font: options.bold ? this.boldFont : this.regularFont,
+            font,
             color: rgb(color.r, color.g, color.b),
         });
     }
@@ -241,7 +269,7 @@ export class PdfWriter {
 
     textWidth(text: string, options: PdfTextOptions = {}): number {
         const font = options.bold ? this.boldFont : this.regularFont;
-        return font.widthOfTextAtSize(text, options.size ?? 11);
+        return font.widthOfTextAtSize(this.printable(text, font), options.size ?? 11);
     }
 
     /** Starts a new page first if fewer than `height` points are left above the bottom margin - for a block drawn by hand (absolute positions) that mustn't be split across pages. */
@@ -267,7 +295,7 @@ export class PdfWriter {
         const font = options.bold ? this.boldFont : this.regularFont;
         const maxWidth = this.page.getWidth() - this.options.margin * 2 - (options.indent ?? 0);
         const lines = text.replace(/\t/g, " ").replace(/\r\n?/g, "\n").split("\n")
-            .reduce((count, paragraph) => count + this.wrapText(paragraph, font, size, maxWidth).length, 0);
+            .reduce((count, paragraph) => count + this.wrapText(this.printable(paragraph, font), font, size, maxWidth).length, 0);
         return (options.marginTop ?? 0) + lines * (size + 4) + (options.marginBottom ?? 0);
     }
 

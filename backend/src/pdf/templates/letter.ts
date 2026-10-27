@@ -4,8 +4,10 @@ import { PdfTable } from "../core/pdf-writer.types";
 import { ClientDto, CompanyDto, DocumentSectionDto } from "./document.types";
 import { formatLongDate, PDF_LABELS, PdfLanguage } from "./pdf-labels";
 
-// Drawing steps shared by every letter-like PDF (invoice, quote, reminder),
-// so each template only draws what's its own.
+// Drawing steps shared by the letter-like PDFs: the logo, the header image
+// and the itemized section details (used by business-letter.ts, the
+// invoice/quote layout), and the payment reminder's own letterhead
+// (drawReminderLetterHead).
 
 const LOGO_MAX_WIDTH = 120;
 const LOGO_MAX_HEIGHT = 60;
@@ -58,17 +60,16 @@ export const placeHeaderImage = (pdf: PdfWriter, image: PDFImage, topGap = 0) =>
 // independently (the logo via an absolute position, not the flowing cursor),
 // then the cursor is lowered past whichever of the two ends up taller. Then
 // the client's address and the place/date line, both indented to the right.
-// `companyExtraLines` go right under the company's own address (the
-// invoice's VAT number).
-export const drawLetterHead = async (
+// The payment reminder's - invoices and quotes have their own
+// (business-letter.ts's drawLetterHead).
+export const drawReminderLetterHead = async (
     pdf: PdfWriter,
-    { company, client, date, language, logoBytes, companyExtraLines = [], dateMarginBottom = 15 }: {
+    { company, client, date, language, logoBytes, dateMarginBottom = 15 }: {
         company: CompanyDto;
         client: ClientDto;
         date: Date;
         language: PdfLanguage;
         logoBytes: Buffer | null;
-        companyExtraLines?: string[];
         dateMarginBottom?: number;
     }
 ) => {
@@ -76,9 +77,6 @@ export const drawLetterHead = async (
     pdf.text(company.name, { bold: true });
     pdf.text(company.street);
     pdf.text(company.postalCodeCity);
-    for (const line of companyExtraLines) {
-        pdf.text(line);
-    }
 
     if (logoBytes) {
         const logoBottomY = await drawLogoTopRight(pdf, logoBytes, topY);

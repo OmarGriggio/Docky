@@ -92,7 +92,10 @@ export const buildLetterDto = (
         client: {
             ...buildClientDto(client, document),
             number: typedRecipient ? null : client.client_number,
-            title: typedRecipient ? null : client.title,
+            // "Monsieur" above "Jean Dupont" is an address line; a company's
+            // title is a greeting ("Madame, Monsieur", "Dear Sir/Madam" - its
+            // {{titre_client}}), not something to print above its name.
+            title: typedRecipient || client.type !== "INDIVIDUAL" ? null : client.title,
         },
         referenceClient: document.reference_client,
         sections: buildSections(document),

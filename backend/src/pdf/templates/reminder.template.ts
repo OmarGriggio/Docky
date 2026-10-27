@@ -1,10 +1,11 @@
 import { PdfWriter } from "../core/pdf-writer";
 import { ReminderDto } from "./reminder.types";
 import { PDF_LABELS } from "./pdf-labels";
-import { drawLetterHead } from "./letter";
+import { drawReminderLetterHead } from "./letter";
 
-// Page 1 of a payment reminder: same letter layout as the invoice/quote
-// recap (company + logo, client, place and date), then the reminder text
+// Page 1 of a payment reminder: a classic letterhead (company + logo,
+// client, place and date - not the invoice/quote layout of
+// business-letter.ts), then the reminder text
 // (the company's own template, filled in from the invoice). The Swiss QR-bill goes on page 2 (see
 // reminder-pdf-generator.ts), so the client can pay straight from this document.
 export class ReminderTemplate {
@@ -12,7 +13,7 @@ export class ReminderTemplate {
     static async render(pdf: PdfWriter, reminder: ReminderDto, logoBytes: Buffer | null) {
         const labels = PDF_LABELS[reminder.language];
 
-        await drawLetterHead(pdf, {
+        await drawReminderLetterHead(pdf, {
             company: reminder.company,
             client: reminder.client,
             date: reminder.date,

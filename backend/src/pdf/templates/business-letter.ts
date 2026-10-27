@@ -34,7 +34,9 @@ export interface LetterDto {
     };
     client: ClientDto & {
         // Both null for a recipient typed by hand (the "Non défini"
-        // placeholder's own number/title mean nothing to the reader).
+        // placeholder's own number/title mean nothing to the reader); the
+        // title is also null for anything but an individual - see
+        // dto/shared.ts's buildLetterDto.
         number: string | null;
         title: string | null;
     };
@@ -112,12 +114,16 @@ export const drawLetterHead = async (
     }
 
     // Client number and place/date on the left, the address on the right,
-    // side by side - the place/date on the address's third line.
+    // side by side - the place/date on the address's third line. An address
+    // line too long for its column (a long company name, a typed-in
+    // recipient) wraps rather than running off the page.
     const client = letter.client;
+    const addressOptions: PdfTextOptions = { size: 12 };
     const addressLines = [client.title, client.name, client.complement, client.street, client.postalCodeCity]
-        .filter((line): line is string => !!line);
+        .filter((line): line is string => !!line)
+        .flatMap(line => pdf.wrapLines(line, TOTAL_RIGHT - ADDRESS_X, addressOptions));
     const top = pdf.remainingHeight() - 10;
-    addressLines.forEach((line, index) => pdf.drawTextAt(line, ADDRESS_X, top - index * 16, { size: 12 }));
+    addressLines.forEach((line, index) => pdf.drawTextAt(line, ADDRESS_X, top - index * 16, addressOptions));
     if (client.number) {
         pdf.drawTextAt(`${labels.clientNumber} ${client.number}`, left, top, { size: 9 });
     }
@@ -128,8 +134,11 @@ export const drawLetterHead = async (
         pdf.text(letter.introduction, { size: 11, marginBottom: 14 });
     }
 
-    // The title, bold and underlined.
+    // The title, bold and underlined - drawn by hand, so its room is
+    // reserved first (a long introduction could otherwise push it onto the
+    // footer).
     const titleOptions: PdfTextOptions = { size: 14, bold: true };
+    pdf.reserve(44);
     const titleY = pdf.remainingHeight() - 14;
     pdf.drawTextAt(title, left, titleY, titleOptions);
     pdf.drawLineAt({ x: left, y: titleY - 3 }, { x: left + pdf.textWidth(title, titleOptions), y: titleY - 3 }, 1);
@@ -223,6 +232,10 @@ export const drawBottomBlock = (pdf: PdfWriter, heading: string, lines: string[]
     const top = BOTTOM_BLOCK_BOTTOM + height;
     if (pdf.remainingHeight() - 10 > top) {
         pdf.moveCursorTo(top);
+    } else {
+        // It follows the content instead - on a page of its own if need be,
+        // never with its heading left alone at the bottom of this one.
+        pdf.reserve(height);
     }
     for (const block of blocks) {
         pdf.text(block.text, block.options);
@@ -280,7 +293,10 @@ const fitText = (pdf: PdfWriter, text: string, maxWidth: number, options: PdfTex
 // name, address and bank on the left, website, email and phone on the
 // right - each line only if it's set. Inside the margin, so it never
 // collides with the flowing content; "Page X/Y" sits centered between the
-// two columns.
+// two columns, each kept clear of it (cut with "…" past FOOTER_COLUMN_WIDTH
+// - a long bank name or website).
+const FOOTER_COLUMN_WIDTH = 220;
+
 const drawFooter = (pdf: PdfWriter, letter: LetterDto) => {
     const company = letter.company;
     const left = pdf.marginValue();
@@ -301,11 +317,11 @@ const drawFooter = (pdf: PdfWriter, letter: LetterDto) => {
     pdf.drawLineAt({ x: left, y: 48 }, { x: TOTAL_RIGHT, y: 48 }, 0.4);
     [39, 30, 21].forEach((y, index) => {
         if (leftLines[index]) {
-            pdf.drawTextAt(leftLines[index], left, y, options);
+            pdf.drawTextAt(fitText(pdf, leftLines[index], FOOTER_COLUMN_WIDTH, options), left, y, options);
         }
         const right = rightLines[index];
         if (right) {
-            pdf.drawTextRightAt(right, TOTAL_RIGHT, y, options);
+            pdf.drawTextRightAt(fitText(pdf, right, FOOTER_COLUMN_WIDTH, options), TOTAL_RIGHT, y, options);
         }
     });
 };
