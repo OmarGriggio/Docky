@@ -18,6 +18,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { DocumentSectionService } from '../documents/document-section.service';
 import { DocumentLineService } from '../documents/document-line.service';
 import { CalendarNoteService } from './calendar-note.service';
+import { moveStartKeepingDuration, toDateInputValue, toTimeInputValue, withDatePart, withTimePart } from './note-time';
 import { SectionWithProject } from '../../shared/models/document-section';
 import { DocumentLine } from '../../shared/models/document-line';
 import { CalendarNote } from '../../shared/models/calendar-note';
@@ -114,6 +115,7 @@ export class CalendarPage implements OnInit, AfterViewInit {
     height: 'auto',
     ...this.toolbarsFor(this.isMobile()),
     buttonText: this.buttonTextFor(this.transloco.getActiveLang()),
+    customButtons: this.customButtonsFor(this.transloco.getActiveLang()),
     // timeGridWeek/timeGridDay only - dayGridMonth ignores these.
     slotMinTime: '06:00:00',
     slotMaxTime: '20:00:00',
@@ -128,13 +130,15 @@ export class CalendarPage implements OnInit, AfterViewInit {
     dateClick: info => this.onDateClick(info),
   };
 
-  // Phone: the week as a list (the month grid one tap away), arrows and
-  // title on top, the view switch at the bottom where a thumb reaches it.
+  // Phone: the week as a list (the month grid one tap away), arrows, title
+  // and "+ Note" on top - inside the toolbar rather than a row of its own
+  // above it, screen height is short - and "today" plus the view switch at
+  // the bottom where a thumb reaches them.
   private toolbarsFor(mobile: boolean): { headerToolbar: ToolbarInput; footerToolbar: ToolbarInput | false } {
     return mobile
       ? {
-        headerToolbar: { left: 'prev,next', center: 'title', right: 'today' },
-        footerToolbar: { center: 'listWeek,dayGridMonth' },
+        headerToolbar: { left: 'prev,next', center: 'title', right: 'addNote' },
+        footerToolbar: { left: 'today', right: 'listWeek,dayGridMonth' },
       }
       : {
         headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek' },
@@ -167,6 +171,17 @@ export class CalendarPage implements OnInit, AfterViewInit {
     };
   }
 
+  // The phone toolbar's "+ Note" (see toolbarsFor) - the desktop one is a
+  // p-button above the calendar instead (calendar.html).
+  private customButtonsFor(lang: string) {
+    return {
+      addNote: {
+        text: '+ ' + this.transloco.translate('calendar.addNote', {}, lang),
+        click: () => this.openNewNote(),
+      },
+    };
+  }
+
   // Patches the already-rendered calendar in place on a language switch -
   // the ViewChild isn't up yet on the very first run (before
   // ngAfterViewInit), which the initial values on calendarOptions above
@@ -179,6 +194,7 @@ export class CalendarPage implements OnInit, AfterViewInit {
     }
     api.setOption('locale', lang);
     api.setOption('buttonText', this.buttonTextFor(lang));
+    api.setOption('customButtons', this.customButtonsFor(lang));
   });
 
   ngOnInit(): void {
@@ -254,28 +270,64 @@ export class CalendarPage implements OnInit, AfterViewInit {
     };
   }
 
-  // Clicking an empty date/slot - month view gives a bare date (allDay),
-  // week/day view an exact time. Opens the note dialog pre-filled with that
-  // as a starting point (still freely editable before saving), same "drop
-  // defaults to +1h in timed views, stays a bare date in month view"
-  // convention as onEventReceive below for a dropped section.
   // "+ Note" - a new note from now (the next full hour, one hour long),
   // without having to find and tap a day first: the quick way in on a phone.
   openNewNote(): void {
     const start = new Date();
     start.setHours(start.getHours() + 1, 0, 0, 0);
-    this.editingNoteId.set(null);
-    this.noteTitleDraft.set('');
-    this.noteDescriptionDraft.set('');
-    this.noteStartDraft.set(start);
-    this.noteEndDraft.set(new Date(start.getTime() + 60 * 60 * 1000));
-    this.noteDialogVisible.set(true);
+    this.startNewNote(start, new Date(start.getTime() + 60 * 60 * 1000));
   }
 
+  // Clicking an empty date/slot - month view gives a bare date (allDay),
+  // week/day view an exact time. Opens the note dialog pre-filled with that
+  // as a starting point (still freely editable before saving), same "drop
+  // defaults to +1h in timed views, stays a bare date in month view"
+  // convention as onEventReceive below for a dropped section. On a phone a
+  // tapped day starts at 8:00 for an hour instead - its form edits the times
+  // separately (see calendar.html), a bare midnight date would just have to
+  // be corrected every time.
   private onDateClick(info: DateClickArg): void {
     const start = new Date(info.date);
-    const end = info.allDay ? start : new Date(start.getTime() + 60 * 60 * 1000);
+    if (info.allDay && this.isMobile()) {
+      start.setHours(8, 0, 0, 0);
+    }
+    const end = info.allDay && !this.isMobile() ? start : new Date(start.getTime() + 60 * 60 * 1000);
+    this.startNewNote(start, end);
+  }
 
+  // The phone form's four native inputs (see calendar.html and note-time.ts).
+  // A cleared or half-typed input is ignored - the last valid value stays.
+  setNoteStartPart(part: 'date' | 'time', value: string): void {
+    const start = this.noteStartDraft();
+    const end = this.noteEndDraft();
+    if (!start || !end) {
+      return;
+    }
+    const newStart = part === 'date' ? withDatePart(start, value) : withTimePart(start, value);
+    if (!newStart) {
+      return;
+    }
+    const moved = moveStartKeepingDuration(start, end, newStart);
+    this.noteStartDraft.set(moved.start);
+    this.noteEndDraft.set(moved.end);
+  }
+
+  setNoteEndPart(part: 'date' | 'time', value: string): void {
+    const end = this.noteEndDraft();
+    if (!end) {
+      return;
+    }
+    const newEnd = part === 'date' ? withDatePart(end, value) : withTimePart(end, value);
+    if (newEnd) {
+      this.noteEndDraft.set(newEnd);
+    }
+  }
+
+  // Read by the template's native inputs.
+  readonly toDateInputValue = toDateInputValue;
+  readonly toTimeInputValue = toTimeInputValue;
+
+  private startNewNote(start: Date, end: Date): void {
     this.editingNoteId.set(null);
     this.noteTitleDraft.set('');
     this.noteDescriptionDraft.set('');
@@ -324,6 +376,9 @@ export class CalendarPage implements OnInit, AfterViewInit {
         const calendarApi = this.fullCalendar.getApi();
         calendarApi.getEventById(`note-${note.id}`)?.remove();
         calendarApi.addEvent(this.toNoteEventInput(note));
+        // Shows where the note landed - on a phone's week list, a note saved
+        // for another week would otherwise look like nothing happened.
+        calendarApi.gotoDate(note.date_start);
         this.noteDialogVisible.set(false);
       },
       error: err => console.error('calendar : ' + err)

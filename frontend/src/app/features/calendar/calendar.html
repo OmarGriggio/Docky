@@ -1,8 +1,9 @@
 <div
   class="flex gap-4 items-start flex-wrap bg-white border border-gray-200 rounded-lg shadow-sm p-2 md:p-4"
 >
-  <div class="flex-1 min-w-0 md:min-w-80 [&_.fc-toolbar-title]:text-lg! md:[&_.fc-toolbar-title]:text-2xl!">
-    <div class="flex justify-end mb-2">
+  <div class="flex-1 min-w-0 md:min-w-80 [&_.fc-toolbar-title]:text-base! md:[&_.fc-toolbar-title]:text-2xl! max-md:[&_.fc-button]:text-xs! max-md:[&_.fc-button]:px-2! max-md:[&_.fc-button]:py-1! max-md:[&_.fc-header-toolbar]:mb-2! max-md:[&_.fc-footer-toolbar]:mt-2! max-md:[&_.fc-toolbar]:gap-1!">
+    <!-- On a phone "+ Note" lives in the calendar's own toolbar (calendar.ts's toolbarsFor). -->
+    <div class="hidden md:flex justify-end mb-2">
       <p-button size="small" icon="pi pi-plus" [label]="'calendar.addNote' | transloco" (onClick)="openNewNote()" />
     </div>
     <full-calendar #fullCalendar [options]="calendarOptions" />
@@ -117,6 +118,23 @@
       <label for="noteDescription">{{ 'calendar.description' | transloco }}</label>
     </p-floatlabel>
 
+    @if (isMobile()) {
+      <!-- A phone gets its own native date and time pickers (the iPhone's
+           wheels), one pair per row like its own calendar app. -->
+      <div class="grid grid-cols-[3.5rem_1fr_6rem] items-center gap-2">
+        <span class="text-sm text-gray-600">{{ 'projects.resources.start' | transloco }}</span>
+        <input pInputText type="date" class="w-full" [attr.aria-label]="'projects.resources.start' | transloco"
+          [value]="toDateInputValue(noteStartDraft())" (change)="setNoteStartPart('date', $any($event.target).value)" />
+        <input pInputText type="time" class="w-full" [attr.aria-label]="'projects.resources.start' | transloco"
+          [value]="toTimeInputValue(noteStartDraft())" (change)="setNoteStartPart('time', $any($event.target).value)" />
+
+        <span class="text-sm text-gray-600">{{ 'projects.resources.end' | transloco }}</span>
+        <input pInputText type="date" class="w-full" [attr.aria-label]="'projects.resources.end' | transloco"
+          [value]="toDateInputValue(noteEndDraft())" (change)="setNoteEndPart('date', $any($event.target).value)" />
+        <input pInputText type="time" class="w-full" [attr.aria-label]="'projects.resources.end' | transloco"
+          [value]="toTimeInputValue(noteEndDraft())" (change)="setNoteEndPart('time', $any($event.target).value)" />
+      </div>
+    } @else {
     <div class="flex gap-3 flex-wrap">
       <p-floatlabel variant="on" class="flex-1">
         <p-datepicker
@@ -146,6 +164,7 @@
         <label for="noteEnd">{{ 'projects.resources.end' | transloco }}</label>
       </p-floatlabel>
     </div>
+    }
   </div>
 
   <div class="flex justify-between gap-2 mt-4">
