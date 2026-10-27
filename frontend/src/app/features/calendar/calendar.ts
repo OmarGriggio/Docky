@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, DestroyRef, effect, ElementRef, inject, OnInit, signal, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, effect, ElementRef, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { FullCalendarComponent, FullCalendarModule } from '@fullcalendar/angular';
@@ -24,16 +24,12 @@ import { DocumentLine } from '../../shared/models/document-line';
 import { CalendarNote } from '../../shared/models/calendar-note';
 import { PricePipe } from '../../shared/pipes/price.pipe';
 import { TabIndentDirective } from '../../shared/directives/tab-indent.directive';
+import { BreakpointService } from '../../shared/services/breakpoint.service';
 
 // Plain calendar entries (this file's own notesById below), not tied to any
 // chantier/section - shown in a flat neutral grey so they read as distinct
 // from a section's own (future: per-chantier) color.
 const NOTE_COLOR = '#9ca3af';
-
-// Same breakpoint as Tailwind's md (the nav-bar turns into a bottom bar
-// below it): a phone gets a week list instead of the month grid, which is
-// unreadable on a 6" screen.
-const MOBILE_QUERY = '(max-width: 767.98px)';
 
 @Component({
   selector: 'app-calendar',
@@ -48,10 +44,10 @@ export class CalendarPage implements OnInit, AfterViewInit {
   private documentLineService = inject(DocumentLineService);
   private calendarNoteService = inject(CalendarNoteService);
   private transloco = inject(TranslocoService);
-  private destroyRef = inject(DestroyRef);
 
-  private readonly mobileQuery = window.matchMedia(MOBILE_QUERY);
-  isMobile = signal(this.mobileQuery.matches);
+  // A phone gets a week list instead of the month grid, which is unreadable
+  // on a 6" screen.
+  isMobile = inject(BreakpointService).isMobile;
 
   @ViewChild('fullCalendar') fullCalendar!: FullCalendarComponent;
   @ViewChild('unscheduledList') unscheduledListRef!: ElementRef<HTMLElement>;
@@ -147,19 +143,20 @@ export class CalendarPage implements OnInit, AfterViewInit {
   }
 
   // A window resized (or a phone rotated) across the breakpoint switches the
-  // calendar over without a reload.
-  private readonly onMobileChange = (event: MediaQueryListEvent) => {
-    this.isMobile.set(event.matches);
+  // calendar over without a reload - same first-run gap as
+  // syncCalendarLanguage below, the initial calendarOptions cover it.
+  private readonly syncCalendarLayout = effect(() => {
+    const mobile = this.isMobile();
     const api = this.fullCalendar?.getApi();
     if (!api) {
       return;
     }
-    const toolbars = this.toolbarsFor(event.matches);
+    const toolbars = this.toolbarsFor(mobile);
     api.setOption('headerToolbar', toolbars.headerToolbar);
     api.setOption('footerToolbar', toolbars.footerToolbar);
-    api.setOption('editable', !event.matches);
-    api.changeView(event.matches ? 'listWeek' : 'dayGridMonth');
-  };
+    api.setOption('editable', !mobile);
+    api.changeView(mobile ? 'listWeek' : 'dayGridMonth');
+  });
 
   private buttonTextFor(lang: string) {
     return {
@@ -199,8 +196,6 @@ export class CalendarPage implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.loadUnscheduledSections();
-    this.mobileQuery.addEventListener('change', this.onMobileChange);
-    this.destroyRef.onDestroy(() => this.mobileQuery.removeEventListener('change', this.onMobileChange));
   }
 
   // The Draggable registration only needs to happen once - it delegates to
