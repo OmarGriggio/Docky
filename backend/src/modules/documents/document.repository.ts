@@ -252,9 +252,12 @@ export const createDocumentInDB = async (
       recipient_complement,
       recipient_street,
       recipient_postal_code,
-      recipient_city
+      recipient_city,
+      early_payment_discount,
+      early_payment_days,
+      early_payment_min_amount
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
     RETURNING *;
   `;
 
@@ -280,7 +283,10 @@ export const createDocumentInDB = async (
     document.recipient_complement,
     document.recipient_street,
     document.recipient_postal_code,
-    document.recipient_city
+    document.recipient_city,
+    document.early_payment_discount,
+    document.early_payment_days,
+    document.early_payment_min_amount
   ];
 
   const result = await db().query(query, values);

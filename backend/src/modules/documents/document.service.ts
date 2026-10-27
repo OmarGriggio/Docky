@@ -23,6 +23,7 @@ import { getAddressByIdFromDB } from "../clients/address.repository";
 import { clientDisplayName } from "../clients/client.display";
 import { getProjectByDocumentIdFromDB, createProjectInDB } from "../projects/project.repository";
 import { getResourceByIdFromDB } from "../catalog/resource.repository";
+import { getCompanyByIdFromDB } from "../companies/company.repository";
 import { AppError, NotFoundError, ConflictError } from "../../shared/types/errors";
 import { withTransaction } from "../../shared/config/database";
 import { computeDocumentTotals } from "./document.calculations";
@@ -197,6 +198,16 @@ export const addDocumentServ = async (documentData: CreateDocumentData, company_
 
   const number = await generateDocumentNumber(company_id, documentData.type);
 
+  // An invoice offers the company's current early payment discount, copied
+  // here and frozen on it (see document.types.ts) - never taken from the
+  // request body. A quote doesn't offer one: there's nothing to pay yet.
+  const company = documentData.type === "INVOICE" ? await getCompanyByIdFromDB(company_id) : null;
+  const earlyPayment = {
+    early_payment_discount: company?.early_payment_discount ?? 0,
+    early_payment_days: company?.early_payment_days ?? null,
+    early_payment_min_amount: company?.early_payment_min_amount ?? 0,
+  };
+
   // amount_excl_vat/amount_incl_vat are always computed from the document's
   // lines (see recomputeDocumentTotalsServ) — a freshly created document has
   // none yet, so it always starts at 0, whatever the request body sent for
@@ -206,6 +217,7 @@ export const addDocumentServ = async (documentData: CreateDocumentData, company_
   return await createDocumentInDB({
     ...documentData,
     ...recipient,
+    ...earlyPayment,
     parent_document_id,
     company_id,
     number,
@@ -466,6 +478,9 @@ const acceptQuoteInTransaction = async (id: number, company_id: number) => {
     conclusion: null,
     payment_terms: null,
     due_date: null,
+    early_payment_discount: 0,
+    early_payment_days: null,
+    early_payment_min_amount: 0,
     is_active: true,
     amount_excl_vat: 0,
     amount_incl_vat: 0,

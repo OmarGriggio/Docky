@@ -16,9 +16,10 @@ export const createCompanyInDB = async (
 ): Promise<Company> => {
     const query = `
     INSERT INTO companies (
-      name, email, phone, iban, street, postal_code, city, country, logo, header_image, vat_rate, vat_number, payment_terms
+      name, email, phone, iban, street, postal_code, city, country, logo, header_image, vat_rate, vat_number, payment_terms,
+      website, bank_name, bank_account, early_payment_discount, early_payment_days, early_payment_min_amount
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
     RETURNING *;
   `;
     const values = [
@@ -34,7 +35,13 @@ export const createCompanyInDB = async (
       company.header_image,
       company.vat_rate,
       company.vat_number,
-      company.payment_terms
+      company.payment_terms,
+      company.website ?? null,
+      company.bank_name ?? null,
+      company.bank_account ?? null,
+      company.early_payment_discount ?? 0,
+      company.early_payment_days ?? null,
+      company.early_payment_min_amount ?? 0
     ];
     const result = await db().query(query, values);
     return result.rows[0];
@@ -59,7 +66,13 @@ export const updateCompanyInDB = async (
       header_image = $10,
       vat_rate = $11,
       vat_number = $12,
-      payment_terms = $13
+      payment_terms = $13,
+      website = $15,
+      bank_name = $16,
+      bank_account = $17,
+      early_payment_discount = $18,
+      early_payment_days = $19,
+      early_payment_min_amount = $20
     WHERE id = $14
     RETURNING *;
   `;
@@ -77,7 +90,13 @@ export const updateCompanyInDB = async (
       company.vat_rate,
       company.vat_number,
       company.payment_terms,
-      id
+      id,
+      company.website ?? null,
+      company.bank_name ?? null,
+      company.bank_account ?? null,
+      company.early_payment_discount ?? 0,
+      company.early_payment_days ?? null,
+      company.early_payment_min_amount ?? 0
     ];
     const result = await db().query(query, values);
     return result.rows[0] ?? null;

@@ -1,5 +1,24 @@
 import { describe, it, expect } from "vitest";
-import { computeDocumentTotals, lineTotal } from "./document.calculations";
+import { computeDocumentTotals, computeEarlyPayment, lineTotal } from "./document.calculations";
+
+describe("computeEarlyPayment", () => {
+
+  it("takes rate% off the total incl. VAT, to the cent", () => {
+    // The company's own Excel invoice: 2% on CHF 1'901.85.
+    expect(computeEarlyPayment(1901.85, 2, 1001)).toEqual({ amount: 38.04, net: 1863.81 });
+  });
+
+  it("offers nothing below the minimum total", () => {
+    expect(computeEarlyPayment(1000, 2, 1001)).toBeNull();
+    expect(computeEarlyPayment(1001, 2, 1001)).toEqual({ amount: 20.02, net: 980.98 });
+  });
+
+  it("offers nothing without a rate or without anything to pay", () => {
+    expect(computeEarlyPayment(1901.85, 0, 0)).toBeNull();
+    expect(computeEarlyPayment(0, 2, 0)).toBeNull();
+  });
+
+});
 
 describe("computeDocumentTotals", () => {
 

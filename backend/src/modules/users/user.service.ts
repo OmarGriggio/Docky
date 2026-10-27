@@ -86,6 +86,12 @@ export const createUserService = async (userData: CreateUserData, actor: TokenPa
       vat_rate: 8.1,
       vat_number: null,
       payment_terms: null,
+      website: null,
+      bank_name: null,
+      bank_account: null,
+      early_payment_discount: 0,
+      early_payment_days: null,
+      early_payment_min_amount: 0,
     });
     return await createUserDB({ ...userData, role: "ADMIN", company_id: company.id, passwordHash });
   });

@@ -24,4 +24,15 @@ export interface Company {
   // "default vs. frozen-per-document" split as vat_rate above). TEXT, not
   // VARCHAR - free text, multi-line.
   payment_terms: string | null;
+  // Printed in an invoice's footer (see backend/src/pdf) - free text, optional.
+  website: string | null;
+  bank_name: string | null;
+  bank_account: string | null;
+  // Default early payment discount for a new invoice - copied onto it at
+  // creation and frozen there (documents' own columns of the same name, see
+  // document.service.ts's addDocumentServ). A percentage, 0 = none; days
+  // null when there's none; min_amount the total incl. VAT it starts from.
+  early_payment_discount: number;
+  early_payment_days: number | null;
+  early_payment_min_amount: number;
 }

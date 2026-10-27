@@ -37,3 +37,20 @@ export const computeDocumentTotals = (
 
   return { amount_excl_vat, amount_incl_vat };
 };
+
+// The early payment discount an invoice offers ("escompte"): rate% off the
+// total incl. VAT, only from minAmount (total incl. VAT) up - null when
+// there's none to offer. The amount owed itself doesn't change (the QR-bill
+// still asks for the full total); this is what the client may deduct when
+// paying early.
+export const computeEarlyPayment = (
+  amountInclVat: number,
+  rate: number,
+  minAmount: number
+): { amount: number; net: number } | null => {
+  if (!(rate > 0) || amountInclVat <= 0 || amountInclVat < minAmount) {
+    return null;
+  }
+  const amount = round2(amountInclVat * rate / 100);
+  return { amount, net: round2(amountInclVat - amount) };
+};

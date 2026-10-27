@@ -35,6 +35,13 @@ export interface Document {
   conclusion: string | null;
   payment_terms: string | null;
   due_date: Date | null;
+  // The early payment discount this invoice offers - copied from the
+  // company's own defaults when it's created (see addDocumentServ) and
+  // frozen here, never re-read from the company afterwards. A percentage,
+  // 0 = none; it applies from min_amount (total incl. VAT) up.
+  early_payment_discount: number;
+  early_payment_days: number | null;
+  early_payment_min_amount: number;
   is_active: boolean;
   // The recipient typed by hand when the document is made out to the
   // "Non défini" placeholder client (see clients/client.types.ts) - printed
@@ -59,6 +66,7 @@ export type DocumentRecipient = Pick<
 export type CreateDocumentData = Omit<
   Document,
   "id" | "company_id" | "number" | "amount_excl_vat" | "amount_incl_vat"
+  | "early_payment_discount" | "early_payment_days" | "early_payment_min_amount"
 >;
 
 // A document's whole content, sent in one go by PUT /document/:id/content
