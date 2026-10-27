@@ -59,9 +59,13 @@ export abstract class DocumentPdfGenerator<TPrepared> {
     // Logos (and the invoice header image, same storage) live in MinIO/S3
     // (see shared/storage/storage.service.ts), not on local disk. No file,
     // not just none set, comes back the same way (null) - a PDF should still
-    // render without one either way.
-    protected async readCompanyImage(path: string | null): Promise<Buffer | null> {
-        if (!path) return null;
+    // render without one either way. Only ever this company's own
+    // logo/header key, the one its upload route builds - anything else
+    // stored in companies.logo/header_image (another company's private
+    // attachment, say) is ignored rather than embedded in this PDF.
+    protected async readCompanyImage(company: Company, kind: "logo" | "header"): Promise<Buffer | null> {
+        const path = kind === "logo" ? company.logo : company.header_image;
+        if (!path || !new RegExp(`^companies/${company.id}/${kind}\\.(jpg|png)$`).test(path)) return null;
 
         const file = await getFileServ(path);
         if (!file) return null;

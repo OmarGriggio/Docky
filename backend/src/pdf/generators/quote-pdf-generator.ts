@@ -21,8 +21,8 @@ export class QuotePdfGenerator extends DocumentPdfGenerator<PreparedQuote> {
     protected async prepare({ document, client, company }: PdfSource): Promise<PreparedQuote> {
         return {
             quote: createQuoteDto(document, client, company),
-            logoBytes: await this.readCompanyImage(company.logo),
-            headerImageBytes: await this.readCompanyImage(company.header_image),
+            logoBytes: await this.readCompanyImage(company, "logo"),
+            headerImageBytes: await this.readCompanyImage(company, "header"),
         };
     }
 

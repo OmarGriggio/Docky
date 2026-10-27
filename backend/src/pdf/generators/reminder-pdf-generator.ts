@@ -38,7 +38,7 @@ export class ReminderPdfGenerator extends DocumentPdfGenerator<PreparedReminder>
         return {
             reminder: createReminderDto(document, client, company, template?.introduction ?? ""),
             qrBill: await prepareQrBill(source),
-            logoBytes: await this.readCompanyImage(company.logo),
+            logoBytes: await this.readCompanyImage(company, "logo"),
         };
     }
 

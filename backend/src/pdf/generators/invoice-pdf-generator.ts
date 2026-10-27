@@ -26,8 +26,8 @@ export class InvoicePdfGenerator extends DocumentPdfGenerator<PreparedInvoice> {
         return {
             invoice: createInvoiceDto(document, client, company),
             qrBill: await prepareQrBill(source),
-            logoBytes: await this.readCompanyImage(company.logo),
-            headerImageBytes: await this.readCompanyImage(company.header_image),
+            logoBytes: await this.readCompanyImage(company, "logo"),
+            headerImageBytes: await this.readCompanyImage(company, "header"),
         };
     }
 

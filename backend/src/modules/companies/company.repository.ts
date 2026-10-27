@@ -11,15 +11,21 @@ export const getCompanyByIdFromDB = async (id: number) => {
   return result.rows[0] ?? null;
 };
 
+// logo/header_image are never written from a request body - neither here
+// nor in updateCompanyInDB below: they're storage keys, and a key sent by
+// hand could point at another company's file (a private project attachment
+// embedded in this company's PDFs). Only the upload routes set them (see
+// updateCompanyLogoInDB/updateCompanyHeaderImageInDB), with a key they build
+// themselves; a new company starts without either.
 export const createCompanyInDB = async (
     company: Omit<Company, "id">
 ): Promise<Company> => {
     const query = `
     INSERT INTO companies (
-      name, email, phone, iban, street, postal_code, city, country, logo, header_image, vat_rate, vat_number, payment_terms,
+      name, email, phone, iban, street, postal_code, city, country, vat_rate, vat_number, payment_terms,
       website, bank_name, bank_account, early_payment_discount, early_payment_days, early_payment_min_amount
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
     RETURNING *;
   `;
     const values = [
@@ -31,8 +37,6 @@ export const createCompanyInDB = async (
       company.postal_code,
       company.city,
       company.country,
-      company.logo,
-      company.header_image,
       company.vat_rate,
       company.vat_number,
       company.payment_terms,
@@ -62,18 +66,16 @@ export const updateCompanyInDB = async (
       postal_code = $6,
       city = $7,
       country = $8,
-      logo = $9,
-      header_image = $10,
-      vat_rate = $11,
-      vat_number = $12,
-      payment_terms = $13,
-      website = $15,
-      bank_name = $16,
-      bank_account = $17,
-      early_payment_discount = $18,
-      early_payment_days = $19,
-      early_payment_min_amount = $20
-    WHERE id = $14
+      vat_rate = $9,
+      vat_number = $10,
+      payment_terms = $11,
+      website = $13,
+      bank_name = $14,
+      bank_account = $15,
+      early_payment_discount = $16,
+      early_payment_days = $17,
+      early_payment_min_amount = $18
+    WHERE id = $12
     RETURNING *;
   `;
     const values = [
@@ -85,8 +87,6 @@ export const updateCompanyInDB = async (
       company.postal_code,
       company.city,
       company.country,
-      company.logo,
-      company.header_image,
       company.vat_rate,
       company.vat_number,
       company.payment_terms,
