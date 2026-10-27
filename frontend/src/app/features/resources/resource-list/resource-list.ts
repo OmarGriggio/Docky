@@ -16,6 +16,7 @@ import { formatPrice, matchesSearch } from '../../../shared/utils/display';
 import { ResourceForm } from '../resource-form/resource-form';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { ListToolbarComponent } from '../../../shared/components/list-toolbar/list-toolbar';
+import { BreakpointService } from '../../../shared/services/breakpoint.service';
 
 @Component({
   selector: 'app-resource-list',
@@ -26,6 +27,7 @@ import { ListToolbarComponent } from '../../../shared/components/list-toolbar/li
 export class ResourceListComponent implements OnInit {
 
   private route = inject(ActivatedRoute);
+  isMobile = inject(BreakpointService).isMobile;
   private resourceService = inject(ResourceService);
   private transloco = inject(TranslocoService);
 

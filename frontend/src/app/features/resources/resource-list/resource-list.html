@@ -17,100 +17,128 @@
   }
 </p-dialog>
 
-<p-table [value]="filteredResources()" dataKey="id" showGridlines size="small" editMode="row">
-  <ng-template #header>
-    <tr>
-      <th>{{ 'resources.columnCode' | transloco }}</th>
-      <th>{{ 'resources.columnName' | transloco }}</th>
-      <th>{{ 'resources.columnUnit' | transloco }}</th>
-      <th>{{ 'resources.columnSellingPrice' | transloco }}</th>
-      <th>{{ 'resources.columnPurchasePrice' | transloco }}</th>
-      <th></th>
-      <th></th>
-    </tr>
-  </ng-template>
-
-  <ng-template #emptymessage>
-    <tr>
-      <td colspan="7" class="text-center text-gray-500">{{ (search().trim() ? 'resources.noSearchResults' : 'resources.noResources') | transloco }}</td>
-    </tr>
-  </ng-template>
-
-  <ng-template #body let-item let-editing="editing">
-    <tr [pEditableRow]="item">
-      <td>
-        <p-cellEditor>
-          <ng-template #input>
-            <input pInputText [(ngModel)]="item.code" [fluid]="true" />
-          </ng-template>
-          <ng-template #output>
-            {{ item.code }}
-          </ng-template>
-        </p-cellEditor>
-      </td>
-
-      <td>
-        <p-cellEditor>
-          <ng-template #input>
-            <input pInputText [(ngModel)]="item.name" [fluid]="true" />
-          </ng-template>
-          <ng-template #output>
-            {{ item.name }}
-          </ng-template>
-        </p-cellEditor>
-      </td>
-
-      <td>
-        <p-cellEditor>
-          <ng-template #input>
-            <input pInputText [(ngModel)]="item.unit" [fluid]="true" />
-          </ng-template>
-          <ng-template #output>
-            {{ item.unit }}
-          </ng-template>
-        </p-cellEditor>
-      </td>
-
-      <td>
-        <p-cellEditor>
-          <ng-template #input>
-            <p-inputnumber [(ngModel)]="item.selling_price" mode="decimal" [minFractionDigits]="2" [fluid]="true" [useGrouping]="false" [maxFractionDigits]="2" />
-          </ng-template>
-          <ng-template #output>
-            {{ item.selling_price | price }}
-          </ng-template>
-        </p-cellEditor>
-      </td>
-
-      <td>
-        <p-cellEditor>
-          <ng-template #input>
-            <p-inputnumber [(ngModel)]="item.purchase_price" mode="decimal" [minFractionDigits]="2" [fluid]="true" [useGrouping]="false" [maxFractionDigits]="2" />
-          </ng-template>
-          <ng-template #output>
-            {{ item.purchase_price | price }}
-          </ng-template>
-        </p-cellEditor>
-      </td>
-
-      <td class="w-14">
-        <div class="flex gap-1">
-          @if (!editing) {
-            <p-button type="button" pInitEditableRow icon="pi pi-pencil" [text]="true" severity="secondary" (click)="onRowEditInit(item)" />
-          } @else {
-            <p-button type="button" pSaveEditableRow icon="pi pi-check" [text]="true" severity="success" (click)="onRowEditSave(item)" />
-            <p-button type="button" pCancelEditableRow icon="pi pi-times" [text]="true" severity="danger" (click)="onRowEditCancel(item)" />
-          }
+<!-- On a phone, one card per resource instead of the table (same pattern as
+     project-list.html) - no detail page to open, the ⋮ menu carries every
+     action. -->
+@if (isMobile()) {
+  <p-menu #mobileMenu [popup]="true" [model]="menuItems" appendTo="body" />
+  <div class="flex flex-col gap-2">
+    @for (item of filteredResources(); track item.id) {
+      <div class="flex items-start gap-2 bg-white border border-gray-200 rounded-lg p-3">
+        <div class="flex-1 min-w-0 flex flex-col gap-1">
+          <div class="flex items-start justify-between gap-2">
+            <span class="font-medium text-gray-900">{{ item.name }}</span>
+            <span class="shrink-0 font-medium text-gray-900 whitespace-nowrap">{{ item.selling_price | price }} / {{ item.unit }}</span>
+          </div>
+          <div class="flex items-center justify-between gap-2 text-sm text-gray-500">
+            <span>{{ item.code }}</span>
+            @if (item.purchase_price !== null) {
+              <span class="whitespace-nowrap">{{ 'resources.columnPurchasePrice' | transloco }} {{ item.purchase_price | price }}</span>
+            }
+          </div>
         </div>
-      </td>
+        <p-button size="small" icon="pi pi-ellipsis-v" [outlined]="true" (click)="openActionsMenu(mobileMenu, $event, item)" />
+      </div>
+    } @empty {
+      <p class="text-center text-gray-500">{{ (search().trim() ? 'resources.noSearchResults' : 'resources.noResources') | transloco }}</p>
+    }
+  </div>
+} @else {
+  <p-table [value]="filteredResources()" dataKey="id" showGridlines size="small" editMode="row">
+    <ng-template #header>
+      <tr>
+        <th>{{ 'resources.columnCode' | transloco }}</th>
+        <th>{{ 'resources.columnName' | transloco }}</th>
+        <th>{{ 'resources.columnUnit' | transloco }}</th>
+        <th>{{ 'resources.columnSellingPrice' | transloco }}</th>
+        <th>{{ 'resources.columnPurchasePrice' | transloco }}</th>
+        <th></th>
+        <th></th>
+      </tr>
+    </ng-template>
 
-      <td class="w-12">
-        <p-menu #menu [popup]="true" [model]="menuItems" appendTo="body"></p-menu>
-        <p-button size="small" icon="pi pi-ellipsis-v" [outlined]="true" (click)="openActionsMenu(menu, $event, item)"></p-button>
-      </td>
-    </tr>
-  </ng-template>
-</p-table>
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="7" class="text-center text-gray-500">{{ (search().trim() ? 'resources.noSearchResults' : 'resources.noResources') | transloco }}</td>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-item let-editing="editing">
+      <tr [pEditableRow]="item">
+        <td>
+          <p-cellEditor>
+            <ng-template #input>
+              <input pInputText [(ngModel)]="item.code" [fluid]="true" />
+            </ng-template>
+            <ng-template #output>
+              {{ item.code }}
+            </ng-template>
+          </p-cellEditor>
+        </td>
+
+        <td>
+          <p-cellEditor>
+            <ng-template #input>
+              <input pInputText [(ngModel)]="item.name" [fluid]="true" />
+            </ng-template>
+            <ng-template #output>
+              {{ item.name }}
+            </ng-template>
+          </p-cellEditor>
+        </td>
+
+        <td>
+          <p-cellEditor>
+            <ng-template #input>
+              <input pInputText [(ngModel)]="item.unit" [fluid]="true" />
+            </ng-template>
+            <ng-template #output>
+              {{ item.unit }}
+            </ng-template>
+          </p-cellEditor>
+        </td>
+
+        <td>
+          <p-cellEditor>
+            <ng-template #input>
+              <p-inputnumber [(ngModel)]="item.selling_price" mode="decimal" [minFractionDigits]="2" [fluid]="true" [useGrouping]="false" [maxFractionDigits]="2" />
+            </ng-template>
+            <ng-template #output>
+              {{ item.selling_price | price }}
+            </ng-template>
+          </p-cellEditor>
+        </td>
+
+        <td>
+          <p-cellEditor>
+            <ng-template #input>
+              <p-inputnumber [(ngModel)]="item.purchase_price" mode="decimal" [minFractionDigits]="2" [fluid]="true" [useGrouping]="false" [maxFractionDigits]="2" />
+            </ng-template>
+            <ng-template #output>
+              {{ item.purchase_price | price }}
+            </ng-template>
+          </p-cellEditor>
+        </td>
+
+        <td class="w-14">
+          <div class="flex gap-1">
+            @if (!editing) {
+              <p-button type="button" pInitEditableRow icon="pi pi-pencil" [text]="true" severity="secondary" (click)="onRowEditInit(item)" />
+            } @else {
+              <p-button type="button" pSaveEditableRow icon="pi pi-check" [text]="true" severity="success" (click)="onRowEditSave(item)" />
+              <p-button type="button" pCancelEditableRow icon="pi pi-times" [text]="true" severity="danger" (click)="onRowEditCancel(item)" />
+            }
+          </div>
+        </td>
+
+        <td class="w-12">
+          <p-menu #menu [popup]="true" [model]="menuItems" appendTo="body"></p-menu>
+          <p-button size="small" icon="pi pi-ellipsis-v" [outlined]="true" (click)="openActionsMenu(menu, $event, item)"></p-button>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+}
 
 <app-confirm-dialog
   [(visible)]="confirmVisible"
