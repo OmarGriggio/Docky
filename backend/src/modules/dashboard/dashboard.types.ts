@@ -14,9 +14,38 @@ export interface PaidAmountByClient {
   total_paid: number;
 }
 
-// A single row, not per-client - "open" invoices (sent, not yet paid) are
-// a headline total for the dashboard's own stat tile, not a breakdown.
-export interface OpenInvoicesTotal {
-  total_open: number;
-  count: number;
+// The client's raw name columns plus the recipient typed by hand on the
+// document itself (a "Non défini" placeholder client's) - resolved to one
+// display name by the frontend, same as PaidAmountByClient above.
+interface DashboardClientName {
+  client_id: number;
+  company_name: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  is_placeholder: boolean;
+  recipient_name: string | null;
+}
+
+// One SENT invoice still waiting for its payment - the dashboard's "to be
+// paid" table, overdue first (see getOpenInvoicesFromDB).
+export interface OpenInvoice extends DashboardClientName {
+  id: number;
+  number: string;
+  date: Date;
+  due_date: Date | null;
+  amount_incl_vat: number;
+}
+
+// One chantier still IN_PROGRESS - the dashboard's "ongoing chantiers"
+// table, the one needing attention soonest first (see
+// getProjectsInProgressFromDB).
+export interface ProjectInProgress extends DashboardClientName {
+  id: number;
+  name: string;
+  project_type: string | null;
+  // The date_start among its own sections closest to now - either way, same
+  // as the chantiers list (see project.repository.ts's getProjectsFromDB).
+  closest_section_date: Date | null;
+  // Its resource ledger's own total so far (its PROJECT document's).
+  amount_excl_vat: number;
 }
