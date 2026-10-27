@@ -2,11 +2,10 @@ import { Address } from "../../../modules/clients/address.types";
 import { ClientWithAddresses } from "../../../modules/clients/client.types";
 import { DocumentComplete } from "../../../modules/documents/document_complete.types";
 import { Company } from "../../../modules/companies/company.types";
+import { computeEarlyPayment } from "../../../modules/documents/document.calculations";
 import { InvoiceDto } from "../invoice.types";
-import { fillPlaceholders } from "../placeholders";
-import { buildDocumentValues } from "../document.placeholders";
 import { toPdfLanguage } from "../pdf-labels";
-import { buildClientDto, buildCompanyDto, buildSections } from "./shared";
+import { buildLetterDto } from "./shared";
 
 // null unless documents.address_id was actually picked - same
 // "Attention : Street, NPA City" shape as the frontend's own addressLabel
@@ -26,29 +25,16 @@ const resolveLocation = (document: DocumentComplete, client: ClientWithAddresses
 };
 
 export const createInvoiceDto = (document: DocumentComplete, client: ClientWithAddresses, company: Company): InvoiceDto => {
-    const language = toPdfLanguage(client.language);
-    // {{titre_client}}/{{date}}/{{montant}}/{{signature_entreprise}} in the introduction/conclusion.
-    const placeholders = buildDocumentValues(document, client.title, company.name, language);
+    const days = document.early_payment_days;
+    const earlyPayment = days
+        ? computeEarlyPayment(document.amount_incl_vat, document.early_payment_discount, document.early_payment_min_amount)
+        : null;
 
     return {
-        language,
-        number: document.number,
-        date: document.date,
-        company: {
-            ...buildCompanyDto(company),
-            vatNumber: company.vat_number,
-        },
-        client: buildClientDto(client, document),
+        ...buildLetterDto(document, client, company, toPdfLanguage(client.language)),
         location: resolveLocation(document, client),
-        referenceClient: document.reference_client,
-        sections: buildSections(document),
-        amountExclVat: document.amount_excl_vat,
-        amountInclVat: document.amount_incl_vat,
-        vatRate: document.vat_rate,
-        discount: document.discount,
+        earlyPayment: days && earlyPayment ? { days, rate: document.early_payment_discount, ...earlyPayment } : null,
         dueDate: document.due_date,
         paymentTerms: document.payment_terms,
-        introduction: fillPlaceholders(document.introduction ?? "", placeholders),
-        conclusion: fillPlaceholders(document.conclusion ?? "", placeholders)
     };
 }

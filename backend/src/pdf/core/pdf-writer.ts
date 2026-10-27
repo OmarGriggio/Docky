@@ -27,6 +27,14 @@ export class PdfWriter {
     private allPages: PDFPage[];
     private excludedPages = new Set<PDFPage>();
 
+    // Drawn on every new page as it's created - a page break in the middle
+    // of flowing text included - see setPageDecorator().
+    private pageDecorator: (() => void) | null = null;
+
+    // How low flowing text may go before a page break - the margin by
+    // default, higher when the bottom margin holds a footer (setBottomLimit).
+    private bottomLimit: number;
+
     private constructor(
         private readonly doc: PDFDocument,
         private readonly regularFont: PDFFont,
@@ -36,6 +44,12 @@ export class PdfWriter {
         this.page = doc.addPage(options.pageSize);
         this.cursorY = this.page.getHeight() - options.margin;
         this.allPages = [this.page];
+        this.bottomLimit = options.margin;
+    }
+
+    /** Keeps flowing text at least this high above the page's bottom edge - e.g. clear of a footer drawn in the bottom margin. */
+    setBottomLimit(y: number) {
+        this.bottomLimit = y;
     }
 
     static async create(options: PdfDocumentOptions = {}): Promise<PdfWriter> {
@@ -157,18 +171,33 @@ export class PdfWriter {
     }
 
     private ensureSpace() {
-        if (this.cursorY < this.options.margin) {
-            this.page = this.doc.addPage(this.options.pageSize);
-            this.cursorY = this.page.getHeight() - this.options.margin;
-            this.allPages.push(this.page);
+        if (this.cursorY < this.bottomLimit) {
+            this.newPage();
         }
     }
 
-    /** Starts a fresh page, independent of the text cursor, and returns to work on it. */
+    /** Starts a fresh page, independent of the text cursor, and returns to work on it - decorated first, if a decorator is set (see setPageDecorator). */
     newPage(size: [number, number] = this.options.pageSize) {
         this.page = this.doc.addPage(size);
         this.cursorY = this.page.getHeight() - this.options.margin;
         this.allPages.push(this.page);
+        this.pageDecorator?.();
+    }
+
+    /** Draws `decorate` (e.g. a header image, then lowers the cursor below it) on the current page right away, and on every page created afterwards. */
+    setPageDecorator(decorate: () => void) {
+        this.pageDecorator = decorate;
+        decorate();
+    }
+
+    /** Runs `draw` on every page left in the numbering (see excludeCurrentPageFromNumbering - the QR-bill's) - each in turn becomes the current page for drawAt-style calls. For something drawn once all the content is known, e.g. a footer. */
+    forEachNumberedPage(draw: () => void) {
+        const current = this.page;
+        for (const page of this.allPages.filter(page => !this.excludedPages.has(page))) {
+            this.page = page;
+            draw();
+        }
+        this.page = current;
     }
 
     pageWidth(): number {
@@ -195,13 +224,51 @@ export class PdfWriter {
 
     /** Draws text at an explicit position, bypassing the flowing text cursor. */
     drawTextAt(text: string, x: number, y: number, options: PdfTextOptions = {}) {
+        const color = options.color ?? { r: 0, g: 0, b: 0 };
         this.page.drawText(text, {
             x,
             y,
             size: options.size ?? 11,
             font: options.bold ? this.boldFont : this.regularFont,
-            color: rgb(0, 0, 0),
+            color: rgb(color.r, color.g, color.b),
         });
+    }
+
+    /** Same as drawTextAt, but `rightX` is where the text ends - for a column of amounts aligned on their last digit. */
+    drawTextRightAt(text: string, rightX: number, y: number, options: PdfTextOptions = {}) {
+        this.drawTextAt(text, rightX - this.textWidth(text, options), y, options);
+    }
+
+    textWidth(text: string, options: PdfTextOptions = {}): number {
+        const font = options.bold ? this.boldFont : this.regularFont;
+        return font.widthOfTextAtSize(text, options.size ?? 11);
+    }
+
+    /** Starts a new page first if fewer than `height` points are left above the bottom margin - for a block drawn by hand (absolute positions) that mustn't be split across pages. */
+    reserve(height: number) {
+        if (this.cursorY - height < this.bottomLimit) {
+            this.newPage();
+        }
+    }
+
+    /** Moves the flowing cursor down by `distance` points. */
+    moveDown(distance: number) {
+        this.cursorY -= distance;
+    }
+
+    /** Puts the flowing cursor at this Y, up or down - for a block anchored to a fixed spot (e.g. the bottom of the page), then put back where it was. */
+    moveCursorTo(y: number) {
+        this.cursorY = y;
+    }
+
+    /** The height text() would take to write `text` with these options, its line wrapping and margins included. */
+    textHeight(text: string, options: PdfTextOptions = {}): number {
+        const size = options.size ?? 11;
+        const font = options.bold ? this.boldFont : this.regularFont;
+        const maxWidth = this.page.getWidth() - this.options.margin * 2 - (options.indent ?? 0);
+        const lines = text.replace(/\t/g, " ").replace(/\r\n?/g, "\n").split("\n")
+            .reduce((count, paragraph) => count + this.wrapText(paragraph, font, size, maxWidth).length, 0);
+        return (options.marginTop ?? 0) + lines * (size + 4) + (options.marginBottom ?? 0);
     }
 
     /** Draws a line between two explicit points, bypassing the flowing text cursor. */

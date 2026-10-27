@@ -5,6 +5,10 @@ import { DocumentComplete } from "../../../modules/documents/document_complete.t
 import { lineTotal, round2 } from "../../../modules/documents/document.calculations";
 import { ClientDto, CompanyDto, DocumentSectionDto } from "../document.types";
 import { DocumentRecipient } from "../../../modules/documents/document.types";
+import { LetterDto } from "../business-letter";
+import { PdfLanguage } from "../pdf-labels";
+import { fillPlaceholders } from "../placeholders";
+import { buildDocumentValues } from "../document.placeholders";
 
 // document.sections/lines are already scoped to this document and active-only
 // (the repository queries default to is_active = true) - but neither comes
@@ -59,6 +63,47 @@ export const buildCompanyDto = (company: Company): CompanyDto => ({
 // printing.
 export const hasTypedRecipient = (client: ClientWithAddresses, document: DocumentRecipient): boolean =>
     client.is_placeholder && !!document.recipient_name;
+
+// What an invoice and a quote print alike (see business-letter.ts) - each
+// DTO adds its own fields on top. The introduction/conclusion have their
+// {{...}} placeholders filled in already.
+export const buildLetterDto = (
+    document: DocumentComplete,
+    client: ClientWithAddresses,
+    company: Company,
+    language: PdfLanguage
+): LetterDto => {
+    const placeholders = buildDocumentValues(document, client.title, company.name, language);
+    const typedRecipient = hasTypedRecipient(client, document);
+    return {
+        language,
+        number: document.number,
+        date: document.date,
+        company: {
+            ...buildCompanyDto(company),
+            vatNumber: company.vat_number,
+            email: company.email,
+            phone: company.phone,
+            iban: company.iban,
+            website: company.website,
+            bankName: company.bank_name,
+            bankAccount: company.bank_account,
+        },
+        client: {
+            ...buildClientDto(client, document),
+            number: typedRecipient ? null : client.client_number,
+            title: typedRecipient ? null : client.title,
+        },
+        referenceClient: document.reference_client,
+        sections: buildSections(document),
+        amountExclVat: document.amount_excl_vat,
+        amountInclVat: document.amount_incl_vat,
+        vatRate: document.vat_rate,
+        discount: document.discount,
+        introduction: fillPlaceholders(document.introduction ?? "", placeholders),
+        conclusion: fillPlaceholders(document.conclusion ?? "", placeholders),
+    };
+};
 
 export const buildClientDto = (client: ClientWithAddresses, document: DocumentRecipient): ClientDto => {
     if (hasTypedRecipient(client, document)) {

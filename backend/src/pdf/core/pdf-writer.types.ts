@@ -4,6 +4,8 @@ export interface PdfTextOptions {
     indent?: number;
     marginBottom?: number;
     marginTop?: number;
+    // Only used by drawTextAt/drawTextRightAt - black when unset.
+    color?: PdfColor;
 }
 
 export interface PdfDocumentOptions {
