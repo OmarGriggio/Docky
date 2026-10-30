@@ -61,3 +61,63 @@ export const createClient = async (token: string, fields: Record<string, unknown
   }).expect(200);
   return res.body;
 };
+
+let resourceCount = 0;
+
+export const createResource = async (token: string, fields: Record<string, unknown> = {}) => {
+  resourceCount++;
+  const res = await api().post("/resource").set(auth(token)).send({
+    type: "MATERIAL",
+    code: `R${resourceCount}-${randomUUID().slice(0, 8)}`,
+    name: "Plaque de plâtre",
+    unit: "m2",
+    selling_price: 20,
+    purchase_price: null,
+    parent_resource_id: null,
+    ...fields,
+  }).expect(200);
+  return res.body;
+};
+
+type DocumentType = "QUOTE" | "INVOICE";
+
+export const postDocument = (token: string, type: DocumentType, clientId: number, fields: Record<string, unknown> = {}) =>
+  api().post("/document").set(auth(token)).send({
+    type,
+    client_id: clientId,
+    address_id: null,
+    parent_document_id: null,
+    date: "2026-10-30",
+    discount: 0,
+    vat_rate: 8.1,
+    ...fields,
+  });
+
+// A new quote or invoice - always an active DRAFT, numbered by the server.
+export const createDocument = async (token: string, type: DocumentType, clientId: number, fields: Record<string, unknown> = {}) => {
+  const res = await postDocument(token, type, clientId, fields).expect(200);
+  return res.body;
+};
+
+// A section of hand-typed lines (10.- each unless overridden).
+export const sectionOf = (title: string, lines: Record<string, unknown>[]) => ({
+  title,
+  description: null,
+  lines: lines.map(line => ({ type: "MATERIAL", label: "Line", quantity: 1, unit: "pce", unit_price: 10, resource_id: null, ...line })),
+});
+
+export const saveContent = (token: string, documentId: number, sections: unknown[]) =>
+  api().put(`/document/${documentId}/content`).set(auth(token)).send({ sections });
+
+// A document with its active sections and lines.
+export const getDocumentComplete = async (token: string, documentId: number) => {
+  const res = await api().get(`/document-complete/${documentId}`).set(auth(token)).expect(200);
+  return res.body;
+};
+
+// The chantier accepting this quote created (the project list carries each
+// chantier's quote number).
+export const findProjectsOfQuote = async (token: string, quoteNumber: string) => {
+  const res = await api().get("/project?includeArchived=true").set(auth(token)).expect(200);
+  return res.body.filter((project: { quote_number: string | null }) => project.quote_number === quoteNumber);
+};
