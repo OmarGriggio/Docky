@@ -1,5 +1,6 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { Select } from 'primeng/select';
@@ -48,8 +49,14 @@ export class LoginHistoryComponent implements OnInit {
     this.loadEntries();
   }
 
+  // The previous request is dropped when another user is picked before it
+  // answers - otherwise a slow earlier answer could land last and show
+  // another user's attempts under the one now selected.
+  private entriesRequest?: Subscription;
+
   private loadEntries(): void {
-    this.loginHistoryService.getLoginHistory(this.selectedUserId()).subscribe({
+    this.entriesRequest?.unsubscribe();
+    this.entriesRequest = this.loginHistoryService.getLoginHistory(this.selectedUserId()).subscribe({
       next: data => this.entries.set(data),
       error: err => console.error('login-history : ' + err)
     });
