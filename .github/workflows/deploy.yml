@@ -29,6 +29,9 @@ jobs:
       - run: npm ci
       - run: npx tsc --noEmit
       - run: npm test
+      # Starts its own throwaway Postgres in Docker (Testcontainers) - the
+      # runner has Docker already, nothing to set up here.
+      - run: npm run test:integration
 
   test-frontend:
     runs-on: ubuntu-latest
