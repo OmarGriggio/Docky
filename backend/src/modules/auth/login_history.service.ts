@@ -17,7 +17,7 @@ export const recordLoginAttemptServ = async (data: CreateLoginHistoryData): Prom
 
 export const getLoginHistoryServ = async (limit?: number, user_id?: number) => {
   const safeLimit = Math.min(limit && limit > 0 ? limit : DEFAULT_LIMIT, MAX_LIMIT);
-  if (user_id !== undefined && !(Number.isInteger(user_id) && user_id > 0)) {
+  if (user_id !== undefined && !(Number.isInteger(user_id) && user_id > 0 && user_id <= 2147483647)) {
     throw new AppError("Invalid user_id", 400);
   }
   return await getLoginHistoryFromDB(safeLimit, user_id ?? null);
