@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import jwt from "jsonwebtoken";
 import { Language, Role } from "../../modules/users/user.types";
 
@@ -13,9 +14,14 @@ export const generateAccessToken = (payload: TokenPayload) => {
   });
 };
 
+// A random jwtid: without one, two logins of the same account within the
+// same second signed the exact same token (same payload, `iat` in whole
+// seconds) - and refresh_tokens.token_hash being unique, the second login
+// failed with a 500 (a double click on "Log in" was enough).
 export const generateRefreshToken = (payload: TokenPayload) => {
   return jwt.sign(payload, process.env.JWT_REFRESH_SECRET!, {
-    expiresIn: REFRESH_TOKEN_TTL_MS / 1000
+    expiresIn: REFRESH_TOKEN_TTL_MS / 1000,
+    jwtid: randomUUID()
   });
 };
 
