@@ -23,13 +23,16 @@ services:
   # Where scripts/backup-db.sh restores each night's dump, to prove it can be
   # restored - and to read yesterday's data without touching the live
   # database. Its own volume, no init scripts (the restore brings the schema),
-  # no port published; nothing in the app connects to it.
+  # and no network at all: nothing in the app connects to it, the script only
+  # uses docker exec - and a DB_HOST typo can't point the app at it.
   postgres-backup:
     image: postgres:${POSTGRES_VERSION}
 
     container_name: ${POSTGRES_CONTAINER_NAME}-backup
 
     restart: unless-stopped
+
+    network_mode: none
 
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
