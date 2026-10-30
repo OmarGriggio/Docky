@@ -22,7 +22,7 @@
 
 🔗 **[https://179-237-86-113.sslip.io](https://179-237-86-113.sslip.io)**
 
-A demo company with realistic sample data (clients, quotes, job sites, invoices), in English:
+A demo company with realistic sample data (clients, quotes, job sites, invoices), in English - one click on **Try the demo** on the login page, or:
 
 - **Email**: `admin@demo.docky.ch`
 - **Password**: `Demo2026!`
