@@ -21,7 +21,6 @@ export class Settings {
 
   private authService = inject(AuthService);
 
-  private isAdmin = this.authService.isAdmin;
   private isPlatformAdmin = this.authService.isPlatformAdmin;
 
   // PrimeNG's Menu renders `label` as plain text (no pipe applied for us).
@@ -45,18 +44,14 @@ export class Settings {
       { label: this.languageLabel(), icon: 'pi pi-language', routerLink: '/settings/language' },
     ];
 
-    // Same page, open to either role now - not one of the pages
-    // centralized to PLATFORM_ADMIN only below.
-    if (this.isAdmin() || this.isPlatformAdmin()) {
-      menu.push({ label: this.uiKitLabel(), icon: 'pi pi-palette', routerLink: '/settings/uitest' });
-    }
-
     // User management was centralized to PLATFORM_ADMIN only (see
     // user.routes.ts on the backend) - an ordinary ADMIN no longer sees
     // these, even for their own company. They manage a company's users by
-    // impersonating it first (see "Entreprises" below).
+    // impersonating it first (see "Entreprises" below). The UI kit is a
+    // developer's page, nothing a company's own admin needs.
     if (this.isPlatformAdmin()) {
       menu.push(
+        { label: this.uiKitLabel(), icon: 'pi pi-palette', routerLink: '/settings/uitest' },
         { label: this.companiesLabel(), icon: 'pi pi-sitemap', routerLink: '/settings/companies' },
         { label: this.usersLabel(), icon: 'pi pi-users', routerLink: '/settings/users' },
         { label: this.newUserLabel(), icon: 'pi pi-user-plus', routerLink: '/settings/users/new' },

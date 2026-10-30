@@ -161,13 +161,12 @@ export const routes: Routes = [
         data: { roles: ['PLATFORM_ADMIN'], breadcrumb: (): MenuItem[] => [{ label: 'settings.users', routerLink: '/settings/users' }, { label: 'settings.newUser' }] }
       },
       {
-        // ADMIN and PLATFORM_ADMIN both - not one of the pages centralized
-        // to PLATFORM_ADMIN only (unlike users/login-history above), just an
-        // ordinary admin-level page.
+        // PLATFORM_ADMIN only - a developer's page (every UI component on
+        // one screen), nothing a company's own admin needs.
         path: 'uitest',
         loadComponent: () => import('./features/uitest/uitest').then(m => m.UiTest),
         canActivate: [roleGuard],
-        data: { roles: ['ADMIN', 'PLATFORM_ADMIN'], breadcrumb: 'settings.uiKit' }
+        data: { roles: ['PLATFORM_ADMIN'], breadcrumb: 'settings.uiKit' }
       },
       {
         // PLATFORM_ADMIN only, deliberately not ADMIN - see
