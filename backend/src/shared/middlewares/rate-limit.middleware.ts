@@ -34,6 +34,18 @@ export const registrationRateLimiter = rateLimit({
   message: { message: "Too many registrations, please try again later" },
 });
 
+// Errors a browser reports (POST /error-log/client) - one buggy page could
+// otherwise send one per render, or a user could fill the table by hand. Per
+// user: the same bug only bumps a counter anyway (see error_log.fingerprint.ts).
+export const clientErrorRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  limit: 30, // 30 reports per user per hour
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => `user:${req.user.userId}`,
+  message: { message: "Too many error reports, please try again later" },
+});
+
 // Project attachments (up to 20 MB each) - on top of the per-company storage
 // quota (project_attachment.service.ts), a cap on how fast it can be used up.
 export const attachmentUploadRateLimiter = rateLimit({

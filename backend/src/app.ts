@@ -21,6 +21,8 @@ import calendarNoteRoutes from "./modules/calendar/calendar_note.routes";
 import pdfRoutes from "./pdf/pdf.routes";
 import documentScannerRoutes from "./modules/document-scanner/document-scanner.routes";
 import healthRoutes from "./modules/health/health.routes";
+import errorLogRoutes from "./modules/error-log/error_log.routes";
+import { recordServerErrorServ } from "./modules/error-log/error_log.service";
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { getFileServ } from "./shared/storage/storage.service";
@@ -108,6 +110,8 @@ app.use("/document-scanner", documentScannerRoutes);
 
 app.use("/health", healthRoutes);
 
+app.use("/error-log", errorLogRoutes);
+
 app.get("/", (req, res) => {
   res.send("API is running");
 });
@@ -123,6 +127,14 @@ app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
     return;
   }
   console.error(err);
+  // Kept on our own server, grouped (see modules/error-log) - not awaited,
+  // the response doesn't wait on it. The URL without its query string, and
+  // its numeric ids as :id - where it broke, not whose record it was.
+  void recordServerErrorServ(err, {
+    location: `${req.method} ${req.originalUrl.split("?")[0].replace(/\/\d+(?=\/|$)/g, "/:id")}`,
+    company_id: req.user?.company_id ?? null,
+    user_id: req.user?.userId ?? null,
+  });
   res.status(500).json({ message: "Internal server error" });
 });
 
