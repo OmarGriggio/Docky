@@ -108,11 +108,11 @@ The parts I'd point a developer to - each one has its story in [Difficulties.md]
 - JWT access tokens + a revocable refresh token in an `httpOnly` cookie, roles, rate limiting, login history
 - Platform admin can step into any company ("impersonation") to support it
 - Archive instead of delete for business records; incremental SQL migrations applied on startup
-- Vitest on the pure business logic (49 backend + 53 frontend tests) - no HTTP/database integration tests yet, they're next
+- Vitest on the pure business logic (49 backend + 53 frontend tests), plus backend integration tests: real HTTP requests against the whole API and a throwaway Postgres started in Docker (Testcontainers) - login and roles and cross-company isolation so far, the critical business flows next
 
 **Operations**
 - Docker Compose, multi-stage production images (compiled, non-root) behind Nginx, HTTPS with Let's Encrypt
-- GitHub Actions: tests and builds on every push to `main`, then an automatic deploy over SSH
+- GitHub Actions: unit and integration tests and builds on every push to `main`, then an automatic deploy over SSH
 - Health check watched by an external uptime monitor, self-hosted error tracking with Discord alerts
 - Nightly database backups, restored and checked automatically, 14 days kept
 
@@ -120,7 +120,7 @@ The parts I'd point a developer to - each one has its story in [Difficulties.md]
 
 What's planned next, roughly in that order:
 
-- **Integration tests on the critical flows** - accepting a quote, saving a document, invoicing a job site - against a real database.
+- **Integration tests on the critical flows** - accepting a quote, saving a document, invoicing a job site - on top of the auth and isolation ones already in place.
 - **Sending documents by email, straight from the app** - invoices, quotes and payment reminders sent to the client with their PDF attached.
 - **Stock module** - the materials a company holds, what goes in and out, and what each job site consumed.
 - **Long-term purchase tracking** - what the company buys over time, to follow its spending and the prices it actually pays.
