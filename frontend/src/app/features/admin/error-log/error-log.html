@@ -29,7 +29,7 @@
           </details>
         }
         <div class="flex justify-end">
-          <p-button size="small" [outlined]="true" [label]="error.resolved_at ? 'Rouvrir' : 'Résolue'" [icon]="error.resolved_at ? 'pi pi-undo' : 'pi pi-check'" (onClick)="toggleResolved(error)" />
+          <p-button size="small" [outlined]="true" [label]="error.resolved_at ? 'Rouvrir' : 'Marquer résolue'" [icon]="error.resolved_at ? 'pi pi-undo' : 'pi pi-check'" (onClick)="toggleResolved(error)" />
         </div>
       </div>
     } @empty {
