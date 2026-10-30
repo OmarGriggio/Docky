@@ -21,6 +21,11 @@ export const ensureBucketExistsServ = async (): Promise<void> => {
   }
 };
 
+// For the health check (modules/health): whether the bucket answers at all.
+export const pingStorageServ = async (): Promise<void> => {
+  await s3.send(new HeadBucketCommand({ Bucket: S3_BUCKET }));
+};
+
 export const uploadFileServ = async (key: string, body: Buffer, contentType: string): Promise<void> => {
   await s3.send(new PutObjectCommand({ Bucket: S3_BUCKET, Key: key, Body: body, ContentType: contentType }));
 };

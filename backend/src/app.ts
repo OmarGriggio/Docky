@@ -20,6 +20,7 @@ import dashboardRoutes from "./modules/dashboard/dashboard.routes";
 import calendarNoteRoutes from "./modules/calendar/calendar_note.routes";
 import pdfRoutes from "./pdf/pdf.routes";
 import documentScannerRoutes from "./modules/document-scanner/document-scanner.routes";
+import healthRoutes from "./modules/health/health.routes";
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { getFileServ } from "./shared/storage/storage.service";
@@ -104,6 +105,8 @@ app.use("/calendar-note", calendarNoteRoutes);
 app.use("/pdf", pdfRoutes);
 
 app.use("/document-scanner", documentScannerRoutes);
+
+app.use("/health", healthRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is running");
