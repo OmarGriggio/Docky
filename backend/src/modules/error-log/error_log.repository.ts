@@ -1,11 +1,15 @@
 import { db } from "../../shared/config/database";
 import { ErrorGroupStatus, ErrorGroupWithCompany, RecordErrorData } from "./error_log.types";
+import { OccurrenceKind } from "./error_log.notification";
 
 // One row per fingerprint: a new error inserts it, the same one again bumps
 // its counter and refreshes what it looked like last time (message, stack,
 // where, who). An error that comes back after being resolved is reopened.
-export const recordErrorInDB = async (data: RecordErrorData): Promise<void> => {
+// Returns which of the three it was - `previous` is read before the write
+// (a CTE sees the table as it was when the statement started).
+export const recordErrorInDB = async (data: RecordErrorData): Promise<OccurrenceKind> => {
   const query = `
+    WITH previous AS (SELECT resolved_at FROM error_groups WHERE fingerprint = $1)
     INSERT INTO error_groups (fingerprint, source, name, message, stack, location, last_company_id, last_user_id)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     ON CONFLICT (fingerprint) DO UPDATE SET
@@ -16,11 +20,16 @@ export const recordErrorInDB = async (data: RecordErrorData): Promise<void> => {
       location = EXCLUDED.location,
       last_company_id = EXCLUDED.last_company_id,
       last_user_id = EXCLUDED.last_user_id,
-      resolved_at = NULL;
+      resolved_at = NULL
+    RETURNING
+      NOT EXISTS (SELECT 1 FROM previous) AS is_new,
+      EXISTS (SELECT 1 FROM previous WHERE resolved_at IS NOT NULL) AS was_resolved;
   `;
-  await db().query(query, [
+  const result = await db().query(query, [
     data.fingerprint, data.source, data.name, data.message, data.stack, data.location, data.company_id, data.user_id,
   ]);
+  const { is_new, was_resolved } = result.rows[0];
+  return is_new ? "new" : was_resolved ? "reopened" : "repeat";
 };
 
 // Across every company on purpose (PLATFORM_ADMIN only, see

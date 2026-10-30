@@ -3,7 +3,9 @@ import {
   buildFingerprint, MAX_LOCATION_LENGTH, MAX_MESSAGE_LENGTH, MAX_NAME_LENGTH, MAX_STACK_LENGTH, truncate,
 } from "./error_log.fingerprint";
 import { ErrorGroupStatus, ErrorSource } from "./error_log.types";
+import { buildErrorNotification } from "./error_log.notification";
 import { AppError, NotFoundError } from "../../shared/types/errors";
+import { notifyDiscord } from "../../shared/notifications/discord";
 
 const LIST_LIMIT = 200;
 const STATUSES: ErrorGroupStatus[] = ["open", "resolved", "all"];
@@ -20,16 +22,23 @@ const record = async (
   const safeName = truncate(name || "Error", MAX_NAME_LENGTH);
   const safeMessage = truncate(message || "(no message)", MAX_MESSAGE_LENGTH);
   const safeStack = stack ? truncate(stack, MAX_STACK_LENGTH) : null;
-  await recordErrorInDB({
+  const location = context.location ? truncate(context.location, MAX_LOCATION_LENGTH) : null;
+  const kind = await recordErrorInDB({
     fingerprint: buildFingerprint(source, safeName, safeMessage, safeStack),
     source,
     name: safeName,
     message: safeMessage,
     stack: safeStack,
-    location: context.location ? truncate(context.location, MAX_LOCATION_LENGTH) : null,
+    location,
     company_id: context.company_id,
     user_id: context.user_id,
   });
+  // Only a new error or one back after being resolved - see
+  // error_log.notification.ts for what the message holds (and doesn't).
+  const notification = buildErrorNotification({ kind, source, name: safeName, location }, process.env.APP_URL);
+  if (notification) {
+    notifyDiscord(notification);
+  }
 };
 
 // Called by app.ts's error middleware for anything that ends up a 500.
