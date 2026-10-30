@@ -67,7 +67,7 @@ Three types of users are planned: **employees** (day-to-day usage), **company ad
 - [x] Early payment discount ("escompte"): rate, delay and minimum amount set once on the company, copied onto each new invoice and printed with it
 - [x] Standalone Swiss QR-bill slip: a bare payment slip for any payer, rendered at its official size and copied to the clipboard to paste into Word/Excel
 - [x] Quotes and invoices for a one-off recipient typed by hand, without creating a client first
-- [x] Error tracking kept on our own server: every server error and every error a user's browser runs into is recorded, grouped (one row per distinct bug, with a counter), and listed for the platform admin, who marks them resolved - no third-party service, no personal data stored
+- [x] Error tracking kept on our own server: every server error and every error a user's browser runs into is recorded, grouped (one row per distinct bug, with a counter), and listed for the platform admin, who marks them resolved - no third-party service: everything stays on our own server, and the Discord alert for a new error only names its type and where it happened
 - [x] Uptime monitoring: a public health check (database + file storage) watched by an external monitor
 - [x] AI-assisted document scanner — extracts structured data (reference, project/building, address, amount) from an uploaded scanned document via an LLM (Infomaniak AI), to prefill a new invoice instead of retyping it by hand
 
