@@ -20,6 +20,26 @@ services:
       - ./zz_migrations/001_data.sql:/docker-entrypoint-initdb.d/001_data.sql
 
 
+  # Where scripts/backup-db.sh restores each night's dump, to prove it can be
+  # restored - and to read yesterday's data without touching the live
+  # database. Its own volume, no init scripts (the restore brings the schema),
+  # no port published; nothing in the app connects to it.
+  postgres-backup:
+    image: postgres:${POSTGRES_VERSION}
+
+    container_name: ${POSTGRES_CONTAINER_NAME}-backup
+
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    volumes:
+      - postgres_backup_data:/var/lib/postgresql/data
+
+
   backend:
     container_name: ${BACKEND_CONTAINER_NAME}
 
@@ -117,4 +137,5 @@ services:
 
 volumes:
   postgres_data:
+  postgres_backup_data:
   minio_data:
