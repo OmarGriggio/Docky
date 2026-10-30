@@ -4,6 +4,7 @@
   "main": "index.js",
   "scripts": {
     "test": "vitest run",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node --enable-source-maps dist/server.js"
@@ -29,12 +30,15 @@
     "qrcode": "^1.5.4"
   },
   "devDependencies": {
+    "@testcontainers/postgresql": "^12.2.1",
     "@types/bcrypt": "^6.0.0",
     "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/pg": "^8.20.0",
     "@types/qrcode": "^1.5.5",
+    "@types/supertest": "^7.2.1",
+    "supertest": "^7.3.1",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3",
     "vitest": "^4.1.11"

@@ -5,8 +5,10 @@ import { pool } from "../config/database";
 // zz_migrations/ lives at the repo root, bind-mounted read-only into this
 // container at ./zz_migrations (see docker-compose.yml/.prod.yml) - both the
 // dev (tsx) and prod (compiled dist/) images run with /app as their
-// WORKDIR, so this resolves the same way in either.
-const MIGRATIONS_DIR = path.join(process.cwd(), "zz_migrations");
+// WORKDIR, so this resolves the same way in either. MIGRATIONS_DIR overrides
+// it for the integration tests, which run from backend/ on the host, where
+// the folder is one level up.
+const MIGRATIONS_DIR = process.env.MIGRATIONS_DIR ?? path.join(process.cwd(), "zz_migrations");
 
 // 000_base.sql/001_data.sql are the one-time bootstrap Postgres' own
 // docker-entrypoint-initdb.d already applies by itself, but only to a
