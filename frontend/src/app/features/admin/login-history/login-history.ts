@@ -1,15 +1,17 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
+import { Select } from 'primeng/select';
 import { LoginHistoryService } from '../login-history.service';
-import { LoginHistoryEntry } from '../../../shared/models/login-history';
+import { LoginHistoryEntry, LoginHistoryUser } from '../../../shared/models/login-history';
 import { AppDateTimePipe } from '../../../shared/pipes/app-date-time.pipe';
 import { BreakpointService } from '../../../shared/services/breakpoint.service';
 
 @Component({
   selector: 'app-login-history',
   standalone: true,
-  imports: [TableModule, TagModule, AppDateTimePipe],
+  imports: [TableModule, TagModule, Select, FormsModule, AppDateTimePipe],
   templateUrl: './login-history.html'
 })
 export class LoginHistoryComponent implements OnInit {
@@ -19,8 +21,35 @@ export class LoginHistoryComponent implements OnInit {
 
   entries = signal<LoginHistoryEntry[]>([]);
 
+  // Filtered server-side (not just among the entries already loaded): the
+  // list is capped at the latest 100, a given user's older attempts would
+  // otherwise never show up. null: every user.
+  selectedUserId = signal<number | null>(null);
+  private users = signal<LoginHistoryUser[]>([]);
+
+  userOptions = computed(() => [
+    { label: 'Tous les utilisateurs', value: null },
+    ...this.users().map(user => ({
+      label: `${`${user.first_name ?? ''} ${user.last_name ?? ''}`.trim() || user.email} · ${user.company_name}`,
+      value: user.id,
+    })),
+  ]);
+
   ngOnInit(): void {
-    this.loginHistoryService.getLoginHistory().subscribe({
+    this.loadEntries();
+    this.loginHistoryService.getLoginHistoryUsers().subscribe({
+      next: data => this.users.set(data),
+      error: err => console.error('login-history : ' + err)
+    });
+  }
+
+  onUserChange(userId: number | null): void {
+    this.selectedUserId.set(userId);
+    this.loadEntries();
+  }
+
+  private loadEntries(): void {
+    this.loginHistoryService.getLoginHistory(this.selectedUserId()).subscribe({
       next: data => this.entries.set(data),
       error: err => console.error('login-history : ' + err)
     });

@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { LoginHistoryEntry } from '../../shared/models/login-history';
+import { LoginHistoryEntry, LoginHistoryUser } from '../../shared/models/login-history';
 import { environment } from '../../../environments/environment';
 
 const API_BASE = environment.apiUrl;
@@ -12,9 +12,14 @@ export class LoginHistoryService {
 
   private http = inject(HttpClient);
 
-  getLoginHistory(limit = 100) {
+  // userId null: every user's attempts, unknown emails included.
+  getLoginHistory(userId: number | null = null, limit = 100) {
     return this.http.get<LoginHistoryEntry[]>(`${API_BASE}/login-history`, {
-      params: { limit }
+      params: userId === null ? { limit } : { limit, user_id: userId }
     });
+  }
+
+  getLoginHistoryUsers() {
+    return this.http.get<LoginHistoryUser[]>(`${API_BASE}/login-history/users`);
   }
 }

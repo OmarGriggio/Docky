@@ -1,5 +1,18 @@
 <h3>Historique des connexions</h3>
 
+<p-select
+  class="w-full md:w-96 mb-4"
+  [options]="userOptions()"
+  optionLabel="label"
+  optionValue="value"
+  [ngModel]="selectedUserId()"
+  (ngModelChange)="onUserChange($event)"
+  [filter]="true"
+  filterBy="label"
+  filterPlaceholder="Rechercher un utilisateur"
+  placeholder="Tous les utilisateurs"
+/>
+
 <!-- On a phone, one card per login attempt instead of the seven columns
      (same pattern as project-list.html) - the browser string is left out,
      too long to be any use there. -->
