@@ -1,4 +1,5 @@
 import multer from "multer";
+import { AppError } from "../../shared/types/errors";
 
 // Buffered in memory, not written to disk - nothing here needs to persist
 // the file itself, only the text extracted from it.
@@ -9,7 +10,7 @@ export const uploadScannedDocument = multer({
         if (file.mimetype === "application/pdf") {
             cb(null, true);
         } else {
-            cb(new Error("Seuls les fichiers PDF sont acceptés"));
+            cb(new AppError("Seuls les fichiers PDF sont acceptés", 400));
         }
     },
 }).single("file");

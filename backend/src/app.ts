@@ -24,6 +24,7 @@ import healthRoutes from "./modules/health/health.routes";
 import errorLogRoutes from "./modules/error-log/error_log.routes";
 import { recordServerErrorServ } from "./modules/error-log/error_log.service";
 import cors from 'cors';
+import multer from 'multer';
 import cookieParser from 'cookie-parser';
 import { getFileServ } from "./shared/storage/storage.service";
 
@@ -124,6 +125,20 @@ app.get("/", (req, res) => {
 app.use((err: unknown, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof AppError) {
     res.status(err.statusCode).json(err.code ? { message: err.message, code: err.code } : { message: err.message });
+    return;
+  }
+  // A request the client got wrong, not a bug of ours: a malformed or too
+  // large JSON body (express.json, runs before any route - even without a
+  // token), a file over its upload limit (multer). Answered as such and never
+  // recorded - otherwise anyone could fill the error log, and set off its
+  // notifications, by sending garbage (a JSON parse error even quotes the body).
+  if (err instanceof multer.MulterError) {
+    res.status(err.code === "LIMIT_FILE_SIZE" ? 413 : 400).json({ message: err.message });
+    return;
+  }
+  const clientStatus = (err as { status?: unknown })?.status;
+  if (typeof clientStatus === "number" && clientStatus >= 400 && clientStatus < 500) {
+    res.status(clientStatus).json({ message: "Invalid request" });
     return;
   }
   console.error(err);

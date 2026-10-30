@@ -1,4 +1,5 @@
 import multer from "multer";
+import { AppError } from "../../shared/types/errors";
 
 export const EXTENSION_BY_MIME: Record<string, string> = {
     "image/jpeg": ".jpg",
@@ -14,7 +15,7 @@ export const uploadLogo = multer({
         if (file.mimetype in EXTENSION_BY_MIME) {
             cb(null, true);
         } else {
-            cb(new Error("Seuls les fichiers JPG et PNG sont acceptés"));
+            cb(new AppError("Seuls les fichiers JPG et PNG sont acceptés", 400));
         }
     },
 }).single("logo");
@@ -28,7 +29,7 @@ export const uploadHeaderImage = multer({
         if (file.mimetype in EXTENSION_BY_MIME) {
             cb(null, true);
         } else {
-            cb(new Error("Seuls les fichiers JPG et PNG sont acceptés"));
+            cb(new AppError("Seuls les fichiers JPG et PNG sont acceptés", 400));
         }
     },
 }).single("header_image");

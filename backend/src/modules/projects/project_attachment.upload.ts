@@ -1,4 +1,5 @@
 import multer from "multer";
+import { AppError } from "../../shared/types/errors";
 
 // PDF only for now - docx/xlsx planned later (see CLAUDE.md), just add their
 // mimetypes here when that's built, nothing else needs to change.
@@ -13,7 +14,7 @@ export const uploadAttachment = multer({
         if (ALLOWED_ATTACHMENT_MIMES.includes(file.mimetype)) {
             cb(null, true);
         } else {
-            cb(new Error("Seuls les fichiers PDF sont acceptés"));
+            cb(new AppError("Seuls les fichiers PDF sont acceptés", 400));
         }
     },
 }).single("file");
