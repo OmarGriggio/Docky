@@ -146,7 +146,7 @@ Full field-level definitions are in [zz_docs/Data Definition.md](zz_docs/Data%20
 
 ## API overview
 
-All routes are prefixed by their resource name and return JSON. All are protected by the JWT `authenticate` middleware, except `/auth/login`/`/auth/refresh`/`/auth/logout`, the public registration (`POST /user`, which creates the company and its first admin together) and the company logos (`/uploads/...`, read by plain `<img>` tags).
+All routes are prefixed by their resource name and return JSON. All are protected by the JWT `authenticate` middleware, except `/auth/login`/`/auth/refresh`/`/auth/logout`, the public registration (`POST /user`, which creates the company and its first admin together), the health check (`/health`, for an external uptime monitor) and the company logos (`/uploads/...`, read by plain `<img>` tags).
 
 | Resource                | Base path                  |
 | ----------------------- | --------------------------- |
@@ -169,6 +169,7 @@ All routes are prefixed by their resource name and return JSON. All are protecte
 | Calendar notes          | `/calendar-note`             |
 | Dashboard               | `/dashboard`                 |
 | Document scanner        | `/document-scanner`          |
+| Health check (public)   | `/health`                    |
 | PDFs                    | `/pdf/invoice/:id`, `/pdf/quote/:id`, `/pdf/reminder/:id`, `/pdf/qr-bill-slip` |
 
 ## Getting started
