@@ -245,6 +245,8 @@ cp backend/.env.example backend/.env
 | `S3_BUCKET` | Bucket for logos and project attachments (created on startup) |
 | `INFOMANIAK_AI_PRODUCT_ID` | Product ID for Infomaniak's AI Tools, used by the document scanner |
 | `INFOMANIAK_AI_API_TOKEN`  | API token for Infomaniak's AI Tools                             |
+| `DISCORD_WEBHOOK_URL` | Discord channel webhook announcing a new (or returning) error - secret, leave empty locally |
+| `APP_URL` | The app's public address, for the link in those announcements (optional) |
 
 ## Documentation
 
