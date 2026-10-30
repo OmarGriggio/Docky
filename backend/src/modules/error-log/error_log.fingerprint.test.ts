@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { buildFingerprint, firstAppFrame, normalizeMessage, truncate } from "./error_log.fingerprint";
 
-const stackAt = (line: number) => [
+const stackAt = (line: number, fn = "addClientServ") => [
   "TypeError: Cannot read properties of null (reading 'id')",
   "    at getRow (/app/node_modules/pg/lib/result.js:12:5)",
-  `    at addClientServ (/app/src/modules/clients/client.service.ts:${line}:17)`,
+  `    at ${fn} (/app/src/modules/clients/client.service.ts:${line}:17)`,
   "    at processTicksAndRejections (node:internal/process/task_queues:105:5)",
 ].join("\n");
 
@@ -19,12 +19,16 @@ describe("normalizeMessage", () => {
 });
 
 describe("firstAppFrame", () => {
-  it("skips library and node frames, keeps the path from src/ and drops the column", () => {
-    expect(firstAppFrame(stackAt(21))).toBe("at addClientServ (src/modules/clients/client.service.ts:21)");
+  it("skips library and node frames, keeps the function and the path from src/, drops line and column", () => {
+    expect(firstAppFrame(stackAt(21))).toBe("at addClientServ (src/modules/clients/client.service.ts)");
   });
 
   it("reads a Windows path the same way", () => {
-    expect(firstAppFrame("Error: x\n    at f (C:\\Docky\\backend\\src\\a.ts:3:9)")).toBe("at f (src/a.ts:3)");
+    expect(firstAppFrame("Error: x\n    at f (C:\\Docky\\backend\\src\\a.ts:3:9)")).toBe("at f (src/a.ts)");
+  });
+
+  it("drops the line of an anonymous frame too", () => {
+    expect(firstAppFrame("Error: x\n    at /app/src/a.ts:3:9")).toBe("at src/a.ts");
   });
 
   it("returns null when there is no stack or no frame of our own", () => {
@@ -39,9 +43,14 @@ describe("buildFingerprint", () => {
       .toBe(buildFingerprint("BACKEND", "TypeError", "Client 2 broke", stackAt(21)));
   });
 
-  it("splits a backend error thrown from another line", () => {
+  it("keeps one group when the code above it moved the line", () => {
     expect(buildFingerprint("BACKEND", "TypeError", "x", stackAt(21)))
-      .not.toBe(buildFingerprint("BACKEND", "TypeError", "x", stackAt(40)));
+      .toBe(buildFingerprint("BACKEND", "TypeError", "x", stackAt(40)));
+  });
+
+  it("splits a backend error thrown from another function", () => {
+    expect(buildFingerprint("BACKEND", "TypeError", "x", stackAt(21)))
+      .not.toBe(buildFingerprint("BACKEND", "TypeError", "x", stackAt(21, "updateClientServ")));
   });
 
   it("ignores a frontend stack, which changes with every build", () => {

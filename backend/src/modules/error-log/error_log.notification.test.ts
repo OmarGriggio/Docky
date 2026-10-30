@@ -28,4 +28,10 @@ describe("buildErrorNotification", () => {
     const message = buildErrorNotification({ ...base, name: "x` @everyone `y", kind: "new" }, undefined)!;
     expect(message).toContain("`x' @everyone 'y`");
   });
+
+  it("keeps a reported value on its own line", () => {
+    const message = buildErrorNotification({ ...base, name: "x\n**Fake alert**\r\ny", kind: "new" }, undefined)!;
+    expect(message.split("\n")).toHaveLength(2);
+    expect(message).toContain("`x **Fake alert** y`");
+  });
 });

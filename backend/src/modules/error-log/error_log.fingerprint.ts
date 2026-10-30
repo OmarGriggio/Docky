@@ -18,9 +18,10 @@ export const normalizeMessage = (message: string): string =>
   message.replace(/\d+/g, "<n>").replace(/\s+/g, " ").trim();
 
 // The first stack frame in our own code - where the bug actually is, not
-// where a library happened to throw it. Column dropped (a reformatted line
-// would split a group), path kept from src/ or dist/ on (the absolute path
-// differs between a dev machine and the server).
+// where a library happened to throw it: its function and file, without the
+// line and column (an edit higher up in the file would otherwise split one
+// open bug into a new "new" error on the next deploy), path kept from src/ or
+// dist/ on (the absolute path differs between a dev machine and the server).
 export const firstAppFrame = (stack: string | null): string | null => {
   if (!stack) {
     return null;
@@ -34,8 +35,8 @@ export const firstAppFrame = (stack: string | null): string | null => {
   }
   return frame
     .replace(/\\/g, "/")
-    .replace(/\(.*?\/((?:src|dist)\/[^)]*)\)/, "($1)")
-    .replace(/:\d+(\)?)$/, "$1");
+    .replace(/(^at |\()[^()]*?\/((?:src|dist)\/)/, "$1$2")
+    .replace(/(:\d+)+(\)?)$/, "$2");
 };
 
 // What makes two occurrences "the same error". A browser's stack can't be

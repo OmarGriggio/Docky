@@ -5,6 +5,9 @@ import { OccurrenceKind } from "./error_log.notification";
 // One row per fingerprint: a new error inserts it, the same one again bumps
 // its counter and refreshes what it looked like last time (message, stack,
 // where, who). An error that comes back after being resolved is reopened.
+// A browser error keeps its first stack: any logged-in user can send a
+// report with a known type and message, it must not be able to swap a real
+// stack for a misleading one.
 // Returns which of the three it was - `previous` is read before the write
 // (a CTE sees the table as it was when the statement started).
 export const recordErrorInDB = async (data: RecordErrorData): Promise<OccurrenceKind> => {
@@ -16,7 +19,7 @@ export const recordErrorInDB = async (data: RecordErrorData): Promise<Occurrence
       occurrences = error_groups.occurrences + 1,
       last_seen_at = CURRENT_TIMESTAMP,
       message = EXCLUDED.message,
-      stack = EXCLUDED.stack,
+      stack = CASE WHEN error_groups.source = 'BACKEND' THEN EXCLUDED.stack ELSE error_groups.stack END,
       location = EXCLUDED.location,
       last_company_id = EXCLUDED.last_company_id,
       last_user_id = EXCLUDED.last_user_id,
@@ -52,8 +55,8 @@ export const getErrorGroupsFromDB = async (status: ErrorGroupStatus, limit: numb
 
 export const setErrorGroupResolvedInDB = async (id: number, resolved: boolean): Promise<boolean> => {
   const result = await db().query(
-    `UPDATE error_groups SET resolved_at = ${resolved ? "CURRENT_TIMESTAMP" : "NULL"} WHERE id = $1`,
-    [id]
+    "UPDATE error_groups SET resolved_at = CASE WHEN $2 THEN CURRENT_TIMESTAMP END WHERE id = $1",
+    [id, resolved]
   );
   return (result.rowCount ?? 0) > 0;
 };

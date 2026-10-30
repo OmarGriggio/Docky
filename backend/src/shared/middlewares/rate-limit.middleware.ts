@@ -35,14 +35,27 @@ export const registrationRateLimiter = rateLimit({
 });
 
 // Errors a browser reports (POST /error-log/client) - one buggy page could
-// otherwise send one per render, or a user could fill the table by hand. Per
-// user: the same bug only bumps a counter anyway (see error_log.fingerprint.ts).
+// otherwise send one per render, or a user could fill the table (and the
+// Discord channel) by hand: the demo account's password is public. Per user
+// first - a real page sends at most 10 per page load anyway (see
+// error-reporter.ts) - then for everyone together, so a handful of accounts
+// can't add up either. The same bug only bumps a counter (see
+// error_log.fingerprint.ts), so real reports are rarely anywhere near this.
 export const clientErrorRateLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  limit: 30, // 30 reports per user per hour
+  limit: 10, // 10 reports per user per hour
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req) => `user:${req.user.userId}`,
+  message: { message: "Too many error reports, please try again later" },
+});
+
+export const clientErrorGlobalRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  limit: 100, // 100 reports per hour, all users together
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: () => "all",
   message: { message: "Too many error reports, please try again later" },
 });
 

@@ -11,9 +11,11 @@ export interface ErrorNotificationInput {
   location: string | null;
 }
 
-// Inside inline code, a backtick would close it early - and a browser report
-// is user input, it must not be able to format (or forge) the message.
-const inlineCode = (value: string): string => `\`${value.replace(/`/g, "'").slice(0, 200)}\``;
+// Inside inline code, a backtick would close it early and a line break end
+// it - and a browser report is user input, it must not be able to format (or
+// forge lines of) the message.
+const inlineCode = (value: string): string =>
+  `\`${value.replace(/`/g, "'").replace(/[\u0000-\u001f\u007f]+/g, " ").slice(0, 200)}\``;
 
 // Deliberately minimal: the error's type and where, never its message - a
 // message can carry data (a database error quoting the email it choked on)
