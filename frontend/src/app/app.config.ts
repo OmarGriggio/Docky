@@ -1,4 +1,4 @@
-import { ApplicationConfig, isDevMode, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { ApplicationConfig, ErrorHandler, isDevMode, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { providePrimeNG } from 'primeng/config';
@@ -9,10 +9,13 @@ import { routes } from './app.routes';
 import { authInterceptor } from './features/auth/auth.interceptor';
 import { provideServiceWorker } from '@angular/service-worker';
 import { TranslocoHttpLoader } from './transloco-loader';
+import { ErrorReporter } from './shared/monitoring/error-reporter';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
+    // Logs like the default one, and reports to our own backend too.
+    { provide: ErrorHandler, useClass: ErrorReporter },
     provideRouter(routes),
     provideHttpClient(withInterceptors([authInterceptor])),
     providePrimeNG({

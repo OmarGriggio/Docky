@@ -7,7 +7,9 @@ import { User } from '../../shared/models/user';
 import { environment } from '../../../environments/environment';
 
 const API_BASE = environment.apiUrl;
-const TOKEN_KEY = 'docky_token';
+// Exported for shared/monitoring/error-reporter.ts, which reads it without
+// going through this service.
+export const TOKEN_KEY = 'docky_token';
 // Only ever set while a PLATFORM_ADMIN is impersonating a company - their
 // own real token, parked here so "return to platform view" doesn't need a
 // backend round-trip. See impersonateCompany()/returnToPlatformView() below
