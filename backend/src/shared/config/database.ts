@@ -18,6 +18,14 @@ export const pool = new Pool({
   connectionTimeoutMillis: 5000,
 });
 
+// An idle connection the database drops (Postgres restarted, network blip)
+// is reported here - without a listener, Node treats it as an unhandled
+// error and the whole API crashes. Logged only: the pool discards that
+// connection and opens a new one on the next query.
+pool.on("error", (err) => {
+  console.error("database pool : " + err.message);
+});
+
 // The connection of the transaction currently running (see withTransaction),
 // carried along the async call chain - so a repository function doesn't need
 // a `client` parameter threaded through every service to take part in one.
