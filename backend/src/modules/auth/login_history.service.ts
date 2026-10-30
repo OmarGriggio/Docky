@@ -1,4 +1,5 @@
-import { createLoginHistoryEntryInDB, getLoginHistoryFromDB } from "./login_history.repository";
+import { createLoginHistoryEntryInDB, getLoginHistoryFromDB, getLoginHistoryUsersFromDB } from "./login_history.repository";
+import { AppError } from "../../shared/types/errors";
 import { CreateLoginHistoryData } from "./login_history.types";
 
 const DEFAULT_LIMIT = 100;
@@ -14,7 +15,14 @@ export const recordLoginAttemptServ = async (data: CreateLoginHistoryData): Prom
   }
 };
 
-export const getLoginHistoryServ = async (limit?: number) => {
+export const getLoginHistoryServ = async (limit?: number, user_id?: number) => {
   const safeLimit = Math.min(limit && limit > 0 ? limit : DEFAULT_LIMIT, MAX_LIMIT);
-  return await getLoginHistoryFromDB(safeLimit);
+  if (user_id !== undefined && !(Number.isInteger(user_id) && user_id > 0)) {
+    throw new AppError("Invalid user_id", 400);
+  }
+  return await getLoginHistoryFromDB(safeLimit, user_id ?? null);
+};
+
+export const getLoginHistoryUsersServ = async () => {
+  return await getLoginHistoryUsersFromDB();
 };

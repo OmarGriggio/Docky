@@ -21,3 +21,13 @@ export interface LoginHistoryEntryWithUser extends LoginHistoryEntry {
   company_id: number | null;
   company_name: string | null;
 }
+
+// getLoginHistoryUsersFromDB's own shape - one user the history can be
+// filtered by.
+export interface LoginHistoryUser {
+  id: number;
+  first_name: string | null;
+  last_name: string | null;
+  email: string;
+  company_name: string;
+}
