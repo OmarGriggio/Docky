@@ -6,7 +6,7 @@
     "test": "vitest run",
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "node --enable-source-maps dist/server.js"
   },
   "author": "Griggio Omar",
   "license": "MIT",
