@@ -22,9 +22,33 @@ const check = async (probe: () => Promise<void>): Promise<CheckStatus> => {
   }
 };
 
+// The route is public: without this, every request would take a database
+// connection and call MinIO, and a flood of them would starve real traffic.
+// One check at a time, its result reused for a few seconds - the cost stays
+// the same however many requests come in. An uptime monitor calls every few
+// minutes, so a 10s-old answer is still fresh for it.
+const CACHE_MS = 10_000;
+let cached: { report: HealthReport; at: number } | null = null;
+let inFlight: Promise<HealthReport> | null = null;
+
+const runChecks = async (): Promise<HealthReport> => {
+  const [database, storage] = await Promise.all([check(pingDatabaseInDB), check(pingStorageServ)]);
+  return { status: database === "ok" && storage === "ok" ? "ok" : "error", database, storage };
+};
+
 // Whether the API can actually serve requests, not just whether the process
 // is up: the database and the file storage are checked too, in parallel.
 export const getHealthServ = async (): Promise<HealthReport> => {
-  const [database, storage] = await Promise.all([check(pingDatabaseInDB), check(pingStorageServ)]);
-  return { status: database === "ok" && storage === "ok" ? "ok" : "error", database, storage };
+  if (cached && Date.now() - cached.at < CACHE_MS) {
+    return cached.report;
+  }
+  inFlight ??= runChecks()
+    .then(report => {
+      cached = { report, at: Date.now() };
+      return report;
+    })
+    .finally(() => {
+      inFlight = null;
+    });
+  return inFlight;
 };
