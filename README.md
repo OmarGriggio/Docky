@@ -84,6 +84,7 @@ Three types of users are planned: **employees** (day-to-day usage), **company ad
 **Ops**
 - [x] Docker Compose for local dev; separate multi-stage production images (compiled, non-root), deployed behind an Nginx gateway
 - [x] Deployed — HTTPS via a free [sslip.io](https://sslip.io) hostname + Let's Encrypt (no domain purchased yet)
+- [x] Nightly database backups (14 days kept), each one restored into a separate database and checked automatically, with an alert if anything fails
 - [x] CI/CD: GitHub Actions runs backend/frontend tests and builds on every push to `main`, then auto-deploys over SSH if they pass
 
 ## Roadmap
