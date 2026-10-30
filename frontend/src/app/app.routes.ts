@@ -178,6 +178,14 @@ export const routes: Routes = [
         data: { roles: ['PLATFORM_ADMIN'], breadcrumb: 'settings.loginHistoryBreadcrumb' }
       },
       {
+        // PLATFORM_ADMIN only, like login-history above - the errors of every
+        // company, see error_log.routes.ts on the backend.
+        path: 'errors',
+        loadComponent: () => import('./features/admin/error-log/error-log').then(m => m.ErrorLogComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['PLATFORM_ADMIN'], breadcrumb: 'settings.errors' }
+      },
+      {
         // Where a PLATFORM_ADMIN picks which company to act as - see
         // AuthService's own impersonateCompany().
         path: 'companies',

@@ -1,0 +1,94 @@
+<h3>Erreurs</h3>
+
+<p-selectbutton
+  class="mb-4"
+  [options]="statusOptions"
+  optionLabel="label"
+  optionValue="value"
+  [allowEmpty]="false"
+  [ngModel]="status()"
+  (ngModelChange)="onStatusChange($event)"
+/>
+
+<!-- On a phone, one card per error instead of the table (same pattern as
+     project-list.html) - the stack folds out under it. -->
+@if (isMobile()) {
+  <div class="flex flex-col gap-2">
+    @for (error of errors(); track error.id) {
+      <div class="flex flex-col gap-1 bg-white border border-gray-200 rounded-lg p-3 text-sm">
+        <div class="flex items-start justify-between gap-2">
+          <span class="font-medium text-gray-900 break-words min-w-0">{{ error.name }}: {{ error.message }}</span>
+          <p-tag class="shrink-0" [value]="sourceLabel(error)" [severity]="error.source === 'BACKEND' ? 'info' : 'secondary'" />
+        </div>
+        <span class="text-gray-600 break-all">{{ error.location ?? '—' }}</span>
+        <span class="text-gray-500">{{ error.occurrences }}× · {{ error.last_seen_at | appDateTime }} · {{ error.last_company_name ?? '—' }}</span>
+        @if (error.stack) {
+          <details>
+            <summary class="cursor-pointer text-gray-500">Trace</summary>
+            <pre class="text-xs whitespace-pre-wrap break-all m-0 mt-1">{{ error.stack }}</pre>
+          </details>
+        }
+        <div class="flex justify-end">
+          <p-button size="small" [outlined]="true" [label]="error.resolved_at ? 'Rouvrir' : 'Résolue'" [icon]="error.resolved_at ? 'pi pi-undo' : 'pi pi-check'" (onClick)="toggleResolved(error)" />
+        </div>
+      </div>
+    } @empty {
+      <p class="text-center text-gray-500">Aucune erreur.</p>
+    }
+  </div>
+} @else {
+  <p-table [value]="errors()" dataKey="id" showGridlines size="small" [expandedRowKeys]="expandedRowKeys">
+    <ng-template #header>
+      <tr>
+        <th style="width: 3rem"></th>
+        <th>Source</th>
+        <th>Erreur</th>
+        <th>Où</th>
+        <th>Nb</th>
+        <th>Dernière fois</th>
+        <th>Entreprise</th>
+        <th></th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-error>
+      <tr>
+        <td>
+          @if (error.stack) {
+            <p-button
+              type="button" [text]="true" size="small"
+              [icon]="expandedRowKeys[error.id] ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+              [pRowToggler]="error"
+            />
+          }
+        </td>
+        <td><p-tag [value]="sourceLabel(error)" [severity]="error.source === 'BACKEND' ? 'info' : 'secondary'" /></td>
+        <td class="min-w-48 break-words"><span class="font-medium">{{ error.name }}</span>: {{ error.message }}</td>
+        <td class="whitespace-nowrap">{{ error.location ?? '—' }}</td>
+        <td class="text-right">{{ error.occurrences }}</td>
+        <td class="whitespace-nowrap">
+          {{ error.last_seen_at | appDateTime }}
+          <div class="text-xs text-gray-500">depuis {{ error.first_seen_at | appDateTime }}</div>
+        </td>
+        <td>{{ error.last_company_name ?? '—' }}</td>
+        <td>
+          <p-button size="small" [outlined]="true" [ariaLabel]="error.resolved_at ? 'Rouvrir' : 'Marquer comme résolue'" [attr.title]="error.resolved_at ? 'Rouvrir' : 'Marquer comme résolue'" [icon]="error.resolved_at ? 'pi pi-undo' : 'pi pi-check'" (onClick)="toggleResolved(error)" />
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template #expandedrow let-error>
+      <tr>
+        <td colspan="8">
+          <pre class="text-xs whitespace-pre-wrap break-all m-0">{{ error.stack }}</pre>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="8" class="text-center text-gray-500">Aucune erreur.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+}

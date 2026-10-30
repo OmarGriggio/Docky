@@ -37,6 +37,7 @@ export class Settings {
   private usersLabel = translateSignal('settings.users');
   private newUserLabel = translateSignal('settings.newUser');
   private loginHistoryLabel = translateSignal('settings.loginHistory');
+  private errorsLabel = translateSignal('settings.errors');
 
   items = computed<MenuItem[]>(() => {
     const menu: MenuItem[] = [
@@ -60,6 +61,7 @@ export class Settings {
         { label: this.usersLabel(), icon: 'pi pi-users', routerLink: '/settings/users' },
         { label: this.newUserLabel(), icon: 'pi pi-user-plus', routerLink: '/settings/users/new' },
         { label: this.loginHistoryLabel(), icon: 'pi pi-history', routerLink: '/settings/login-history' },
+        { label: this.errorsLabel(), icon: 'pi pi-exclamation-triangle', routerLink: '/settings/errors' },
       );
     }
 

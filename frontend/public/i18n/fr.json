@@ -28,6 +28,7 @@
     "newUser": "Nouvel utilisateur",
     "loginHistory": "Historique des connexions",
     "loginHistoryBreadcrumb": "Historique de connexion",
+    "errors": "Erreurs",
     "languageDescription": "Langue de l'interface, propre à votre compte.",
     "languageUpdated": "Langue mise à jour.",
     "languageUpdateError": "Impossible de mettre à jour la langue.",
