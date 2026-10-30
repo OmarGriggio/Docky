@@ -5,6 +5,7 @@ import {
   getDocumentsByTypeFromDB,
   getDocumentByIdFromDB,
   getLastDocumentNumberFromDB,
+  lockDocumentNumberingInDB,
   createDocumentInDB,
   updateDocumentInDB,
   archiveDocumentInDB,
@@ -64,10 +65,15 @@ const DOCUMENT_NUMBER_SEQUENCE_LENGTH = 4;
 // UNIQUE (company_id, number) constraint on the documents table. Exported so
 // project.service.ts's addProjectServ can number a hand-created chantier's
 // own PROJECT document the same way.
+// Always called inside withTransaction, the numbered document inserted in
+// that same transaction: the lock keeps a concurrent creation from reading
+// the same last number until this one is committed (two at once used to
+// both take it, the second insert hitting UNIQUE (company_id, number) - a 500).
 export const generateDocumentNumber = async (company_id: number, type: DocumentType): Promise<string> => {
   const year = new Date().getFullYear();
   const prefix = `${DOCUMENT_NUMBER_PREFIXES[type]}-${year}-`;
 
+  await lockDocumentNumberingInDB(company_id, prefix);
   const lastNumber = await getLastDocumentNumberFromDB(company_id, prefix);
   const lastSequence = lastNumber ? Number(lastNumber.slice(prefix.length)) : 0;
   const nextSequence = String(lastSequence + 1).padStart(DOCUMENT_NUMBER_SEQUENCE_LENGTH, "0");
@@ -178,53 +184,58 @@ export const addDocumentServ = async (documentData: CreateDocumentData, company_
   // value for a QUOTE, same as `number` is always server-generated.
   const parent_document_id = documentData.type === "QUOTE" ? null : documentData.parent_document_id;
 
-  if (parent_document_id !== null) {
-    const projectDocument = await getDocumentByIdFromDB(parent_document_id, company_id);
-    if (!projectDocument || projectDocument.type !== "PROJECT") {
-      throw new NotFoundError("Project not found");
-    }
-    const project = await getProjectByDocumentIdFromDB(projectDocument.id, company_id);
-    // The real, final quantities aren't settled until the project is closed
-    // - invoicing from an in-progress one would bill a moving target.
-    if (!project || project.status !== "COMPLETED") {
-      throw new ConflictError("Project must be completed before it can be invoiced");
-    }
-    // One chantier, one invoice - unless the earlier one was cancelled, in
-    // which case it gets billed again (an archived one still counts).
-    if (await getInvoiceForProjectDocumentFromDB(projectDocument.id, company_id)) {
-      throw new ConflictError("This project has already been invoiced");
-    }
-  }
+  return await withTransaction(async () => {
+    // First, so the checks below run under the numbering lock: two invoices
+    // for the same chantier created at once take turns, and the second one
+    // sees the first.
+    const number = await generateDocumentNumber(company_id, documentData.type);
 
-  const number = await generateDocumentNumber(company_id, documentData.type);
+    if (parent_document_id !== null) {
+      const projectDocument = await getDocumentByIdFromDB(parent_document_id, company_id);
+      if (!projectDocument || projectDocument.type !== "PROJECT") {
+        throw new NotFoundError("Project not found");
+      }
+      const project = await getProjectByDocumentIdFromDB(projectDocument.id, company_id);
+      // The real, final quantities aren't settled until the project is closed
+      // - invoicing from an in-progress one would bill a moving target.
+      if (!project || project.status !== "COMPLETED") {
+        throw new ConflictError("Project must be completed before it can be invoiced");
+      }
+      // One chantier, one invoice - unless the earlier one was cancelled, in
+      // which case it gets billed again (an archived one still counts).
+      if (await getInvoiceForProjectDocumentFromDB(projectDocument.id, company_id)) {
+        throw new ConflictError("This project has already been invoiced");
+      }
+    }
 
-  // An invoice offers the company's current early payment discount, copied
-  // here and frozen on it (see document.types.ts) - never taken from the
-  // request body. A quote doesn't offer one: there's nothing to pay yet.
-  const company = documentData.type === "INVOICE" ? await getCompanyByIdFromDB(company_id) : null;
-  const earlyPayment = {
-    early_payment_discount: company?.early_payment_discount ?? 0,
-    early_payment_days: company?.early_payment_days ?? null,
-    early_payment_min_amount: company?.early_payment_min_amount ?? 0,
-  };
+    // An invoice offers the company's current early payment discount, copied
+    // here and frozen on it (see document.types.ts) - never taken from the
+    // request body. A quote doesn't offer one: there's nothing to pay yet.
+    const company = documentData.type === "INVOICE" ? await getCompanyByIdFromDB(company_id) : null;
+    const earlyPayment = {
+      early_payment_discount: company?.early_payment_discount ?? 0,
+      early_payment_days: company?.early_payment_days ?? null,
+      early_payment_min_amount: company?.early_payment_min_amount ?? 0,
+    };
 
-  // amount_excl_vat/amount_incl_vat are always computed from the document's
-  // lines (see recomputeDocumentTotalsServ) — a freshly created document has
-  // none yet, so it always starts at 0, whatever the request body sent for
-  // those fields. Same for status and is_active: every document starts as an
-  // active draft, a status only changes through its own flows afterwards
-  // (updateDocumentStatusServ, acceptQuoteServ).
-  return await createDocumentInDB({
-    ...documentData,
-    ...recipient,
-    ...earlyPayment,
-    parent_document_id,
-    company_id,
-    number,
-    status: "DRAFT",
-    is_active: true,
-    amount_excl_vat: 0,
-    amount_incl_vat: 0,
+    // amount_excl_vat/amount_incl_vat are always computed from the document's
+    // lines (see recomputeDocumentTotalsServ) — a freshly created document has
+    // none yet, so it always starts at 0, whatever the request body sent for
+    // those fields. Same for status and is_active: every document starts as an
+    // active draft, a status only changes through its own flows afterwards
+    // (updateDocumentStatusServ, acceptQuoteServ).
+    return await createDocumentInDB({
+      ...documentData,
+      ...recipient,
+      ...earlyPayment,
+      parent_document_id,
+      company_id,
+      number,
+      status: "DRAFT",
+      is_active: true,
+      amount_excl_vat: 0,
+      amount_incl_vat: 0,
+    });
   });
 };
 

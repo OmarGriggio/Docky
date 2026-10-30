@@ -63,6 +63,14 @@ export const getDocumentByIdForUpdateFromDB = async (id: number, company_id: num
 // includes the trailing "-" (e.g. "FAC-2026-"), and since the sequence is a
 // fixed-width, zero-padded suffix, ORDER BY number DESC correctly returns the
 // highest one lexicographically.
+// Held until the current transaction ends: two documents numbered at the
+// same moment for the same company + prefix take turns, so the second one
+// sees the first one's number instead of reusing it. Only meaningful inside
+// withTransaction - outside one, it's released as soon as it's taken.
+export const lockDocumentNumberingInDB = async (company_id: number, numberPrefix: string): Promise<void> => {
+  await db().query("SELECT pg_advisory_xact_lock($1, hashtext($2))", [company_id, numberPrefix]);
+};
+
 export const getLastDocumentNumberFromDB = async (company_id: number, numberPrefix: string): Promise<string | null> => {
   const result = await db().query(
     `SELECT number FROM documents
