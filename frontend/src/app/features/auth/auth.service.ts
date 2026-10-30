@@ -19,6 +19,14 @@ const PLATFORM_TOKEN_KEY = 'docky_platform_token';
 // Only FR/EN for now (see backend/src/modules/users/user.types.ts's Language).
 export type Language = 'FR' | 'EN';
 
+// The first of the browser's preferred languages the UI has, French when it
+// has none of them - a visitor reading English shouldn't land on a French
+// login page, but French stays the app's own default.
+function browserLanguage(): Language {
+  const preferred = navigator.languages.find(lang => /^(fr|en)\b/i.test(lang));
+  return preferred?.toLowerCase().startsWith('en') ? 'EN' : 'FR';
+}
+
 interface TokenPayload {
   userId: number;
   email: string;
@@ -61,9 +69,10 @@ export class AuthService {
 
   // Keeps Transloco's active language in sync with whatever token is active
   // (login, impersonation switch, refresh, logout) - runs once at app
-  // startup too, for a page reload with an already-stored token.
+  // startup too, for a page reload with an already-stored token. Logged out
+  // (login/registration), it follows the browser instead.
   private readonly syncLanguage = effect(() => {
-    const language = this.currentUser()?.language ?? 'FR';
+    const language = this.currentUser()?.language ?? browserLanguage();
     this.transloco.setActiveLang(language.toLowerCase());
   });
 

@@ -363,7 +363,11 @@
     "login": {
       "title": "Log in",
       "submit": "Log in",
-      "error": "Incorrect email or password."
+      "error": "Incorrect email or password.",
+      "tagline": "Quotes, job sites and invoices for construction companies.",
+      "or": "or",
+      "demo": "Try the demo",
+      "demoHint": "A sample company with example data, reset every Sunday."
     },
     "register": {
       "title": "Create an account",

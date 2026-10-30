@@ -363,7 +363,11 @@
     "login": {
       "title": "Connexion",
       "submit": "Se connecter",
-      "error": "Email ou mot de passe incorrect."
+      "error": "Email ou mot de passe incorrect.",
+      "tagline": "Devis, chantiers et factures pour les entreprises de construction.",
+      "or": "ou",
+      "demo": "Essayer la démo",
+      "demoHint": "Une entreprise fictive avec des données d'exemple (en anglais), remise à zéro chaque dimanche."
     },
     "register": {
       "title": "Créer un compte",

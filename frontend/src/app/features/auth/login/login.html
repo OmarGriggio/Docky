@@ -1,13 +1,16 @@
-<div class="flex justify-center py-8 px-4">
+<div class="flex flex-col items-center gap-6 pt-10 pb-8 px-4 max-md:pt-6">
+  <img src="logo.png" alt="Docky" width="640" height="161" class="w-60 max-md:w-48 h-auto mix-blend-multiply" />
+  <p class="m-0 max-w-105 text-center text-gray-600">{{ 'auth.login.tagline' | transloco }}</p>
+
   <p-card [header]="'auth.login.title' | transloco" styleClass="ui-card--elevated w-full max-w-105">
     <form [formGroup]="form" (ngSubmit)="submit()" class="ui-form ui-form--1col">
       <p-floatlabel variant="on">
-        <input pInputText id="email" type="email" formControlName="email" />
+        <input pInputText id="email" type="email" formControlName="email" class="w-full" />
         <label for="email">{{ 'auth.email' | transloco }}</label>
       </p-floatlabel>
 
       <p-floatlabel variant="on">
-        <input pInputText id="password" type="password" formControlName="password" />
+        <input pInputText id="password" type="password" formControlName="password" class="w-full" />
         <label for="password">{{ 'auth.password' | transloco }}</label>
       </p-floatlabel>
 
@@ -15,9 +18,16 @@
         <p class="text-red-600 m-0">{{ errorMessage() }}</p>
       }
 
-      <div class="col-span-full flex justify-end items-center gap-2">
-        <p-button type="submit" [label]="'auth.login.submit' | transloco" />
-      </div>
+      <p-button type="submit" [label]="'auth.login.submit' | transloco" [loading]="loading()" styleClass="w-full" />
     </form>
+
+    <div class="flex items-center gap-3 my-5 text-sm text-gray-400">
+      <span class="flex-1 border-t border-gray-200"></span>
+      {{ 'auth.login.or' | transloco }}
+      <span class="flex-1 border-t border-gray-200"></span>
+    </div>
+
+    <p-button [label]="'auth.login.demo' | transloco" icon="pi pi-play" [outlined]="true" [disabled]="loading()" (onClick)="tryDemo()" styleClass="w-full" />
+    <p class="mt-2 mb-0 text-sm text-center text-gray-500">{{ 'auth.login.demoHint' | transloco }}</p>
   </p-card>
 </div>
