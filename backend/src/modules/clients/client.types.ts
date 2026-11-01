@@ -20,7 +20,7 @@ export interface Client {
   last_name: string | null;
   first_name: string | null;
   title: string | null;
-  email: string;
+  email: string | null;
   phone: string | null;
   note: string | null;
   language: ClientLanguage;
@@ -42,3 +42,7 @@ export type UpdateClientData = Pick<
   Client,
   "type" | "company_name" | "vat_number" | "last_name" | "first_name" | "title" | "email" | "phone" | "note" | "language"
 >;
+
+// The address that can be typed straight into the "new client" form - becomes
+// that client's primary address (see addClientServ).
+export type NewClientAddress = Pick<Address, "attention" | "street" | "postal_code" | "city" | "country">;
