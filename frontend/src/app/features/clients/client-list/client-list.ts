@@ -7,6 +7,7 @@ import { Menu } from 'primeng/menu';
 import { Dialog } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
+import { Tabs, TabList, Tab } from 'primeng/tabs';
 import { MenuItem } from 'primeng/api';
 import { TranslocoPipe, TranslocoService, translateSignal } from '@jsverse/transloco';
 import { ClientService } from '../client.service';
@@ -30,7 +31,7 @@ const EMPTY_DOCUMENTS: Document[] = [];
 @Component({
   selector: 'app-client-list',
   standalone: true,
-  imports: [RouterLink, ListToolbarComponent, TableModule, TagModule, Menu, Button, Dialog, InputText, Select, FormsModule, AppDatePipe, PricePipe, ClientForm, ConfirmDialogComponent, TranslocoPipe],
+  imports: [RouterLink, ListToolbarComponent, TableModule, TagModule, Menu, Button, Dialog, InputText, Select, Tabs, TabList, Tab, FormsModule, AppDatePipe, PricePipe, ClientForm, ConfirmDialogComponent, TranslocoPipe],
   templateUrl: './client-list.html',
   // Tried ChangeDetectionStrategy.OnPush here as an experiment - reverted.
   // It broke switching directly from one cell's edit mode to another
@@ -58,8 +59,13 @@ export class ClientListComponent implements OnInit {
   // list, so it also covers the archived ones when "Afficher les archivés"
   // is on.
   search = signal('');
+  // The Professionnels/Particuliers tabs - the search only looks within the
+  // active one.
+  activeType = signal<ClientType>('PROFESSIONAL');
   filteredClients = computed(() =>
-    this.clients().filter(client => matchesSearch(this.searchableText(client), this.search()))
+    this.clients().filter(client =>
+      client.type === this.activeType() && matchesSearch(this.searchableText(client), this.search())
+    )
   );
 
   private searchableText(client: Client): string {

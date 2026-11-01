@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Client, ClientWithAddresses } from '../../shared/models/client';
+import { Address } from '../../shared/models/address';
 import { environment } from '../../../environments/environment';
 
 const API_BASE = environment.apiUrl;
@@ -23,9 +24,13 @@ export class ClientService {
   }
 
   // language isn't set at creation - the backend defaults it to 'FR', see
-  // client.types.ts's own addClientServ parameter type.
-  createClient(client: Omit<Client, 'id' | 'is_active' | 'language' | 'is_placeholder'>) {
-    return this.http.post<Client>(`${API_BASE}/client`, client);
+  // client.types.ts's own addClientServ parameter type. An address given
+  // here becomes the client's primary one, created along with it.
+  createClient(
+    client: Omit<Client, 'id' | 'is_active' | 'language' | 'is_placeholder'>,
+    address: Pick<Address, 'attention' | 'street' | 'postal_code' | 'city' | 'country'> | null = null,
+  ) {
+    return this.http.post<Client>(`${API_BASE}/client`, { ...client, address });
   }
 
   // client_number/is_active/company_id aren't editable this way - see

@@ -8,26 +8,14 @@
     />
   </div>
 
-  @if (!isProfessional) {
-    <p-floatlabel variant="on">
-      <input pInputText id="last_name" formControlName="last_name" />
-      <label for="last_name">{{ 'clients.columnLastName' | transloco }}</label>
-    </p-floatlabel>
-
-    <p-floatlabel variant="on">
-      <input pInputText id="first_name" formControlName="first_name" />
-      <label for="first_name">{{ 'clients.columnFirstName' | transloco }}</label>
-    </p-floatlabel>
-  }
-
-  <p-floatlabel variant="on">
-    <input pInputText id="title" formControlName="title" />
-    <label for="title">{{ 'clients.form.title' | transloco }}</label>
-  </p-floatlabel>
-
   <p-floatlabel variant="on">
     <input pInputText id="client_number" formControlName="client_number" />
     <label for="client_number">{{ 'clients.columnNumber' | transloco }}</label>
+  </p-floatlabel>
+
+  <p-floatlabel variant="on">
+    <p-select inputId="title" formControlName="title" [options]="titleOptions()" optionLabel="label" optionValue="value" [fluid]="true" appendTo="body" />
+    <label for="title">{{ 'clients.form.title' | transloco }}</label>
   </p-floatlabel>
 
   @if (isProfessional) {
@@ -40,6 +28,16 @@
       <input pInputText id="vat_number" formControlName="vat_number" />
       <label for="vat_number">{{ 'clients.form.vatNumber' | transloco }}</label>
     </p-floatlabel>
+  } @else {
+    <p-floatlabel variant="on">
+      <input pInputText id="last_name" formControlName="last_name" />
+      <label for="last_name">{{ 'clients.columnLastName' | transloco }}</label>
+    </p-floatlabel>
+
+    <p-floatlabel variant="on">
+      <input pInputText id="first_name" formControlName="first_name" />
+      <label for="first_name">{{ 'clients.columnFirstName' | transloco }}</label>
+    </p-floatlabel>
   }
 
   <p-floatlabel variant="on">
@@ -51,6 +49,52 @@
     <input pInputText id="phone" formControlName="phone" />
     <label for="phone">{{ 'clients.columnPhone' | transloco }}</label>
   </p-floatlabel>
+
+  <!-- Optional: without it the client is created with no address (one can
+       still be added from its own page). The country isn't asked - always
+       Switzerland for now, see submit(). -->
+  @if (showAddress()) {
+    <div class="ui-form__full flex items-center justify-between">
+      <h3 class="m-0 text-sm font-medium text-gray-700">{{ 'clients.form.address' | transloco }}</h3>
+      <p-button type="button" icon="pi pi-times" [text]="true" size="small" severity="secondary" [label]="'clients.form.removeAddress' | transloco" (onClick)="toggleAddress(false)" />
+    </div>
+
+    <p-floatlabel variant="on">
+      <input pInputText id="address_attention" formControlName="attention" />
+      <label for="address_attention">{{ 'clients.addressForm.attentionOptional' | transloco }}</label>
+    </p-floatlabel>
+
+    <p-floatlabel variant="on">
+      <input pInputText id="address_street" formControlName="street" />
+      <label for="address_street">{{ 'clients.detail.addressStreet' | transloco }}</label>
+    </p-floatlabel>
+
+    <!-- Typing an NPA or a town suggests "NPA Town" from the official
+         directory; picking one fills both. Anything can still be typed. -->
+    <p-floatlabel variant="on">
+      <p-autocomplete
+        inputId="address_postal_code"
+        formControlName="postal_code"
+        [suggestions]="postalCodeSuggestions()"
+        (completeMethod)="searchPostalCodes($event.query)"
+        (onSelect)="selectPostalCode($event.value)"
+        optionLabel="label"
+        [delay]="0"
+        [fluid]="true"
+        appendTo="body"
+      />
+      <label for="address_postal_code">{{ 'clients.detail.addressPostalCode' | transloco }}</label>
+    </p-floatlabel>
+
+    <p-floatlabel variant="on">
+      <input pInputText id="address_city" formControlName="city" />
+      <label for="address_city">{{ 'clients.detail.addressCity' | transloco }}</label>
+    </p-floatlabel>
+  } @else {
+    <div class="ui-form__full">
+      <p-button type="button" icon="pi pi-plus" [outlined]="true" size="small" [label]="'clients.form.addAddress' | transloco" (onClick)="toggleAddress(true)" />
+    </div>
+  }
 
   <p-floatlabel variant="on" class="ui-form__full">
     <textarea pTextarea id="note" formControlName="note" rows="4"></textarea>

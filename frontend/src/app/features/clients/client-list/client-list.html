@@ -6,6 +6,13 @@
   (add)="openCreateDialog()"
 />
 
+<p-tabs [value]="activeType()" (valueChange)="activeType.set($any($event))" class="mb-3">
+  <p-tablist>
+    <p-tab value="PROFESSIONAL">{{ 'clients.tabProfessional' | transloco }}</p-tab>
+    <p-tab value="INDIVIDUAL">{{ 'clients.tabIndividual' | transloco }}</p-tab>
+  </p-tablist>
+</p-tabs>
+
 <p-dialog
   [(visible)]="createDialogVisible"
   [header]="'clients.newClient' | transloco"
@@ -13,7 +20,7 @@
   [style]="{ width: '32rem' }"
 >
   @if (createDialogVisible()) {
-    <app-client-form [duplicateFrom]="duplicateSource()" (saved)="onClientSaved()" (cancelled)="closeCreateDialog()" />
+    <app-client-form [duplicateFrom]="duplicateSource()" [type]="activeType()" (saved)="onClientSaved()" (cancelled)="closeCreateDialog()" />
   }
 </p-dialog>
 
@@ -53,9 +60,15 @@
         <th style="width: 3rem"></th>
         <th>{{ 'clients.columnNumber' | transloco }}</th>
         <th>{{ 'clients.columnType' | transloco }}</th>
-        <th>{{ 'clients.columnCompany' | transloco }}</th>
-        <th>{{ 'clients.columnFirstName' | transloco }}</th>
-        <th>{{ 'clients.columnLastName' | transloco }}</th>
+        <!-- Professionnels: company + VAT; Particuliers: first + last name -
+             the same column count either way (colspan below). -->
+        @if (activeType() === 'PROFESSIONAL') {
+          <th>{{ 'clients.columnCompany' | transloco }}</th>
+          <th>{{ 'clients.form.vatNumber' | transloco }}</th>
+        } @else {
+          <th>{{ 'clients.columnFirstName' | transloco }}</th>
+          <th>{{ 'clients.columnLastName' | transloco }}</th>
+        }
         <th>{{ 'clients.columnEmail' | transloco }}</th>
         <th>{{ 'clients.columnPhone' | transloco }}</th>
         <th>{{ 'clients.columnLanguage' | transloco }}</th>
@@ -66,7 +79,7 @@
 
     <ng-template #emptymessage>
       <tr>
-        <td colspan="11" class="text-center text-gray-500">{{ (search().trim() ? 'clients.noSearchResults' : 'clients.noClients') | transloco }}</td>
+        <td colspan="10" class="text-center text-gray-500">{{ (search().trim() ? 'clients.noSearchResults' : 'clients.noClients') | transloco }}</td>
       </tr>
     </ng-template>
 
@@ -93,38 +106,51 @@
           </p-cellEditor>
         </td>
 
-        <td>
-          <p-cellEditor>
-            <ng-template #input>
-              <input pInputText [(ngModel)]="client.company_name" [fluid]="true" />
-            </ng-template>
-            <ng-template #output>
-              {{ client.company_name }}
-            </ng-template>
-          </p-cellEditor>
-        </td>
+        @if (activeType() === 'PROFESSIONAL') {
+          <td>
+            <p-cellEditor>
+              <ng-template #input>
+                <input pInputText [(ngModel)]="client.company_name" [fluid]="true" />
+              </ng-template>
+              <ng-template #output>
+                {{ client.company_name }}
+              </ng-template>
+            </p-cellEditor>
+          </td>
 
-        <td>
-          <p-cellEditor>
-            <ng-template #input>
-              <input pInputText [(ngModel)]="client.first_name" [fluid]="true" />
-            </ng-template>
-            <ng-template #output>
-              {{ client.first_name }}
-            </ng-template>
-          </p-cellEditor>
-        </td>
+          <td>
+            <p-cellEditor>
+              <ng-template #input>
+                <input pInputText [(ngModel)]="client.vat_number" [fluid]="true" />
+              </ng-template>
+              <ng-template #output>
+                {{ client.vat_number }}
+              </ng-template>
+            </p-cellEditor>
+          </td>
+        } @else {
+          <td>
+            <p-cellEditor>
+              <ng-template #input>
+                <input pInputText [(ngModel)]="client.first_name" [fluid]="true" />
+              </ng-template>
+              <ng-template #output>
+                {{ client.first_name }}
+              </ng-template>
+            </p-cellEditor>
+          </td>
 
-        <td>
-          <p-cellEditor>
-            <ng-template #input>
-              <input pInputText [(ngModel)]="client.last_name" [fluid]="true" />
-            </ng-template>
-            <ng-template #output>
-              {{ client.last_name }}
-            </ng-template>
-          </p-cellEditor>
-        </td>
+          <td>
+            <p-cellEditor>
+              <ng-template #input>
+                <input pInputText [(ngModel)]="client.last_name" [fluid]="true" />
+              </ng-template>
+              <ng-template #output>
+                {{ client.last_name }}
+              </ng-template>
+            </p-cellEditor>
+          </td>
+        }
 
         <td>
           <p-cellEditor>
@@ -182,7 +208,7 @@
         <!-- !-prefixed: overrides PrimeNG's own default cell padding
              (higher-specificity descendant selector on p-table's own td),
              which a plain Tailwind utility class wouldn't win against. -->
-        <td colspan="11" class="p-0!">
+        <td colspan="10" class="p-0!">
           @if (isLoadingDocuments(client)) {
             <p>{{ 'common.loading' | transloco }}</p>
           } @else if (documentsFor(client).length === 0) {

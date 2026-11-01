@@ -16,7 +16,7 @@ export interface Client {
   last_name: string | null;
   first_name: string | null;
   title: string | null;
-  email: string;
+  email: string | null;
   phone: string | null;
   note: string | null;
   language: ClientLanguage;
