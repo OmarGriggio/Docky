@@ -3,7 +3,8 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { api, auth, createCompanyWithAdmin } from "./helpers";
 
 // A client can be created without an email, and with its first address
-// typed straight into the same form - created together or not at all.
+// typed straight into the same form - an invalid address is refused before
+// anything is written.
 describe("creating a client", () => {
   let token: string;
 
