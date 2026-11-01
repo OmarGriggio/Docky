@@ -52,7 +52,7 @@ const readCsvFromZip = (zip) => {
 
 const response = await fetch(SOURCE_URL);
 if (!response.ok) throw new Error(`Download failed: ${response.status}`);
-const csv = readCsvFromZip(Buffer.from(await response.arrayBuffer())).replace(/^﻿/, "");
+const csv = readCsvFromZip(Buffer.from(await response.arrayBuffer())).replace(/^\uFEFF/, "");
 
 const [header, ...rows] = csv.split(/\r?\n/).filter(Boolean);
 const columns = header.split(";");

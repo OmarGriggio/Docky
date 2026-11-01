@@ -7,7 +7,7 @@ export interface PostalCode {
 
 // Lowercase, accents removed - "zurich" finds "Zürich", "geneve" "Genève".
 const normalize = (text: string): string =>
-  text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
 // What the address forms suggest as the NPA field is typed into: leading
 // digits match the start of the NPA, the rest anywhere in the town's name
