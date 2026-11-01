@@ -80,12 +80,12 @@ export class ClientForm implements OnInit {
   private femaleLabel = translateSignal('clients.form.titleFemale');
   private unspecifiedLabel = translateSignal('clients.form.titleUnspecified');
 
-  // The value is what's stored in clients.title and printed as is on the
-  // PDFs (address block, greeting) - French whatever the UI language.
+  // A code while in the form, turned into the stored clients.title by
+  // storedTitle() - see there.
   titleOptions = computed(() => [
-    { label: this.maleLabel(), value: 'Monsieur' },
-    { label: this.femaleLabel(), value: 'Madame' },
-    { label: this.unspecifiedLabel(), value: 'Madame, Monsieur' },
+    { label: this.maleLabel(), value: 'MALE' },
+    { label: this.femaleLabel(), value: 'FEMALE' },
+    { label: this.unspecifiedLabel(), value: 'UNSPECIFIED' },
   ]);
 
   constructor() {
@@ -125,7 +125,7 @@ export class ClientForm implements OnInit {
     if (source) {
       this.form.patchValue({
         isProfessional: source.type === 'PROFESSIONAL',
-        title: source.title ?? '',
+        title: this.titleCode(source.title),
         last_name: source.last_name ?? '',
         first_name: source.first_name ?? '',
         company_name: source.company_name ?? '',
@@ -177,6 +177,7 @@ export class ClientForm implements OnInit {
 
     this.clientService.createClient({
       ...client,
+      title: this.storedTitle(client.title),
       email: client.email || null,
       type: isProfessional ? 'PROFESSIONAL' : 'INDIVIDUAL',
     }, address).subscribe({
@@ -188,6 +189,34 @@ export class ClientForm implements OnInit {
         this.errorMessage.set(this.conflictMessage(err) ?? this.transloco.translate('clients.form.createError'));
       }
     });
+  }
+
+  // clients.title is printed as is on the PDFs - above an individual's name
+  // in the address block, and as the greeting - so it's stored in the UI's
+  // language (Monsieur/Madame, Mr/Ms - same as the seeded clients of each
+  // company). "Non défini" stores nothing: the address block then has no
+  // title line, and the greeting falls back to the client's own language's
+  // "Madame, Monsieur" (pdf-labels.ts's defaultClientTitle).
+  private storedTitle(code: string): string | null {
+    if (code === 'MALE') {
+      return this.transloco.translate('clients.form.titleMaleValue');
+    }
+    if (code === 'FEMALE') {
+      return this.transloco.translate('clients.form.titleFemaleValue');
+    }
+    return null;
+  }
+
+  // "Dupliquer": back from a stored title to its option, in either language.
+  // Anything else (an older free-text title) starts unselected.
+  private titleCode(title: string | null): string {
+    if (title === 'Monsieur' || title === 'Mr') {
+      return 'MALE';
+    }
+    if (title === 'Madame' || title === 'Ms') {
+      return 'FEMALE';
+    }
+    return '';
   }
 
   // The backend distinguishes which field actually conflicted (see
