@@ -73,6 +73,11 @@ export class ClientDetail implements OnInit {
   }
 
   onRowEditSave(address: Address): void {
+    // Same required fields as the address form - otherwise the edit is undone.
+    if (![address.street, address.postal_code, address.city, address.country].every(value => value?.trim())) {
+      this.onRowEditCancel(address);
+      return;
+    }
     this.addressService.updateAddress(address.id, {
       attention: address.attention,
       street: address.street,

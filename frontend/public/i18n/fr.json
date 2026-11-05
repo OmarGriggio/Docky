@@ -83,7 +83,8 @@
     "delete": "Supprimer",
     "detail": "Détail",
     "save": "Enregistrer",
-    "edit": "Modifier"
+    "edit": "Modifier",
+    "requiredFields": "Remplis les champs obligatoires (*)."
   },
   "clients": {
     "newClient": "Nouveau client",
@@ -119,7 +120,6 @@
       "titleUnspecified": "Non défini",
       "titleMaleValue": "Monsieur",
       "titleFemaleValue": "Madame",
-      "vatNumber": "TVA",
       "address": "Adresse",
       "addAddress": "Ajouter une adresse",
       "removeAddress": "Retirer",
@@ -144,7 +144,6 @@
       "deleteConfirm": "Supprimer l'adresse {{street}}, {{city}} ?"
     },
     "addressForm": {
-      "attentionOptional": "Attention (optionnel)",
       "primary": "Adresse principale"
     },
     "placeholderName": "Non défini"
@@ -219,7 +218,8 @@
       "addSection": "Ajouter une section",
       "defaultSectionTitle": "Ressources",
       "loadError": "Impossible de charger les ressources du chantier.",
-      "saveError": "Impossible d'enregistrer les ressources."
+      "saveError": "Impossible d'enregistrer les ressources.",
+      "incompleteLine": "Chaque ligne a besoin d'un libellé et d'un prix."
     }
   },
   "documentLedger": {
@@ -320,9 +320,11 @@
       "subtotal": "Sous-total",
       "totalAfterDiscount": "Total HT (après rabais)",
       "totalInclVat": "Total TTC",
+      "vatRate": "TVA",
       "chooseClient": "Choisis un client.",
       "saveError": "Impossible d'enregistrer le document. Réessaie dans un instant.",
       "incompleteLine": "Chaque ligne a besoin d'un libellé, d'une quantité et d'un prix.",
+      "sectionTitleRequired": "Chaque section a besoin d'un titre.",
       "scanButton": "Scanner un document",
       "scanDialogTitle": "Scanner un document",
       "scanAction": "Scanner",
@@ -435,13 +437,13 @@
   },
   "qrBill": {
     "title": "Bulletin QR",
-    "pickClient": "Choisir un client (facultatif)",
+    "pickClient": "Choisir un client",
     "searchClient": "Rechercher un client...",
     "name": "Nom",
     "complement": "Complément",
     "street": "Rue et numéro",
     "postalCodeCity": "NPA et ville",
-    "amount": "Montant CHF (facultatif)",
+    "amount": "Montant CHF",
     "generate": "Valider",
     "clickToCopy": "Cliquez sur le bulletin pour le copier, puis collez-le dans Word ou Excel.",
     "copied": "Bulletin copié dans le presse-papier.",

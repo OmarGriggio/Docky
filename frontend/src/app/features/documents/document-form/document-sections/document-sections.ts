@@ -41,6 +41,8 @@ export class DocumentSections implements OnInit {
   // A document that can no longer be edited (see document-form.ts's
   // isOpenForEditing): every field read-only, every add/remove hidden.
   locked = input(false);
+  // Empty required fields outlined in red - see document-form.ts.
+  showRequired = input(false);
 
   readonly lineTotal = lineTotal;
   readonly sectionTotal = sectionTotal;

@@ -5,7 +5,7 @@ import { FloatLabel } from 'primeng/floatlabel';
 import { Checkbox } from 'primeng/checkbox';
 import { AutoComplete } from 'primeng/autocomplete';
 import { Button } from 'primeng/button';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { AddressService } from '../../../features/addresses/address.service';
 import { PostalCodeService } from '../../services/postal-code.service';
 import { PostalCode, searchPostalCodes } from '../../utils/postal-code-search';
@@ -24,11 +24,14 @@ export class AddressForm implements OnInit {
   private fb = inject(FormBuilder);
   private addressService = inject(AddressService);
   private postalCodeService = inject(PostalCodeService);
+  private transloco = inject(TranslocoService);
 
   clientId = input.required<number>();
 
   saved = output<void>();
   cancelled = output<void>();
+
+  errorMessage = signal<string | null>(null);
 
   form = this.fb.nonNullable.group({
     attention: [''],
@@ -66,9 +69,13 @@ export class AddressForm implements OnInit {
 
   submit(): void {
     if (this.form.invalid) {
+      // PrimeNG outlines an invalid field in red once it's dirty.
+      this.form.markAllAsDirty();
+      this.errorMessage.set(this.transloco.translate('common.requiredFields'));
       return;
     }
 
+    this.errorMessage.set(null);
     this.addressService.createAddress({
       ...this.form.getRawValue(),
       client_id: this.clientId(),

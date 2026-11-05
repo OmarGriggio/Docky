@@ -92,6 +92,9 @@ export class CalendarPage implements OnInit, AfterViewInit {
   // template checks to show the "Supprimer" button only when editing.
   editingNoteId = signal<number | null>(null);
   noteTitleDraft = signal('');
+  // Set by a save refused for a missing title, start or end: those fields
+  // are then outlined in red. Cleared each time the dialog opens.
+  noteShowRequired = signal(false);
   noteDescriptionDraft = signal('');
   noteStartDraft = signal<Date | null>(null);
   noteEndDraft = signal<Date | null>(null);
@@ -328,6 +331,7 @@ export class CalendarPage implements OnInit, AfterViewInit {
     this.noteDescriptionDraft.set('');
     this.noteStartDraft.set(start);
     this.noteEndDraft.set(end);
+    this.noteShowRequired.set(false);
     this.noteDialogVisible.set(true);
   }
 
@@ -342,6 +346,7 @@ export class CalendarPage implements OnInit, AfterViewInit {
     this.noteDescriptionDraft.set(note.description ?? '');
     this.noteStartDraft.set(new Date(note.date_start));
     this.noteEndDraft.set(new Date(note.date_end));
+    this.noteShowRequired.set(false);
     this.noteDialogVisible.set(true);
   }
 
@@ -350,6 +355,7 @@ export class CalendarPage implements OnInit, AfterViewInit {
     const start = this.noteStartDraft();
     const end = this.noteEndDraft();
     if (!title || !start || !end) {
+      this.noteShowRequired.set(true);
       return;
     }
 

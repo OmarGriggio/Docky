@@ -86,6 +86,9 @@ export class ProjectResources implements OnInit {
   loading = signal(true);
   saving = signal(false);
   errorMessage = signal<string | null>(null);
+  // Set by a save refused for a line without its label or price: those
+  // fields are then outlined in red (the title and quantity have defaults).
+  showRequired = signal(false);
 
   private usedResourceIds = computed(() =>
     new Set(
@@ -160,6 +163,7 @@ export class ProjectResources implements OnInit {
   // Throws away the unsaved draft - reloads what's actually stored.
   cancelEditing(): void {
     this.editing.set(false);
+    this.showRequired.set(false);
     this.errorMessage.set(null);
     this.load();
   }
@@ -252,8 +256,15 @@ export class ProjectResources implements OnInit {
       return;
     }
 
+    if (this.sections().some(section => section.lines.some(line => !line.label.trim() || line.unit_price === null))) {
+      this.showRequired.set(true);
+      this.errorMessage.set(this.transloco.translate('projects.resources.incompleteLine'));
+      return;
+    }
+
     this.saving.set(true);
     this.errorMessage.set(null);
+    this.showRequired.set(false);
 
     const documentId = this.project().document_id;
 

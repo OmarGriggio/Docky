@@ -60,11 +60,10 @@
         <th style="width: 3rem"></th>
         <th>{{ 'clients.columnNumber' | transloco }}</th>
         <th>{{ 'clients.columnType' | transloco }}</th>
-        <!-- Professionnels: company + VAT; Particuliers: first + last name -
-             the same column count either way (colspan below). -->
+        <!-- Professionnels: the company over two columns; Particuliers:
+             first + last name - the same column count either way. -->
         @if (activeType() === 'PROFESSIONAL') {
-          <th>{{ 'clients.columnCompany' | transloco }}</th>
-          <th>{{ 'clients.form.vatNumber' | transloco }}</th>
+          <th colspan="2">{{ 'clients.columnCompany' | transloco }}</th>
         } @else {
           <th>{{ 'clients.columnFirstName' | transloco }}</th>
           <th>{{ 'clients.columnLastName' | transloco }}</th>
@@ -107,24 +106,13 @@
         </td>
 
         @if (activeType() === 'PROFESSIONAL') {
-          <td>
+          <td colspan="2">
             <p-cellEditor>
               <ng-template #input>
                 <input pInputText [(ngModel)]="client.company_name" [fluid]="true" />
               </ng-template>
               <ng-template #output>
                 {{ client.company_name }}
-              </ng-template>
-            </p-cellEditor>
-          </td>
-
-          <td>
-            <p-cellEditor>
-              <ng-template #input>
-                <input pInputText [(ngModel)]="client.vat_number" [fluid]="true" />
-              </ng-template>
-              <ng-template #output>
-                {{ client.vat_number }}
               </ng-template>
             </p-cellEditor>
           </td>

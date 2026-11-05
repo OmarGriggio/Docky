@@ -236,10 +236,16 @@ export class ClientListComponent implements OnInit {
   // same "PUT the whole editable shape" convention as document-form.ts's own
   // updateDocument.
   onRowEditSave(client: Client): void {
+    // Same rule as the new client form: a company name for a professional,
+    // a last name for an individual - otherwise the edit is undone.
+    const name = client.type === 'PROFESSIONAL' ? client.company_name : client.last_name;
+    if (!name?.trim()) {
+      this.onRowEditCancel(client);
+      return;
+    }
     this.clientService.updateClient(client.id, {
       type: client.type,
       company_name: client.company_name,
-      vat_number: client.vat_number,
       last_name: client.last_name,
       first_name: client.first_name,
       title: client.title,

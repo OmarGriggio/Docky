@@ -12,7 +12,6 @@ export interface Client {
   client_number: string;
   type: ClientType;
   company_name: string | null;
-  vat_number: string | null;
   last_name: string | null;
   first_name: string | null;
   title: string | null;

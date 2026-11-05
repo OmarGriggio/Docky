@@ -55,8 +55,8 @@
 
     @if (manualRecipient()) {
       <p-floatlabel variant="on" class="w-full">
-        <input pInputText pSize="small" id="recipient_name" maxlength="70" [ngModel]="recipientName()" (ngModelChange)="recipientName.set($event)" [disabled]="locked()" [fluid]="true" />
-        <label for="recipient_name">{{ 'documents.header.recipientName' | transloco }}</label>
+        <input pInputText pSize="small" id="recipient_name" [invalid]="showRequired() && !recipientName().trim()" maxlength="70" [ngModel]="recipientName()" (ngModelChange)="recipientName.set($event)" [disabled]="locked()" [fluid]="true" />
+        <label for="recipient_name">{{ 'documents.header.recipientName' | transloco }} *</label>
       </p-floatlabel>
       <p-floatlabel variant="on" class="w-full">
         <input pInputText pSize="small" id="recipient_complement" maxlength="70" [ngModel]="recipientComplement()" (ngModelChange)="recipientComplement.set($event)" [disabled]="locked()" [fluid]="true" />
@@ -68,12 +68,12 @@
       </p-floatlabel>
       <div class="flex gap-2">
         <p-floatlabel variant="on" class="w-24 shrink-0">
-          <input pInputText pSize="small" id="recipient_postal_code" maxlength="16" [ngModel]="recipientPostalCode()" (ngModelChange)="recipientPostalCode.set($event)" [disabled]="locked()" [fluid]="true" />
-          <label for="recipient_postal_code">{{ 'documents.header.recipientPostalCode' | transloco }}</label>
+          <input pInputText pSize="small" id="recipient_postal_code" [invalid]="showRequired() && !recipientPostalCode().trim()" maxlength="16" [ngModel]="recipientPostalCode()" (ngModelChange)="recipientPostalCode.set($event)" [disabled]="locked()" [fluid]="true" />
+          <label for="recipient_postal_code">{{ 'documents.header.recipientPostalCode' | transloco }} *</label>
         </p-floatlabel>
         <p-floatlabel variant="on" class="flex-1 min-w-0">
-          <input pInputText pSize="small" id="recipient_city" maxlength="35" [ngModel]="recipientCity()" (ngModelChange)="recipientCity.set($event)" [disabled]="locked()" [fluid]="true" />
-          <label for="recipient_city">{{ 'documents.header.recipientCity' | transloco }}</label>
+          <input pInputText pSize="small" id="recipient_city" [invalid]="showRequired() && !recipientCity().trim()" maxlength="35" [ngModel]="recipientCity()" (ngModelChange)="recipientCity.set($event)" [disabled]="locked()" [fluid]="true" />
+          <label for="recipient_city">{{ 'documents.header.recipientCity' | transloco }} *</label>
         </p-floatlabel>
       </div>
     } @else {
@@ -87,6 +87,7 @@
         [ngModel]="clientId()"
         (ngModelChange)="clientChange.emit($event)"
         [disabled]="locked()"
+        [invalid]="showRequired() && clientId() === null"
         [fluid]="true"
       >
         <ng-template #footer>
@@ -99,7 +100,7 @@
           </div>
         </ng-template>
       </p-select>
-      <label for="client_id">{{ 'projects.columnClient' | transloco }}</label>
+      <label for="client_id">{{ 'projects.columnClient' | transloco }} *</label>
     </p-floatlabel>
 
     @if (selectedClientAddress(); as address) {

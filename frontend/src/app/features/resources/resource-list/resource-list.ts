@@ -189,6 +189,12 @@ export class ResourceListComponent implements OnInit {
   }
 
   onRowEditSave(resource: Resource): void {
+    // Same required fields as the new resource form - otherwise the edit is
+    // undone.
+    if (!resource.code?.trim() || !resource.name?.trim() || !resource.unit?.trim() || resource.selling_price === null) {
+      this.onRowEditCancel(resource);
+      return;
+    }
     this.resourceService.updateResource(resource.id, {
       code: resource.code,
       name: resource.name,

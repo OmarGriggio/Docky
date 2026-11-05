@@ -5,7 +5,7 @@ import { Textarea } from 'primeng/textarea';
 import { FloatLabel } from 'primeng/floatlabel';
 import { Select } from 'primeng/select';
 import { Button } from 'primeng/button';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { ProjectService } from '../project.service';
 import { ClientService } from '../../clients/client.service';
 import { Client } from '../../../shared/models/client';
@@ -29,6 +29,7 @@ export class ProjectForm implements OnInit {
   private fb = inject(FormBuilder);
   private projectService = inject(ProjectService);
   private clientService = inject(ClientService);
+  private transloco = inject(TranslocoService);
 
   // When set (see "Dupliquer" in project-list.ts), pre-fills the form with
   // an existing project's data - nothing on projects is unique, so unlike
@@ -38,6 +39,8 @@ export class ProjectForm implements OnInit {
 
   saved = output<void>();
   cancelled = output<void>();
+
+  errorMessage = signal<string | null>(null);
 
   clients = signal<Client[]>([]);
   projectTypes = signal<ProjectType[]>([]);
@@ -56,7 +59,7 @@ export class ProjectForm implements OnInit {
 
   form = this.fb.nonNullable.group({
     client_id: [null as number | null, Validators.required],
-    project_type_id: [null as number | null, Validators.required],
+    project_type_id: [null as number | null],
     name: ['', Validators.required],
     note: [''],
   });
@@ -132,15 +135,19 @@ export class ProjectForm implements OnInit {
 
   submit(): void {
     if (this.form.invalid) {
+      // PrimeNG outlines an invalid field in red once it's dirty.
+      this.form.markAllAsDirty();
+      this.errorMessage.set(this.transloco.translate('common.requiredFields'));
       return;
     }
 
+    this.errorMessage.set(null);
     const { client_id, project_type_id, ...rest } = this.form.getRawValue();
 
     this.projectService.createProject({
       ...rest,
       client_id: client_id!,
-      project_type_id: project_type_id!,
+      project_type_id,
     }).subscribe({
       next: () => {
         this.saved.emit();

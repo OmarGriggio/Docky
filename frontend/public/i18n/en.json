@@ -83,7 +83,8 @@
     "delete": "Delete",
     "detail": "Detail",
     "save": "Save",
-    "edit": "Edit"
+    "edit": "Edit",
+    "requiredFields": "Fill in the required fields (*)."
   },
   "clients": {
     "newClient": "New client",
@@ -119,7 +120,6 @@
       "titleUnspecified": "Not specified",
       "titleMaleValue": "Mr",
       "titleFemaleValue": "Ms",
-      "vatNumber": "VAT",
       "address": "Address",
       "addAddress": "Add an address",
       "removeAddress": "Remove",
@@ -144,7 +144,6 @@
       "deleteConfirm": "Delete address {{street}}, {{city}}?"
     },
     "addressForm": {
-      "attentionOptional": "Attention (optional)",
       "primary": "Primary address"
     },
     "placeholderName": "Not specified"
@@ -219,7 +218,8 @@
       "addSection": "Add a section",
       "defaultSectionTitle": "Resources",
       "loadError": "Could not load the project's resources.",
-      "saveError": "Could not save the resources."
+      "saveError": "Could not save the resources.",
+      "incompleteLine": "Each line needs a label and a price."
     }
   },
   "documentLedger": {
@@ -320,9 +320,11 @@
       "subtotal": "Subtotal",
       "totalAfterDiscount": "Total excl. VAT (after discount)",
       "totalInclVat": "Total incl. VAT",
+      "vatRate": "VAT",
       "chooseClient": "Choose a client.",
       "saveError": "Could not save the document. Try again in a moment.",
       "incompleteLine": "Each line needs a label, a quantity and a price.",
+      "sectionTitleRequired": "Each section needs a title.",
       "scanButton": "Scan a document",
       "scanDialogTitle": "Scan a document",
       "scanAction": "Scan",
@@ -435,13 +437,13 @@
   },
   "qrBill": {
     "title": "QR-bill payment slip",
-    "pickClient": "Pick a client (optional)",
+    "pickClient": "Pick a client",
     "searchClient": "Search a client...",
     "name": "Name",
     "complement": "Address complement",
     "street": "Street and number",
     "postalCodeCity": "Postcode and town",
-    "amount": "Amount CHF (optional)",
+    "amount": "Amount CHF",
     "generate": "Generate",
     "clickToCopy": "Click the slip to copy it, then paste it into Word or Excel.",
     "copied": "Slip copied to the clipboard.",

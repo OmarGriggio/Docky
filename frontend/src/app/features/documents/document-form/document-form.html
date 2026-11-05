@@ -82,6 +82,7 @@
       [(recipientPostalCode)]="recipientPostalCode"
       [(recipientCity)]="recipientCity"
       [clientId]="selectedClientId()"
+      [showRequired]="showRequired()"
       [addresses]="clientAddresses()"
       [date]="date()"
       (dateChange)="onDateChange($event)"
@@ -104,7 +105,7 @@
       />
     </div>
 
-    <app-document-sections [(sections)]="sections" [type]="type" [locked]="locked()" />
+    <app-document-sections [(sections)]="sections" [type]="type" [locked]="locked()" [showRequired]="showRequired()" />
 
     <div class="ui-form mb-4">
       @if (type === 'INVOICE') {
@@ -137,7 +138,7 @@
             [max]="100"
             suffix=" %"
           />
-          <label for="vatRate">{{ 'clients.form.vatNumber' | transloco }}</label>
+          <label for="vatRate">{{ 'documents.form.vatRate' | transloco }}</label>
         </p-floatlabel>
       }
       <div class="ui-form__full">

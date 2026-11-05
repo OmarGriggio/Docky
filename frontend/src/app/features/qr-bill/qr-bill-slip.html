@@ -17,8 +17,8 @@
       />
 
       <p-floatlabel variant="on">
-        <input pInputText id="qrName" class="w-full" name="name" [ngModel]="name()" (ngModelChange)="onFieldChange('name', $event)" />
-        <label for="qrName">{{ 'qrBill.name' | transloco }}</label>
+        <input pInputText id="qrName" class="w-full" [invalid]="showRequired() && !name().trim()" name="name" [ngModel]="name()" (ngModelChange)="onFieldChange('name', $event)" />
+        <label for="qrName">{{ 'qrBill.name' | transloco }} *</label>
       </p-floatlabel>
 
       <p-floatlabel variant="on">
@@ -32,8 +32,8 @@
       </p-floatlabel>
 
       <p-floatlabel variant="on">
-        <input pInputText id="qrPostalCodeCity" class="w-full" name="postalCodeCity" [ngModel]="postalCodeCity()" (ngModelChange)="onFieldChange('postalCodeCity', $event)" />
-        <label for="qrPostalCodeCity">{{ 'qrBill.postalCodeCity' | transloco }}</label>
+        <input pInputText id="qrPostalCodeCity" class="w-full" [invalid]="showRequired() && !postalCodeCity().trim()" name="postalCodeCity" [ngModel]="postalCodeCity()" (ngModelChange)="onFieldChange('postalCodeCity', $event)" />
+        <label for="qrPostalCodeCity">{{ 'qrBill.postalCodeCity' | transloco }} *</label>
       </p-floatlabel>
 
       <p-floatlabel variant="on">

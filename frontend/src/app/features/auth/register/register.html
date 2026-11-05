@@ -3,27 +3,27 @@
     <form [formGroup]="form" (ngSubmit)="submit()" class="ui-form">
       <p-floatlabel variant="on" class="ui-form__full">
         <input pInputText id="companyName" formControlName="companyName" />
-        <label for="companyName">{{ 'auth.register.companyName' | transloco }}</label>
+        <label for="companyName">{{ 'auth.register.companyName' | transloco }} *</label>
       </p-floatlabel>
 
       <p-floatlabel variant="on">
         <input pInputText id="firstname" formControlName="firstname" />
-        <label for="firstname">{{ 'auth.register.firstName' | transloco }}</label>
+        <label for="firstname">{{ 'auth.register.firstName' | transloco }} *</label>
       </p-floatlabel>
 
       <p-floatlabel variant="on">
         <input pInputText id="lastname" formControlName="lastname" />
-        <label for="lastname">{{ 'auth.register.lastName' | transloco }}</label>
+        <label for="lastname">{{ 'auth.register.lastName' | transloco }} *</label>
       </p-floatlabel>
 
       <p-floatlabel variant="on">
         <input pInputText id="email" type="email" formControlName="email" />
-        <label for="email">{{ 'auth.email' | transloco }}</label>
+        <label for="email">{{ 'auth.email' | transloco }} *</label>
       </p-floatlabel>
 
       <p-floatlabel variant="on">
         <input pInputText id="password" type="password" formControlName="password" />
-        <label for="password">{{ 'auth.password' | transloco }}</label>
+        <label for="password">{{ 'auth.password' | transloco }} *</label>
       </p-floatlabel>
 
       @if (errorMessage()) {

@@ -34,6 +34,9 @@ export class Register {
 
   submit(): void {
     if (this.form.invalid) {
+      // PrimeNG outlines an invalid field in red once it's dirty.
+      this.form.markAllAsDirty();
+      this.errorMessage.set(this.transloco.translate('common.requiredFields'));
       return;
     }
 

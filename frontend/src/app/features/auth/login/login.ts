@@ -37,6 +37,8 @@ export class Login {
 
   submit(): void {
     if (this.form.invalid) {
+      // PrimeNG outlines an invalid field in red once it's dirty.
+      this.form.markAllAsDirty();
       return;
     }
     this.logIn(this.form.getRawValue());

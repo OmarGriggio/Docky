@@ -397,6 +397,12 @@ export class ProjectListComponent implements OnInit {
   }
 
   onRowEditSave(project: Project): void {
+    // A chantier needs its name, as in the new chantier form - otherwise the
+    // edit is undone.
+    if (!project.name?.trim()) {
+      this.onRowEditCancel(project);
+      return;
+    }
     const original = this.clonedProjects[project.id];
     const newDate = this.editingDates[project.id] ?? null;
     const newDateIso = newDate ? newDate.toISOString() : null;

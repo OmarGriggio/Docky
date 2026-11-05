@@ -66,10 +66,10 @@
               </colgroup>
               <thead>
                 <tr>
-                  <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">{{ 'resources.columnName' | transloco }}</th>
+                  <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">{{ 'resources.columnName' | transloco }} *</th>
                   <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">{{ 'projects.resources.columnQuantity' | transloco }}</th>
                   <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">{{ 'resources.columnUnit' | transloco }}</th>
-                  <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">{{ 'projects.resources.columnPrice' | transloco }}</th>
+                  <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">{{ 'projects.resources.columnPrice' | transloco }} *</th>
                   <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">{{ 'projects.resources.columnTotal' | transloco }}</th>
                   <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]"></th>
                 </tr>
@@ -83,6 +83,7 @@
                         [ngModel]="line.label"
                         (ngModelChange)="updateLine(section.id, line.id, { label: $event })"
                         [disabled]="readonly()"
+                        [invalid]="showRequired() && !line.label.trim()"
                       />
                     </td>
                     <td class="py-[0.3rem] px-[0.2rem] align-middle">
@@ -107,6 +108,7 @@
                         size="small" [fluid]="true"
                         [ngModel]="line.unit_price"
                         (ngModelChange)="updateLine(section.id, line.id, { unit_price: $event })"
+                        [invalid]="showRequired() && line.unit_price === null"
                         mode="decimal" [minFractionDigits]="2"
                         [disabled]="readonly()" [useGrouping]="false" [maxFractionDigits]="2" />
                     </td>

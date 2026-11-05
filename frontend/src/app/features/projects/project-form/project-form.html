@@ -7,12 +7,12 @@
       optionLabel="label"
       optionValue="value"
     />
-    <label for="client_id">{{ 'projects.columnClient' | transloco }}</label>
+    <label for="client_id">{{ 'projects.columnClient' | transloco }} *</label>
   </p-floatlabel>
 
   <p-floatlabel variant="on" class="ui-form__full">
     <input pInputText id="name" formControlName="name" />
-    <label for="name">{{ 'projects.form.name' | transloco }}</label>
+    <label for="name">{{ 'projects.form.name' | transloco }} *</label>
   </p-floatlabel>
 
   <div class="ui-form__full project-form-type">
@@ -23,6 +23,7 @@
         [options]="typeOptions()"
         optionLabel="label"
         optionValue="value"
+        [showClear]="true"
       />
       <label for="project_type_id">{{ 'projects.form.type' | transloco }}</label>
     </p-floatlabel>
@@ -44,6 +45,10 @@
     <textarea pTextarea id="note" formControlName="note" rows="4"></textarea>
     <label for="note">{{ 'clients.form.note' | transloco }}</label>
   </p-floatlabel>
+
+  @if (errorMessage()) {
+    <p class="ui-form__full m-0 text-sm text-red-600">{{ errorMessage() }}</p>
+  }
 
   <div class="ui-form__actions">
     <p-button type="button" [label]="'common.cancel' | transloco" severity="secondary" (onClick)="cancel()" />

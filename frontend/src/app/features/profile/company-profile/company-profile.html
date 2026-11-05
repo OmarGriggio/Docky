@@ -6,7 +6,7 @@
       <form [formGroup]="form" (ngSubmit)="submit()" class="ui-form">
         <p-floatlabel variant="on">
           <input pInputText id="name" formControlName="name" />
-          <label for="name">{{ 'profile.name' | transloco }}</label>
+          <label for="name">{{ 'profile.name' | transloco }} *</label>
         </p-floatlabel>
 
         <p-floatlabel variant="on">
@@ -46,7 +46,7 @@
 
         <p-floatlabel variant="on">
           <p-inputnumber inputId="vat_rate" formControlName="vat_rate" mode="decimal" [minFractionDigits]="1" suffix=" %" />
-          <label for="vat_rate">{{ 'profile.vatRate' | transloco }}</label>
+          <label for="vat_rate">{{ 'profile.vatRate' | transloco }} *</label>
         </p-floatlabel>
 
         <p-floatlabel variant="on">

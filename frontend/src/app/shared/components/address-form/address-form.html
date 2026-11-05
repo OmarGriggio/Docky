@@ -1,12 +1,12 @@
 <form [formGroup]="form" (ngSubmit)="submit()" class="ui-form">
   <p-floatlabel variant="on" class="ui-form__full">
     <input pInputText id="attention" formControlName="attention" />
-    <label for="attention">{{ 'clients.addressForm.attentionOptional' | transloco }}</label>
+    <label for="attention">{{ 'clients.detail.addressAttention' | transloco }}</label>
   </p-floatlabel>
 
   <p-floatlabel variant="on">
     <input pInputText id="street" formControlName="street" />
-    <label for="street">{{ 'clients.detail.addressStreet' | transloco }}</label>
+    <label for="street">{{ 'clients.detail.addressStreet' | transloco }} *</label>
   </p-floatlabel>
 
   <!-- Same NPA suggestions as client-form.html's own address fields. -->
@@ -22,18 +22,22 @@
       [fluid]="true"
       appendTo="body"
     />
-    <label for="postal_code">{{ 'clients.detail.addressPostalCode' | transloco }}</label>
+    <label for="postal_code">{{ 'clients.detail.addressPostalCode' | transloco }} *</label>
   </p-floatlabel>
 
   <p-floatlabel variant="on">
     <input pInputText id="city" formControlName="city" />
-    <label for="city">{{ 'clients.detail.addressCity' | transloco }}</label>
+    <label for="city">{{ 'clients.detail.addressCity' | transloco }} *</label>
   </p-floatlabel>
 
   <p-floatlabel variant="on">
     <input pInputText id="country" formControlName="country" />
-    <label for="country">{{ 'clients.detail.addressCountry' | transloco }}</label>
+    <label for="country">{{ 'clients.detail.addressCountry' | transloco }} *</label>
   </p-floatlabel>
+
+  @if (errorMessage()) {
+    <p class="ui-form__full m-0 text-sm text-red-600">{{ errorMessage() }}</p>
+  }
 
   <label class="ui-form__full">
     <p-checkbox [binary]="true" formControlName="is_primary" />

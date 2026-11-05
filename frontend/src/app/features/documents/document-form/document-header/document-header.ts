@@ -48,6 +48,8 @@ export class DocumentHeader {
 
   clients = input<Client[]>([]);
   clientId = input<number | null>(null);
+  // Empty required fields outlined in red - see document-form.ts.
+  showRequired = input(false);
   // The selected client's own saved addresses - source for both addresses
   // below: where the document itself is billed to/sent (always the client's
   // own primary one, read-only - see selectedClientAddress) is a different

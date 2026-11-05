@@ -10,7 +10,7 @@
 
   <p-floatlabel variant="on">
     <input pInputText id="client_number" formControlName="client_number" />
-    <label for="client_number">{{ 'clients.columnNumber' | transloco }}</label>
+    <label for="client_number">{{ 'clients.columnNumber' | transloco }} *</label>
   </p-floatlabel>
 
   <p-floatlabel variant="on">
@@ -21,17 +21,12 @@
   @if (isProfessional) {
     <p-floatlabel variant="on">
       <input pInputText id="company_name" formControlName="company_name" />
-      <label for="company_name">{{ 'clients.columnCompany' | transloco }}</label>
-    </p-floatlabel>
-
-    <p-floatlabel variant="on">
-      <input pInputText id="vat_number" formControlName="vat_number" />
-      <label for="vat_number">{{ 'clients.form.vatNumber' | transloco }}</label>
+      <label for="company_name">{{ 'clients.columnCompany' | transloco }} *</label>
     </p-floatlabel>
   } @else {
     <p-floatlabel variant="on">
       <input pInputText id="last_name" formControlName="last_name" />
-      <label for="last_name">{{ 'clients.columnLastName' | transloco }}</label>
+      <label for="last_name">{{ 'clients.columnLastName' | transloco }} *</label>
     </p-floatlabel>
 
     <p-floatlabel variant="on">
@@ -61,12 +56,12 @@
 
     <p-floatlabel variant="on">
       <input pInputText id="address_attention" formControlName="attention" />
-      <label for="address_attention">{{ 'clients.addressForm.attentionOptional' | transloco }}</label>
+      <label for="address_attention">{{ 'clients.detail.addressAttention' | transloco }}</label>
     </p-floatlabel>
 
     <p-floatlabel variant="on">
       <input pInputText id="address_street" formControlName="street" />
-      <label for="address_street">{{ 'clients.detail.addressStreet' | transloco }}</label>
+      <label for="address_street">{{ 'clients.detail.addressStreet' | transloco }} *</label>
     </p-floatlabel>
 
     <!-- Typing an NPA or a town suggests "NPA Town" from the official
@@ -83,12 +78,12 @@
         [fluid]="true"
         appendTo="body"
       />
-      <label for="address_postal_code">{{ 'clients.detail.addressPostalCode' | transloco }}</label>
+      <label for="address_postal_code">{{ 'clients.detail.addressPostalCode' | transloco }} *</label>
     </p-floatlabel>
 
     <p-floatlabel variant="on">
       <input pInputText id="address_city" formControlName="city" />
-      <label for="address_city">{{ 'clients.detail.addressCity' | transloco }}</label>
+      <label for="address_city">{{ 'clients.detail.addressCity' | transloco }} *</label>
     </p-floatlabel>
   } @else {
     <div class="ui-form__full">

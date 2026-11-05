@@ -35,7 +35,7 @@ export class ClientService {
 
   // client_number/is_active/company_id aren't editable this way - see
   // client.types.ts's UpdateClientData on the backend.
-  updateClient(id: number, client: Pick<Client, 'type' | 'company_name' | 'vat_number' | 'last_name' | 'first_name' | 'title' | 'email' | 'phone' | 'note' | 'language'>) {
+  updateClient(id: number, client: Pick<Client, 'type' | 'company_name' | 'last_name' | 'first_name' | 'title' | 'email' | 'phone' | 'note' | 'language'>) {
     return this.http.put<Client>(`${API_BASE}/client/${id}`, client);
   }
 

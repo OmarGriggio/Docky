@@ -58,6 +58,9 @@ export class QrBillSlip implements OnInit {
   complement = signal('');
   street = signal('');
   postalCodeCity = signal('');
+  // Set by a generation refused for a missing name or NPA/town (the
+  // backend's own minimum): those fields are then outlined in red.
+  showRequired = signal(false);
   // Optional - left empty, the slip prints a blank amount box for the payer.
   amount = signal<number | null>(null);
   // Not a field on the page - taken from the picked client's address, so a
@@ -129,6 +132,11 @@ export class QrBillSlip implements OnInit {
   generate(): void {
     this.errorMessage.set(null);
     this.copyMessage.set(null);
+    if (!this.name().trim() || !this.postalCodeCity().trim()) {
+      this.showRequired.set(true);
+      this.errorMessage.set(this.transloco.translate('common.requiredFields'));
+      return;
+    }
     this.generating.set(true);
 
     // Printed in the picked client's own language when there is one (same

@@ -48,7 +48,6 @@ export class ClientForm implements OnInit {
     last_name: [''],
     first_name: [''],
     company_name: [''],
-    vat_number: [''],
     email: [''],
     phone: [''],
     note: [''],
@@ -93,9 +92,20 @@ export class ClientForm implements OnInit {
       if (isProfessional) {
         this.form.patchValue({ last_name: '', first_name: '' });
       } else {
-        this.form.patchValue({ company_name: '', vat_number: '' });
+        this.form.patchValue({ company_name: '' });
       }
+      this.requireName(isProfessional);
     });
+  }
+
+  // A professional needs its company name, an individual at least a last
+  // name - the one printed on the documents.
+  private requireName(isProfessional: boolean): void {
+    const { company_name, last_name } = this.form.controls;
+    company_name.setValidators(isProfessional ? Validators.required : null);
+    last_name.setValidators(isProfessional ? null : Validators.required);
+    company_name.updateValueAndValidity({ emitEvent: false });
+    last_name.updateValueAndValidity({ emitEvent: false });
   }
 
   get isProfessional(): boolean {
@@ -129,7 +139,6 @@ export class ClientForm implements OnInit {
         last_name: source.last_name ?? '',
         first_name: source.first_name ?? '',
         company_name: source.company_name ?? '',
-        vat_number: source.vat_number ?? '',
         email: source.email ?? '',
         phone: source.phone ?? '',
         note: source.note ?? '',
@@ -157,6 +166,9 @@ export class ClientForm implements OnInit {
 
   submit(): void {
     if (this.form.invalid) {
+      // PrimeNG outlines an invalid field in red once it's dirty.
+      this.form.markAllAsDirty();
+      this.errorMessage.set(this.transloco.translate('common.requiredFields'));
       return;
     }
 

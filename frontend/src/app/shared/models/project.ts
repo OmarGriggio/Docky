@@ -37,7 +37,7 @@ export interface Project {
 
 export interface CreateProjectPayload {
   client_id: number;
-  project_type_id: number;
+  project_type_id: number | null;
   name: string;
   note?: string | null;
 }

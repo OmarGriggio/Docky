@@ -285,6 +285,9 @@ export class DocumentForm implements OnInit {
   sections = signal<DraftSection[]>([]);
 
   errorMessage = signal<string | null>(null);
+  // Set by a save refused for a missing required field: from then on, every
+  // empty required field of the header and the sections is outlined in red.
+  showRequired = signal(false);
   submitting = signal(false);
   // "Document enregistré" under the toolbar after a save - the page stays
   // open now instead of going back to the list.
@@ -785,7 +788,15 @@ export class DocumentForm implements OnInit {
 
     const clientId = this.selectedClientId();
     if (clientId === null) {
+      this.showRequired.set(true);
       this.errorMessage.set(this.transloco.translate('documents.form.chooseClient'));
+      return;
+    }
+
+    // Also refused by the backend, but with a generic error.
+    if (this.sections().some(section => !section.title.trim())) {
+      this.showRequired.set(true);
+      this.errorMessage.set(this.transloco.translate('documents.form.sectionTitleRequired'));
       return;
     }
 
@@ -795,11 +806,13 @@ export class DocumentForm implements OnInit {
       section.lines.some(line => line.quantity === null || line.unit_price === null || !line.label.trim())
     );
     if (incompleteLine) {
+      this.showRequired.set(true);
       this.errorMessage.set(this.transloco.translate('documents.form.incompleteLine'));
       return;
     }
 
     if (this.manualRecipient() && (!this.recipientName().trim() || !this.recipientPostalCode().trim() || !this.recipientCity().trim())) {
+      this.showRequired.set(true);
       this.errorMessage.set(this.transloco.translate('documents.form.recipientRequired'));
       return;
     }
