@@ -89,21 +89,21 @@ VALUES
 -- DEFAULT 'FR' once that migration runs; 004_set_demo_company_language.sql
 -- then flips company 2's clients to 'EN' to match its English content.
 INSERT INTO clients
-(company_id, client_number, type, company_name, vat_number, last_name, first_name, title, email, phone, note, is_active)
+(company_id, client_number, type, company_name, last_name, first_name, title, email, phone, note, is_active)
 VALUES
-(1, 'C0001', 'INDIVIDUAL', NULL, NULL, 'Dupont', 'Jean', 'Monsieur', 'jean.dupont@gmail.com', '0791112233', NULL, TRUE),
-(1, 'C0002', 'INDIVIDUAL', NULL, NULL, 'Martin', 'Sophie', 'Madame', 'sophie.martin@gmail.com', '0792223344', NULL, TRUE),
-(1, 'C0003', 'PROFESSIONAL', 'Entreprise Martin SA', 'CHE-123.456.789', NULL, NULL, 'Madame, Monsieur', 'contact@martinsa.ch', '0211112233', 'Client professionnel', TRUE),
-(1, 'C0004', 'PROFESSIONAL', 'ABC Construction SA', 'CHE-987.654.321', NULL, NULL, 'Madame, Monsieur', 'info@abcconstruction.ch', '0215556677', NULL, TRUE),
-(1, 'C0005', 'INDIVIDUAL', NULL, NULL, 'Durand', 'Paul', 'Monsieur', 'paul.durand@gmail.com', '0783334455', NULL, TRUE),
-(2, 'C0006', 'INDIVIDUAL', NULL, NULL, 'Fournier', 'Marc', 'Mr', 'marc.fournier@gmail.com', '0764445566', NULL, TRUE),
-(2, 'C0007', 'INDIVIDUAL', NULL, NULL, 'Bianchi', 'Elena', 'Ms', 'elena.bianchi@gmail.com', '0765556677', NULL, TRUE),
-(2, 'C0008', 'PROFESSIONAL', 'Hôtel du Cervin SA', 'CHE-111.222.333', NULL, NULL, 'Dear Sir/Madam', 'contact@hotelducervin.ch', '0276667788', 'Professional client', TRUE),
-(2, 'C0009', 'PROFESSIONAL', 'Immobilière Valaisanne Sàrl', 'CHE-444.555.666', NULL, NULL, 'Dear Sir/Madam', 'info@immo-valais.ch', '0278889900', 'Professional client', TRUE),
-(2, 'C0010', 'INDIVIDUAL', NULL, NULL, 'Roduit', 'Claire', 'Ms', 'claire.roduit@gmail.com', '0767778899', NULL, TRUE),
-(1, 'C0011', 'PROFESSIONAL', 'Toiture Plus Sàrl', 'CHE-222.333.444', NULL, NULL, 'Madame, Monsieur', 'contact@toitureplus.ch', '0219998877', NULL, FALSE),
-(1, 'C0012', 'INDIVIDUAL', NULL, NULL, 'Bertrand', 'Lucie', 'Madame', 'lucie.bertrand@gmail.com', '0761234567', NULL, TRUE),
-(1, 'C0013', 'INDIVIDUAL', NULL, NULL, 'Moser', 'Thomas', 'Monsieur', 'thomas.moser@gmail.com', '0789876543', NULL, TRUE);
+(1, 'C0001', 'INDIVIDUAL', NULL, 'Dupont', 'Jean', 'Monsieur', 'jean.dupont@gmail.com', '0791112233', NULL, TRUE),
+(1, 'C0002', 'INDIVIDUAL', NULL, 'Martin', 'Sophie', 'Madame', 'sophie.martin@gmail.com', '0792223344', NULL, TRUE),
+(1, 'C0003', 'PROFESSIONAL', 'Entreprise Martin SA', NULL, NULL, 'Madame, Monsieur', 'contact@martinsa.ch', '0211112233', 'Client professionnel', TRUE),
+(1, 'C0004', 'PROFESSIONAL', 'ABC Construction SA', NULL, NULL, 'Madame, Monsieur', 'info@abcconstruction.ch', '0215556677', NULL, TRUE),
+(1, 'C0005', 'INDIVIDUAL', NULL, 'Durand', 'Paul', 'Monsieur', 'paul.durand@gmail.com', '0783334455', NULL, TRUE),
+(2, 'C0006', 'INDIVIDUAL', NULL, 'Fournier', 'Marc', 'Mr', 'marc.fournier@gmail.com', '0764445566', NULL, TRUE),
+(2, 'C0007', 'INDIVIDUAL', NULL, 'Bianchi', 'Elena', 'Ms', 'elena.bianchi@gmail.com', '0765556677', NULL, TRUE),
+(2, 'C0008', 'PROFESSIONAL', 'Hôtel du Cervin SA', NULL, NULL, 'Dear Sir/Madam', 'contact@hotelducervin.ch', '0276667788', 'Professional client', TRUE),
+(2, 'C0009', 'PROFESSIONAL', 'Immobilière Valaisanne Sàrl', NULL, NULL, 'Dear Sir/Madam', 'info@immo-valais.ch', '0278889900', 'Professional client', TRUE),
+(2, 'C0010', 'INDIVIDUAL', NULL, 'Roduit', 'Claire', 'Ms', 'claire.roduit@gmail.com', '0767778899', NULL, TRUE),
+(1, 'C0011', 'PROFESSIONAL', 'Toiture Plus Sàrl', NULL, NULL, 'Madame, Monsieur', 'contact@toitureplus.ch', '0219998877', NULL, FALSE),
+(1, 'C0012', 'INDIVIDUAL', NULL, 'Bertrand', 'Lucie', 'Madame', 'lucie.bertrand@gmail.com', '0761234567', NULL, TRUE),
+(1, 'C0013', 'INDIVIDUAL', NULL, 'Moser', 'Thomas', 'Monsieur', 'thomas.moser@gmail.com', '0789876543', NULL, TRUE);
 
 -- ==========================================
 -- ADDRESSES

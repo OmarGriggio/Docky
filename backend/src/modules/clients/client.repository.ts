@@ -54,7 +54,6 @@ export const createClientInDB = async (
       client_number,
       type,
       company_name,
-      vat_number,
       last_name,
       first_name,
       title,
@@ -62,7 +61,7 @@ export const createClientInDB = async (
       phone,
       note
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
     RETURNING *;
   `;
 
@@ -71,7 +70,6 @@ export const createClientInDB = async (
       client.client_number,
       client.type,
       client.company_name,
-      client.vat_number,
       client.last_name,
       client.first_name,
       client.title,
@@ -93,22 +91,20 @@ export const updateClientInDB = async (
     UPDATE clients SET
       type = $1,
       company_name = $2,
-      vat_number = $3,
-      last_name = $4,
-      first_name = $5,
-      title = $6,
-      email = $7,
-      phone = $8,
-      note = $9,
-      language = $10
-      WHERE id = $11 AND company_id = $12
+      last_name = $3,
+      first_name = $4,
+      title = $5,
+      email = $6,
+      phone = $7,
+      note = $8,
+      language = $9
+      WHERE id = $10 AND company_id = $11
     RETURNING *;
   `;
 
     const values = [
       data.type,
       data.company_name,
-      data.vat_number,
       data.last_name,
       data.first_name,
       data.title,

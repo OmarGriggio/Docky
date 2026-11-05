@@ -90,13 +90,13 @@ UPDATE users SET language = 'EN' WHERE company_id = 2;
 -- (mirroring 004_set_demo_company_language.sql) flips it to 'EN' right after,
 -- same reasoning as the clients created by 001_data.sql.
 INSERT INTO clients
-(id, company_id, client_number, type, company_name, vat_number, last_name, first_name, title, email, phone, note, is_active)
+(id, company_id, client_number, type, company_name, last_name, first_name, title, email, phone, note, is_active)
 VALUES
-(6, 2, 'C0006', 'INDIVIDUAL', NULL, NULL, 'Fournier', 'Marc', 'Mr', 'marc.fournier@gmail.com', '0764445566', NULL, TRUE),
-(7, 2, 'C0007', 'INDIVIDUAL', NULL, NULL, 'Bianchi', 'Elena', 'Ms', 'elena.bianchi@gmail.com', '0765556677', NULL, TRUE),
-(8, 2, 'C0008', 'PROFESSIONAL', 'Hôtel du Cervin SA', 'CHE-111.222.333', NULL, NULL, 'Dear Sir/Madam', 'contact@hotelducervin.ch', '0276667788', 'Professional client', TRUE),
-(9, 2, 'C0009', 'PROFESSIONAL', 'Immobilière Valaisanne Sàrl', 'CHE-444.555.666', NULL, NULL, 'Dear Sir/Madam', 'info@immo-valais.ch', '0278889900', 'Professional client', TRUE),
-(10, 2, 'C0010', 'INDIVIDUAL', NULL, NULL, 'Roduit', 'Claire', 'Ms', 'claire.roduit@gmail.com', '0767778899', NULL, TRUE);
+(6, 2, 'C0006', 'INDIVIDUAL', NULL, 'Fournier', 'Marc', 'Mr', 'marc.fournier@gmail.com', '0764445566', NULL, TRUE),
+(7, 2, 'C0007', 'INDIVIDUAL', NULL, 'Bianchi', 'Elena', 'Ms', 'elena.bianchi@gmail.com', '0765556677', NULL, TRUE),
+(8, 2, 'C0008', 'PROFESSIONAL', 'Hôtel du Cervin SA', NULL, NULL, 'Dear Sir/Madam', 'contact@hotelducervin.ch', '0276667788', 'Professional client', TRUE),
+(9, 2, 'C0009', 'PROFESSIONAL', 'Immobilière Valaisanne Sàrl', NULL, NULL, 'Dear Sir/Madam', 'info@immo-valais.ch', '0278889900', 'Professional client', TRUE),
+(10, 2, 'C0010', 'INDIVIDUAL', NULL, 'Roduit', 'Claire', 'Ms', 'claire.roduit@gmail.com', '0767778899', NULL, TRUE);
 
 UPDATE clients SET language = 'EN' WHERE company_id = 2;
 

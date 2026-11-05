@@ -18,7 +18,6 @@ Content-Type: application/json
   "client_number": "BSI",
   "type": "PROFESSIONAL",
   "company_name": "Boesiger AG",
-  "vat_number": null,
   "last_name": "Boesiger",
   "first_name": "Charle",
   "title": "Monsieur",

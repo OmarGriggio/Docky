@@ -16,7 +16,6 @@ export interface Client {
   client_number: string;
   type: ClientType;
   company_name: string | null;
-  vat_number: string | null;
   last_name: string | null;
   first_name: string | null;
   title: string | null;
@@ -40,7 +39,7 @@ export interface ClientWithAddresses extends Client {
 // dedicated flows - everything else can be edited this way.
 export type UpdateClientData = Pick<
   Client,
-  "type" | "company_name" | "vat_number" | "last_name" | "first_name" | "title" | "email" | "phone" | "note" | "language"
+  "type" | "company_name" | "last_name" | "first_name" | "title" | "email" | "phone" | "note" | "language"
 >;
 
 // The address that can be typed straight into the "new client" form - becomes
