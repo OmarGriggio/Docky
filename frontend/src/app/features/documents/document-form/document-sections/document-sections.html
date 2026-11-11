@@ -21,8 +21,8 @@
     </p>
   }
 
-  @for (section of sections(); track section.id) {
-    <div class="border border-[#e0e0e0] rounded-lg p-4 mb-5">
+  @for (section of sections(); track section.id; let first = $first) {
+    <div class="py-5 border-[#e0e0e0]" [class.border-t]="!first">
       <div class="flex items-center gap-2 mb-3">
         <input
           pInputText
@@ -57,7 +57,7 @@
         [disabled]="locked()"
       ></textarea>
 
-      <div class="overflow-x-auto">
+      <div class="overflow-x-auto px-2 md:px-8">
         <table class="w-full min-w-160 border-collapse table-fixed">
           <colgroup>
             <col style="width: 13%" />
@@ -307,7 +307,7 @@
       </div>
 
       @if (!locked()) {
-      <div class="flex justify-end mt-3">
+      <div class="flex justify-end mt-3 px-2 md:px-8">
         <p-select
           size="small"
           class="block w-65 max-w-full"

@@ -1,6 +1,6 @@
 <div class="flex justify-center py-8 px-4" (input)="saveMessage.set(null)" (change)="saveMessage.set(null)">
   <p-card styleClass="ui-card--elevated w-full max-w-280">
-    <div class="sticky top-0 z-10 -mx-5 -mt-5 mb-6 px-5 py-3 bg-white border-b border-gray-200 rounded-t-[inherit] flex flex-wrap items-center justify-between gap-3">
+    <div class="sticky top-0 md:top-12 z-10 -mx-5 -mt-5 mb-6 px-5 py-3 bg-white border-b border-gray-200 rounded-t-[inherit] flex flex-wrap items-center justify-between gap-3">
       <div class="flex flex-wrap items-center gap-2">
         <p-button
           size="small"
@@ -92,7 +92,22 @@
       [(referenceClient)]="referenceClient"
       (clientChange)="onClientChange($event)"
       (clientCreated)="onClientCreated($event)"
-    />
+    >
+      <div documentTotals class="flex flex-col gap-[0.35rem] text-[0.95rem] whitespace-nowrap">
+        <div class="flex gap-6 w-80 justify-between">
+          <span>{{ 'documents.form.subtotal' | transloco }}</span><span>{{ documentSubtotal() | price }} CHF</span>
+        </div>
+        <div class="flex gap-6 w-80 justify-between">
+          <span>{{ 'documents.form.totalAfterDiscount' | transloco }}</span
+          ><span>{{ documentTotalAfterDiscount() | price }} CHF</span>
+        </div>
+        <div
+          class="flex gap-6 w-80 justify-between font-bold text-[1.1rem] border-t border-[#ddd] pt-[0.35rem]"
+        >
+          <span>{{ 'documents.form.totalInclVat' | transloco }}</span><span>{{ documentTotalInclVat() | price }} CHF</span>
+        </div>
+      </div>
+    </app-document-header>
 
     <div class="mb-6">
       <app-document-text-block
@@ -111,7 +126,7 @@
       @if (type === 'INVOICE') {
         <p-floatlabel variant="on">
           <p-inputnumber
-            pSize="small"
+            size="small"
             inputId="discount"
             [ngModel]="discount()"
             (ngModelChange)="discount.set($event)"
@@ -127,7 +142,7 @@
 
         <p-floatlabel variant="on">
           <p-inputnumber
-            pSize="small"
+            size="small"
             inputId="vatRate"
             [ngModel]="vatRate()"
             (ngModelChange)="vatRate.set($event)"
@@ -150,21 +165,6 @@
           [locked]="locked()"
           [(text)]="conclusion"
         />
-      </div>
-    </div>
-
-    <div class="flex flex-col items-end gap-[0.35rem] mb-6 text-[0.95rem]">
-      <div class="flex gap-6 min-w-65 justify-between">
-        <span>{{ 'documents.form.subtotal' | transloco }}</span><span>{{ documentSubtotal() | price }} CHF</span>
-      </div>
-      <div class="flex gap-6 min-w-65 justify-between">
-        <span>{{ 'documents.form.totalAfterDiscount' | transloco }}</span
-        ><span>{{ documentTotalAfterDiscount() | price }} CHF</span>
-      </div>
-      <div
-        class="flex gap-6 min-w-65 justify-between font-bold text-[1.1rem] border-t border-[#ddd] pt-[0.35rem]"
-      >
-        <span>{{ 'documents.form.totalInclVat' | transloco }}</span><span>{{ documentTotalInclVat() | price }} CHF</span>
       </div>
     </div>
 
