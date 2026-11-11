@@ -34,6 +34,17 @@ export interface ClientWithAddresses extends Client {
   addresses: Address[];
 }
 
+// A row of GET /client: the client plus its primary address (or its oldest
+// one), every field null when it has none.
+export interface ClientListItem extends Client {
+  address_id: number | null;
+  address_attention: string | null;
+  address_street: string | null;
+  address_postal_code: string | null;
+  address_city: string | null;
+  address_country: string | null;
+}
+
 // client_number is immutable (the client's stable business key, like a
 // document's own `number`) and is_active/company_id have their own
 // dedicated flows - everything else can be edited this way.

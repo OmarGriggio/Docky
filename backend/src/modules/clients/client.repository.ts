@@ -1,15 +1,27 @@
 import { db } from "../../shared/config/database";
-import {Client, UpdateClientData} from "./client.types"
+import {Client, ClientListItem, UpdateClientData} from "./client.types"
 
 // Without an explicit ORDER BY, Postgres doesn't guarantee row order at
 // all - two calls back-to-back (e.g. list, then reload right after a save)
 // can come back in a different order, which reads as the table shuffling
 // itself on screen for no reason.
-export const getClientsFromDB = async (company_id: number, includeArchived = false) => {
-  const query = includeArchived
-    ? "SELECT * FROM clients where company_id = $1 ORDER BY id"
-    : "SELECT * FROM clients where company_id = $1 AND is_active = true ORDER BY id";
-  const result = await db().query(query, [company_id]);
+// Each client comes with one address for the list's own columns: its primary
+// one, or else its oldest - a LATERAL join picks that single row per client.
+export const getClientsFromDB = async (company_id: number, includeArchived = false): Promise<ClientListItem[]> => {
+  const result = await db().query(
+    `SELECT c.*, a.id AS address_id, a.attention AS address_attention, a.street AS address_street,
+            a.postal_code AS address_postal_code, a.city AS address_city, a.country AS address_country
+     FROM clients c
+     LEFT JOIN LATERAL (
+       SELECT id, attention, street, postal_code, city, country FROM addresses
+       WHERE client_id = c.id AND company_id = c.company_id
+       ORDER BY is_primary DESC, id
+       LIMIT 1
+     ) a ON true
+     WHERE c.company_id = $1${includeArchived ? "" : " AND c.is_active = true"}
+     ORDER BY c.id`,
+    [company_id]
+  );
   return result.rows;
 };
 
