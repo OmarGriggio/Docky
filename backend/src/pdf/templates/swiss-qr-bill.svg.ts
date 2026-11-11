@@ -9,7 +9,9 @@ import { PdfLabels } from "./pdf-labels";
 // swiss-qr-bill.template.ts (the PDF one, drawn from the bottom with
 // pdf-lib), only measured from the top here, with the font sizes the Swiss
 // Implementation Guidelines give (title 11pt; receipt headings 6pt and
-// values 8pt; payment part headings 8pt and values 10pt).
+// values 8pt; payment part headings 8pt and values 10pt). The payment part
+// is a little airier than the guidelines' 5 mm: its content starts 7 mm
+// right of the receipt's line, and its text column 8 mm right of the QR code.
 
 const pt = (value: number) => value * 25.4 / 72;
 
@@ -21,11 +23,11 @@ const FONT = {
     paymentValue: pt(10),
 };
 
-const QR = { x: 67, y: 17, size: 46 };
+const PAYMENT_X = 69;
+const QR = { x: PAYMENT_X, y: 17, size: 46 };
+const INFO_X = 123;
 const CROSS_SIZE = 7;
 const LINE_WIDTH = 0.2;
-const SCISSORS = "✂";
-const SCISSORS_SIZE = 4;
 
 const escapeXml = (value: string) =>
     value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -95,14 +97,11 @@ export const renderSwissQrBillSvg = async (
     const parts: string[] = [];
 
     parts.push(`<rect width="210" height="105" fill="#fff"/>`);
-    parts.push(line(0, 0.1, 210, 0.1), line(62, 0, 62, 105));
-    // Pasted into a document and printed on plain (not perforated) paper,
-    // the guidelines want a pair of scissors on the cutting lines. Drawn as
-    // the Unicode glyph - the browser rendering this SVG falls back to a
-    // system font that has it (Segoe UI Symbol on Windows). The vertical
-    // one sits over its line, on a white background that breaks it.
-    parts.push(`<text x="5" y="${(SCISSORS_SIZE * 0.85).toFixed(2)}" font-size="${SCISSORS_SIZE}" font-family="Segoe UI Symbol, Apple Symbols, DejaVu Sans, sans-serif">${SCISSORS}</text>`);
-    parts.push(`<g transform="translate(62 8) rotate(90)"><rect x="${-SCISSORS_SIZE / 2}" y="${-SCISSORS_SIZE / 2}" width="${SCISSORS_SIZE}" height="${SCISSORS_SIZE}" fill="#fff"/><text x="0" y="${(SCISSORS_SIZE * 0.35).toFixed(2)}" font-size="${SCISSORS_SIZE}" text-anchor="middle" font-family="Segoe UI Symbol, Apple Symbols, DejaVu Sans, sans-serif">${SCISSORS}</text></g>`);
+    // A thin frame around the whole slip (inset by half the stroke so none of
+    // it is clipped at the edges), plus the line between receipt and payment part.
+    const inset = LINE_WIDTH / 2;
+    parts.push(`<rect x="${inset}" y="${inset}" width="${210 - LINE_WIDTH}" height="${105 - LINE_WIDTH}" fill="none" stroke="#000" stroke-width="${LINE_WIDTH}"/>`);
+    parts.push(line(62, 0, 62, 105));
 
     // Receipt (left, 62 mm wide)
     let y = 11;
@@ -134,35 +133,35 @@ export const renderSwissQrBillSvg = async (
     parts.push(text(labels.qrAcceptancePoint, 57, 91, FONT.receiptHeading, { bold: true, anchor: "end" }));
 
     // Payment part (right, 148 mm wide)
-    parts.push(text(labels.qrPaymentPart, 67, 11, FONT.title, { bold: true }));
+    parts.push(text(labels.qrPaymentPart, PAYMENT_X, 11, FONT.title, { bold: true }));
     parts.push(await qrCode(buildSwissQrBillPayload(dto)));
-    parts.push(text(labels.qrCurrency, 67, 72, FONT.paymentHeading, { bold: true }));
-    parts.push(text(payment.currency, 67, 78, FONT.paymentValue));
+    parts.push(text(labels.qrCurrency, PAYMENT_X, 72, FONT.paymentHeading, { bold: true }));
+    parts.push(text(payment.currency, PAYMENT_X, 78, FONT.paymentValue));
     if (amount) {
-        parts.push(text(labels.qrAmount, 87, 72, FONT.paymentHeading, { bold: true }));
-        parts.push(text(amount, 87, 78, FONT.paymentValue));
+        parts.push(text(labels.qrAmount, PAYMENT_X + 20, 72, FONT.paymentHeading, { bold: true }));
+        parts.push(text(amount, PAYMENT_X + 20, 78, FONT.paymentValue));
     } else {
         parts.push(text(labels.qrAmount, 82, 72, FONT.paymentHeading, { bold: true }));
         parts.push(cornerMarks(82, 74, 122, 89));
     }
 
     y = 11;
-    parts.push(text(labels.qrAccount, 118, y, FONT.paymentHeading, { bold: true }));
+    parts.push(text(labels.qrAccount, INFO_X, y, FONT.paymentHeading, { bold: true }));
     for (const value of creditorLines) {
-        parts.push(text(value, 118, y += 5, FONT.paymentValue));
+        parts.push(text(value, INFO_X, y += 5, FONT.paymentValue));
     }
     if (payment.additionalInfo) {
-        parts.push(text(labels.qrAdditionalInfo, 118, y += 9, FONT.paymentHeading, { bold: true }));
-        parts.push(text(payment.additionalInfo, 118, y += 5, FONT.paymentValue));
+        parts.push(text(labels.qrAdditionalInfo, INFO_X, y += 9, FONT.paymentHeading, { bold: true }));
+        parts.push(text(payment.additionalInfo, INFO_X, y += 5, FONT.paymentValue));
     }
     if (printedDebtor.length > 0) {
-        parts.push(text(labels.qrPayableBy, 118, y += 9, FONT.paymentHeading, { bold: true }));
+        parts.push(text(labels.qrPayableBy, INFO_X, y += 9, FONT.paymentHeading, { bold: true }));
         for (const value of printedDebtor) {
-            parts.push(text(value, 118, y += 5, FONT.paymentValue));
+            parts.push(text(value, INFO_X, y += 5, FONT.paymentValue));
         }
     } else {
-        parts.push(text(labels.qrPayableByBlank, 118, y += 9, FONT.paymentHeading, { bold: true }));
-        parts.push(cornerMarks(118, y + 2, 183, y + 27));
+        parts.push(text(labels.qrPayableByBlank, INFO_X, y += 9, FONT.paymentHeading, { bold: true }));
+        parts.push(cornerMarks(INFO_X, y + 2, INFO_X + 65, y + 27));
     }
 
     return `<svg xmlns="http://www.w3.org/2000/svg" width="210mm" height="105mm" viewBox="0 0 210 105" font-family="Helvetica, Arial, sans-serif">${parts.join("")}</svg>`;
