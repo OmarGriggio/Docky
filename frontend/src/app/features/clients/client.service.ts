@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Client, ClientWithAddresses } from '../../shared/models/client';
+import { Client, ClientListItem, ClientWithAddresses } from '../../shared/models/client';
 import { Address } from '../../shared/models/address';
 import { environment } from '../../../environments/environment';
 
@@ -14,7 +14,7 @@ export class ClientService {
   private http = inject(HttpClient);
 
   getClients(includeArchived = false) {
-    return this.http.get<Client[]>(`${API_BASE}/client`, {
+    return this.http.get<ClientListItem[]>(`${API_BASE}/client`, {
       params: includeArchived ? { includeArchived: 'true' } : {}
     });
   }

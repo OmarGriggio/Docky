@@ -40,6 +40,9 @@
           @if (client.company_name && (client.first_name || client.last_name)) {
             <span class="text-sm text-gray-600">{{ client.first_name }} {{ client.last_name }}</span>
           }
+          @if (client.address_street || client.address_city) {
+            <span class="text-sm text-gray-500"><i class="pi pi-map-marker text-xs mr-1"></i>{{ client.address_street }}@if (client.address_street && client.address_city) {, }{{ client.address_postal_code }} {{ client.address_city }}</span>
+          }
           @if (client.email) {
             <span class="text-sm text-gray-500 truncate"><i class="pi pi-envelope text-xs mr-1"></i>{{ client.email }}</span>
           }
@@ -59,7 +62,6 @@
       <tr>
         <th style="width: 3rem"></th>
         <th>{{ 'clients.columnNumber' | transloco }}</th>
-        <th>{{ 'clients.columnType' | transloco }}</th>
         <!-- Professionnels: the company over two columns; Particuliers:
              first + last name - the same column count either way. -->
         @if (activeType() === 'PROFESSIONAL') {
@@ -68,6 +70,11 @@
           <th>{{ 'clients.columnFirstName' | transloco }}</th>
           <th>{{ 'clients.columnLastName' | transloco }}</th>
         }
+        <!-- The primary address (or the oldest one) - its other addresses,
+             attention and country are edited on the client's own page. -->
+        <th>{{ 'clients.detail.addressStreet' | transloco }}</th>
+        <th>{{ 'clients.detail.addressPostalCode' | transloco }}</th>
+        <th>{{ 'clients.detail.addressCity' | transloco }}</th>
         <th>{{ 'clients.columnEmail' | transloco }}</th>
         <th>{{ 'clients.columnPhone' | transloco }}</th>
         <th>{{ 'clients.columnLanguage' | transloco }}</th>
@@ -78,7 +85,7 @@
 
     <ng-template #emptymessage>
       <tr>
-        <td colspan="10" class="text-center text-gray-500">{{ (search().trim() ? 'clients.noSearchResults' : 'clients.noClients') | transloco }}</td>
+        <td colspan="12" class="text-center text-gray-500">{{ (search().trim() ? 'clients.noSearchResults' : 'clients.noClients') | transloco }}</td>
       </tr>
     </ng-template>
 
@@ -93,17 +100,6 @@
         </td>
         <!-- Not editable - the client's stable business key. -->
         <td>{{ client.client_number }}</td>
-
-        <td>
-          <p-cellEditor>
-            <ng-template #input>
-              <p-select [(ngModel)]="client.type" [options]="typeOptions()" optionLabel="label" optionValue="value" [fluid]="true" appendTo="body" />
-            </ng-template>
-            <ng-template #output>
-              {{ (client.type === 'PROFESSIONAL' ? 'clients.professional' : 'clients.individual') | transloco }}
-            </ng-template>
-          </p-cellEditor>
-        </td>
 
         @if (activeType() === 'PROFESSIONAL') {
           <td colspan="2">
@@ -139,6 +135,39 @@
             </p-cellEditor>
           </td>
         }
+
+        <td>
+          <p-cellEditor>
+            <ng-template #input>
+              <input pInputText [(ngModel)]="client.address_street" maxlength="100" [fluid]="true" />
+            </ng-template>
+            <ng-template #output>
+              {{ client.address_street }}
+            </ng-template>
+          </p-cellEditor>
+        </td>
+
+        <td>
+          <p-cellEditor>
+            <ng-template #input>
+              <input pInputText [(ngModel)]="client.address_postal_code" maxlength="20" [fluid]="true" />
+            </ng-template>
+            <ng-template #output>
+              {{ client.address_postal_code }}
+            </ng-template>
+          </p-cellEditor>
+        </td>
+
+        <td>
+          <p-cellEditor>
+            <ng-template #input>
+              <input pInputText [(ngModel)]="client.address_city" maxlength="100" [fluid]="true" />
+            </ng-template>
+            <ng-template #output>
+              {{ client.address_city }}
+            </ng-template>
+          </p-cellEditor>
+        </td>
 
         <td>
           <p-cellEditor>
@@ -196,7 +225,7 @@
         <!-- !-prefixed: overrides PrimeNG's own default cell padding
              (higher-specificity descendant selector on p-table's own td),
              which a plain Tailwind utility class wouldn't win against. -->
-        <td colspan="10" class="p-0!">
+        <td colspan="12" class="p-0!">
           @if (isLoadingDocuments(client)) {
             <p>{{ 'common.loading' | transloco }}</p>
           } @else if (documentsFor(client).length === 0) {

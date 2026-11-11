@@ -10,8 +10,11 @@ import { Select } from 'primeng/select';
 import { Tabs, TabList, Tab } from 'primeng/tabs';
 import { MenuItem } from 'primeng/api';
 import { TranslocoPipe, TranslocoService, translateSignal } from '@jsverse/transloco';
+import { forkJoin, Observable, of } from 'rxjs';
 import { ClientService } from '../client.service';
-import { Client, ClientLanguage, ClientType } from '../../../shared/models/client';
+import { AddressService } from '../../addresses/address.service';
+import { Address } from '../../../shared/models/address';
+import { Client, ClientLanguage, ClientListItem, ClientType } from '../../../shared/models/client';
 import { Button } from 'primeng/button';
 import { ClientForm } from '../client-form/client-form';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
@@ -46,12 +49,13 @@ const EMPTY_DOCUMENTS: Document[] = [];
 export class ClientListComponent implements OnInit {
 
   private clientService = inject(ClientService);
+  private addressService = inject(AddressService);
   isMobile = inject(BreakpointService).isMobile;
   private documentService = inject(DocumentService);
   private router = inject(Router);
   private transloco = inject(TranslocoService);
 
-  clients = signal<Client[]>([]);
+  clients = signal<ClientListItem[]>([]);
 
   // The toolbar's search box - matches any column of the table (number,
   // type as displayed, company, first/last name, email, phone), each typed
@@ -68,7 +72,7 @@ export class ClientListComponent implements OnInit {
     )
   );
 
-  private searchableText(client: Client): string {
+  private searchableText(client: ClientListItem): string {
     // Always French regardless of the active UI language - this text is
     // never shown, only matched against what's typed in the search box, and
     // changing it would mean deciding which language a search is "in".
@@ -80,6 +84,9 @@ export class ClientListComponent implements OnInit {
       client.last_name,
       client.email,
       client.phone,
+      client.address_street,
+      client.address_postal_code,
+      client.address_city,
     ].filter(Boolean).join(' ');
   }
   showArchived = signal(false);
@@ -113,14 +120,6 @@ export class ClientListComponent implements OnInit {
     this.menuItems = this.getActions(client);
     menu.toggle(event);
   }
-
-  private individualLabel = translateSignal('clients.individual');
-  private professionalLabel = translateSignal('clients.professional');
-
-  typeOptions = computed<{ label: string; value: ClientType }[]>(() => [
-    { label: this.individualLabel(), value: 'INDIVIDUAL' },
-    { label: this.professionalLabel(), value: 'PROFESSIONAL' },
-  ]);
 
   private frenchLabel = translateSignal('clients.languageFrench');
   private englishLabel = translateSignal('clients.languageEnglish');
@@ -226,33 +225,41 @@ export class ClientListComponent implements OnInit {
   // - a snapshot of each client currently being edited, taken on
   // onRowEditInit, so onRowEditCancel (or a failed save) can restore it.
   // Keyed by id, not held on the client object itself.
-  private clonedClients: Record<number, Client> = {};
+  private clonedClients: Record<number, ClientListItem> = {};
 
-  onRowEditInit(client: Client): void {
+  onRowEditInit(client: ClientListItem): void {
     this.clonedClients[client.id] = { ...client };
   }
 
   // Sends the client's full editable field set (not just whatever changed),
   // same "PUT the whole editable shape" convention as document-form.ts's own
-  // updateDocument.
-  onRowEditSave(client: Client): void {
-    // Same rule as the new client form: a company name for a professional,
-    // a last name for an individual - otherwise the edit is undone.
+  // updateDocument - and its address alongside, in parallel.
+  onRowEditSave(client: ClientListItem): void {
+    // Same rules as the new client form: a company name for a professional,
+    // a last name for an individual, and an address is street + NPA + town
+    // or nothing at all (a client without one can be left without one) -
+    // otherwise the edit is undone.
     const name = client.type === 'PROFESSIONAL' ? client.company_name : client.last_name;
-    if (!name?.trim()) {
+    const addressFields = [client.address_street, client.address_postal_code, client.address_city];
+    const addressFilled = addressFields.every(value => value?.trim());
+    const addressEmpty = addressFields.every(value => !value?.trim());
+    if (!name?.trim() || (!addressFilled && (client.address_id !== null || !addressEmpty))) {
       this.onRowEditCancel(client);
       return;
     }
-    this.clientService.updateClient(client.id, {
-      type: client.type,
-      company_name: client.company_name,
-      last_name: client.last_name,
-      first_name: client.first_name,
-      title: client.title,
-      email: client.email,
-      phone: client.phone,
-      note: client.note,
-      language: client.language,
+    forkJoin({
+      client: this.clientService.updateClient(client.id, {
+        type: client.type,
+        company_name: client.company_name,
+        last_name: client.last_name,
+        first_name: client.first_name,
+        title: client.title,
+        email: client.email,
+        phone: client.phone,
+        note: client.note,
+        language: client.language,
+      }),
+      address: this.saveAddress(client, addressFilled),
     }).subscribe({
       // Mutate the *same* client object in place with the server's
       // canonical values, rather than swapping in a new object (or
@@ -260,19 +267,59 @@ export class ClientListComponent implements OnInit {
       // onCellEditComplete for why a changed reference is worth avoiding
       // even here. Still bumping the array reference (a shallow copy) so
       // the clients() signal formally changes for anything else watching it.
-      next: updated => {
+      next: ({ client: updated, address }) => {
         Object.assign(client, updated);
+        if (address) {
+          Object.assign(client, {
+            address_id: address.id,
+            address_attention: address.attention,
+            address_street: address.street,
+            address_postal_code: address.postal_code,
+            address_city: address.city,
+            address_country: address.country,
+          });
+        }
         this.clients.update(clients => [...clients]);
         delete this.clonedClients[client.id];
       },
+      // One of the two may have been saved - reload rather than guess.
       error: err => {
         console.error('client-list : ' + err);
-        this.onRowEditCancel(client);
+        delete this.clonedClients[client.id];
+        this.loadClients();
       }
     });
   }
 
-  onRowEditCancel(client: Client): void {
+  // The row's address: the existing one updated (its attention and country
+  // kept as they are), or a first one created - primary, Swiss, like the
+  // client form's - when a client without one gets an address here.
+  private saveAddress(client: ClientListItem, filled: boolean): Observable<Address | null> {
+    if (!filled) {
+      return of(null);
+    }
+    const fields = {
+      street: client.address_street!.trim(),
+      postal_code: client.address_postal_code!.trim(),
+      city: client.address_city!.trim(),
+    };
+    if (client.address_id !== null) {
+      return this.addressService.updateAddress(client.address_id, {
+        ...fields,
+        attention: client.address_attention,
+        country: client.address_country ?? this.transloco.translate('clients.form.defaultCountry'),
+      });
+    }
+    return this.addressService.createAddress({
+      ...fields,
+      client_id: client.id,
+      is_primary: true,
+      attention: null,
+      country: this.transloco.translate('clients.form.defaultCountry'),
+    });
+  }
+
+  onRowEditCancel(client: ClientListItem): void {
     const original = this.clonedClients[client.id];
     if (original) {
       Object.assign(client, original);
