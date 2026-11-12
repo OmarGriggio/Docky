@@ -8,6 +8,7 @@ import { AppError } from "../../shared/types/errors";
 import { DocumentPdfGenerator, PdfSource } from "./document-pdf-generator";
 import { PreparedQrBill, prepareQrBill, renderQrBillPage } from "./qr-bill-page";
 import { toPdfLanguage } from "../templates/pdf-labels";
+import { withCurrentAddress } from "../../modules/documents/billed-address";
 
 interface PreparedReminder {
     reminder: ReminderDto;
@@ -28,7 +29,11 @@ export class ReminderPdfGenerator extends DocumentPdfGenerator<PreparedReminder>
         }
     }
 
-    protected async prepare(source: PdfSource): Promise<PreparedReminder> {
+    // The reminder and its QR-bill go to the client's current address, not
+    // the one the invoice was frozen with - a client may have moved since
+    // (billed-address.ts's withCurrentAddress).
+    protected async prepare(sentSource: PdfSource): Promise<PreparedReminder> {
+        const source = { ...sentSource, document: withCurrentAddress(sentSource.document) };
         const { document, client, company } = source;
 
         // Falls back to the default text (in the client's own language) when

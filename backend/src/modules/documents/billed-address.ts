@@ -46,6 +46,11 @@ export const buildBilledAddress = (client: ClientWithAddresses, document: Pick<D
     };
 };
 
+// A new letter about a sent document - a payment reminder - goes to where
+// the client is now, not where the invoice was sent: the same document,
+// without its frozen address.
+export const withCurrentAddress = <T extends Pick<Document, "billed_address">>(document: T): T => ({ ...document, billed_address: null });
+
 // What a PDF prints: the frozen address once there is one, the client's
 // current one while the document is still a draft.
 export const billedAddressOf = (

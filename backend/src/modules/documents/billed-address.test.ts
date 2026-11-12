@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ClientWithAddresses } from "../clients/client.types";
 import { Address } from "../clients/address.types";
-import { billedAddressOf, buildBilledAddress, formatLocation } from "./billed-address";
+import { billedAddressOf, buildBilledAddress, formatLocation, withCurrentAddress } from "./billed-address";
 
 const address = (fields: Partial<Address>): Address => ({
     id: 1, company_id: 1, client_id: 1, is_primary: false, attention: null,
@@ -61,5 +61,11 @@ describe("billedAddressOf", () => {
 
     it("follows the client while nothing is frozen", () => {
         expect(billedAddressOf({ address_id: null, billed_address: null }, client())?.name).toBe("Dupont SA");
+    });
+
+    it("lets a reminder follow a client who moved since the invoice was sent", () => {
+        const sent = { address_id: null, billed_address: frozen };
+        expect(billedAddressOf(withCurrentAddress(sent), client())?.street).toBe("Rue du Rhône 1");
+        expect(sent.billed_address).toBe(frozen);
     });
 });
