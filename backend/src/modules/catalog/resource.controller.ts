@@ -13,7 +13,7 @@ export const getResources = async (req: Request, res: Response) => {
 };
 
 export const createResource = async (req: Request, res: Response) => {
-  const resourceData: Omit<Resource, "id" | "company_id" | "is_active"> = req.body;
+  const { code: _ignored, ...resourceData }: Omit<Resource, "id" | "company_id" | "is_active"> = req.body;
 
   const resourceCreated = await addResourceServ(resourceData, req.user.company_id);
   res.json(resourceCreated);

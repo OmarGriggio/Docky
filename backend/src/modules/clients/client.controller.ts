@@ -16,7 +16,7 @@ export const getClient = async (req: Request, res: Response) => {
 
 
 export const createClient = async (req: Request, res: Response) => {
-    const { address, ...clientData }: Omit<Client, "id" | "company_id"> & { address?: NewClientAddress | null } = req.body
+    const { address, client_number: _ignored, ...clientData }: Omit<Client, "id" | "company_id"> & { address?: NewClientAddress | null } = req.body
 
     const clientCreated = await addClientServ(clientData, req.user!.company_id, address);
     res.json(clientCreated);

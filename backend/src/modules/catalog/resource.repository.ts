@@ -45,13 +45,14 @@ export const createResourceInDB = async (
       parent_resource_id,
       type,
       code,
+      reference,
       name,
       unit,
       selling_price,
       purchase_price,
       is_active
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
     RETURNING *;
   `;
 
@@ -60,6 +61,7 @@ export const createResourceInDB = async (
     resource.parent_resource_id,
     resource.type,
     resource.code,
+    resource.reference,
     resource.name,
     resource.unit,
     resource.selling_price,
@@ -73,12 +75,12 @@ export const createResourceInDB = async (
 
 export const updateResourceInDB = async (id: number, company_id: number, data: UpdateResourceData): Promise<Resource> => {
   const query = `
-    UPDATE resources SET code = $1, name = $2, unit = $3, selling_price = $4, purchase_price = $5
+    UPDATE resources SET reference = $1, name = $2, unit = $3, selling_price = $4, purchase_price = $5
       WHERE id = $6 AND company_id = $7
     RETURNING *;
   `;
 
-  const result = await db().query(query, [data.code, data.name, data.unit, data.selling_price, data.purchase_price, id, company_id]);
+  const result = await db().query(query, [data.reference, data.name, data.unit, data.selling_price, data.purchase_price, id, company_id]);
   return result.rows[0];
 };
 
@@ -102,4 +104,20 @@ export const unarchiveResourceInDB = async (id: number, company_id: number): Pro
 
   const result = await db().query(query, [id, company_id]);
   return result.rows[0];
+};
+
+// Resource codes are generated (see resource.service.ts's addResourceServ),
+// one company and prefix at a time - same lock as client numbers.
+export const lockResourceCodingInDB = async (company_id: number, prefix: string): Promise<void> => {
+  await db().query("SELECT pg_advisory_xact_lock($1, hashtext($2))", [company_id, `resource-code-${prefix}`]);
+};
+
+// The highest number among the company's codes with that prefix, archived
+// resources included - null when there's none yet.
+export const getLastResourceSequenceFromDB = async (company_id: number, pattern: string): Promise<number | null> => {
+  const result = await db().query(
+    "SELECT MAX(substring(code from $2)::int) AS last FROM resources WHERE company_id = $1 AND code ~ $2",
+    [company_id, pattern]
+  );
+  return result.rows[0]?.last ?? null;
 };

@@ -30,15 +30,8 @@ export const getClientByIdFromDB = async (id: number, company_id: number) => {
   return result.rows[0] ?? null;
 };
 
-// Both scoped to the company: a client number or email only has to be unique
-// within a company (see zz_migrations/006_client_number_unique_per_company.sql),
+// Scoped to the company: an email only has to be unique within a company,
 // and looking across companies would tell one company about another's clients.
-export const getClientByNumber = async (client_number: string, company_id: number) => {
-  const result = await db().query("SELECT * FROM clients where client_number = $1 AND company_id = $2", [client_number, company_id]);
-  return result.rows[0] ?? null;
-};
-
-
 export const getClientByEmail = async (email: string, company_id: number) => {
   const result = await db().query("SELECT * FROM clients where email = $1 AND company_id = $2", [email, company_id]);
   return result.rows[0] ?? null;
@@ -158,4 +151,22 @@ export const unarchiveClientInDB = async (
 
     const result = await db().query(query, [id, company_id]);
     return result.rows[0];
+};
+
+// Client numbers are generated (see client.service.ts's addClientServ): one
+// company's are handed out one at a time, the lock held until the
+// transaction creating the client commits - two clients created at once
+// can't get the same number.
+export const lockClientNumberingInDB = async (company_id: number): Promise<void> => {
+    await db().query("SELECT pg_advisory_xact_lock($1, hashtext('client-number'))", [company_id]);
+};
+
+// The highest number among the company's "C####" client numbers, archived
+// ones included - null when there's none yet.
+export const getLastClientSequenceFromDB = async (company_id: number, pattern: string): Promise<number | null> => {
+    const result = await db().query(
+        "SELECT MAX(substring(client_number from $2)::int) AS last FROM clients WHERE company_id = $1 AND client_number ~ $2",
+        [company_id, pattern]
+    );
+    return result.rows[0]?.last ?? null;
 };

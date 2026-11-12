@@ -13,7 +13,6 @@ describe("creating a client", () => {
   });
 
   const newClient = (fields: Record<string, unknown> = {}) => ({
-    client_number: `C-${randomUUID()}`,
     type: "INDIVIDUAL",
     last_name: "Dupont",
     email: "",
@@ -38,10 +37,11 @@ describe("creating a client", () => {
   });
 
   it("refuses an incomplete address and creates no client", async () => {
-    const body = newClient({ address: { street: "Rue du Rhône 1", postal_code: "", city: "Sion", country: "Suisse" } });
+    const before = await api().get("/client?includeArchived=true").set(auth(token)).expect(200);
+    const body = newClient({ last_name: `Incomplete ${randomUUID()}`, address: { street: "Rue du Rhône 1", postal_code: "", city: "Sion", country: "Suisse" } });
     await api().post("/client").set(auth(token)).send(body).expect(400);
 
-    const list = await api().get("/client?includeArchived=true").set(auth(token)).expect(200);
-    expect(list.body.map((client: { client_number: string }) => client.client_number)).not.toContain(body.client_number);
+    const after = await api().get("/client?includeArchived=true").set(auth(token)).expect(200);
+    expect(after.body).toHaveLength(before.body.length);
   });
 });

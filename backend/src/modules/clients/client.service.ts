@@ -1,5 +1,6 @@
 import {Client, ClientWithAddresses, NewClientAddress, UpdateClientData} from "./client.types"
-import { createClientInDB, updateClientInDB, archiveClientInDB, unarchiveClientInDB, getClientByIdFromDB, getClientByEmail, getClientByNumber, getClientsFromDB } from "./client.repository";
+import { createClientInDB, updateClientInDB, archiveClientInDB, unarchiveClientInDB, getClientByIdFromDB, getClientByEmail, getClientsFromDB, lockClientNumberingInDB, getLastClientSequenceFromDB } from "./client.repository";
+import { nextSequenceCode, sequencePattern } from "../../shared/numbering/sequence-code";
 import { createAddressInDB, getAddressesByClientIdFromDB } from "./address.repository";
 import { NotFoundError, ConflictError, AppError } from "../../shared/types/errors";
 import { withTransaction } from "../../shared/config/database";
@@ -37,21 +38,25 @@ const resolveNewClientAddress = (address: NewClientAddress): NewClientAddress =>
   return resolved as NewClientAddress;
 };
 
-// An address given with the client becomes its primary one, created in the
-// same transaction - never a client left half-created without it.
-export const addClientServ = async (clientData: Omit<Client, "id" | "company_id" | "language">, company_id: number, address?: NewClientAddress | null) => {
+const CLIENT_NUMBER_PREFIX = "C";
+
+// The client's number is generated - C0001, C0002... per company, whatever
+// the request says (see shared/numbering/sequence-code.ts). An address given
+// with the client becomes its primary one, created in the same transaction -
+// never a client left half-created without it.
+export const addClientServ = async (clientData: Omit<Client, "id" | "company_id" | "language" | "client_number">, company_id: number, address?: NewClientAddress | null) => {
   // Email is optional - an empty one is stored as NULL, not ''.
   clientData = { ...clientData, email: clientData.email || null };
-  if (await getClientByNumber(clientData.client_number, company_id)) {
-    throw new ConflictError("Client number already exists");
-  }
   if (clientData.email && await getClientByEmail(clientData.email, company_id)) {
     throw new ConflictError("Client email already exists");
   }
   const newAddress = address ? resolveNewClientAddress(address) : null;
 
   return await withTransaction(async () => {
-    const client = await createClientInDB({ ...clientData, company_id });
+    await lockClientNumberingInDB(company_id);
+    const pattern = sequencePattern(CLIENT_NUMBER_PREFIX);
+    const client_number = nextSequenceCode(CLIENT_NUMBER_PREFIX, await getLastClientSequenceFromDB(company_id, pattern));
+    const client = await createClientInDB({ ...clientData, client_number, company_id });
     if (newAddress) {
       await createAddressInDB({ ...newAddress, client_id: client.id, is_primary: true, company_id });
     }

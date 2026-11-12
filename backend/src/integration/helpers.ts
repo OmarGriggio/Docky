@@ -52,7 +52,6 @@ let clientCount = 0;
 export const createClient = async (token: string, fields: Record<string, unknown> = {}) => {
   clientCount++;
   const res = await api().post("/client").set(auth(token)).send({
-    client_number: `T${clientCount}-${randomUUID().slice(0, 8)}`,
     type: "INDIVIDUAL",
     last_name: "Muster",
     first_name: "Anna",
@@ -68,7 +67,6 @@ export const createResource = async (token: string, fields: Record<string, unkno
   resourceCount++;
   const res = await api().post("/resource").set(auth(token)).send({
     type: "MATERIAL",
-    code: `R${resourceCount}-${randomUUID().slice(0, 8)}`,
     name: "Plaque de plâtre",
     unit: "m2",
     selling_price: 20,
