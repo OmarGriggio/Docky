@@ -7,6 +7,7 @@ import { ProjectAttachmentService } from '../project-attachment.service';
 import { ProjectAttachment } from '../../../shared/models/project-attachment';
 import { AppDatePipe } from '../../../shared/pipes/app-date.pipe';
 import { formatFileSize } from '../../../shared/utils/display';
+import { NotificationService } from '../../../shared/services/notification.service';
 
 const ALLOWED_ATTACHMENT_TYPES = ['application/pdf'];
 
@@ -23,6 +24,7 @@ export class ProjectAttachments implements OnInit {
 
   projectId = input.required<number>();
 
+  private notifications = inject(NotificationService);
   private service = inject(ProjectAttachmentService);
   private transloco = inject(TranslocoService);
 
@@ -141,21 +143,21 @@ export class ProjectAttachments implements OnInit {
         const url = window.URL.createObjectURL(blob);
         window.open(url, '_blank');
       },
-      error: err => console.error('project-attachments : ' + err)
+      error: err => this.notifications.error('project-attachments', err)
     });
   }
 
   archiveAttachment(attachment: ProjectAttachment): void {
     this.service.archiveAttachment(attachment.id).subscribe({
       next: () => this.loadAttachments(),
-      error: err => console.error('project-attachments : ' + err)
+      error: err => this.notifications.error('project-attachments', err)
     });
   }
 
   unarchiveAttachment(attachment: ProjectAttachment): void {
     this.service.unarchiveAttachment(attachment.id).subscribe({
       next: () => this.loadAttachments(),
-      error: err => console.error('project-attachments : ' + err)
+      error: err => this.notifications.error('project-attachments', err)
     });
   }
 

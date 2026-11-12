@@ -8,6 +8,11 @@ import { OpenInvoice, PaidAmountByClient, ProjectInProgress } from '../../shared
 import { clientDisplayName, daysFromToday, formatPrice, formatSectionDate, fromDateOnly } from '../../shared/utils/display';
 import { PricePipe } from '../../shared/pipes/price.pipe';
 import { BreakpointService } from '../../shared/services/breakpoint.service';
+import { NotificationService } from '../../shared/services/notification.service';
+import { CompanyService } from '../profile/company.service';
+import { AuthService } from '../auth/auth.service';
+import { Company } from '../../shared/models/company';
+import { InvoicingReadinessBanner } from '../../shared/components/invoicing-readiness-banner/invoicing-readiness-banner';
 
 // How an open invoice's due date reads in the "to be paid" table: a
 // translation key, its {{days}}, and the tag's color.
@@ -28,12 +33,18 @@ interface BarChartData {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [UIChart, Tag, RouterLink, PricePipe, TranslocoPipe],
+  imports: [UIChart, Tag, RouterLink, PricePipe, InvoicingReadinessBanner, TranslocoPipe],
   templateUrl: './dashboard.html',
 })
 export class Dashboard implements OnInit {
 
+  private notifications = inject(NotificationService);
   private dashboardService = inject(DashboardService);
+  private companyService = inject(CompanyService);
+  private authService = inject(AuthService);
+
+  // For the "complete your profile" banner (InvoicingReadinessBanner).
+  company = signal<Company | null>(null);
   private transloco = inject(TranslocoService);
 
   isMobile = inject(BreakpointService).isMobile;
@@ -73,22 +84,30 @@ export class Dashboard implements OnInit {
   };
 
   ngOnInit(): void {
+    const companyId = this.authService.currentUser()?.company_id;
+    if (companyId) {
+      this.companyService.getCompany(companyId).subscribe({
+        next: company => this.company.set(company),
+        error: err => this.notifications.error('dashboard', err)
+      });
+    }
+
     this.dashboardService.getPaidAmountByClient().subscribe({
       next: data => {
         this.paidByClient.set(data);
         this.chartData.set(this.buildChartData(data));
       },
-      error: err => console.error('dashboard : ' + err)
+      error: err => this.notifications.error('dashboard', err)
     });
 
     this.dashboardService.getOpenInvoices().subscribe({
       next: data => this.openInvoiceRows.set(data),
-      error: err => console.error('dashboard : ' + err)
+      error: err => this.notifications.error('dashboard', err)
     });
 
     this.dashboardService.getProjectsInProgress().subscribe({
       next: data => this.projectsInProgress.set(data),
-      error: err => console.error('dashboard : ' + err)
+      error: err => this.notifications.error('dashboard', err)
     });
   }
 

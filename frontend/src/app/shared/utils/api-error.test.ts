@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { HttpErrorResponse } from '@angular/common/http';
-import { apiErrorCode, qrBillErrorKey } from './api-error';
+import { apiErrorCode, httpErrorKey, isSessionExpired, qrBillErrorKey } from './api-error';
 
 const blobError = (body: unknown) =>
   new HttpErrorResponse({ status: 422, error: new Blob([JSON.stringify(body)], { type: 'application/json' }) });
@@ -30,4 +30,28 @@ describe('qrBillErrorKey', () => {
     expect(await qrBillErrorKey(blobError({ code: 'SOMETHING_ELSE' }), 'fallback')).toBe('fallback');
   });
 
+});
+
+describe('httpErrorKey', () => {
+
+  const status = (code: number) => new HttpErrorResponse({ status: code });
+
+  it('says what the user can do about it, by status', () => {
+    expect(httpErrorKey(status(0))).toBe('notifications.errors.network');
+    expect(httpErrorKey(status(403))).toBe('notifications.errors.forbidden');
+    expect(httpErrorKey(status(404))).toBe('notifications.errors.notFound');
+    expect(httpErrorKey(status(409))).toBe('notifications.errors.conflict');
+    expect(httpErrorKey(status(413))).toBe('notifications.errors.tooLarge');
+    expect(httpErrorKey(status(429))).toBe('notifications.errors.tooManyRequests');
+  });
+
+  it('falls back to a generic message - a 500, or not an HTTP error at all', () => {
+    expect(httpErrorKey(status(500))).toBe('notifications.errors.generic');
+    expect(httpErrorKey(new Error('boom'))).toBe('notifications.errors.generic');
+  });
+
+  it('recognizes an expired session', () => {
+    expect(isSessionExpired(status(401))).toBe(true);
+    expect(isSessionExpired(status(500))).toBe(false);
+  });
 });

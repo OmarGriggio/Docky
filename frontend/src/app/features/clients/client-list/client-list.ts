@@ -27,6 +27,7 @@ import { PricePipe } from '../../../shared/pipes/price.pipe';
 import { BreakpointService } from '../../../shared/services/breakpoint.service';
 import { PostalCodeCity } from '../../../shared/components/postal-code-city/postal-code-city';
 import { splitPostalCodeCity } from '../../../shared/utils/postal-code-search';
+import { NotificationService } from '../../../shared/services/notification.service';
 
 // Stable shared reference for "no documents yet" - see document-list.ts's
 // own EMPTY_LINES for why (a freshly-allocated [] on every template check
@@ -50,6 +51,7 @@ const EMPTY_DOCUMENTS: Document[] = [];
 })
 export class ClientListComponent implements OnInit {
 
+  private notifications = inject(NotificationService);
   private clientService = inject(ClientService);
   private addressService = inject(AddressService);
   isMobile = inject(BreakpointService).isMobile;
@@ -150,7 +152,7 @@ export class ClientListComponent implements OnInit {
         this.clients.set(data.filter(client => !client.is_placeholder));
       },
       error: err => {
-        console.error("client-list : " + err);
+        this.notifications.error('client-list', err);
       }
     });
   }
@@ -218,7 +220,7 @@ export class ClientListComponent implements OnInit {
         this.loadClients();
       },
       error: err => {
-        console.error("client-list : " + err);
+        this.notifications.error('client-list', err);
       }
     });
   }
@@ -257,6 +259,7 @@ export class ClientListComponent implements OnInit {
     const addressFilled = addressFields.every(value => value?.trim());
     const addressEmpty = addressFields.every(value => !value?.trim());
     if (!name?.trim() || (!addressFilled && (client.address_id !== null || !addressEmpty))) {
+      this.notifications.warn('notifications.editUndone');
       this.onRowEditCancel(client);
       return;
     }
@@ -297,7 +300,7 @@ export class ClientListComponent implements OnInit {
       },
       // One of the two may have been saved - reload rather than guess.
       error: err => {
-        console.error('client-list : ' + err);
+        this.notifications.error('client-list', err);
         delete this.clonedClients[client.id];
         this.loadClients();
       }
@@ -348,7 +351,7 @@ export class ClientListComponent implements OnInit {
         this.loadClients();
       },
       error: err => {
-        console.error("client-list : " + err);
+        this.notifications.error('client-list', err);
       }
     });
   }
@@ -375,7 +378,7 @@ export class ClientListComponent implements OnInit {
         });
       },
       error: err => {
-        console.error('client-list : ' + err);
+        this.notifications.error('client-list', err);
         this.loadingDocumentIds.update(ids => {
           const next = new Set(ids);
           next.delete(client.id);

@@ -16,6 +16,7 @@ import { DocumentType } from '../../../../shared/models/document';
 import { PricePipe } from '../../../../shared/pipes/price.pipe';
 import { TabIndentDirective } from '../../../../shared/directives/tab-indent.directive';
 import { DraftLine, DraftLineType, DraftSection, lineTotal, nextDraftId, sectionTotal, usedResourceIds } from '../document-draft';
+import { NotificationService } from '../../../../shared/services/notification.service';
 
 // The "Détails" block of the document form: its sections and, in each, a
 // table of lines with an inline "add a line" row, a catalog picker and the
@@ -34,6 +35,7 @@ import { DraftLine, DraftLineType, DraftSection, lineTotal, nextDraftId, section
 })
 export class DocumentSections implements OnInit {
 
+  private notifications = inject(NotificationService);
   private resourceService = inject(ResourceService);
   private transloco = inject(TranslocoService);
 
@@ -85,7 +87,7 @@ export class DocumentSections implements OnInit {
   ngOnInit(): void {
     this.resourceService.getResources().subscribe({
       next: data => this.resources.set(data),
-      error: err => console.error('document-sections : ' + err)
+      error: err => this.notifications.error('document-sections', err)
     });
 
   }

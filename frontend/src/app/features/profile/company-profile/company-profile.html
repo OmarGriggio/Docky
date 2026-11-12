@@ -3,6 +3,7 @@
     @if (loading()) {
       <p>{{ 'common.loading' | transloco }}</p>
     } @else {
+      <app-invoicing-readiness-banner class="block mb-4" [company]="savedCompany()" [showLink]="false" />
       <form [formGroup]="form" (ngSubmit)="submit()" class="ui-form">
         <p-floatlabel variant="on">
           <input pInputText id="name" formControlName="name" />

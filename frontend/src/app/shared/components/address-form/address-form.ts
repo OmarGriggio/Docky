@@ -8,6 +8,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { AddressService } from '../../../features/addresses/address.service';
 import { POSTAL_CODE_CITY_PATTERN, splitPostalCodeCity } from '../../utils/postal-code-search';
 import { PostalCodeCity } from '../postal-code-city/postal-code-city';
+import { NotificationService } from '../../services/notification.service';
 
 // Currently only used from client-detail.html - its own labels share the
 // "clients.detail.address*" keys (see address-form.html) rather than owning
@@ -20,6 +21,7 @@ import { PostalCodeCity } from '../postal-code-city/postal-code-city';
 })
 export class AddressForm {
 
+  private notifications = inject(NotificationService);
   private fb = inject(FormBuilder);
   private addressService = inject(AddressService);
   private transloco = inject(TranslocoService);
@@ -65,7 +67,7 @@ export class AddressForm {
         this.saved.emit();
       },
       error: err => {
-        console.error('address-form : ' + err);
+        this.notifications.error('address-form', err);
       }
     });
   }

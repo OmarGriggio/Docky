@@ -18,6 +18,7 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
 import { BreakpointService } from '../../../shared/services/breakpoint.service';
 import { PostalCodeCity } from '../../../shared/components/postal-code-city/postal-code-city';
 import { POSTAL_CODE_CITY_PATTERN, splitPostalCodeCity } from '../../../shared/utils/postal-code-search';
+import { NotificationService } from '../../../shared/services/notification.service';
 
 @Component({
   selector: 'app-client-detail',
@@ -28,6 +29,7 @@ import { POSTAL_CODE_CITY_PATTERN, splitPostalCodeCity } from '../../../shared/u
 })
 export class ClientDetail implements OnInit {
 
+  private notifications = inject(NotificationService);
   private route = inject(ActivatedRoute);
   isMobile = inject(BreakpointService).isMobile;
   private clientService = inject(ClientService);
@@ -54,7 +56,7 @@ export class ClientDetail implements OnInit {
         this.client.set(data);
       },
       error: err => {
-        console.error('client-detail : ' + err);
+        this.notifications.error('client-detail', err);
       }
     });
   }
@@ -83,6 +85,7 @@ export class ClientDetail implements OnInit {
     const postalCodeCity = this.postalCodeCityDrafts[address.id] ?? '';
     delete this.postalCodeCityDrafts[address.id];
     if (!POSTAL_CODE_CITY_PATTERN.test(postalCodeCity) || ![address.street, address.country].every(value => value?.trim())) {
+      this.notifications.warn('notifications.editUndone');
       this.onRowEditCancel(address);
       return;
     }
@@ -102,7 +105,7 @@ export class ClientDetail implements OnInit {
         delete this.clonedAddresses[address.id];
       },
       error: err => {
-        console.error('client-detail : ' + err);
+        this.notifications.error('client-detail', err);
         this.onRowEditCancel(address);
       }
     });
@@ -136,7 +139,7 @@ export class ClientDetail implements OnInit {
         this.loadClient();
       },
       error: err => {
-        console.error('client-detail : ' + err);
+        this.notifications.error('client-detail', err);
       }
     });
   }

@@ -12,6 +12,8 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { AuthService } from '../../auth/auth.service';
 import { PostalCodeCity } from '../../../shared/components/postal-code-city/postal-code-city';
 import { splitPostalCodeCity } from '../../../shared/utils/postal-code-search';
+import { InvoicingReadinessBanner } from '../../../shared/components/invoicing-readiness-banner/invoicing-readiness-banner';
+import { Company } from '../../../shared/models/company';
 
 // An early payment discount with no number of days to pay within means
 // nothing - the days are required as soon as there's a rate.
@@ -24,7 +26,7 @@ const earlyPaymentDaysRequired: ValidatorFn = (group: AbstractControl): Validati
 @Component({
   selector: 'app-company-profile',
   standalone: true,
-  imports: [ReactiveFormsModule, InputText, InputNumber, FloatLabel, Button, Card, FileUpload, PostalCodeCity, TranslocoPipe],
+  imports: [ReactiveFormsModule, InputText, InputNumber, FloatLabel, Button, Card, FileUpload, PostalCodeCity, InvoicingReadinessBanner, TranslocoPipe],
   templateUrl: './company-profile.html',
   styleUrl: './company-profile.css',
 })
@@ -99,6 +101,8 @@ export class CompanyProfile implements OnInit {
   paymentTerms = signal<string | null>(null);
 
   private companyId: number | null = null;
+  // The profile as saved - what the "complete your profile" banner reads.
+  savedCompany = signal<Company | null>(null);
 
   // A PLATFORM_ADMIN can manage a company's profile too, same as that
   // company's own ADMIN - see zz_docs/Decisions.md's "Cross-company access"
@@ -128,6 +132,7 @@ export class CompanyProfile implements OnInit {
 
     this.companyService.getCompany(this.companyId).subscribe({
       next: company => {
+        this.savedCompany.set(company);
         this.form.patchValue({
           name: company.name ?? '',
           email: company.email ?? '',
@@ -188,7 +193,8 @@ export class CompanyProfile implements OnInit {
       header_image: this.headerImagePath(),
       payment_terms: this.paymentTerms(),
     }).subscribe({
-      next: () => {
+      next: company => {
+        this.savedCompany.set(company);
         this.successMessage.set(this.transloco.translate('profile.updated'));
       },
       error: err => {

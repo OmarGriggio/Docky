@@ -84,7 +84,8 @@
     "detail": "Détail",
     "save": "Enregistrer",
     "edit": "Modifier",
-    "requiredFields": "Remplis les champs obligatoires (*)."
+    "requiredFields": "Remplis les champs obligatoires (*).",
+    "unsavedChanges": "Tu as des modifications non enregistrées sur ce document. Quitter quand même ? Elles seront perdues."
   },
   "clients": {
     "newClient": "Nouveau client",
@@ -460,5 +461,32 @@
     "COMPANY_ADDRESS_INCOMPLETE": "L'adresse de votre entreprise est incomplète (nom, rue, NPA, ville, pays) : complétez-la dans Profil.",
     "QR_BILL_INVALID": "L'adresse du client ne permet pas de générer le bulletin QR (pays inconnu ou ligne trop longue).",
     "QR_BILL_AMOUNT_INVALID": "Le montant ne permet pas de générer le bulletin QR : il doit être compris entre 0.01 et 999 999 999.99 CHF (une facture vide ou à 0 n'a rien à payer)."
+  },
+  "notifications": {
+    "errorTitle": "Erreur",
+    "warnTitle": "Attention",
+    "successTitle": "Fait",
+    "editUndone": "Modification annulée : un champ obligatoire est vide ou incomplet.",
+    "errors": {
+      "generic": "Une erreur est survenue, l'opération n'a pas été effectuée. Réessaie ou recharge la page.",
+      "network": "Le serveur est injoignable. Vérifie ta connexion internet.",
+      "forbidden": "Tu n'as pas les droits pour cette action.",
+      "notFound": "Élément introuvable - il a peut-être été supprimé ou archivé. Recharge la page.",
+      "conflict": "Impossible : les données ont changé entre-temps ou l'élément existe déjà. Recharge la page.",
+      "tooLarge": "Fichier trop volumineux.",
+      "tooManyRequests": "Trop de tentatives. Réessaie dans quelques minutes."
+    }
+  },
+  "invoicingReadiness": {
+    "title": "Complète ton profil pour pouvoir facturer",
+    "missing": "Le bulletin de versement QR des factures a besoin de :",
+    "complete": "Compléter le profil",
+    "askAdmin": "Demande à l'administrateur de ton entreprise de le compléter.",
+    "fields": {
+      "name": "le nom de l'entreprise",
+      "iban": "l'IBAN",
+      "postalCodeCity": "le NPA et la ville",
+      "country": "le pays"
+    }
   }
 }

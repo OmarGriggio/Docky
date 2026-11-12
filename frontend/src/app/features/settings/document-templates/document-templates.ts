@@ -12,6 +12,7 @@ import { CompanyService } from '../../profile/company.service';
 import { AuthService } from '../../auth/auth.service';
 import { DocumentTemplateService } from '../../documents/document-template.service';
 import { TabIndentDirective } from '../../../shared/directives/tab-indent.directive';
+import { NotificationService } from '../../../shared/services/notification.service';
 
 @Component({
   selector: 'app-document-templates',
@@ -21,6 +22,7 @@ import { TabIndentDirective } from '../../../shared/directives/tab-indent.direct
 })
 export class DocumentTemplates implements OnInit {
 
+  private notifications = inject(NotificationService);
   private fb = inject(FormBuilder);
   private companyService = inject(CompanyService);
   private authService = inject(AuthService);
@@ -100,7 +102,7 @@ export class DocumentTemplates implements OnInit {
 
     this.companyService.getCompany(this.companyId).subscribe({
       next: company => this.templatesForm.patchValue({ payment_terms: company.payment_terms ?? '' }),
-      error: err => console.error('settings : ' + err)
+      error: err => this.notifications.error('settings', err)
     });
   }
 

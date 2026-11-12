@@ -2,6 +2,7 @@ import { ApplicationConfig, ErrorHandler, isDevMode, provideBrowserGlobalErrorLi
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { providePrimeNG } from 'primeng/config';
+import { MessageService } from 'primeng/api';
 import { provideTransloco } from '@jsverse/transloco';
 import Aura from '@primeuix/themes/aura';
 
@@ -14,6 +15,8 @@ import { ErrorReporter } from './shared/monitoring/error-reporter';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
+    // The app-wide toasts (see NotificationService and app.html).
+    MessageService,
     // Logs like the default one, and reports to our own backend too.
     { provide: ErrorHandler, useClass: ErrorReporter },
     provideRouter(routes),

@@ -23,6 +23,7 @@ import { AppDatePipe } from '../../../shared/pipes/app-date.pipe';
 import { PricePipe } from '../../../shared/pipes/price.pipe';
 import { qrBillErrorKey } from '../../../shared/utils/api-error';
 import { BreakpointService } from '../../../shared/services/breakpoint.service';
+import { NotificationService } from '../../../shared/services/notification.service';
 
 @Component({
   selector: 'app-document-list',
@@ -32,6 +33,7 @@ import { BreakpointService } from '../../../shared/services/breakpoint.service';
 })
 export class DocumentListComponent implements OnInit {
 
+  private notifications = inject(NotificationService);
   private route = inject(ActivatedRoute);
   isMobile = inject(BreakpointService).isMobile;
   private router = inject(Router);
@@ -133,12 +135,12 @@ export class DocumentListComponent implements OnInit {
 
     this.clientService.getClients(true).subscribe({
       next: data => this.clients.set(data),
-      error: err => console.error('document-list : ' + err)
+      error: err => this.notifications.error('document-list', err)
     });
 
     this.addressService.getAddresses().subscribe({
       next: data => this.addresses.set(data),
-      error: err => console.error('document-list : ' + err)
+      error: err => this.notifications.error('document-list', err)
     });
   }
 
@@ -194,7 +196,7 @@ export class DocumentListComponent implements OnInit {
         this.documents.set(data);
       },
       error: err => {
-        console.error('document-list : ' + err);
+        this.notifications.error('document-list', err);
       }
     });
   }
@@ -290,7 +292,7 @@ export class DocumentListComponent implements OnInit {
         this.documents.update(documents => [...documents]);
       },
       error: err => {
-        console.error('document-list : ' + err);
+        this.notifications.error('document-list', err);
         this.loadDocuments();
       }
     });
@@ -345,7 +347,7 @@ export class DocumentListComponent implements OnInit {
     this.documentService.acceptQuote(document.id).subscribe({
       next: () => this.loadDocuments(),
       error: err => {
-        console.error('document-list : ' + err);
+        this.notifications.error('document-list', err);
         document.status = this.statusBeforeEdit;
       }
     });
@@ -369,7 +371,7 @@ export class DocumentListComponent implements OnInit {
         this.loadDocuments();
       },
       error: err => {
-        console.error('document-list : ' + err);
+        this.notifications.error('document-list', err);
       }
     });
   }
@@ -380,7 +382,7 @@ export class DocumentListComponent implements OnInit {
         this.loadDocuments();
       },
       error: err => {
-        console.error('document-list : ' + err);
+        this.notifications.error('document-list', err);
       }
     });
   }

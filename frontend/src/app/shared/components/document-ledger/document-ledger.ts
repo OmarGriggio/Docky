@@ -8,6 +8,7 @@ import { DocumentLineService } from '../../../features/documents/document-line.s
 import { DocumentSection } from '../../models/document-section';
 import { DocumentLine } from '../../models/document-line';
 import { SectionDatePipe } from '../../pipes/section-date.pipe';
+import { NotificationService } from '../../services/notification.service';
 
 // Stable shared reference for "no lines yet" - see document-list.ts's own
 // original EMPTY_LINES (this component replaces that file's and
@@ -46,6 +47,7 @@ export class DocumentLedger implements OnInit {
   // doesn't care either way.
   columns = input<1 | 2>(1);
 
+  private notifications = inject(NotificationService);
   private documentSectionService = inject(DocumentSectionService);
   private documentLineService = inject(DocumentLineService);
 
@@ -77,7 +79,7 @@ export class DocumentLedger implements OnInit {
         this.loading.set(false);
       },
       error: err => {
-        console.error('document-ledger : ' + err);
+        this.notifications.error('document-ledger', err);
         this.loading.set(false);
       }
     });

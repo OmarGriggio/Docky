@@ -6,6 +6,7 @@ import { CompanyService } from '../../profile/company.service';
 import { AuthService } from '../../auth/auth.service';
 import { Company } from '../../../shared/models/company';
 import { BreakpointService } from '../../../shared/services/breakpoint.service';
+import { NotificationService } from '../../../shared/services/notification.service';
 
 // PLATFORM_ADMIN only (see app.routes.ts's own roleGuard on this route) -
 // picking a company here is the "impersonation" entry point: it swaps the
@@ -20,6 +21,7 @@ import { BreakpointService } from '../../../shared/services/breakpoint.service';
 })
 export class CompanyListComponent implements OnInit {
 
+  private notifications = inject(NotificationService);
   private companyService = inject(CompanyService);
   isMobile = inject(BreakpointService).isMobile;
   private authService = inject(AuthService);
@@ -30,14 +32,14 @@ export class CompanyListComponent implements OnInit {
   ngOnInit(): void {
     this.companyService.getCompanies().subscribe({
       next: data => this.companies.set(data),
-      error: err => console.error('company-list : ' + err)
+      error: err => this.notifications.error('company-list', err)
     });
   }
 
   impersonate(company: Company): void {
     this.authService.impersonateCompany(company.id).subscribe({
       next: () => this.router.navigate(['/dashboard']),
-      error: err => console.error('company-list : ' + err)
+      error: err => this.notifications.error('company-list', err)
     });
   }
 

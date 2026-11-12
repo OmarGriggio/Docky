@@ -9,6 +9,7 @@ import { Card } from 'primeng/card';
 import { UserService } from '../user.service';
 import { AuthService } from '../../auth/auth.service';
 import { UserRole } from '../../../shared/models/auth';
+import { NotificationService } from '../../../shared/services/notification.service';
 
 @Component({
   selector: 'app-user-form',
@@ -19,6 +20,7 @@ import { UserRole } from '../../../shared/models/auth';
 })
 export class UserForm implements OnInit {
 
+  private notifications = inject(NotificationService);
   private fb = inject(FormBuilder);
   private userService = inject(UserService);
   private authService = inject(AuthService);
@@ -48,7 +50,7 @@ export class UserForm implements OnInit {
         this.companyId = self?.company_id ?? null;
       },
       error: err => {
-        console.error("user-form : " + err);
+        this.notifications.error('user-form', err);
       }
     });
   }

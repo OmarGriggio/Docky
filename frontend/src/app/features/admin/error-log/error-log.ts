@@ -8,6 +8,7 @@ import { ErrorLogService } from '../error-log.service';
 import { ErrorGroup, ErrorGroupStatus } from '../../../shared/models/error-group';
 import { AppDateTimePipe } from '../../../shared/pipes/app-date-time.pipe';
 import { BreakpointService } from '../../../shared/services/breakpoint.service';
+import { NotificationService } from '../../../shared/services/notification.service';
 
 // The errors the app ran into, every company's, grouped - one row per
 // distinct error with how often and when (see the backend's
@@ -21,6 +22,7 @@ import { BreakpointService } from '../../../shared/services/breakpoint.service';
 })
 export class ErrorLogComponent implements OnInit {
 
+  private notifications = inject(NotificationService);
   private errorLogService = inject(ErrorLogService);
   isMobile = inject(BreakpointService).isMobile;
 
@@ -47,7 +49,7 @@ export class ErrorLogComponent implements OnInit {
     const request = error.resolved_at ? this.errorLogService.reopen(error.id) : this.errorLogService.resolve(error.id);
     request.subscribe({
       next: () => this.load(),
-      error: err => console.error('error-log : ' + err)
+      error: err => this.notifications.error('error-log', err)
     });
   }
 
@@ -58,7 +60,7 @@ export class ErrorLogComponent implements OnInit {
   private load(): void {
     this.errorLogService.getErrorGroups(this.status()).subscribe({
       next: data => this.errors.set(data),
-      error: err => console.error('error-log : ' + err)
+      error: err => this.notifications.error('error-log', err)
     });
   }
 

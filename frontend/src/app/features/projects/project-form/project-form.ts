@@ -11,6 +11,7 @@ import { ClientService } from '../../clients/client.service';
 import { Client } from '../../../shared/models/client';
 import { Project, ProjectType } from '../../../shared/models/project';
 import { TabIndentDirective } from '../../../shared/directives/tab-indent.directive';
+import { NotificationService } from '../../../shared/services/notification.service';
 
 // A chantier's own address now lives on its backing PROJECT document
 // (documents.address_id - see shared/models/document.ts), not duplicated
@@ -26,6 +27,7 @@ import { TabIndentDirective } from '../../../shared/directives/tab-indent.direct
 })
 export class ProjectForm implements OnInit {
 
+  private notifications = inject(NotificationService);
   private fb = inject(FormBuilder);
   private projectService = inject(ProjectService);
   private clientService = inject(ClientService);
@@ -70,7 +72,7 @@ export class ProjectForm implements OnInit {
         this.clients.set(data.filter(client => !client.is_placeholder));
       },
       error: err => {
-        console.error("project-form : " + err);
+        this.notifications.error('project-form', err);
       }
     });
 
@@ -102,7 +104,7 @@ export class ProjectForm implements OnInit {
         }
       },
       error: err => {
-        console.error("project-form : " + err);
+        this.notifications.error('project-form', err);
       }
     });
   }
@@ -124,7 +126,7 @@ export class ProjectForm implements OnInit {
         this.newTypeVisible.set(false);
       },
       error: err => {
-        console.error("project-form : " + err);
+        this.notifications.error('project-form', err);
       }
     });
   }
@@ -153,7 +155,7 @@ export class ProjectForm implements OnInit {
         this.saved.emit();
       },
       error: err => {
-        console.error('project-form : ' + err);
+        this.notifications.error('project-form', err);
       }
     });
   }

@@ -19,6 +19,7 @@ import { ResourceForm } from '../resource-form/resource-form';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { ListToolbarComponent } from '../../../shared/components/list-toolbar/list-toolbar';
 import { BreakpointService } from '../../../shared/services/breakpoint.service';
+import { NotificationService } from '../../../shared/services/notification.service';
 
 @Component({
   selector: 'app-resource-list',
@@ -29,6 +30,7 @@ import { BreakpointService } from '../../../shared/services/breakpoint.service';
 })
 export class ResourceListComponent implements OnInit {
 
+  private notifications = inject(NotificationService);
   private route = inject(ActivatedRoute);
   isMobile = inject(BreakpointService).isMobile;
   private resourceService = inject(ResourceService);
@@ -106,7 +108,7 @@ export class ResourceListComponent implements OnInit {
         this.resources.set(data);
       },
       error: err => {
-        console.error('resource-list : ' + err);
+        this.notifications.error('resource-list', err);
       }
     });
   }
@@ -166,7 +168,7 @@ export class ResourceListComponent implements OnInit {
         this.loadResources();
       },
       error: err => {
-        console.error('resource-list : ' + err);
+        this.notifications.error('resource-list', err);
       }
     });
   }
@@ -177,7 +179,7 @@ export class ResourceListComponent implements OnInit {
         this.loadResources();
       },
       error: err => {
-        console.error('resource-list : ' + err);
+        this.notifications.error('resource-list', err);
       }
     });
   }
@@ -196,6 +198,7 @@ export class ResourceListComponent implements OnInit {
     // Same required fields as the new resource form - otherwise the edit is
     // undone.
     if (!resource.name?.trim() || !resource.unit?.trim() || resource.selling_price === null) {
+      this.notifications.warn('notifications.editUndone');
       this.onRowEditCancel(resource);
       return;
     }
@@ -215,7 +218,7 @@ export class ResourceListComponent implements OnInit {
         delete this.clonedResources[resource.id];
       },
       error: err => {
-        console.error('resource-list : ' + err);
+        this.notifications.error('resource-list', err);
         this.onRowEditCancel(resource);
       }
     });

@@ -28,6 +28,7 @@ import { DocumentLedger } from '../../../shared/components/document-ledger/docum
 import { SectionDatePipe } from '../../../shared/pipes/section-date.pipe';
 import { matchesSearch } from '../../../shared/utils/display';
 import { BreakpointService } from '../../../shared/services/breakpoint.service';
+import { NotificationService } from '../../../shared/services/notification.service';
 
 @Component({
   selector: 'app-project-list',
@@ -37,6 +38,7 @@ import { BreakpointService } from '../../../shared/services/breakpoint.service';
 })
 export class ProjectListComponent implements OnInit {
 
+  private notifications = inject(NotificationService);
   private router = inject(Router);
   private projectService = inject(ProjectService);
   private clientService = inject(ClientService);
@@ -166,30 +168,30 @@ export class ProjectListComponent implements OnInit {
         this.clients.set(data);
       },
       error: err => {
-        console.error("project-list : " + err);
+        this.notifications.error('project-list', err);
       }
     });
 
     this.projectService.getProjectTypes().subscribe({
       next: data => this.projectTypes.set(data),
-      error: err => console.error("project-list : " + err)
+      error: err => this.notifications.error('project-list', err)
     });
 
     // includeArchived - a closed/archived project's own PROJECT document
     // still needs to resolve for the "Lieu" column.
     this.documentService.getDocuments('PROJECT', true).subscribe({
       next: data => this.projectDocuments.set(data),
-      error: err => console.error("project-list : " + err)
+      error: err => this.notifications.error('project-list', err)
     });
 
     this.documentService.getDocuments('INVOICE', true).subscribe({
       next: data => this.invoices.set(data),
-      error: err => console.error("project-list : " + err)
+      error: err => this.notifications.error('project-list', err)
     });
 
     this.addressService.getAddresses().subscribe({
       next: data => this.addresses.set(data),
-      error: err => console.error("project-list : " + err)
+      error: err => this.notifications.error('project-list', err)
     });
   }
 
@@ -199,7 +201,7 @@ export class ProjectListComponent implements OnInit {
         this.projects.set(data);
       },
       error: err => {
-        console.error("project-list : " + err);
+        this.notifications.error('project-list', err);
       }
     });
   }
@@ -320,7 +322,7 @@ export class ProjectListComponent implements OnInit {
 
     this.projectService.completeProject(project.id).subscribe({
       next: () => this.loadProjects(),
-      error: err => console.error('project-list : ' + err)
+      error: err => this.notifications.error('project-list', err)
     });
   }
 
@@ -342,7 +344,7 @@ export class ProjectListComponent implements OnInit {
         this.loadProjects();
       },
       error: err => {
-        console.error("project-list : " + err);
+        this.notifications.error('project-list', err);
       }
     });
   }
@@ -353,7 +355,7 @@ export class ProjectListComponent implements OnInit {
         this.loadProjects();
       },
       error: err => {
-        console.error("project-list : " + err);
+        this.notifications.error('project-list', err);
       }
     });
   }
@@ -375,7 +377,7 @@ export class ProjectListComponent implements OnInit {
         this.projectTypes.update(types => [...types, projectType]);
         project.project_type_id = projectType.id;
       },
-      error: err => console.error('project-list : ' + err)
+      error: err => this.notifications.error('project-list', err)
     });
   }
 
@@ -400,6 +402,7 @@ export class ProjectListComponent implements OnInit {
     // A chantier needs its name, as in the new chantier form - otherwise the
     // edit is undone.
     if (!project.name?.trim()) {
+      this.notifications.warn('notifications.editUndone');
       this.onRowEditCancel(project);
       return;
     }
@@ -432,13 +435,13 @@ export class ProjectListComponent implements OnInit {
         this.documentSectionService.updateSection(first.id, { date_start: newDateIso, date_end: first.date_end }).subscribe({
           next: () => this.saveProjectFields(project, true),
           error: err => {
-            console.error('project-list : ' + err);
+            this.notifications.error('project-list', err);
             this.onRowEditCancel(project);
           }
         });
       },
       error: err => {
-        console.error('project-list : ' + err);
+        this.notifications.error('project-list', err);
         this.onRowEditCancel(project);
       }
     });
@@ -466,7 +469,7 @@ export class ProjectListComponent implements OnInit {
         }
       },
       error: err => {
-        console.error('project-list : ' + err);
+        this.notifications.error('project-list', err);
         this.onRowEditCancel(project);
       }
     });

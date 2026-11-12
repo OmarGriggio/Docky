@@ -5,6 +5,7 @@ import { InputText } from 'primeng/inputtext';
 import { Button } from 'primeng/button';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { UnitListStore } from '../unit-list.store';
+import { NotificationService } from '../../../shared/services/notification.service';
 
 // A unit, picked from the company's own unit list - a resource's (form and
 // list) and a document line's alike: the "+" footer adds a unit to the list
@@ -22,6 +23,7 @@ import { UnitListStore } from '../unit-list.store';
 })
 export class UnitSelect implements ControlValueAccessor {
 
+  private notifications = inject(NotificationService);
   private store = inject(UnitListStore);
 
   inputId = input<string | undefined>(undefined);
@@ -76,7 +78,7 @@ export class UnitSelect implements ControlValueAccessor {
     }
     this.store.add(trimmed).subscribe({
       next: unit => this.select(unit.label),
-      error: err => console.error('unit-select : ' + err)
+      error: err => this.notifications.error('unit-select', err)
     });
   }
 
@@ -85,7 +87,7 @@ export class UnitSelect implements ControlValueAccessor {
     event.stopPropagation();
     event.preventDefault();
     this.store.archive(unitId).subscribe({
-      error: err => console.error('unit-select : ' + err)
+      error: err => this.notifications.error('unit-select', err)
     });
   }
 }

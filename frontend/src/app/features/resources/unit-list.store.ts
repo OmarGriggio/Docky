@@ -2,6 +2,7 @@ import { inject, Injectable, signal } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 import { ResourceUnitService } from './resource-unit.service';
 import { ResourceUnit } from '../../shared/models/resource-unit';
+import { NotificationService } from '../../shared/services/notification.service';
 
 // The company's unit list, shared by every app-unit-select of one page -
 // provided by that page's component (`providers: [UnitListStore]`), so a
@@ -11,6 +12,7 @@ import { ResourceUnit } from '../../shared/models/resource-unit';
 @Injectable()
 export class UnitListStore {
 
+  private notifications = inject(NotificationService);
   private resourceUnitService = inject(ResourceUnitService);
 
   readonly units = signal<ResourceUnit[]>([]);
@@ -18,7 +20,7 @@ export class UnitListStore {
   constructor() {
     this.resourceUnitService.getUnits().subscribe({
       next: data => this.units.set(data),
-      error: err => console.error('unit-list : ' + err)
+      error: err => this.notifications.error('unit-list', err)
     });
   }
 

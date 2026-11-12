@@ -1,8 +1,9 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
 import { PricePipe } from '../../../shared/pipes/price.pipe';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import { HasUnsavedChanges } from '../../../shared/guards/unsaved-changes.guard';
 import { HttpErrorResponse } from '@angular/common/http';
 import { InputNumber } from 'primeng/inputnumber';
 import { FloatLabel } from 'primeng/floatlabel';
@@ -32,6 +33,7 @@ import { DraftSection, nextDraftId, round2, sectionTotal, usedResourceIds } from
 import { matchClientByName } from './document-scan-match';
 import { qrBillErrorKey } from '../../../shared/utils/api-error';
 import { POSTAL_CODE_CITY_PATTERN, splitPostalCodeCity } from '../../../shared/utils/postal-code-search';
+import { NotificationService } from '../../../shared/services/notification.service';
 
 // Matches document.service.ts's own isOpenForEditing on the backend -
 // duplicated here purely so the form can hide/disable itself instead of
@@ -66,8 +68,9 @@ const isOpenForEditing = (type: DocumentType, status: DocumentStatus | null): bo
   templateUrl: './document-form.html',
   styleUrl: './document-form.css',
 })
-export class DocumentForm implements OnInit {
+export class DocumentForm implements OnInit, HasUnsavedChanges {
 
+  private notifications = inject(NotificationService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private documentService = inject(DocumentService);
@@ -304,6 +307,42 @@ export class DocumentForm implements OnInit {
   // see statusSteps); it's changed from the documents list, not this page.
   status = signal<DocumentStatus>('DRAFT');
 
+  // Unsaved work (see unsavedChangesGuard, in app.routes.ts): everything a
+  // save sends, compared with what it was once the page finished loading or
+  // was last saved (markClean). Null until then - nothing to lose yet. A new
+  // document prefilled from elsewhere ("Dupliquer", "Facturer") is unsaved
+  // work from the start, until it's created.
+  private formState = computed(() => JSON.stringify([
+    this.selectedClientId(), this.addressId(), this.referenceClient(), this.date(), this.dueDate(),
+    this.discount(), this.vatRate(), this.introduction(), this.conclusion(),
+    this.recipientName(), this.recipientComplement(), this.recipientStreet(), this.recipientPostalCodeCity(),
+    this.sections(),
+  ]));
+  private cleanState: string | null = null;
+  private prefilled = false;
+
+  private markClean(): void {
+    this.cleanState = this.formState();
+  }
+
+  hasUnsavedChanges(): boolean {
+    if (this.locked() || this.submitting()) {
+      return false;
+    }
+    if (this.prefilled && this.editingDocumentId() === null) {
+      return true;
+    }
+    return this.cleanState !== null && this.formState() !== this.cleanState;
+  }
+
+  // A reload or a closed tab - the browser asks with its own message.
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent): void {
+    if (this.hasUnsavedChanges()) {
+      event.preventDefault();
+    }
+  }
+
   // The toolbar's status bar, Odoo-style: the path a document of this type
   // goes through, its current step highlighted. The last step is whichever
   // way it actually ended (ACCEPTED or REJECTED, PAID or CANCELLED) - or the
@@ -332,7 +371,7 @@ export class DocumentForm implements OnInit {
   async ngOnInit(): Promise<void> {
     this.clientService.getClients().subscribe({
       next: data => this.clients.set(data),
-      error: err => console.error('document-form : ' + err)
+      error: err => this.notifications.error('document-form', err)
     });
 
     // Awaited (not a plain subscribe) so it resolves before the
@@ -392,6 +431,7 @@ export class DocumentForm implements OnInit {
             // own) - only the client/project/resource-ledger prefill below
             // is skipped for the type's default handling.
             const fromProjectParam = params.get('fromProject');
+            this.prefilled = !!duplicateFromParam || !!fromProjectParam;
             if (duplicateFromParam) {
               this.applyDuplicateFrom(Number(duplicateFromParam));
             } else {
@@ -403,7 +443,7 @@ export class DocumentForm implements OnInit {
           });
         }
       },
-      error: err => console.error('document-form : ' + err)
+      error: err => this.notifications.error('document-form', err)
     });
   }
 
@@ -421,8 +461,17 @@ export class DocumentForm implements OnInit {
         }
         this.dueDays = template?.due_days ?? null;
         this.applyDefaultDueDate();
+        // A fresh document starts from here - see formState.
+        if (this.editingDocumentId() === null) {
+          this.markClean();
+        }
       },
-      error: err => console.error('document-form : ' + err)
+      error: err => {
+        this.notifications.error('document-form', err);
+        if (this.editingDocumentId() === null) {
+          this.markClean();
+        }
+      }
     });
   }
 
@@ -450,7 +499,7 @@ export class DocumentForm implements OnInit {
         this.loadProjectResources();
       },
       error: err => {
-        console.error('document-form : ' + err);
+        this.notifications.error('document-form', err);
         this.onClientChange(project.client_id);
         this.onProjectChange(project.id);
         this.loadProjectResources();
@@ -498,7 +547,7 @@ export class DocumentForm implements OnInit {
 
         this.sections.set(this.buildDraftSections(source));
       },
-      error: err => console.error('document-form : ' + err)
+      error: err => this.notifications.error('document-form', err)
     });
   }
 
@@ -623,8 +672,9 @@ export class DocumentForm implements OnInit {
         }
 
         this.sections.set(this.buildDraftSections(source));
+        this.markClean();
       },
-      error: err => console.error('document-form : ' + err)
+      error: err => this.notifications.error('document-form', err)
     });
   }
 
@@ -682,7 +732,7 @@ export class DocumentForm implements OnInit {
     this.clientService.getClient(clientId).subscribe({
       next: client => this.clientAddresses.set(client.addresses),
       error: err => {
-        console.error('document-form : ' + err);
+        this.notifications.error('document-form', err);
         this.clientAddresses.set([]);
       }
     });
@@ -733,7 +783,7 @@ export class DocumentForm implements OnInit {
         }
         this.sections.update(sections => [...sections, ...importedSections]);
       },
-      error: err => console.error('document-form : ' + err)
+      error: err => this.notifications.error('document-form', err)
     });
   }
 
@@ -746,6 +796,7 @@ export class DocumentForm implements OnInit {
   }
 
   private onSaved(): void {
+    this.markClean();
     this.submitting.set(false);
     this.saveMessage.set(this.transloco.translate('documents.form.saved'));
   }
@@ -889,6 +940,7 @@ export class DocumentForm implements OnInit {
       // blank form again) - its title, number, breadcrumb and "Aperçu" all
       // follow, and a reload opens this same document. The "saved" flag
       // carries the confirmation over to the page that loads (loadForEdit).
+      this.markClean();
       this.router.navigate(['/documents', document.id], { replaceUrl: true, state: { saved: true, replaceTrail: true } });
     } catch (err) {
       console.error('document-form : ' + err);

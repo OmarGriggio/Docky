@@ -25,6 +25,7 @@ import { CalendarNote } from '../../shared/models/calendar-note';
 import { PricePipe } from '../../shared/pipes/price.pipe';
 import { TabIndentDirective } from '../../shared/directives/tab-indent.directive';
 import { BreakpointService } from '../../shared/services/breakpoint.service';
+import { NotificationService } from '../../shared/services/notification.service';
 
 // Plain calendar entries (this file's own notesById below), not tied to any
 // chantier/section - shown in a flat neutral grey so they read as distinct
@@ -40,6 +41,7 @@ const NOTE_COLOR = '#9ca3af';
 })
 export class CalendarPage implements OnInit, AfterViewInit {
 
+  private notifications = inject(NotificationService);
   private documentSectionService = inject(DocumentSectionService);
   private documentLineService = inject(DocumentLineService);
   private calendarNoteService = inject(CalendarNoteService);
@@ -220,7 +222,7 @@ export class CalendarPage implements OnInit, AfterViewInit {
   private loadUnscheduledSections(): void {
     this.documentSectionService.getUnscheduledSections().subscribe({
       next: data => this.unscheduledSections.set(data),
-      error: err => console.error('calendar : ' + err)
+      error: err => this.notifications.error('calendar', err)
     });
   }
 
@@ -237,7 +239,7 @@ export class CalendarPage implements OnInit, AfterViewInit {
           calendarApi.addEvent(this.toEventInput(section));
         }
       },
-      error: err => console.error('calendar : ' + err)
+      error: err => this.notifications.error('calendar', err)
     });
   }
 
@@ -252,7 +254,7 @@ export class CalendarPage implements OnInit, AfterViewInit {
           calendarApi.addEvent(this.toNoteEventInput(note));
         }
       },
-      error: err => console.error('calendar : ' + err)
+      error: err => this.notifications.error('calendar', err)
     });
   }
 
@@ -382,7 +384,7 @@ export class CalendarPage implements OnInit, AfterViewInit {
         calendarApi.gotoDate(note.date_start);
         this.noteDialogVisible.set(false);
       },
-      error: err => console.error('calendar : ' + err)
+      error: err => this.notifications.error('calendar', err)
     });
   }
 
@@ -398,7 +400,7 @@ export class CalendarPage implements OnInit, AfterViewInit {
         this.fullCalendar.getApi().getEventById(`note-${editingId}`)?.remove();
         this.noteDialogVisible.set(false);
       },
-      error: err => console.error('calendar : ' + err)
+      error: err => this.notifications.error('calendar', err)
     });
   }
 
@@ -423,7 +425,7 @@ export class CalendarPage implements OnInit, AfterViewInit {
 
     this.documentLineService.getLines(section.document_id).subscribe({
       next: lines => this.selectedSectionLines.set(lines.filter(l => l.section_id === section.id)),
-      error: err => console.error('calendar : ' + err)
+      error: err => this.notifications.error('calendar', err)
     });
   }
 
@@ -452,7 +454,7 @@ export class CalendarPage implements OnInit, AfterViewInit {
         this.sectionsById.set(section.id, updatedSection);
         this.selectedSection.set(updatedSection);
       },
-      error: err => console.error('calendar : ' + err)
+      error: err => this.notifications.error('calendar', err)
     });
   }
 
@@ -531,7 +533,7 @@ export class CalendarPage implements OnInit, AfterViewInit {
         this.sectionsById.set(sectionId, scheduledSection);
         this.fullCalendar.getApi().addEvent(this.toEventInput(scheduledSection));
       },
-      error: err => console.error('calendar : ' + err)
+      error: err => this.notifications.error('calendar', err)
     });
   }
 
@@ -569,7 +571,7 @@ export class CalendarPage implements OnInit, AfterViewInit {
       }).subscribe({
         next: updated => this.notesById.set(noteId, updated),
         error: err => {
-          console.error('calendar : ' + err);
+          this.notifications.error('calendar', err);
           info.revert();
         }
       });
@@ -588,7 +590,7 @@ export class CalendarPage implements OnInit, AfterViewInit {
         }
       },
       error: err => {
-        console.error('calendar : ' + err);
+        this.notifications.error('calendar', err);
         info.revert();
       }
     });

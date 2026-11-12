@@ -10,6 +10,7 @@ import { Project } from '../../../shared/models/project';
 import { Address } from '../../../shared/models/address';
 import { ProjectResources } from '../project-resources/project-resources';
 import { clientDisplayName } from '../../../shared/utils/display';
+import { NotificationService } from '../../../shared/services/notification.service';
 
 // The chantier's own header (name, client, type, address, status) is
 // read-only here - it's set once, either by hand (project-form, currently
@@ -25,6 +26,7 @@ import { clientDisplayName } from '../../../shared/utils/display';
 })
 export class ProjectDetail implements OnInit {
 
+  private notifications = inject(NotificationService);
   private route = inject(ActivatedRoute);
   private projectService = inject(ProjectService);
   private clientService = inject(ClientService);
@@ -48,7 +50,7 @@ export class ProjectDetail implements OnInit {
         this.project.set(project);
         this.loadClientAndAddress(project.client_id, project.document_id);
       },
-      error: err => console.error('project-detail : ' + err)
+      error: err => this.notifications.error('project-detail', err)
     });
   }
 
@@ -78,10 +80,10 @@ export class ProjectDetail implements OnInit {
             const chosen = client.addresses.find(a => a.id === document.address_id);
             this.address.set(chosen ?? client.addresses.find(a => a.is_primary) ?? client.addresses[0] ?? null);
           },
-          error: err => console.error('project-detail : ' + err)
+          error: err => this.notifications.error('project-detail', err)
         });
       },
-      error: err => console.error('project-detail : ' + err)
+      error: err => this.notifications.error('project-detail', err)
     });
   }
 

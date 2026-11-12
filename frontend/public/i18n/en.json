@@ -84,7 +84,8 @@
     "detail": "Detail",
     "save": "Save",
     "edit": "Edit",
-    "requiredFields": "Fill in the required fields (*)."
+    "requiredFields": "Fill in the required fields (*).",
+    "unsavedChanges": "This document has unsaved changes. Leave anyway? They will be lost."
   },
   "clients": {
     "newClient": "New client",
@@ -460,5 +461,32 @@
     "COMPANY_ADDRESS_INCOMPLETE": "Your company's address is incomplete (name, street, postcode, town, country): complete it in Profile.",
     "QR_BILL_INVALID": "The client's address can't be used for the QR-bill (unknown country or a line too long).",
     "QR_BILL_AMOUNT_INVALID": "The amount can't go on a QR-bill: it must be between 0.01 and 999,999,999.99 CHF (an empty or zero invoice has nothing to pay)."
+  },
+  "notifications": {
+    "errorTitle": "Error",
+    "warnTitle": "Warning",
+    "successTitle": "Done",
+    "editUndone": "Edit undone: a required field is empty or incomplete.",
+    "errors": {
+      "generic": "Something went wrong, nothing was changed. Try again or reload the page.",
+      "network": "The server can't be reached. Check your internet connection.",
+      "forbidden": "You don't have permission to do this.",
+      "notFound": "Not found - it may have been deleted or archived. Reload the page.",
+      "conflict": "Not possible: the data changed in the meantime or it already exists. Reload the page.",
+      "tooLarge": "File too large.",
+      "tooManyRequests": "Too many attempts. Try again in a few minutes."
+    }
+  },
+  "invoicingReadiness": {
+    "title": "Complete your profile to be able to invoice",
+    "missing": "Invoices' QR-bill needs:",
+    "complete": "Complete the profile",
+    "askAdmin": "Ask your company's administrator to complete it.",
+    "fields": {
+      "name": "the company name",
+      "iban": "the IBAN",
+      "postalCodeCity": "the postcode and town",
+      "country": "the country"
+    }
   }
 }

@@ -3,6 +3,7 @@ import { roleGuard } from './features/auth/role.guard';
 import { authGuard } from './features/auth/auth.guard';
 import { MenuItem } from 'primeng/api';
 import { RouteBreadcrumb } from './shared/header/header';
+import { unsavedChangesGuard } from './shared/guards/unsaved-changes.guard';
 
 // Every `label` below is a Transloco key, not display text - see
 // header.ts's own comment on RouteBreadcrumb for why.
@@ -77,6 +78,7 @@ export const routes: Routes = [
     path: 'documents/new',
     loadComponent: () => import('./features/documents/document-form/document-form').then(m => m.DocumentForm),
     canActivate: [authGuard],
+    canDeactivate: [unsavedChangesGuard],
     data: { breadcrumb: newDocumentBreadcrumb }
   },
   {
@@ -85,6 +87,7 @@ export const routes: Routes = [
     path: 'documents/:id',
     loadComponent: () => import('./features/documents/document-form/document-form').then(m => m.DocumentForm),
     canActivate: [authGuard],
+    canDeactivate: [unsavedChangesGuard],
     data: { breadcrumb: (): MenuItem[] => [{ label: 'nav.documents', routerLink: '/documents' }, { label: 'documents.modify' }] }
   },
   {

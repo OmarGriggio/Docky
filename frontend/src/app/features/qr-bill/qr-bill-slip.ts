@@ -18,6 +18,7 @@ import { clientDisplayName } from '../../shared/utils/display';
 import { qrBillErrorKey } from '../../shared/utils/api-error';
 import { ClientForm, ClientPrefill } from '../clients/client-form/client-form';
 import { PostalCodeCity } from '../../shared/components/postal-code-city/postal-code-city';
+import { NotificationService } from '../../shared/services/notification.service';
 
 // The slip's official size, and the resolution its copied image is drawn at -
 // 300 dpi, enough for the QR code to stay sharp once printed.
@@ -41,6 +42,7 @@ const CSS_PX_PER_MM = 96 / MM_PER_INCH;
 })
 export class QrBillSlip implements OnInit {
 
+  private notifications = inject(NotificationService);
   private clientService = inject(ClientService);
   private addressService = inject(AddressService);
   private documentService = inject(DocumentService);
@@ -94,11 +96,11 @@ export class QrBillSlip implements OnInit {
   private loadClients(): void {
     this.clientService.getClients().subscribe({
       next: data => this.clients.set(data),
-      error: err => console.error('qr-bill-slip : ' + err)
+      error: err => this.notifications.error('qr-bill-slip', err)
     });
     this.addressService.getAddresses().subscribe({
       next: data => this.addresses.set(data),
-      error: err => console.error('qr-bill-slip : ' + err)
+      error: err => this.notifications.error('qr-bill-slip', err)
     });
   }
 

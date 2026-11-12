@@ -7,6 +7,7 @@ import { UserService } from '../user.service';
 import { User } from '../../../shared/models/user';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { BreakpointService } from '../../../shared/services/breakpoint.service';
+import { NotificationService } from '../../../shared/services/notification.service';
 
 @Component({
   selector: 'app-user-list',
@@ -16,6 +17,7 @@ import { BreakpointService } from '../../../shared/services/breakpoint.service';
 })
 export class UserListComponent implements OnInit {
 
+  private notifications = inject(NotificationService);
   private userService = inject(UserService);
   isMobile = inject(BreakpointService).isMobile;
 
@@ -50,7 +52,7 @@ export class UserListComponent implements OnInit {
         this.users.set(data);
       },
       error: err => {
-        console.error("user-list : " + err);
+        this.notifications.error('user-list', err);
       }
     });
   }
@@ -82,7 +84,7 @@ export class UserListComponent implements OnInit {
         this.loadUsers();
       },
       error: err => {
-        console.error("user-list : " + err);
+        this.notifications.error('user-list', err);
       }
     });
   }

@@ -18,6 +18,7 @@ import { Resource } from '../../../shared/models/resource';
 import { DocumentLineType } from '../../../shared/models/document-line';
 import { hasTimeComponent } from '../../../shared/utils/display';
 import { TabIndentDirective } from '../../../shared/directives/tab-indent.directive';
+import { NotificationService } from '../../../shared/services/notification.service';
 
 interface DraftLine {
   id: number;
@@ -64,6 +65,7 @@ export class ProjectResources implements OnInit {
 
   project = input.required<Project>();
 
+  private notifications = inject(NotificationService);
   private documentSectionService = inject(DocumentSectionService);
   private documentLineService = inject(DocumentLineService);
   private documentService = inject(DocumentService);
@@ -108,7 +110,7 @@ export class ProjectResources implements OnInit {
   ngOnInit(): void {
     this.resourceService.getResources().subscribe({
       next: data => this.resources.set(data),
-      error: err => console.error('project-resources : ' + err)
+      error: err => this.notifications.error('project-resources', err)
     });
 
     this.load();

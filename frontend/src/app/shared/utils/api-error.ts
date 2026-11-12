@@ -36,3 +36,25 @@ export const qrBillErrorKey = async (err: unknown, fallbackKey: string): Promise
   const code = await apiErrorCode(err);
   return code && QR_BILL_ERROR_CODES.includes(code) ? `qrBillErrors.${code}` : fallbackKey;
 };
+
+// The message a failed request shows the user (NotificationService), by its
+// HTTP status - what they can do about it, never the backend's own message
+// (English, written for developers).
+export const httpErrorKey = (err: unknown): string => {
+  if (!(err instanceof HttpErrorResponse)) {
+    return 'notifications.errors.generic';
+  }
+  switch (err.status) {
+    case 0: return 'notifications.errors.network';
+    case 403: return 'notifications.errors.forbidden';
+    case 404: return 'notifications.errors.notFound';
+    case 409: return 'notifications.errors.conflict';
+    case 413: return 'notifications.errors.tooLarge';
+    case 429: return 'notifications.errors.tooManyRequests';
+    default: return 'notifications.errors.generic';
+  }
+};
+
+// A 401 - the auth interceptor handles it (refresh, or back to the login page).
+export const isSessionExpired = (err: unknown): boolean =>
+  err instanceof HttpErrorResponse && err.status === 401;

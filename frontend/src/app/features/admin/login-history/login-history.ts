@@ -8,6 +8,7 @@ import { LoginHistoryService } from '../login-history.service';
 import { LoginHistoryEntry, LoginHistoryUser } from '../../../shared/models/login-history';
 import { AppDateTimePipe } from '../../../shared/pipes/app-date-time.pipe';
 import { BreakpointService } from '../../../shared/services/breakpoint.service';
+import { NotificationService } from '../../../shared/services/notification.service';
 
 @Component({
   selector: 'app-login-history',
@@ -17,6 +18,7 @@ import { BreakpointService } from '../../../shared/services/breakpoint.service';
 })
 export class LoginHistoryComponent implements OnInit {
 
+  private notifications = inject(NotificationService);
   private loginHistoryService = inject(LoginHistoryService);
   isMobile = inject(BreakpointService).isMobile;
 
@@ -40,7 +42,7 @@ export class LoginHistoryComponent implements OnInit {
     this.loadEntries();
     this.loginHistoryService.getLoginHistoryUsers().subscribe({
       next: data => this.users.set(data),
-      error: err => console.error('login-history : ' + err)
+      error: err => this.notifications.error('login-history', err)
     });
   }
 
@@ -58,7 +60,7 @@ export class LoginHistoryComponent implements OnInit {
     this.entriesRequest?.unsubscribe();
     this.entriesRequest = this.loginHistoryService.getLoginHistory(this.selectedUserId()).subscribe({
       next: data => this.entries.set(data),
-      error: err => console.error('login-history : ' + err)
+      error: err => this.notifications.error('login-history', err)
     });
   }
 
