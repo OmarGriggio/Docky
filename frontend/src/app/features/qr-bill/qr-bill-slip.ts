@@ -7,6 +7,7 @@ import { InputText } from 'primeng/inputtext';
 import { InputNumber } from 'primeng/inputnumber';
 import { FloatLabel } from 'primeng/floatlabel';
 import { Button } from 'primeng/button';
+import { Dialog } from 'primeng/dialog';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { ClientService } from '../clients/client.service';
 import { AddressService } from '../addresses/address.service';
@@ -15,6 +16,7 @@ import { Client } from '../../shared/models/client';
 import { Address } from '../../shared/models/address';
 import { clientDisplayName } from '../../shared/utils/display';
 import { qrBillErrorKey } from '../../shared/utils/api-error';
+import { ClientForm, ClientPrefill } from '../clients/client-form/client-form';
 
 // The slip's official size, and the resolution its copied image is drawn at -
 // 300 dpi, enough for the QR code to stay sharp once printed.
@@ -33,7 +35,7 @@ const CSS_PX_PER_MM = 96 / MM_PER_INCH;
 @Component({
   selector: 'app-qr-bill-slip',
   standalone: true,
-  imports: [FormsModule, Card, Select, InputText, InputNumber, FloatLabel, Button, TranslocoPipe],
+  imports: [FormsModule, Card, Select, InputText, InputNumber, FloatLabel, Button, Dialog, ClientForm, TranslocoPipe],
   templateUrl: './qr-bill-slip.html',
 })
 export class QrBillSlip implements OnInit {
@@ -78,7 +80,17 @@ export class QrBillSlip implements OnInit {
     return svg ? this.svgDataUrl(svg) : null;
   });
 
+  // "Enregistrer comme client": a payer typed in by hand (no client picked)
+  // saved as a new client, the client form prefilled with the fields here.
+  canSaveAsClient = computed(() => this.selectedClientId() === null && this.name().trim() !== '');
+  createClientDialogVisible = signal(false);
+  clientPrefill = signal<ClientPrefill | null>(null);
+
   ngOnInit(): void {
+    this.loadClients();
+  }
+
+  private loadClients(): void {
     this.clientService.getClients().subscribe({
       next: data => this.clients.set(data),
       error: err => console.error('qr-bill-slip : ' + err)
@@ -87,6 +99,29 @@ export class QrBillSlip implements OnInit {
       next: data => this.addresses.set(data),
       error: err => console.error('qr-bill-slip : ' + err)
     });
+  }
+
+  // "1950 Sion" - the NPA is the first word when it's all digits, the rest
+  // is the town; otherwise it's all the town.
+  openSaveAsClient(): void {
+    const [first, ...rest] = this.postalCodeCity().trim().split(/\s+/);
+    const hasPostalCode = /^\d+$/.test(first ?? '');
+    this.clientPrefill.set({
+      name: this.name().trim(),
+      attention: this.complement().trim(),
+      street: this.street().trim(),
+      postal_code: hasPostalCode ? first : '',
+      city: hasPostalCode ? rest.join(' ') : this.postalCodeCity().trim(),
+    });
+    this.createClientDialogVisible.set(true);
+  }
+
+  // The new client is picked straight away - the fields keep what was typed.
+  onClientCreated(client: Client): void {
+    this.createClientDialogVisible.set(false);
+    this.clients.update(clients => [...clients, client]);
+    this.selectedClientId.set(client.id);
+    this.loadClients();
   }
 
   // Prefills every field from the client and its primary address (its first

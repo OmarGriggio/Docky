@@ -445,6 +445,7 @@
     "postalCodeCity": "Postcode and town",
     "amount": "Amount CHF",
     "generate": "Generate",
+    "saveAsClient": "Save as client",
     "clickToCopy": "Click the slip to copy it, then paste it into Word or Excel.",
     "copied": "Slip copied to the clipboard.",
     "copyError": "Couldn't copy the slip to the clipboard.",

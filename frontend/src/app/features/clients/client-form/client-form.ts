@@ -15,6 +15,14 @@ import { TabIndentDirective } from '../../../shared/directives/tab-indent.direct
 import { PostalCodeService } from '../../../shared/services/postal-code.service';
 import { PostalCode, searchPostalCodes } from '../../../shared/utils/postal-code-search';
 
+export interface ClientPrefill {
+  name: string;
+  attention: string;
+  street: string;
+  postal_code: string;
+  city: string;
+}
+
 @Component({
   selector: 'app-client-form',
   standalone: true,
@@ -35,6 +43,10 @@ export class ClientForm implements OnInit {
   duplicateFrom = input<Client | null>(null);
   // The type a fresh form starts on - the client list's active tab.
   type = input<ClientType>('INDIVIDUAL');
+  // Typed in elsewhere (the QR-bill slip's payer) and saved as a client from
+  // there: the name starts as a professional's company - or an individual's
+  // last name if that's the type picked - and the address fields are shown.
+  prefill = input<ClientPrefill | null>(null);
 
   saved = output<Client>();
   cancelled = output<void>();
@@ -89,10 +101,11 @@ export class ClientForm implements OnInit {
 
   constructor() {
     this.form.controls.isProfessional.valueChanges.subscribe(isProfessional => {
+      const prefilledName = this.prefill()?.name ?? '';
       if (isProfessional) {
-        this.form.patchValue({ last_name: '', first_name: '' });
+        this.form.patchValue({ last_name: '', first_name: '', company_name: prefilledName });
       } else {
-        this.form.patchValue({ company_name: '' });
+        this.form.patchValue({ company_name: '', last_name: prefilledName });
       }
       this.requireName(isProfessional);
     });
@@ -145,6 +158,20 @@ export class ClientForm implements OnInit {
       });
     } else {
       this.form.patchValue({ isProfessional: this.type() === 'PROFESSIONAL' });
+    }
+
+    const prefill = this.prefill();
+    if (prefill) {
+      this.form.patchValue(this.isProfessional ? { company_name: prefill.name } : { last_name: prefill.name });
+      if (prefill.attention || prefill.street || prefill.postal_code || prefill.city) {
+        this.toggleAddress(true);
+        this.form.patchValue({
+          attention: prefill.attention,
+          street: prefill.street,
+          postal_code: prefill.postal_code,
+          city: prefill.city,
+        });
+      }
     }
   }
 

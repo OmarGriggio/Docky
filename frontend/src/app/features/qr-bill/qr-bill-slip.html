@@ -45,11 +45,27 @@
         <p class="text-sm text-red-600 m-0">{{ errorMessage() }}</p>
       }
 
-      <div class="flex justify-end">
+      <div class="flex items-center justify-between gap-2 flex-wrap">
+        @if (canSaveAsClient()) {
+          <p-button type="button" size="small" [text]="true" icon="pi pi-user-plus" [label]="'qrBill.saveAsClient' | transloco" (onClick)="openSaveAsClient()" />
+        } @else {
+          <span></span>
+        }
         <p-button type="submit" [label]="'qrBill.generate' | transloco" [loading]="generating()" />
       </div>
     </form>
   </p-card>
+
+  <p-dialog
+    [(visible)]="createClientDialogVisible"
+    [header]="'clients.newClient' | transloco"
+    [modal]="true"
+    [style]="{ width: '32rem' }"
+  >
+    @if (createClientDialogVisible()) {
+      <app-client-form type="PROFESSIONAL" [prefill]="clientPrefill()" (saved)="onClientCreated($event)" (cancelled)="createClientDialogVisible.set(false)" />
+    }
+  </p-dialog>
 
   @if (slipUrl(); as url) {
     <div class="flex flex-col gap-2 overflow-x-auto">

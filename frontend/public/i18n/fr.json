@@ -445,6 +445,7 @@
     "postalCodeCity": "NPA et ville",
     "amount": "Montant CHF",
     "generate": "Valider",
+    "saveAsClient": "Enregistrer comme client",
     "clickToCopy": "Cliquez sur le bulletin pour le copier, puis collez-le dans Word ou Excel.",
     "copied": "Bulletin copié dans le presse-papier.",
     "copyError": "Impossible de copier le bulletin dans le presse-papier.",
