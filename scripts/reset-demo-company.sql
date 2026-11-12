@@ -411,3 +411,41 @@ INSERT INTO calendar_notes
 (id, company_id, title, description, date_start, date_end)
 VALUES
 (3, 2, 'Site visit - Zermatt', 'Hotel roof: survey for the upcoming quote.', (CURRENT_DATE + 2 + TIME '14:00') AT TIME ZONE 'Europe/Zurich', (CURRENT_DATE + 2 + TIME '15:30') AT TIME ZONE 'Europe/Zurich');
+
+-- ==========================================
+-- FROZEN ADDRESSES
+-- ==========================================
+
+-- Every quote/invoice past DRAFT is frozen with the address it was sent to
+-- (016_add_document_billed_address.sql) - the rows just inserted above
+-- aren't, so freeze them the same way, company 2's only.
+UPDATE documents d
+SET billed_address = (
+    SELECT jsonb_build_object(
+        'name', COALESCE(NULLIF(c.company_name, ''), TRIM(COALESCE(c.first_name, '') || ' ' || COALESCE(c.last_name, ''))),
+        'street', COALESCE(billing.street, ''),
+        'postal_code', COALESCE(billing.postal_code, ''),
+        'city', COALESCE(billing.city, ''),
+        'country', billing.country,
+        'location', CASE WHEN loc.id IS NULL THEN NULL
+                         ELSE COALESCE(NULLIF(loc.attention, '') || ' : ', '') || loc.street || ', ' || loc.postal_code || ' ' || loc.city END
+    )
+    FROM clients c
+    LEFT JOIN LATERAL (
+        SELECT street, postal_code, city, country FROM addresses
+        WHERE client_id = c.id AND company_id = c.company_id
+        ORDER BY is_primary DESC, id
+        LIMIT 1
+    ) billing ON true
+    LEFT JOIN addresses loc ON loc.id = d.address_id AND loc.client_id = c.id AND loc.company_id = d.company_id
+    WHERE c.id = d.client_id AND c.company_id = d.company_id
+)
+WHERE d.company_id = 2
+  AND d.type IN ('QUOTE', 'INVOICE')
+  AND d.status IS NOT NULL AND d.status <> 'DRAFT'
+  AND d.billed_address IS NULL
+  AND EXISTS (
+      SELECT 1 FROM clients c
+      JOIN addresses a ON a.client_id = c.id AND a.company_id = c.company_id
+      WHERE c.id = d.client_id AND c.company_id = d.company_id AND c.is_placeholder = false
+  );

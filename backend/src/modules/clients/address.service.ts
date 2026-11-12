@@ -37,7 +37,7 @@ export const addAddressServ = async (addressData: Omit<Address, "id" | "company_
     await unsetPrimaryForClientInDB(addressData.client_id, company_id);
   }
 
-  return await createAddressInDB({ ...addressData, is_primary, company_id });
+  return await createAddressInDB({ ...addressData, attention: addressData.attention?.trim() || null, is_primary, company_id });
 };
 
 export const updateAddressServ = async (id: number, company_id: number, data: UpdateAddressData) => {
@@ -45,7 +45,8 @@ export const updateAddressServ = async (id: number, company_id: number, data: Up
   if (!address) {
     throw new NotFoundError("Address not found");
   }
-  return await updateAddressInDB(id, company_id, data);
+  // An empty attention is no attention (see billed-address.ts's formatLocation).
+  return await updateAddressInDB(id, company_id, { ...data, attention: data.attention?.trim() || null });
 };
 
 // Addresses are a sub-detail of a client, not a business record on their own

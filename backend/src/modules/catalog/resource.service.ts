@@ -47,10 +47,12 @@ export const getResourcesByTypeServ = async (type: string, company_id: number, i
 // per company, whatever the request says. Never reused, archived resources
 // included, so it never collides with an active one either.
 export const addResourceServ = async (resourceData: Omit<Resource, "id" | "company_id" | "is_active" | "code">, company_id: number) => {
-  const prefix = CODE_PREFIXES[resourceData.type];
-  if (!prefix) {
+  // Object.hasOwn: "constructor" or "__proto__" would otherwise find
+  // something on CODE_PREFIXES' own prototype.
+  if (!Object.hasOwn(CODE_PREFIXES, resourceData.type)) {
     throw new AppError("type must be MATERIAL or SERVICE", 400);
   }
+  const prefix = CODE_PREFIXES[resourceData.type];
   if (resourceData.parent_resource_id != null && !(await getResourceByIdFromDB(resourceData.parent_resource_id, company_id))) {
     throw new NotFoundError("Parent resource not found");
   }

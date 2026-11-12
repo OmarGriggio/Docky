@@ -310,7 +310,11 @@ export const createDocumentInDB = async (
 
 // A sent quote is still editable (see document.service.ts's
 // isOpenForEditing) - an edit freezes its address afresh, its client or
-// Lieu/Bâtiment may just have changed.
+// Lieu/Bâtiment may just have changed. Only while it's still that sent
+// quote: a concurrent accept or switch back to DRAFT wins.
 export const updateBilledAddressInDB = async (id: number, company_id: number, billed_address: BilledAddress | null): Promise<void> => {
-  await db().query("UPDATE documents SET billed_address = $1::jsonb WHERE id = $2 AND company_id = $3", [billed_address, id, company_id]);
+  await db().query(
+    "UPDATE documents SET billed_address = $1::jsonb WHERE id = $2 AND company_id = $3 AND type = 'QUOTE' AND status = 'SENT'",
+    [billed_address, id, company_id]
+  );
 };

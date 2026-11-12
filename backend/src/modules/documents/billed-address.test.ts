@@ -39,6 +39,10 @@ describe("buildBilledAddress", () => {
     it("is null for the Non défini placeholder, whose recipient is on the document", () => {
         expect(buildBilledAddress(client({ is_placeholder: true }), { address_id: null })).toBeNull();
     });
+
+    it("freezes nothing for a client without any address - adding one must still fix it", () => {
+        expect(buildBilledAddress(client({ addresses: [] }), { address_id: null })).toBeNull();
+    });
 });
 
 describe("formatLocation", () => {

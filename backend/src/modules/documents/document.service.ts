@@ -290,8 +290,9 @@ export const updateDocumentServ = async (id: number, company_id: number, documen
   if (!updated) {
     throw new ConflictError("This document can no longer be edited");
   }
-  // A sent quote edited: frozen afresh with what it now says.
-  if (updated.billed_address !== null) {
+  // A sent quote edited: frozen afresh with what it now says (its client may
+  // just have gone from "Non défini" to a real one).
+  if (updated.status !== null && updated.status !== "DRAFT") {
     await updateBilledAddressInDB(id, company_id, await currentBilledAddress(updated, company_id));
   }
   // discount/vat_rate may have just changed - the stored totals were

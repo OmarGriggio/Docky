@@ -24,7 +24,9 @@ export const createInvoiceDto = (document: DocumentComplete, client: ClientWithA
 
     return {
         ...buildLetterDto(document, client, company, language),
-        // Frozen with the rest of the address once sent (billed-address.ts).
+        // Frozen with the rest of the address once sent (billed-address.ts) -
+        // formatLocation for a typed-in recipient or an unfrozen client
+        // without any address, which have no billed address.
         location: billedAddressOf(document, client)?.location ?? formatLocation(document, client),
         earlyPayment: days && earlyPayment ? { days, rate: document.early_payment_discount, ...earlyPayment } : null,
         dueDate: document.due_date,

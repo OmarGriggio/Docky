@@ -27,18 +27,21 @@ export const formatLocation = (document: Pick<Document, "address_id">, client: C
 };
 
 // What gets frozen - null for the "Non défini" placeholder, whose recipient
-// is typed on the document itself (recipient_* columns) and never changes.
+// is typed on the document itself (recipient_* columns) and never changes,
+// and for a client without any address yet: frozen empty, a sent invoice
+// would print no address forever - left unfrozen, adding one still fixes it
+// (the next status change freezes it then).
 export const buildBilledAddress = (client: ClientWithAddresses, document: Pick<Document, "address_id">): BilledAddress | null => {
-    if (client.is_placeholder) {
+    const address = resolveBillingAddress(client);
+    if (client.is_placeholder || !address) {
         return null;
     }
-    const address = resolveBillingAddress(client);
     return {
         name: clientDisplayName(client),
-        street: address?.street ?? "",
-        postal_code: address?.postal_code ?? "",
-        city: address?.city ?? "",
-        country: address?.country ?? null,
+        street: address.street ?? "",
+        postal_code: address.postal_code ?? "",
+        city: address.city ?? "",
+        country: address.country ?? null,
         location: formatLocation(document, client),
     };
 };
