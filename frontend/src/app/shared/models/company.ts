@@ -23,4 +23,8 @@ export interface Company {
   early_payment_discount: number;
   early_payment_days: number | null;
   early_payment_min_amount: number;
+  // "#rrggbb" the invoices and quotes are printed with - null for none.
+  accent_color: string | null;
+  // The second one, for the titles - null for none.
+  secondary_color: string | null;
 }

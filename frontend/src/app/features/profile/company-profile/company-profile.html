@@ -158,6 +158,27 @@
           }
         </div>
 
+        <!-- A native color input: the browser's own picker, on a phone too.
+             It can't be empty, so "none" is the form's '' with a hint, and
+             picking any color sets one. -->
+        @for (field of colorFields; track field.control) {
+          <div class="ui-form__full flex flex-col gap-2">
+            <label [for]="field.control" class="text-sm font-medium">{{ field.label | transloco }}</label>
+            <div class="flex items-center gap-3 flex-wrap">
+              <input type="color" [id]="field.control" [formControlName]="field.control" class="w-12 h-9 p-0.5 border border-gray-300 rounded cursor-pointer bg-white" />
+              @if (form.controls[field.control].value; as color) {
+                <span class="text-sm text-gray-600 font-mono">{{ color }}</span>
+                @if (canManageCompany()) {
+                  <p-button type="button" size="small" [text]="true" severity="secondary" icon="pi pi-times" [label]="'profile.accentColorRemove' | transloco" (onClick)="form.controls[field.control].setValue('')" />
+                }
+              } @else {
+                <span class="text-sm text-gray-500">{{ 'profile.accentColorNone' | transloco }}</span>
+              }
+            </div>
+            <p class="m-0 text-sm text-gray-500">{{ field.hint | transloco }}</p>
+          </div>
+        }
+
         @if (!canManageCompany()) {
           <p class="ui-form__full">{{ 'profile.adminOnly' | transloco }}</p>
         }

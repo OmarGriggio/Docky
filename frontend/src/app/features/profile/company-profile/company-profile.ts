@@ -33,6 +33,12 @@ export class CompanyProfile implements OnInit {
   private authService = inject(AuthService);
   private transloco = inject(TranslocoService);
 
+  // The two document colors, each with its own label and hint.
+  readonly colorFields = [
+    { control: 'accent_color', label: 'profile.accentColor', hint: 'profile.accentColorHint' },
+    { control: 'secondary_color', label: 'profile.secondaryColor', hint: 'profile.secondaryColorHint' },
+  ] as const;
+
   form = this.fb.nonNullable.group({
     name: ['', Validators.required],
     email: [''],
@@ -54,6 +60,9 @@ export class CompanyProfile implements OnInit {
     early_payment_discount: [0, [Validators.min(0), Validators.max(100)]],
     early_payment_days: [null as number | null, [Validators.min(1), Validators.max(365)]],
     early_payment_min_amount: [0, [Validators.min(0), Validators.max(9999999999.99)]],
+    // "#rrggbb", or '' for none (stored as null).
+    accent_color: [''],
+    secondary_color: [''],
   }, { validators: earlyPaymentDaysRequired });
 
   // Shown under the days field - the backend would refuse the save anyway,
@@ -133,6 +142,8 @@ export class CompanyProfile implements OnInit {
           early_payment_discount: company.early_payment_discount ?? 0,
           early_payment_days: company.early_payment_days,
           early_payment_min_amount: company.early_payment_min_amount ?? 0,
+          accent_color: company.accent_color ?? '',
+          secondary_color: company.secondary_color ?? '',
         });
         this.logoPath.set(company.logo);
         this.headerImagePath.set(company.header_image);
