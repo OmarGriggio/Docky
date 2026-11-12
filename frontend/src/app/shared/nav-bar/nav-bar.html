@@ -66,7 +66,12 @@
       <details #accountGroup [class]="groupClasses()">
         <summary [class]="linkClasses() + ' list-none [&::-webkit-details-marker]:hidden'">
           <i class="pi pi-user"></i>
-          <span [class]="labelClasses()">{{ currentUser()?.email ?? ('nav.profile' | transloco) }}</span>
+          <!-- The app's version under the email (shared/version.ts) - in the
+               hover tooltip too while the rail is collapsed. -->
+          <span [class]="labelClasses()">
+            {{ currentUser()?.email ?? ('nav.profile' | transloco) }}
+            <span class="block text-[0.7rem] opacity-60">Docky v{{ appVersion }}</span>
+          </span>
         </summary>
         <div [class]="accountMenuClasses()">
           <a routerLink="/settings" [class]="accountItemClasses()" [title]="'nav.settings' | transloco" (click)="accountGroup.open = false">

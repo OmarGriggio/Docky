@@ -3,6 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AuthService } from '../../features/auth/auth.service';
 import { UserRole } from '../models/auth';
+import { APP_VERSION } from '../version';
 
 interface NavLink {
   label: string;
@@ -37,6 +38,7 @@ export class NavBar {
 
   isAuthenticated = this.authService.isAuthenticated;
   currentUser = this.authService.currentUser;
+  readonly appVersion = APP_VERSION;
   isImpersonating = this.authService.isImpersonating;
 
   expanded = signal(localStorage.getItem(NAV_EXPANDED_KEY) === 'true');
