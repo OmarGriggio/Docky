@@ -285,11 +285,6 @@ export class PdfWriter {
         this.cursorY -= distance;
     }
 
-    /** Puts the flowing cursor at this Y, up or down - for a block anchored to a fixed spot (e.g. the bottom of the page), then put back where it was. */
-    moveCursorTo(y: number) {
-        this.cursorY = y;
-    }
-
     /** The height text() would take to write `text` with these options, its line wrapping and margins included. */
     textHeight(text: string, options: PdfTextOptions = {}): number {
         const size = options.size ?? 11;

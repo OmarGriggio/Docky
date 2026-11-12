@@ -61,8 +61,8 @@ export const PDF_LABELS = {
         paymentConditions: "Conditions de paiement",
         days: (n: number) => `${n} jours`,
         net: "Net",
-        belowAmount: (amount: string) => `Moins de ${amount} TTC`,
-        fromAmount: (amount: string) => `Dès ${amount} TTC`,
+        belowAmount: (amount: string) => `Moins de CHF ${amount} TVA incl.`,
+        fromAmount: (amount: string) => `Dès CHF ${amount} TVA incl.`,
     },
     EN: {
         placeDate: (city: string, date: string) => `${city}, ${date}`,
@@ -99,8 +99,8 @@ export const PDF_LABELS = {
         paymentConditions: "Payment terms",
         days: (n: number) => `${n} days`,
         net: "Net",
-        belowAmount: (amount: string) => `Under ${amount} incl. VAT`,
-        fromAmount: (amount: string) => `From ${amount} incl. VAT`,
+        belowAmount: (amount: string) => `Under CHF ${amount} incl. VAT`,
+        fromAmount: (amount: string) => `From CHF ${amount} incl. VAT`,
     },
 } satisfies Record<PdfLanguage, Record<string, unknown>>;
 

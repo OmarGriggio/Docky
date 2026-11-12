@@ -46,19 +46,24 @@ const MAX_LENGTHS: Partial<Record<keyof Company, number>> = {
 // NUMERIC(12,2)'s own ceiling.
 const MAX_AMOUNT = 9999999999.99;
 
-// Checked on creation and on every edit. The early payment discount is
-// printed and computed on every invoice created afterwards - a rate over
-// 100 or a negative minimum would print a nonsensical amount. Without a
-// rate there's nothing to offer, so the days are cleared rather than kept
-// around unused.
-// "#rrggbb" or nothing - stored lowercase, an empty one as null.
-const normalizeColor = (value: string | null | undefined, field: string): string | null => {
+// "#rrggbb" or nothing - stored lowercase, an empty one as null. Anything
+// else, a number included, is the caller's own mistake: a 400, not a 500.
+const normalizeColor = (value: unknown, field: string): string | null => {
+  if (value !== null && value !== undefined && typeof value !== "string") {
+    throw new AppError(`${field} must be a color like #b8860b`, 400);
+  }
   const color = value?.trim() || null;
   if (color !== null && !/^#[0-9a-f]{6}$/i.test(color)) {
     throw new AppError(`${field} must be a color like #b8860b`, 400);
   }
   return color?.toLowerCase() ?? null;
 };
+
+// Checked on creation and on every edit. The early payment discount is
+// printed and computed on every invoice created afterwards - a rate over
+// 100 or a negative minimum would print a nonsensical amount. Without a
+// rate there's nothing to offer, so the days are cleared rather than kept
+// around unused.
 
 const normalizeCompanyData = (companyData: Omit<Company, "id">): Omit<Company, "id"> => {
   for (const [field, max] of Object.entries(MAX_LENGTHS)) {

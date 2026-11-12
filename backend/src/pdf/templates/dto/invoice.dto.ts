@@ -35,6 +35,7 @@ export const createInvoiceDto = (document: DocumentComplete, client: ClientWithA
     const paymentScale = buildPaymentScale(
         { rate: document.early_payment_discount, days, minAmount: document.early_payment_min_amount },
         daysUntilDue(document.date, document.due_date),
+        earlyPayment !== null,
         PDF_LABELS[language]
     );
 
