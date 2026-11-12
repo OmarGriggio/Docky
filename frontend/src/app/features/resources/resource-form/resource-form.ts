@@ -26,8 +26,8 @@ export class ResourceForm implements OnInit {
   private transloco = inject(TranslocoService);
 
   // When set (see "Dupliquer" in resource-list.ts), pre-fills the form with
-  // an existing resource's data - everything except `code`, which is unique
-  // and would fail on submit if duplicated as-is.
+  // an existing resource's data - its code aside: the backend generates every
+  // new resource's (MAT0001, SER0001...).
   duplicateFrom = input<Resource | null>(null);
 
   saved = output<Resource>();
@@ -45,7 +45,7 @@ export class ResourceForm implements OnInit {
 
   form = this.fb.nonNullable.group({
     type: ['MATERIAL' as ResourceType, Validators.required],
-    code: ['', Validators.required],
+    reference: [''],
     name: ['', Validators.required],
     unit: ['', Validators.required],
     selling_price: [0, Validators.required],
@@ -57,6 +57,7 @@ export class ResourceForm implements OnInit {
     if (source) {
       this.form.patchValue({
         type: source.type,
+        reference: source.reference ?? '',
         name: source.name,
         unit: source.unit,
         selling_price: source.selling_price,
@@ -79,8 +80,10 @@ export class ResourceForm implements OnInit {
 
     this.errorMessage.set(null);
 
+    const value = this.form.getRawValue();
     this.resourceService.createResource({
-      ...this.form.getRawValue(),
+      ...value,
+      reference: value.reference.trim() || null,
       parent_resource_id: null,
     }).subscribe({
       next: resource => {
@@ -88,9 +91,7 @@ export class ResourceForm implements OnInit {
       },
       error: (err: HttpErrorResponse) => {
         console.error('resource-form : ' + err);
-        this.errorMessage.set(this.transloco.translate(
-          err.status === 409 ? 'resources.form.codeConflict' : 'resources.form.createError'
-        ));
+        this.errorMessage.set(this.transloco.translate('resources.form.createError'));
       }
     });
   }

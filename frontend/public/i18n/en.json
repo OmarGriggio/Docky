@@ -129,7 +129,6 @@
       "create": "Create",
       "createError": "Could not create the client.",
       "emailConflict": "This email is already used by another client.",
-      "numberConflict": "This client number already exists.",
       "genericConflict": "This client already exists."
     },
     "detail": {
@@ -151,6 +150,7 @@
     "title": "Resources",
     "newResource": "New resource",
     "columnCode": "Code",
+    "columnReference": "Reference no.",
     "columnName": "Designation",
     "columnUnit": "Unit",
     "columnSellingPrice": "Selling price",
@@ -159,8 +159,7 @@
     "noResources": "No resources.",
     "archiveConfirm": "Archive resource {{name}}?",
     "form": {
-      "createError": "Could not create the resource.",
-      "codeConflict": "This code already exists."
+      "createError": "Could not create the resource."
     }
   },
   "projects": {

@@ -21,13 +21,14 @@ export class ResourceService {
     });
   }
 
-  createResource(resource: Omit<Resource, 'id' | 'is_active'>) {
+  // No code: the backend generates it.
+  createResource(resource: Omit<Resource, 'id' | 'is_active' | 'code'>) {
     return this.http.post<Resource>(`${API_BASE}/resource`, resource);
   }
 
-  // type/parent_resource_id/is_active aren't editable this way - see
-  // resource.types.ts's UpdateResourceData on the backend.
-  updateResource(id: number, resource: Pick<Resource, 'code' | 'name' | 'unit' | 'selling_price' | 'purchase_price'>) {
+  // type/parent_resource_id/is_active and the code aren't editable this way -
+  // see resource.types.ts's UpdateResourceData on the backend.
+  updateResource(id: number, resource: Pick<Resource, 'reference' | 'name' | 'unit' | 'selling_price' | 'purchase_price'>) {
     return this.http.put<Resource>(`${API_BASE}/resource/${id}`, resource);
   }
 

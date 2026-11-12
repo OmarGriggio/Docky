@@ -61,8 +61,14 @@ export class DocumentSections implements OnInit {
     const used = usedResourceIds(this.sections());
     return this.resources()
       .filter(resource => !used.has(resource.id))
-      .map(resource => ({ label: resource.name, value: resource.id }));
+      .map(resource => ({ label: resource.reference ? `${resource.name} — ${resource.reference}` : resource.name, value: resource.id }));
   });
+
+  // A catalog resource's reference number, shown under the label of a line
+  // made from it - when it has one.
+  resourceReferences = computed(() =>
+    new Map(this.resources().filter(resource => resource.reference).map(resource => [resource.id, resource.reference!]))
+  );
 
   private materialLabel = translateSignal('nav.material');
   private serviceLabel = translateSignal('nav.service');

@@ -120,6 +120,9 @@
                     [disabled]="locked()"
                     [invalid]="showRequired() && !line.label.trim()"
                   />
+                  @if (line.resource_id !== null && resourceReferences().get(line.resource_id); as reference) {
+                    <span class="block mt-0.5 px-1 text-xs text-gray-500">{{ 'resources.columnReference' | transloco }} {{ reference }}</span>
+                  }
                 </td>
                 <td class="py-[0.3rem] px-[0.2rem] align-middle">
                   <p-inputnumber

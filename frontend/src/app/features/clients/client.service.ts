@@ -27,7 +27,8 @@ export class ClientService {
   // client.types.ts's own addClientServ parameter type. An address given
   // here becomes the client's primary one, created along with it.
   createClient(
-    client: Omit<Client, 'id' | 'is_active' | 'language' | 'is_placeholder'>,
+    // No client_number: the backend generates it.
+    client: Omit<Client, 'id' | 'is_active' | 'language' | 'is_placeholder' | 'client_number'>,
     address: Pick<Address, 'attention' | 'street' | 'postal_code' | 'city' | 'country'> | null = null,
   ) {
     return this.http.post<Client>(`${API_BASE}/client`, { ...client, address });

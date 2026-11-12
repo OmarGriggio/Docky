@@ -35,8 +35,8 @@ export class ClientForm implements OnInit {
   private transloco = inject(TranslocoService);
 
   // When set (see "Dupliquer" in client-list.ts), pre-fills the form with an
-  // existing client's data - everything except `client_number`, which is
-  // unique and would fail on submit if duplicated as-is.
+  // existing client's data - its number aside: the backend generates every
+  // new client's (C0001, C0002...).
   duplicateFrom = input<Client | null>(null);
   // The type a fresh form starts on - the client list's active tab.
   type = input<ClientType>('INDIVIDUAL');
@@ -51,7 +51,6 @@ export class ClientForm implements OnInit {
   errorMessage = signal<string | null>(null);
 
   form = this.fb.nonNullable.group({
-    client_number: ['', Validators.required],
     isProfessional: [false],
     title: [''],
     last_name: [''],
@@ -241,9 +240,6 @@ export class ClientForm implements OnInit {
     }
     if (err.error?.message === 'Client email already exists') {
       return this.transloco.translate('clients.form.emailConflict');
-    }
-    if (err.error?.message === 'Client number already exists') {
-      return this.transloco.translate('clients.form.numberConflict');
     }
     return this.transloco.translate('clients.form.genericConflict');
   }

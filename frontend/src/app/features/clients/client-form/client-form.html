@@ -9,11 +9,6 @@
   </div>
 
   <p-floatlabel variant="on">
-    <input pInputText id="client_number" formControlName="client_number" />
-    <label for="client_number">{{ 'clients.columnNumber' | transloco }} *</label>
-  </p-floatlabel>
-
-  <p-floatlabel variant="on">
     <p-select inputId="title" formControlName="title" [options]="titleOptions()" optionLabel="label" optionValue="value" [fluid]="true" appendTo="body" />
     <label for="title">{{ 'clients.form.title' | transloco }}</label>
   </p-floatlabel>

@@ -53,7 +53,7 @@ export class ResourceListComponent implements OnInit {
   });
 
   // The toolbar's search box - matches any column of the table (code,
-  // designation, unit, selling and purchase price as displayed), each typed
+  // reference, designation, unit, selling and purchase price as displayed), each typed
   // word anywhere among them. Done in the browser on the already-loaded
   // list.
   search = signal('');
@@ -64,6 +64,7 @@ export class ResourceListComponent implements OnInit {
   private searchableText(resource: Resource): string {
     return [
       resource.code,
+      resource.reference,
       resource.name,
       resource.unit,
       formatPrice(resource.selling_price),
@@ -194,12 +195,12 @@ export class ResourceListComponent implements OnInit {
   onRowEditSave(resource: Resource): void {
     // Same required fields as the new resource form - otherwise the edit is
     // undone.
-    if (!resource.code?.trim() || !resource.name?.trim() || !resource.unit?.trim() || resource.selling_price === null) {
+    if (!resource.name?.trim() || !resource.unit?.trim() || resource.selling_price === null) {
       this.onRowEditCancel(resource);
       return;
     }
     this.resourceService.updateResource(resource.id, {
-      code: resource.code,
+      reference: resource.reference?.trim() || null,
       name: resource.name,
       unit: resource.unit,
       selling_price: resource.selling_price,
