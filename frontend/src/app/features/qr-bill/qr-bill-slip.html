@@ -32,7 +32,7 @@
       </p-floatlabel>
 
       <p-floatlabel variant="on">
-        <input pInputText id="qrPostalCodeCity" class="w-full" [invalid]="showRequired() && !postalCodeCity().trim()" name="postalCodeCity" [ngModel]="postalCodeCity()" (ngModelChange)="onFieldChange('postalCodeCity', $event)" />
+        <app-postal-code-city inputId="qrPostalCodeCity" [invalid]="showRequired() && !postalCodeCity().trim()" name="postalCodeCity" [ngModel]="postalCodeCity()" (ngModelChange)="onFieldChange('postalCodeCity', $event)" />
         <label for="qrPostalCodeCity">{{ 'qrBill.postalCodeCity' | transloco }} *</label>
       </p-floatlabel>
 

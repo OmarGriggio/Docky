@@ -28,3 +28,14 @@ export const searchPostalCodes = (codes: PostalCode[], query: string, limit = 20
   }
   return matches.slice(0, limit);
 };
+
+// "1950 Sion" back into its NPA and town, as an address stores them: the
+// leading number is the NPA, the rest the town. Without a leading number
+// there's no NPA - it's all the town.
+export const splitPostalCodeCity = (text: string): { postalCode: string; city: string } => {
+  const match = text.trim().match(/^(\d+)\s+(.+)$/);
+  return match ? { postalCode: match[1], city: match[2].trim() } : { postalCode: '', city: text.trim() };
+};
+
+// Both an NPA and a town - what an address needs.
+export const POSTAL_CODE_CITY_PATTERN = /^\s*\d+\s+\S/;

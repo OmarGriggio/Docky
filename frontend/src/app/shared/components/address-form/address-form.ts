@@ -1,14 +1,13 @@
-import { Component, inject, input, OnInit, output, signal } from '@angular/core';
+import { Component, inject, input, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { InputText } from 'primeng/inputtext';
 import { FloatLabel } from 'primeng/floatlabel';
 import { Checkbox } from 'primeng/checkbox';
-import { AutoComplete } from 'primeng/autocomplete';
 import { Button } from 'primeng/button';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { AddressService } from '../../../features/addresses/address.service';
-import { PostalCodeService } from '../../services/postal-code.service';
-import { PostalCode, searchPostalCodes } from '../../utils/postal-code-search';
+import { POSTAL_CODE_CITY_PATTERN, splitPostalCodeCity } from '../../utils/postal-code-search';
+import { PostalCodeCity } from '../postal-code-city/postal-code-city';
 
 // Currently only used from client-detail.html - its own labels share the
 // "clients.detail.address*" keys (see address-form.html) rather than owning
@@ -16,14 +15,13 @@ import { PostalCode, searchPostalCodes } from '../../utils/postal-code-search';
 @Component({
   selector: 'app-address-form',
   standalone: true,
-  imports: [ReactiveFormsModule, InputText, FloatLabel, Checkbox, AutoComplete, Button, TranslocoPipe],
+  imports: [ReactiveFormsModule, InputText, FloatLabel, Checkbox, PostalCodeCity, Button, TranslocoPipe],
   templateUrl: './address-form.html',
 })
-export class AddressForm implements OnInit {
+export class AddressForm {
 
   private fb = inject(FormBuilder);
   private addressService = inject(AddressService);
-  private postalCodeService = inject(PostalCodeService);
   private transloco = inject(TranslocoService);
 
   clientId = input.required<number>();
@@ -36,32 +34,11 @@ export class AddressForm implements OnInit {
   form = this.fb.nonNullable.group({
     attention: [''],
     street: ['', Validators.required],
-    postal_code: ['', Validators.required],
-    city: ['', Validators.required],
+    // "1950 Sion" - split into the address's NPA and town on submit.
+    postalCodeCity: ['', [Validators.required, Validators.pattern(POSTAL_CODE_CITY_PATTERN)]],
     country: ['', Validators.required],
     is_primary: [false],
   });
-
-  // See client-form.ts's own postal code suggestions.
-  private postalCodes: PostalCode[] = [];
-  postalCodeSuggestions = signal<(PostalCode & { label: string })[]>([]);
-
-  ngOnInit(): void {
-    this.postalCodeService.codes$.subscribe({
-      next: codes => this.postalCodes = codes,
-      error: err => console.error('address-form : postal codes', err),
-    });
-  }
-
-  searchPostalCodes(query: string): void {
-    this.postalCodeSuggestions.set(
-      searchPostalCodes(this.postalCodes, query).map(code => ({ ...code, label: `${code.npa} ${code.town}` }))
-    );
-  }
-
-  selectPostalCode(code: PostalCode): void {
-    this.form.patchValue({ postal_code: code.npa, city: code.town });
-  }
 
   cancel(): void {
     this.cancelled.emit();
@@ -76,8 +53,12 @@ export class AddressForm implements OnInit {
     }
 
     this.errorMessage.set(null);
+    const { postalCodeCity, ...address } = this.form.getRawValue();
+    const { postalCode, city } = splitPostalCodeCity(postalCodeCity);
     this.addressService.createAddress({
-      ...this.form.getRawValue(),
+      ...address,
+      postal_code: postalCode,
+      city,
       client_id: this.clientId(),
     }).subscribe({
       next: () => {

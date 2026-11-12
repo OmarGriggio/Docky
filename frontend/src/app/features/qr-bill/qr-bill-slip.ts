@@ -17,6 +17,7 @@ import { Address } from '../../shared/models/address';
 import { clientDisplayName } from '../../shared/utils/display';
 import { qrBillErrorKey } from '../../shared/utils/api-error';
 import { ClientForm, ClientPrefill } from '../clients/client-form/client-form';
+import { PostalCodeCity } from '../../shared/components/postal-code-city/postal-code-city';
 
 // The slip's official size, and the resolution its copied image is drawn at -
 // 300 dpi, enough for the QR code to stay sharp once printed.
@@ -35,7 +36,7 @@ const CSS_PX_PER_MM = 96 / MM_PER_INCH;
 @Component({
   selector: 'app-qr-bill-slip',
   standalone: true,
-  imports: [FormsModule, Card, Select, InputText, InputNumber, FloatLabel, Button, Dialog, ClientForm, TranslocoPipe],
+  imports: [FormsModule, Card, Select, InputText, InputNumber, FloatLabel, Button, Dialog, ClientForm, PostalCodeCity, TranslocoPipe],
   templateUrl: './qr-bill-slip.html',
 })
 export class QrBillSlip implements OnInit {
@@ -101,17 +102,12 @@ export class QrBillSlip implements OnInit {
     });
   }
 
-  // "1950 Sion" - the NPA is the first word when it's all digits, the rest
-  // is the town; otherwise it's all the town.
   openSaveAsClient(): void {
-    const [first, ...rest] = this.postalCodeCity().trim().split(/\s+/);
-    const hasPostalCode = /^\d+$/.test(first ?? '');
     this.clientPrefill.set({
       name: this.name().trim(),
       attention: this.complement().trim(),
       street: this.street().trim(),
-      postal_code: hasPostalCode ? first : '',
-      city: hasPostalCode ? rest.join(' ') : this.postalCodeCity().trim(),
+      postalCodeCity: this.postalCodeCity().trim(),
     });
     this.createClientDialogVisible.set(true);
   }

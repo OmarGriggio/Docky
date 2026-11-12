@@ -16,11 +16,13 @@ import { Address } from '../../../shared/models/address';
 import { AddressForm } from '../../../shared/components/address-form/address-form';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { BreakpointService } from '../../../shared/services/breakpoint.service';
+import { PostalCodeCity } from '../../../shared/components/postal-code-city/postal-code-city';
+import { POSTAL_CODE_CITY_PATTERN, splitPostalCodeCity } from '../../../shared/utils/postal-code-search';
 
 @Component({
   selector: 'app-client-detail',
   standalone: true,
-  imports: [TableModule, Tag, Toolbar, Button, InputText, Dialog, Card, FormsModule, AddressForm, ConfirmDialogComponent, TranslocoPipe],
+  imports: [TableModule, Tag, Toolbar, Button, InputText, Dialog, Card, FormsModule, AddressForm, ConfirmDialogComponent, PostalCodeCity, TranslocoPipe],
   templateUrl: './client-detail.html',
   styleUrl: './client-detail.css'
 })
@@ -67,17 +69,26 @@ export class ClientDetail implements OnInit {
   // onRowEditInit/Save/Cancel: a snapshot per address, keyed by id, taken on
   // init so a cancel (or a failed save) can restore it.
   private clonedAddresses: Record<number, Address> = {};
+  // The row's "NPA et ville" while it's edited ("1950 Sion"), split back
+  // into the address's NPA and town on save.
+  postalCodeCityDrafts: Record<number, string> = {};
 
   onRowEditInit(address: Address): void {
     this.clonedAddresses[address.id] = { ...address };
+    this.postalCodeCityDrafts[address.id] = `${address.postal_code ?? ''} ${address.city ?? ''}`.trim();
   }
 
   onRowEditSave(address: Address): void {
     // Same required fields as the address form - otherwise the edit is undone.
-    if (![address.street, address.postal_code, address.city, address.country].every(value => value?.trim())) {
+    const postalCodeCity = this.postalCodeCityDrafts[address.id] ?? '';
+    delete this.postalCodeCityDrafts[address.id];
+    if (!POSTAL_CODE_CITY_PATTERN.test(postalCodeCity) || ![address.street, address.country].every(value => value?.trim())) {
       this.onRowEditCancel(address);
       return;
     }
+    const { postalCode, city } = splitPostalCodeCity(postalCodeCity);
+    address.postal_code = postalCode;
+    address.city = city;
     this.addressService.updateAddress(address.id, {
       attention: address.attention,
       street: address.street,
@@ -98,6 +109,7 @@ export class ClientDetail implements OnInit {
   }
 
   onRowEditCancel(address: Address): void {
+    delete this.postalCodeCityDrafts[address.id];
     const original = this.clonedAddresses[address.id];
     if (original) {
       Object.assign(address, original);

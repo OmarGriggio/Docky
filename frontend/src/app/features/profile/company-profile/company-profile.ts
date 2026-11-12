@@ -10,6 +10,8 @@ import { FileUpload, FileUploadHandlerEvent } from 'primeng/fileupload';
 import { CompanyService } from '../company.service';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { AuthService } from '../../auth/auth.service';
+import { PostalCodeCity } from '../../../shared/components/postal-code-city/postal-code-city';
+import { splitPostalCodeCity } from '../../../shared/utils/postal-code-search';
 
 // An early payment discount with no number of days to pay within means
 // nothing - the days are required as soon as there's a rate.
@@ -22,7 +24,7 @@ const earlyPaymentDaysRequired: ValidatorFn = (group: AbstractControl): Validati
 @Component({
   selector: 'app-company-profile',
   standalone: true,
-  imports: [ReactiveFormsModule, InputText, InputNumber, FloatLabel, Button, Card, FileUpload, TranslocoPipe],
+  imports: [ReactiveFormsModule, InputText, InputNumber, FloatLabel, Button, Card, FileUpload, PostalCodeCity, TranslocoPipe],
   templateUrl: './company-profile.html',
   styleUrl: './company-profile.css',
 })
@@ -45,8 +47,9 @@ export class CompanyProfile implements OnInit {
     phone: [''],
     iban: [''],
     street: [''],
-    postal_code: [''],
-    city: [''],
+    // "1950 Sion" - one field, stored as the company's NPA and town (joined
+    // on load, split on save). Optional, like the rest of the address.
+    postalCodeCity: [''],
     country: [''],
     vat_rate: [8.1, Validators.required],
     vat_number: [''],
@@ -131,8 +134,7 @@ export class CompanyProfile implements OnInit {
           phone: company.phone ?? '',
           iban: company.iban ?? '',
           street: company.street ?? '',
-          postal_code: company.postal_code ?? '',
-          city: company.city ?? '',
+          postalCodeCity: `${company.postal_code ?? ''} ${company.city ?? ''}`.trim(),
           country: company.country ?? '',
           vat_rate: company.vat_rate,
           vat_number: company.vat_number ?? '',
@@ -173,9 +175,12 @@ export class CompanyProfile implements OnInit {
     this.successMessage.set(null);
     this.errorMessage.set(null);
 
-    const value = this.form.getRawValue();
+    const { postalCodeCity, ...value } = this.form.getRawValue();
+    const { postalCode, city } = splitPostalCodeCity(postalCodeCity);
     this.companyService.updateCompany(this.companyId, {
       ...value,
+      postal_code: postalCode,
+      city,
       // An emptied number field comes back null - stored as "none" (0).
       early_payment_discount: value.early_payment_discount ?? 0,
       early_payment_min_amount: value.early_payment_min_amount ?? 0,

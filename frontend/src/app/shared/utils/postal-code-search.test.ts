@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { PostalCode, searchPostalCodes } from './postal-code-search';
+import { POSTAL_CODE_CITY_PATTERN, PostalCode, searchPostalCodes, splitPostalCodeCity } from './postal-code-search';
 
 const codes: PostalCode[] = [
   { npa: '1950', town: 'Savièse' },
@@ -35,5 +35,25 @@ describe('searchPostalCodes', () => {
   it('suggests nothing for an empty query, and stops at the limit', () => {
     expect(searchPostalCodes(codes, '  ')).toEqual([]);
     expect(searchPostalCodes(codes, '1', 2)).toHaveLength(2);
+  });
+});
+
+describe('splitPostalCodeCity', () => {
+  it('splits the leading NPA from the town', () => {
+    expect(splitPostalCodeCity(' 1950  Sion ')).toEqual({ postalCode: '1950', city: 'Sion' });
+    expect(splitPostalCodeCity('1700 Fribourg / Freiburg')).toEqual({ postalCode: '1700', city: 'Fribourg / Freiburg' });
+  });
+
+  it('keeps it all as the town without a leading NPA', () => {
+    expect(splitPostalCodeCity('Sion')).toEqual({ postalCode: '', city: 'Sion' });
+    expect(splitPostalCodeCity('1950')).toEqual({ postalCode: '', city: '1950' });
+  });
+});
+
+describe('POSTAL_CODE_CITY_PATTERN', () => {
+  it('needs both an NPA and a town', () => {
+    expect(POSTAL_CODE_CITY_PATTERN.test('1950 Sion')).toBe(true);
+    expect(POSTAL_CODE_CITY_PATTERN.test('Sion')).toBe(false);
+    expect(POSTAL_CODE_CITY_PATTERN.test('1950')).toBe(false);
   });
 });

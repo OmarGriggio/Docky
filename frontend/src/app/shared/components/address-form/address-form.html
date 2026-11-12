@@ -9,25 +9,10 @@
     <label for="street">{{ 'clients.detail.addressStreet' | transloco }} *</label>
   </p-floatlabel>
 
-  <!-- Same NPA suggestions as client-form.html's own address fields. -->
+  <!-- NPA and town in one field, like client-form.html's own address. -->
   <p-floatlabel variant="on">
-    <p-autocomplete
-      inputId="postal_code"
-      formControlName="postal_code"
-      [suggestions]="postalCodeSuggestions()"
-      (completeMethod)="searchPostalCodes($event.query)"
-      (onSelect)="selectPostalCode($event.value)"
-      optionLabel="label"
-      [delay]="0"
-      [fluid]="true"
-      appendTo="body"
-    />
-    <label for="postal_code">{{ 'clients.detail.addressPostalCode' | transloco }} *</label>
-  </p-floatlabel>
-
-  <p-floatlabel variant="on">
-    <input pInputText id="city" formControlName="city" />
-    <label for="city">{{ 'clients.detail.addressCity' | transloco }} *</label>
+    <app-postal-code-city inputId="postal_code_city" formControlName="postalCodeCity" [invalid]="form.controls.postalCodeCity.invalid && form.controls.postalCodeCity.dirty" />
+    <label for="postal_code_city">{{ 'clients.form.postalCodeCity' | transloco }} *</label>
   </p-floatlabel>
 
   <p-floatlabel variant="on">

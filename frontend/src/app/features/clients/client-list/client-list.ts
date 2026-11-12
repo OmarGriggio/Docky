@@ -25,6 +25,8 @@ import { Document } from '../../../shared/models/document';
 import { AppDatePipe } from '../../../shared/pipes/app-date.pipe';
 import { PricePipe } from '../../../shared/pipes/price.pipe';
 import { BreakpointService } from '../../../shared/services/breakpoint.service';
+import { PostalCodeCity } from '../../../shared/components/postal-code-city/postal-code-city';
+import { splitPostalCodeCity } from '../../../shared/utils/postal-code-search';
 
 // Stable shared reference for "no documents yet" - see document-list.ts's
 // own EMPTY_LINES for why (a freshly-allocated [] on every template check
@@ -34,7 +36,7 @@ const EMPTY_DOCUMENTS: Document[] = [];
 @Component({
   selector: 'app-client-list',
   standalone: true,
-  imports: [RouterLink, ListToolbarComponent, TableModule, TagModule, Menu, Button, Dialog, InputText, Select, Tabs, TabList, Tab, FormsModule, AppDatePipe, PricePipe, ClientForm, ConfirmDialogComponent, TranslocoPipe],
+  imports: [RouterLink, ListToolbarComponent, TableModule, TagModule, Menu, Button, Dialog, InputText, Select, Tabs, TabList, Tab, FormsModule, AppDatePipe, PricePipe, ClientForm, ConfirmDialogComponent, PostalCodeCity, TranslocoPipe],
   templateUrl: './client-list.html',
   // Tried ChangeDetectionStrategy.OnPush here as an experiment - reverted.
   // It broke switching directly from one cell's edit mode to another
@@ -226,9 +228,13 @@ export class ClientListComponent implements OnInit {
   // onRowEditInit, so onRowEditCancel (or a failed save) can restore it.
   // Keyed by id, not held on the client object itself.
   private clonedClients: Record<number, ClientListItem> = {};
+  // The row's "NPA et ville" while it's edited ("1950 Sion"), split back
+  // into the address's NPA and town on save.
+  postalCodeCityDrafts: Record<number, string> = {};
 
   onRowEditInit(client: ClientListItem): void {
     this.clonedClients[client.id] = { ...client };
+    this.postalCodeCityDrafts[client.id] = `${client.address_postal_code ?? ''} ${client.address_city ?? ''}`.trim();
   }
 
   // Sends the client's full editable field set (not just whatever changed),
@@ -240,6 +246,13 @@ export class ClientListComponent implements OnInit {
     // or nothing at all (a client without one can be left without one) -
     // otherwise the edit is undone.
     const name = client.type === 'PROFESSIONAL' ? client.company_name : client.last_name;
+    const postalCodeCity = this.postalCodeCityDrafts[client.id] ?? '';
+    delete this.postalCodeCityDrafts[client.id];
+    // A text without a leading NPA leaves the NPA empty - the edit is then
+    // undone below, like any incomplete address.
+    const { postalCode, city } = splitPostalCodeCity(postalCodeCity);
+    client.address_postal_code = postalCode;
+    client.address_city = city;
     const addressFields = [client.address_street, client.address_postal_code, client.address_city];
     const addressFilled = addressFields.every(value => value?.trim());
     const addressEmpty = addressFields.every(value => !value?.trim());
@@ -320,6 +333,7 @@ export class ClientListComponent implements OnInit {
   }
 
   onRowEditCancel(client: ClientListItem): void {
+    delete this.postalCodeCityDrafts[client.id];
     const original = this.clonedClients[client.id];
     if (original) {
       Object.assign(client, original);

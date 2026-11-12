@@ -64,26 +64,11 @@
       <label for="address_street">{{ 'clients.detail.addressStreet' | transloco }} *</label>
     </p-floatlabel>
 
-    <!-- Typing an NPA or a town suggests "NPA Town" from the official
-         directory; picking one fills both. Anything can still be typed. -->
+    <!-- NPA and town in one field: typing either suggests "NPA Town" from
+         the official directory. Anything can still be typed. -->
     <p-floatlabel variant="on">
-      <p-autocomplete
-        inputId="address_postal_code"
-        formControlName="postal_code"
-        [suggestions]="postalCodeSuggestions()"
-        (completeMethod)="searchPostalCodes($event.query)"
-        (onSelect)="selectPostalCode($event.value)"
-        optionLabel="label"
-        [delay]="0"
-        [fluid]="true"
-        appendTo="body"
-      />
-      <label for="address_postal_code">{{ 'clients.detail.addressPostalCode' | transloco }} *</label>
-    </p-floatlabel>
-
-    <p-floatlabel variant="on">
-      <input pInputText id="address_city" formControlName="city" />
-      <label for="address_city">{{ 'clients.detail.addressCity' | transloco }} *</label>
+      <app-postal-code-city inputId="address_postal_code_city" formControlName="postalCodeCity" [invalid]="form.controls.postalCodeCity.invalid && form.controls.postalCodeCity.dirty" />
+      <label for="address_postal_code_city">{{ 'clients.form.postalCodeCity' | transloco }} *</label>
     </p-floatlabel>
   } @else {
     <div class="ui-form__full">

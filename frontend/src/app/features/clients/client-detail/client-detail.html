@@ -74,8 +74,7 @@
         <tr>
           <th>{{ 'clients.detail.addressAttention' | transloco }}</th>
           <th>{{ 'clients.detail.addressStreet' | transloco }}</th>
-          <th>{{ 'clients.detail.addressPostalCode' | transloco }}</th>
-          <th>{{ 'clients.detail.addressCity' | transloco }}</th>
+          <th>{{ 'clients.form.postalCodeCity' | transloco }}</th>
           <th>{{ 'clients.detail.addressCountry' | transloco }}</th>
           <th></th>
           <th></th>
@@ -106,24 +105,14 @@
             </p-cellEditor>
           </td>
 
+          <!-- NPA and town in one field while editing, like the address form. -->
           <td>
             <p-cellEditor>
               <ng-template #input>
-                <input pInputText [(ngModel)]="address.postal_code" [fluid]="true" />
+                <app-postal-code-city [(ngModel)]="postalCodeCityDrafts[address.id]" />
               </ng-template>
               <ng-template #output>
-                {{ address.postal_code }}
-              </ng-template>
-            </p-cellEditor>
-          </td>
-
-          <td>
-            <p-cellEditor>
-              <ng-template #input>
-                <input pInputText [(ngModel)]="address.city" [fluid]="true" />
-              </ng-template>
-              <ng-template #output>
-                {{ address.city }}
+                {{ address.postal_code }} {{ address.city }}
               </ng-template>
             </p-cellEditor>
           </td>

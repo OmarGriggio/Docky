@@ -73,8 +73,7 @@
         <!-- The primary address (or the oldest one) - its other addresses,
              attention and country are edited on the client's own page. -->
         <th>{{ 'clients.detail.addressStreet' | transloco }}</th>
-        <th>{{ 'clients.detail.addressPostalCode' | transloco }}</th>
-        <th>{{ 'clients.detail.addressCity' | transloco }}</th>
+        <th>{{ 'clients.form.postalCodeCity' | transloco }}</th>
         <th>{{ 'clients.columnEmail' | transloco }}</th>
         <th>{{ 'clients.columnPhone' | transloco }}</th>
         <th>{{ 'clients.columnLanguage' | transloco }}</th>
@@ -85,7 +84,7 @@
 
     <ng-template #emptymessage>
       <tr>
-        <td colspan="12" class="text-center text-gray-500">{{ (search().trim() ? 'clients.noSearchResults' : 'clients.noClients') | transloco }}</td>
+        <td colspan="11" class="text-center text-gray-500">{{ (search().trim() ? 'clients.noSearchResults' : 'clients.noClients') | transloco }}</td>
       </tr>
     </ng-template>
 
@@ -150,21 +149,10 @@
         <td>
           <p-cellEditor>
             <ng-template #input>
-              <input pInputText [(ngModel)]="client.address_postal_code" maxlength="20" [fluid]="true" />
+              <app-postal-code-city [(ngModel)]="postalCodeCityDrafts[client.id]" />
             </ng-template>
             <ng-template #output>
-              {{ client.address_postal_code }}
-            </ng-template>
-          </p-cellEditor>
-        </td>
-
-        <td>
-          <p-cellEditor>
-            <ng-template #input>
-              <input pInputText [(ngModel)]="client.address_city" maxlength="100" [fluid]="true" />
-            </ng-template>
-            <ng-template #output>
-              {{ client.address_city }}
+              {{ client.address_postal_code }} {{ client.address_city }}
             </ng-template>
           </p-cellEditor>
         </td>
@@ -225,7 +213,7 @@
         <!-- !-prefixed: overrides PrimeNG's own default cell padding
              (higher-specificity descendant selector on p-table's own td),
              which a plain Tailwind utility class wouldn't win against. -->
-        <td colspan="12" class="p-0!">
+        <td colspan="11" class="p-0!">
           @if (isLoadingDocuments(client)) {
             <p>{{ 'common.loading' | transloco }}</p>
           } @else if (documentsFor(client).length === 0) {

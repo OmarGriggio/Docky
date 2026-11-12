@@ -31,6 +31,7 @@ import { DocumentSections } from './document-sections/document-sections';
 import { DraftSection, nextDraftId, round2, sectionTotal, usedResourceIds } from './document-draft';
 import { matchClientByName } from './document-scan-match';
 import { qrBillErrorKey } from '../../../shared/utils/api-error';
+import { POSTAL_CODE_CITY_PATTERN, splitPostalCodeCity } from '../../../shared/utils/postal-code-search';
 
 // Matches document.service.ts's own isOpenForEditing on the backend -
 // duplicated here purely so the form can hide/disable itself instead of
@@ -99,8 +100,9 @@ export class DocumentForm implements OnInit {
   recipientName = signal('');
   recipientComplement = signal('');
   recipientStreet = signal('');
-  recipientPostalCode = signal('');
-  recipientCity = signal('');
+  // "1950 Sion" - one field, stored as the document's own NPA and town
+  // (joined on load, split on save).
+  recipientPostalCodeCity = signal('');
 
   // Switching between a picked client and a typed-in recipient keeps the
   // chantier this invoice bills ("Facturer") and the lines imported from it:
@@ -116,8 +118,7 @@ export class DocumentForm implements OnInit {
     this.recipientName.set(source.recipient_name ?? '');
     this.recipientComplement.set(source.recipient_complement ?? '');
     this.recipientStreet.set(source.recipient_street ?? '');
-    this.recipientPostalCode.set(source.recipient_postal_code ?? '');
-    this.recipientCity.set(source.recipient_city ?? '');
+    this.recipientPostalCodeCity.set(`${source.recipient_postal_code ?? ''} ${source.recipient_city ?? ''}`.trim());
   }
 
   // Null across the board for a real client - the backend drops them anyway
@@ -125,12 +126,13 @@ export class DocumentForm implements OnInit {
   private recipientForApi(): DocumentRecipient {
     const manual = this.manualRecipient();
     const value = (text: string) => (manual ? text.trim() || null : null);
+    const { postalCode, city } = splitPostalCodeCity(this.recipientPostalCodeCity());
     return {
       recipient_name: value(this.recipientName()),
       recipient_complement: value(this.recipientComplement()),
       recipient_street: value(this.recipientStreet()),
-      recipient_postal_code: value(this.recipientPostalCode()),
-      recipient_city: value(this.recipientCity()),
+      recipient_postal_code: value(postalCode),
+      recipient_city: value(city),
     };
   }
 
@@ -811,7 +813,7 @@ export class DocumentForm implements OnInit {
       return;
     }
 
-    if (this.manualRecipient() && (!this.recipientName().trim() || !this.recipientPostalCode().trim() || !this.recipientCity().trim())) {
+    if (this.manualRecipient() && (!this.recipientName().trim() || !POSTAL_CODE_CITY_PATTERN.test(this.recipientPostalCodeCity()))) {
       this.showRequired.set(true);
       this.errorMessage.set(this.transloco.translate('documents.form.recipientRequired'));
       return;

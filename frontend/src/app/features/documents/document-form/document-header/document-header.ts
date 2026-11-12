@@ -15,6 +15,8 @@ import { Address } from '../../../../shared/models/address';
 import { Company } from '../../../../shared/models/company';
 import { DocumentType } from '../../../../shared/models/document';
 import { clientDisplayName, addressLabel } from '../../../../shared/utils/display';
+import { PostalCodeCity } from '../../../../shared/components/postal-code-city/postal-code-city';
+import { POSTAL_CODE_CITY_PATTERN } from '../../../../shared/utils/postal-code-search';
 
 // The top of the document form: the company's own block, the page title,
 // date/due date/number, then the client column (client, its billing
@@ -26,7 +28,7 @@ import { clientDisplayName, addressLabel } from '../../../../shared/utils/displa
 @Component({
   selector: 'app-document-header',
   standalone: true,
-  imports: [FormsModule, InputText, FloatLabel, Select, DatePicker, Button, Dialog, SelectButton, ClientForm, TranslocoPipe],
+  imports: [FormsModule, InputText, FloatLabel, Select, DatePicker, Button, Dialog, SelectButton, ClientForm, PostalCodeCity, TranslocoPipe],
   templateUrl: './document-header.html',
   host: { class: 'block' },
 })
@@ -74,8 +76,9 @@ export class DocumentHeader {
   recipientName = model('');
   recipientComplement = model('');
   recipientStreet = model('');
-  recipientPostalCode = model('');
-  recipientCity = model('');
+  // "1950 Sion" - see document-form.ts.
+  recipientPostalCodeCity = model('');
+  readonly postalCodeCityPattern = POSTAL_CODE_CITY_PATTERN;
 
   // Rebuilt on every read (not cached) so the labels follow a language switch.
   recipientModeOptions = computed(() => {

@@ -6,27 +6,25 @@ import { Textarea } from 'primeng/textarea';
 import { FloatLabel } from 'primeng/floatlabel';
 import { SelectButton } from 'primeng/selectbutton';
 import { Select } from 'primeng/select';
-import { AutoComplete } from 'primeng/autocomplete';
 import { Button } from 'primeng/button';
 import { TranslocoPipe, TranslocoService, translateSignal } from '@jsverse/transloco';
 import { ClientService } from '../client.service';
 import { Client, ClientType } from '../../../shared/models/client';
 import { TabIndentDirective } from '../../../shared/directives/tab-indent.directive';
-import { PostalCodeService } from '../../../shared/services/postal-code.service';
-import { PostalCode, searchPostalCodes } from '../../../shared/utils/postal-code-search';
+import { POSTAL_CODE_CITY_PATTERN, splitPostalCodeCity } from '../../../shared/utils/postal-code-search';
+import { PostalCodeCity } from '../../../shared/components/postal-code-city/postal-code-city';
 
 export interface ClientPrefill {
   name: string;
   attention: string;
   street: string;
-  postal_code: string;
-  city: string;
+  postalCodeCity: string;
 }
 
 @Component({
   selector: 'app-client-form',
   standalone: true,
-  imports: [ReactiveFormsModule, InputText, Textarea, FloatLabel, SelectButton, Select, AutoComplete, Button, TabIndentDirective, TranslocoPipe],
+  imports: [ReactiveFormsModule, InputText, Textarea, FloatLabel, SelectButton, Select, PostalCodeCity, Button, TabIndentDirective, TranslocoPipe],
   templateUrl: './client-form.html',
   styleUrl: './client-form.css',
 })
@@ -35,7 +33,6 @@ export class ClientForm implements OnInit {
   private fb = inject(FormBuilder);
   private clientService = inject(ClientService);
   private transloco = inject(TranslocoService);
-  private postalCodeService = inject(PostalCodeService);
 
   // When set (see "Dupliquer" in client-list.ts), pre-fills the form with an
   // existing client's data - everything except `client_number`, which is
@@ -65,19 +62,14 @@ export class ClientForm implements OnInit {
     note: [''],
     attention: [''],
     street: [''],
-    postal_code: [''],
-    city: [''],
+    // "1950 Sion" - one field, split into the address's NPA and town on
+    // submit (splitPostalCodeCity).
+    postalCodeCity: [''],
   });
 
   // "Ajouter une adresse" - the address fields are only shown, and required,
   // once asked for.
   showAddress = signal(false);
-  private readonly addressRequiredFields = ['street', 'postal_code', 'city'] as const;
-
-  // Loaded the first time the address fields are shown - see
-  // PostalCodeService. Until then (or if it fails) the NPA is just typed.
-  private postalCodes: PostalCode[] = [];
-  postalCodeSuggestions = signal<(PostalCode & { label: string })[]>([]);
 
   private individualLabel = translateSignal('clients.individual');
   private professionalLabel = translateSignal('clients.professional');
@@ -127,19 +119,13 @@ export class ClientForm implements OnInit {
 
   toggleAddress(show: boolean): void {
     this.showAddress.set(show);
-    if (show && this.postalCodes.length === 0) {
-      this.postalCodeService.codes$.subscribe({
-        next: codes => this.postalCodes = codes,
-        error: err => console.error('client-form : postal codes', err),
-      });
-    }
-    for (const field of this.addressRequiredFields) {
-      const control = this.form.controls[field];
-      control.setValidators(show ? Validators.required : null);
-      control.updateValueAndValidity();
-    }
+    const { street, postalCodeCity } = this.form.controls;
+    street.setValidators(show ? Validators.required : null);
+    postalCodeCity.setValidators(show ? [Validators.required, Validators.pattern(POSTAL_CODE_CITY_PATTERN)] : null);
+    street.updateValueAndValidity();
+    postalCodeCity.updateValueAndValidity();
     if (!show) {
-      this.form.patchValue({ attention: '', street: '', postal_code: '', city: '' });
+      this.form.patchValue({ attention: '', street: '', postalCodeCity: '' });
     }
   }
 
@@ -163,28 +149,15 @@ export class ClientForm implements OnInit {
     const prefill = this.prefill();
     if (prefill) {
       this.form.patchValue(this.isProfessional ? { company_name: prefill.name } : { last_name: prefill.name });
-      if (prefill.attention || prefill.street || prefill.postal_code || prefill.city) {
+      if (prefill.attention || prefill.street || prefill.postalCodeCity) {
         this.toggleAddress(true);
         this.form.patchValue({
           attention: prefill.attention,
           street: prefill.street,
-          postal_code: prefill.postal_code,
-          city: prefill.city,
+          postalCodeCity: prefill.postalCodeCity,
         });
       }
     }
-  }
-
-  searchPostalCodes(query: string): void {
-    this.postalCodeSuggestions.set(
-      searchPostalCodes(this.postalCodes, query).map(code => ({ ...code, label: `${code.npa} ${code.town}` }))
-    );
-  }
-
-  // The autocomplete has just put the whole suggestion in the control - put
-  // the NPA alone back, and the town in its own field.
-  selectPostalCode(code: PostalCode): void {
-    this.form.patchValue({ postal_code: code.npa, city: code.town });
   }
 
   cancel(): void {
@@ -201,15 +174,16 @@ export class ClientForm implements OnInit {
 
     this.errorMessage.set(null);
 
-    const { isProfessional, attention, street, postal_code, city, ...client } = this.form.getRawValue();
+    const { isProfessional, attention, street, postalCodeCity, ...client } = this.form.getRawValue();
+    const { postalCode, city } = splitPostalCodeCity(postalCodeCity);
     // Only Swiss addresses for now - the country isn't asked, just set
     // (in the UI language; both spellings map for the QR-bill).
     const address = this.showAddress()
       ? {
           attention: attention.trim() || null,
           street: street.trim(),
-          postal_code: postal_code.trim(),
-          city: city.trim(),
+          postal_code: postalCode,
+          city,
           country: this.transloco.translate('clients.form.defaultCountry'),
         }
       : null;
