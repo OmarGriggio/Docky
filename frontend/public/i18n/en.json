@@ -285,7 +285,8 @@
       "recipientName": "Name",
       "recipientComplement": "Address complement",
       "recipientStreet": "Street and building number",
-      "recipientPostalCodeCity": "Postcode and town"
+      "recipientPostalCodeCity": "Postcode and town",
+      "frozenAddress": "Address frozen when sent - the one printed on the PDF."
     },
     "textBlock": {
       "placeholdersHint": "Variables:",

@@ -24,6 +24,7 @@ import { PostalCode, searchPostalCodes } from '../../utils/postal-code-search';
       (onSelect)="pick($event.value)"
       optionLabel="label"
       [delay]="0"
+      [maxlength]="maxlength() ?? null"
       [size]="size()"
       [invalid]="invalid()"
       [disabled]="disabled()"
@@ -40,6 +41,7 @@ export class PostalCodeCity implements ControlValueAccessor, OnInit {
   inputId = input<string | undefined>(undefined);
   invalid = input(false);
   size = input<'small' | 'large' | undefined>(undefined);
+  maxlength = input<number | undefined>(undefined);
 
   value = signal('');
   disabled = signal(false);

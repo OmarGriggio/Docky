@@ -285,7 +285,8 @@
       "recipientName": "Nom",
       "recipientComplement": "Complément",
       "recipientStreet": "Rue et n° du bâtiment",
-      "recipientPostalCodeCity": "NPA et ville"
+      "recipientPostalCodeCity": "NPA et ville",
+      "frozenAddress": "Adresse figée à l'envoi - celle imprimée sur le PDF."
     },
     "textBlock": {
       "placeholdersHint": "Variables :",

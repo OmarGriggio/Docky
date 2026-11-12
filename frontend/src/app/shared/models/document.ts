@@ -43,6 +43,19 @@ export interface Document {
   recipient_street: string | null;
   recipient_postal_code: string | null;
   recipient_city: string | null;
+  // The client's name and address this document was sent to - frozen once it
+  // left DRAFT (backend billed-address.ts), what its PDF prints from then on.
+  // Null for a draft.
+  billed_address?: BilledAddress | null;
+}
+
+export interface BilledAddress {
+  name: string;
+  street: string;
+  postal_code: string;
+  city: string;
+  country: string | null;
+  location: string | null;
 }
 
 export type DocumentRecipient = Pick<

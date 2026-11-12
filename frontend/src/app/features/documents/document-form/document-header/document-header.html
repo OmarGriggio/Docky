@@ -73,7 +73,7 @@
         <label for="recipient_street">{{ 'documents.header.recipientStreet' | transloco }}</label>
       </p-floatlabel>
       <p-floatlabel variant="on" class="w-full">
-        <app-postal-code-city inputId="recipient_postal_code_city" size="small" [invalid]="showRequired() && !postalCodeCityPattern.test(recipientPostalCodeCity())" [ngModel]="recipientPostalCodeCity()" (ngModelChange)="recipientPostalCodeCity.set($event)" [disabled]="locked()" />
+        <app-postal-code-city inputId="recipient_postal_code_city" size="small" [maxlength]="52" [invalid]="showRequired() && !postalCodeCityPattern.test(recipientPostalCodeCity())" [ngModel]="recipientPostalCodeCity()" (ngModelChange)="recipientPostalCodeCity.set($event)" [disabled]="locked()" />
         <label for="recipient_postal_code_city">{{ 'documents.header.recipientPostalCodeCity' | transloco }} *</label>
       </p-floatlabel>
     } @else {
@@ -103,7 +103,14 @@
       <label for="client_id">{{ 'projects.columnClient' | transloco }} *</label>
     </p-floatlabel>
 
-    @if (selectedClientAddress(); as address) {
+    @if (billedAddress(); as billed) {
+      <div class="text-[0.9rem] text-[#555] px-3">
+        {{ billed.street }}<br />
+        {{ billed.postal_code }} {{ billed.city }}<br />
+        {{ billed.country }}
+        <div class="mt-1 text-xs text-gray-500 italic">{{ 'documents.header.frozenAddress' | transloco }}</div>
+      </div>
+    } @else if (selectedClientAddress(); as address) {
       <div class="text-[0.9rem] text-[#555] px-3">
         @if (address.attention) {
           {{ address.attention }}<br />

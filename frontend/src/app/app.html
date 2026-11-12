@@ -9,7 +9,8 @@
 </div>
 <app-demo-banner />
 <!-- NotificationService's messages. @defer: the toast's own code stays out of
-     the initial bundle - nothing is shown before the app is idle anyway. -->
-@defer (on idle) {
+     the initial bundle, loaded right after the first render (not on idle - a
+     message sent before it's there would be lost). -->
+@defer (on immediate) {
   <p-toast position="top-right" [breakpoints]="{ '767px': { width: 'calc(100% - 2rem)', left: '1rem', right: '1rem' } }" />
 }

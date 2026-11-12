@@ -17,6 +17,7 @@ import { DocumentType } from '../../../../shared/models/document';
 import { clientDisplayName, addressLabel } from '../../../../shared/utils/display';
 import { PostalCodeCity } from '../../../../shared/components/postal-code-city/postal-code-city';
 import { POSTAL_CODE_CITY_PATTERN } from '../../../../shared/utils/postal-code-search';
+import { BilledAddress } from '../../../../shared/models/document';
 
 // The top of the document form: the company's own block, the page title,
 // date/due date/number, then the client column (client, its billing
@@ -59,6 +60,9 @@ export class DocumentHeader {
   // chantier's own resource ledger belongs to, freely pickable among the
   // same list.
   addresses = input<Address[]>([]);
+  // A sent document's frozen address (see document-form.ts) - shown instead
+  // of the client's current one, it's what the PDF prints.
+  billedAddress = input<BilledAddress | null>(null);
 
   // Not two-way: the form recomputes the due date when this one changes, so
   // it handles the change itself (see document-form.ts's onDateChange).

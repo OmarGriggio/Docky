@@ -23,7 +23,7 @@ import { Client } from '../../../shared/models/client';
 import { Address } from '../../../shared/models/address';
 import { Project } from '../../../shared/models/project';
 import { Company } from '../../../shared/models/company';
-import { DocumentContentSection, DocumentRecipient, DocumentStatus, DocumentType } from '../../../shared/models/document';
+import { DocumentContentSection, DocumentRecipient, DocumentStatus, DocumentType, BilledAddress } from '../../../shared/models/document';
 import { DocumentComplete } from '../../../shared/models/document-complete';
 import { addDays, fromDateOnly, toDateOnly, fillPlaceholders, formatLongDate, DEFAULT_CLIENT_TITLE } from '../../../shared/utils/display';
 import { DocumentHeader } from './document-header/document-header';
@@ -106,6 +106,9 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
   // "1950 Sion" - one field, stored as the document's own NPA and town
   // (joined on load, split on save).
   recipientPostalCodeCity = signal('');
+  // What a sent document is frozen with (see shared/models/document.ts) -
+  // shown in the header instead of the client's current address.
+  billedAddress = signal<BilledAddress | null>(null);
 
   // Switching between a picked client and a typed-in recipient keeps the
   // chantier this invoice bills ("Facturer") and the lines imported from it:
@@ -649,6 +652,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
 
         this.onClientChange(source.client_id, source.address_id);
         this.applyRecipient(source);
+        this.billedAddress.set(source.billed_address ?? null);
 
         this.introduction.set(source.introduction ?? '');
         this.conclusion.set(source.conclusion ?? '');

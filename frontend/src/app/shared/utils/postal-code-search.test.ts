@@ -46,7 +46,10 @@ describe('splitPostalCodeCity', () => {
 
   it('keeps it all as the town without a leading NPA', () => {
     expect(splitPostalCodeCity('Sion')).toEqual({ postalCode: '', city: 'Sion' });
-    expect(splitPostalCodeCity('1950')).toEqual({ postalCode: '', city: '1950' });
+  });
+
+  it('keeps a number alone as the NPA', () => {
+    expect(splitPostalCodeCity(' 1950 ')).toEqual({ postalCode: '1950', city: '' });
   });
 });
 

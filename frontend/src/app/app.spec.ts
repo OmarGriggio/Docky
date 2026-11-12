@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TranslocoTestingModule } from '@jsverse/transloco';
+import { MessageService } from 'primeng/api';
 import { App } from './app';
 
 describe('App', () => {
@@ -23,6 +24,8 @@ describe('App', () => {
         // object, no HTTP involved, same "no HTTP, nothing async" spirit as
         // the rest of this project's tests.
         importProvidersFrom(TranslocoTestingModule.forRoot({ langs: { fr: {} } })),
+        // The app-wide <p-toast> (app.html), provided by app.config.ts.
+        MessageService,
       ],
     }).compileComponents();
   });
