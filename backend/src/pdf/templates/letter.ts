@@ -43,17 +43,17 @@ export const drawLogoTopRight = async (pdf: PdfWriter, logoBytes: Buffer, topY: 
     return y;
 };
 
-/** Draws the company's document header image (already embedded - once per PDF, drawn on every page of an invoice or quote, see business-letter.ts) at the top of the page, sized to fit within the default top margin (never taller than it), centered horizontally - an absolute position, entirely independent of the flowing cursor. `topGap`: points left free above it, the page's top edge being otherwise flush against it. */
-export const placeHeaderImage = (pdf: PdfWriter, image: PDFImage, topGap = 0) => {
-    const margin = pdf.marginValue();
-    const maxWidth = pdf.pageWidth() - margin * 2;
-    const scale = Math.min(maxWidth / image.width, margin / image.height, 1);
+/** Draws the company's document header image (already embedded - once per PDF, drawn on every page of an invoice or quote, see business-letter.ts) at the top of the page, scaled down to fit the page's width between its margins and `maxHeight` (never enlarged), centered horizontally - an absolute position, entirely independent of the flowing cursor. `topGap`: points left free above it, the page's top edge being otherwise flush against it. Returns the height it was drawn at. */
+export const placeHeaderImage = (pdf: PdfWriter, image: PDFImage, topGap: number, maxHeight: number): number => {
+    const maxWidth = pdf.pageWidth() - pdf.marginValue() * 2;
+    const scale = Math.min(maxWidth / image.width, maxHeight / image.height, 1);
     const width = image.width * scale;
     const height = image.height * scale;
     const x = (pdf.pageWidth() - width) / 2;
     const y = pdf.pageHeight() - topGap - height;
 
     pdf.drawImage(image, x, y, width, height, IMAGE_OPACITY);
+    return height;
 };
 
 // Company address (left) and logo (right), side by side - drawn

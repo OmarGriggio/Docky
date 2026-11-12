@@ -65,10 +65,14 @@ const LABEL_MAX_WIDTH = RATE_RIGHT - 50 - 60;
 const ROW = 18;
 const GRAY = { r: 0.35, g: 0.35, b: 0.35 };
 
-// The header image sits a little below the page's top edge, and the content
-// starts a little below it.
+// The header image sits a little below the page's top edge, at most 2.5 cm
+// tall, and the content starts the same distance below it whatever its
+// height - an image under 1 cm still leaves the room of a 1 cm one.
+const CM = 72 / 2.54;
 const HEADER_TOP_GAP = 14;
-const HEADER_GAP = 25;
+const HEADER_MAX_HEIGHT = 2.5 * CM;
+const HEADER_MIN_ROOM = 1 * CM;
+const HEADER_GAP = 33;
 // The footer's rule sits at y=48 - flowing text keeps a little air above it,
 // and the bottom block sits right above that.
 const FOOTER_TOP = 64;
@@ -79,8 +83,8 @@ export const setUpLetterPages = (pdf: PdfWriter, headerImage: PDFImage | null) =
     pdf.setBottomLimit(FOOTER_TOP);
     pdf.setPageDecorator(() => {
         if (headerImage) {
-            placeHeaderImage(pdf, headerImage, HEADER_TOP_GAP);
-            pdf.moveDown(HEADER_GAP);
+            const height = placeHeaderImage(pdf, headerImage, HEADER_TOP_GAP, HEADER_MAX_HEIGHT);
+            pdf.lowerCursorTo(pdf.pageHeight() - HEADER_TOP_GAP - Math.max(height, HEADER_MIN_ROOM) - HEADER_GAP);
         }
     });
 };
