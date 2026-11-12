@@ -2,6 +2,10 @@ import { pingDatabaseInDB } from "./health.repository";
 import { pingStorageServ } from "../../shared/storage/storage.service";
 import { CheckStatus, HealthReport } from "./health.types";
 
+// npm sets it from package.json for every script it runs - "npm start" in
+// production, "npm run dev" locally, the test runners too.
+const APP_VERSION = process.env.npm_package_version ?? "unknown";
+
 // A dependency slower than this counts as down: a monitor waiting on a hung
 // connection would otherwise time out itself and report nothing useful.
 const CHECK_TIMEOUT_MS = 3000;
@@ -33,7 +37,7 @@ let inFlight: Promise<HealthReport> | null = null;
 
 const runChecks = async (): Promise<HealthReport> => {
   const [database, storage] = await Promise.all([check(pingDatabaseInDB), check(pingStorageServ)]);
-  return { status: database === "ok" && storage === "ok" ? "ok" : "error", database, storage };
+  return { status: database === "ok" && storage === "ok" ? "ok" : "error", database, storage, version: APP_VERSION };
 };
 
 // Whether the API can actually serve requests, not just whether the process
