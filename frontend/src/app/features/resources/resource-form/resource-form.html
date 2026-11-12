@@ -19,7 +19,7 @@
   </p-floatlabel>
 
   <p-floatlabel variant="on">
-    <input pInputText id="unit" formControlName="unit" />
+    <app-unit-select inputId="unit" formControlName="unit" [invalid]="form.controls.unit.invalid && form.controls.unit.dirty" />
     <label for="unit">{{ 'resources.columnUnit' | transloco }} *</label>
   </p-floatlabel>
 

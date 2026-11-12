@@ -9,11 +9,12 @@ import { Button } from 'primeng/button';
 import { TranslocoPipe, TranslocoService, translateSignal } from '@jsverse/transloco';
 import { ResourceService } from '../resource.service';
 import { Resource, ResourceType } from '../../../shared/models/resource';
+import { UnitSelect } from '../unit-select/unit-select';
 
 @Component({
   selector: 'app-resource-form',
   standalone: true,
-  imports: [ReactiveFormsModule, InputText, InputNumber, FloatLabel, SelectButton, Button, TranslocoPipe],
+  imports: [ReactiveFormsModule, InputText, InputNumber, FloatLabel, SelectButton, Button, UnitSelect, TranslocoPipe],
   templateUrl: './resource-form.html',
 })
 export class ResourceForm implements OnInit {

@@ -13,6 +13,7 @@ import { ResourceService } from '../resource.service';
 import { Resource, ResourceType } from '../../../shared/models/resource';
 import { PricePipe } from '../../../shared/pipes/price.pipe';
 import { formatPrice, matchesSearch } from '../../../shared/utils/display';
+import { UnitSelect } from '../unit-select/unit-select';
 import { ResourceForm } from '../resource-form/resource-form';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { ListToolbarComponent } from '../../../shared/components/list-toolbar/list-toolbar';
@@ -21,7 +22,7 @@ import { BreakpointService } from '../../../shared/services/breakpoint.service';
 @Component({
   selector: 'app-resource-list',
   standalone: true,
-  imports: [ListToolbarComponent, TableModule, InputText, InputNumber, Menu, Button, Dialog, FormsModule, PricePipe, ResourceForm, ConfirmDialogComponent, TranslocoPipe],
+  imports: [ListToolbarComponent, TableModule, InputText, InputNumber, Menu, Button, Dialog, FormsModule, PricePipe, ResourceForm, UnitSelect, ConfirmDialogComponent, TranslocoPipe],
   templateUrl: './resource-list.html'
 })
 export class ResourceListComponent implements OnInit {

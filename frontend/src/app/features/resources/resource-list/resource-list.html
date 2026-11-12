@@ -90,7 +90,7 @@
         <td>
           <p-cellEditor>
             <ng-template #input>
-              <input pInputText [(ngModel)]="item.unit" [fluid]="true" />
+              <app-unit-select [(ngModel)]="item.unit" />
             </ng-template>
             <ng-template #output>
               {{ item.unit }}
