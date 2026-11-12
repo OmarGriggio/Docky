@@ -135,40 +135,12 @@
                   />
                 </td>
                 <td class="py-[0.3rem] px-[0.2rem] align-middle">
-                  <p-select
+                  <app-unit-select
                     size="small"
-                    [fluid]="true"
-                    [options]="unitOptions()"
-                    optionLabel="label"
-                    optionValue="value"
                     [ngModel]="line.unit"
                     (ngModelChange)="updateLine(section.id, line.id, { unit: $event })"
                     [disabled]="locked()"
-                    appendTo="body"
-                  >
-                    <ng-template #item let-option>
-                      <div class="flex items-center justify-between w-full gap-3">
-                        <span>{{ option.label }}</span>
-                        @if (option.unitId !== null) {
-                          <i class="pi pi-times text-[0.65rem] text-gray-400 hover:text-red-600 cursor-pointer" [title]="'documents.sections.removeUnitTooltip' | transloco" (click)="archiveUnit(option.unitId, $event)"></i>
-                        }
-                      </div>
-                    </ng-template>
-                    <ng-template #footer>
-                      <div class="flex gap-2 p-2 border-t border-surface-200">
-                        <input
-                          pInputText size="small" [fluid]="true"
-                          [placeholder]="'documents.sections.newUnitPlaceholder' | transloco"
-                          #newUnitInput
-                          (keydown.enter)="addUnit(newUnitInput.value, u => updateLine(section.id, line.id, { unit: u })); newUnitInput.value = ''"
-                        />
-                        <p-button
-                          type="button" icon="pi pi-plus" size="small"
-                          (onClick)="addUnit(newUnitInput.value, u => updateLine(section.id, line.id, { unit: u })); newUnitInput.value = ''"
-                        />
-                      </div>
-                    </ng-template>
-                  </p-select>
+                  />
                 </td>
                 <td class="py-[0.3rem] px-[0.2rem] align-middle">
                   <p-inputnumber
@@ -236,40 +208,12 @@
                 />
               </td>
               <td class="py-[0.3rem] px-[0.2rem] align-middle">
-                <p-select
+                <app-unit-select
                   size="small"
-                  [fluid]="true"
-                  [options]="unitOptions()"
-                  optionLabel="label"
-                  optionValue="value"
                   [placeholder]="'resources.columnUnit' | transloco"
                   [ngModel]="draft.unit"
                   (ngModelChange)="draft.unit = $event"
-                  appendTo="body"
-                >
-                  <ng-template #item let-option>
-                    <div class="flex items-center justify-between w-full gap-3">
-                      <span>{{ option.label }}</span>
-                      @if (option.unitId !== null) {
-                        <i class="pi pi-times text-[0.65rem] text-gray-400 hover:text-red-600 cursor-pointer" [title]="'documents.sections.removeUnitTooltip' | transloco" (click)="archiveUnit(option.unitId, $event)"></i>
-                      }
-                    </div>
-                  </ng-template>
-                  <ng-template #footer>
-                    <div class="flex gap-2 p-2 border-t border-surface-200">
-                      <input
-                        pInputText size="small" [fluid]="true"
-                        [placeholder]="'documents.sections.newUnitPlaceholder' | transloco"
-                        #newUnitInput
-                        (keydown.enter)="addUnit(newUnitInput.value, u => draft.unit = u); newUnitInput.value = ''"
-                      />
-                      <p-button
-                        type="button" icon="pi pi-plus" size="small"
-                        (onClick)="addUnit(newUnitInput.value, u => draft.unit = u); newUnitInput.value = ''"
-                      />
-                    </div>
-                  </ng-template>
-                </p-select>
+                />
               </td>
               <td class="py-[0.3rem] px-[0.2rem] align-middle">
                 <p-inputnumber

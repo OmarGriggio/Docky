@@ -14,6 +14,7 @@ import { Resource, ResourceType } from '../../../shared/models/resource';
 import { PricePipe } from '../../../shared/pipes/price.pipe';
 import { formatPrice, matchesSearch } from '../../../shared/utils/display';
 import { UnitSelect } from '../unit-select/unit-select';
+import { UnitListStore } from '../unit-list.store';
 import { ResourceForm } from '../resource-form/resource-form';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { ListToolbarComponent } from '../../../shared/components/list-toolbar/list-toolbar';
@@ -23,7 +24,8 @@ import { BreakpointService } from '../../../shared/services/breakpoint.service';
   selector: 'app-resource-list',
   standalone: true,
   imports: [ListToolbarComponent, TableModule, InputText, InputNumber, Menu, Button, Dialog, FormsModule, PricePipe, ResourceForm, UnitSelect, ConfirmDialogComponent, TranslocoPipe],
-  templateUrl: './resource-list.html'
+  templateUrl: './resource-list.html',
+  providers: [UnitListStore],
 })
 export class ResourceListComponent implements OnInit {
 

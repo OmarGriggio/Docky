@@ -1,5 +1,7 @@
 <p-select
   [inputId]="inputId()"
+  [size]="size()"
+  [placeholder]="placeholder()"
   [fluid]="true"
   [options]="options()"
   optionLabel="label"
@@ -19,7 +21,7 @@
     </div>
   </ng-template>
   <ng-template #footer>
-    <div class="flex gap-2 p-2 border-t border-surface-200">
+    <div class="flex gap-2 p-2 border-t border-gray-200">
       <input
         pInputText size="small" [fluid]="true"
         [placeholder]="'documents.sections.newUnitPlaceholder' | transloco"

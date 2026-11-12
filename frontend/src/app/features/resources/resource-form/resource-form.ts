@@ -10,12 +10,14 @@ import { TranslocoPipe, TranslocoService, translateSignal } from '@jsverse/trans
 import { ResourceService } from '../resource.service';
 import { Resource, ResourceType } from '../../../shared/models/resource';
 import { UnitSelect } from '../unit-select/unit-select';
+import { UnitListStore } from '../unit-list.store';
 
 @Component({
   selector: 'app-resource-form',
   standalone: true,
   imports: [ReactiveFormsModule, InputText, InputNumber, FloatLabel, SelectButton, Button, UnitSelect, TranslocoPipe],
   templateUrl: './resource-form.html',
+  providers: [UnitListStore],
 })
 export class ResourceForm implements OnInit {
 

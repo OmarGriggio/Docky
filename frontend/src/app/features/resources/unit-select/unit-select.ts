@@ -1,17 +1,18 @@
-import { Component, OnInit, computed, forwardRef, inject, input, signal } from '@angular/core';
+import { Component, computed, forwardRef, inject, input, signal } from '@angular/core';
 import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Select } from 'primeng/select';
 import { InputText } from 'primeng/inputtext';
 import { Button } from 'primeng/button';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { ResourceUnitService } from '../resource-unit.service';
-import { ResourceUnit } from '../../../shared/models/resource-unit';
+import { UnitListStore } from '../unit-list.store';
 
-// A resource's unit, picked from the company's own unit list - the same
-// picker as a document line's (document-sections.html): the "+" footer adds
-// a unit to the list (get-or-create), the cross takes one off it. Works with
-// both formControlName and ngModel. The current value is always an option,
-// even one no longer on the list, so it never shows blank.
+// A unit, picked from the company's own unit list - a resource's (form and
+// list) and a document line's alike: the "+" footer adds a unit to the list
+// (get-or-create), the cross takes one off it (a resource or line already
+// using it keeps it, it's free text there). Works with both formControlName
+// and ngModel. The current value is always an option, even one no longer on
+// the list, so it never shows blank. Needs a UnitListStore provided by the
+// page around it.
 @Component({
   selector: 'app-unit-select',
   standalone: true,
@@ -19,19 +20,20 @@ import { ResourceUnit } from '../../../shared/models/resource-unit';
   templateUrl: './unit-select.html',
   providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => UnitSelect), multi: true }],
 })
-export class UnitSelect implements ControlValueAccessor, OnInit {
+export class UnitSelect implements ControlValueAccessor {
 
-  private resourceUnitService = inject(ResourceUnitService);
+  private store = inject(UnitListStore);
 
   inputId = input<string | undefined>(undefined);
   invalid = input(false);
+  size = input<'small' | 'large' | undefined>(undefined);
+  placeholder = input<string | undefined>(undefined);
 
   value = signal<string | null>(null);
   disabled = signal(false);
-  private units = signal<ResourceUnit[]>([]);
 
   options = computed(() => {
-    const unitIds = new Map(this.units().map(unit => [unit.label, unit.id]));
+    const unitIds = new Map(this.store.units().map(unit => [unit.label, unit.id]));
     const labels = new Set(unitIds.keys());
     const current = this.value();
     if (current) {
@@ -44,13 +46,6 @@ export class UnitSelect implements ControlValueAccessor, OnInit {
 
   private onChange: (value: string | null) => void = () => {};
   private onTouched: () => void = () => {};
-
-  ngOnInit(): void {
-    this.resourceUnitService.getUnits().subscribe({
-      next: data => this.units.set(data),
-      error: err => console.error('unit-select : ' + err)
-    });
-  }
 
   writeValue(value: string | null): void {
     this.value.set(value || null);
@@ -79,11 +74,8 @@ export class UnitSelect implements ControlValueAccessor, OnInit {
     if (!trimmed) {
       return;
     }
-    this.resourceUnitService.createUnit(trimmed).subscribe({
-      next: unit => {
-        this.units.update(units => units.some(u => u.id === unit.id) ? units : [...units, unit]);
-        this.select(unit.label);
-      },
+    this.store.add(trimmed).subscribe({
+      next: unit => this.select(unit.label),
       error: err => console.error('unit-select : ' + err)
     });
   }
@@ -92,8 +84,7 @@ export class UnitSelect implements ControlValueAccessor, OnInit {
   archiveUnit(unitId: number, event: Event): void {
     event.stopPropagation();
     event.preventDefault();
-    this.resourceUnitService.archiveUnit(unitId).subscribe({
-      next: () => this.units.update(units => units.filter(unit => unit.id !== unitId)),
+    this.store.archive(unitId).subscribe({
       error: err => console.error('unit-select : ' + err)
     });
   }

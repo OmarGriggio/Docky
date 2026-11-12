@@ -9,9 +9,9 @@ import { Dialog } from 'primeng/dialog';
 import { TranslocoPipe, TranslocoService, translateSignal } from '@jsverse/transloco';
 import { ResourceForm } from '../../../resources/resource-form/resource-form';
 import { ResourceService } from '../../../resources/resource.service';
-import { ResourceUnitService } from '../../../resources/resource-unit.service';
+import { UnitSelect } from '../../../resources/unit-select/unit-select';
+import { UnitListStore } from '../../../resources/unit-list.store';
 import { Resource } from '../../../../shared/models/resource';
-import { ResourceUnit } from '../../../../shared/models/resource-unit';
 import { DocumentType } from '../../../../shared/models/document';
 import { PricePipe } from '../../../../shared/pipes/price.pipe';
 import { TabIndentDirective } from '../../../../shared/directives/tab-indent.directive';
@@ -21,19 +21,20 @@ import { DraftLine, DraftLineType, DraftSection, lineTotal, nextDraftId, section
 // table of lines with an inline "add a line" row, a catalog picker and the
 // unit picker. `sections` is the form's own state (two-way): everything here
 // edits it in place, the form reads it back to compute totals and to save.
-// The catalog (resources) and the unit list are this component's own - the
-// form doesn't need them.
+// The catalog (resources) is this component's own, and so is the unit list
+// its lines' pickers share (UnitListStore) - the form doesn't need them.
 @Component({
   selector: 'app-document-sections',
   standalone: true,
-  imports: [FormsModule, PricePipe, InputText, InputNumber, Textarea, Select, Button, Dialog, ResourceForm, TabIndentDirective, TranslocoPipe],
+  imports: [FormsModule, PricePipe, InputText, InputNumber, Textarea, Select, Button, Dialog, ResourceForm, UnitSelect, TabIndentDirective, TranslocoPipe],
+  // One unit list for every line's picker (see UnitListStore).
+  providers: [UnitListStore],
   templateUrl: './document-sections.html',
   host: { class: 'block' },
 })
 export class DocumentSections implements OnInit {
 
   private resourceService = inject(ResourceService);
-  private resourceUnitService = inject(ResourceUnitService);
   private transloco = inject(TranslocoService);
 
   sections = model<DraftSection[]>([]);
@@ -55,11 +56,6 @@ export class DocumentSections implements OnInit {
   // both types consistent and doesn't block a correction that ledger
   // didn't anticipate).
   resources = signal<Resource[]>([]);
-
-  // The company's own customizable unit list (see zz_migrations/
-  // 006_create_resource_units.sql) - source for the "unit" picker on every
-  // line (unitOptions/addUnit).
-  private resourceUnits = signal<ResourceUnit[]>([]);
 
   availableCatalogResourceOptions = computed(() => {
     const used = usedResourceIds(this.sections());
@@ -86,10 +82,6 @@ export class DocumentSections implements OnInit {
       error: err => console.error('document-sections : ' + err)
     });
 
-    this.resourceUnitService.getUnits().subscribe({
-      next: data => this.resourceUnits.set(data),
-      error: err => console.error('document-sections : ' + err)
-    });
   }
 
   // Adds a single resource from the company's full catalog as a new line at
@@ -206,78 +198,6 @@ export class DocumentSections implements OnInit {
       sections.map(s => s.id === sectionId ? { ...s, lines: [...s.lines, line] } : s)
     );
     this.newLineDrafts.set(sectionId, this.emptyLine());
-  }
-
-  // Plain method (not a computed signal) since it also has to reflect
-  // newLineDrafts's own mutable Map, which isn't itself reactive - same
-  // reasoning as newLineFor above, re-run on every change-detection pass
-  // instead. Options are every label the company already has, plus
-  // whatever's currently sitting in a line/draft's own unit (covers a
-  // pre-existing free-text value that predates this picker, so it still
-  // shows as selected instead of going blank). Adding a new one is the
-  // select's own footer (see addUnit).
-  // unitId is the resource_units row an option comes from - null for the
-  // ones with none (a label only present because a line/draft uses it), the
-  // ones that don't get the remove cross in the template (see archiveUnit).
-  unitOptions(): { label: string; value: string; unitId: number | null }[] {
-    const labels = new Set<string>();
-    const unitIds = new Map<string, number>();
-    for (const unit of this.resourceUnits()) {
-      labels.add(unit.label);
-      unitIds.set(unit.label, unit.id);
-    }
-    for (const section of this.sections()) {
-      for (const line of section.lines) {
-        if (line.unit) {
-          labels.add(line.unit);
-        }
-      }
-    }
-    for (const draft of this.newLineDrafts.values()) {
-      if (draft.unit) {
-        labels.add(draft.unit);
-      }
-    }
-
-    return Array.from(labels)
-      .sort((a, b) => a.localeCompare(b))
-      .map(label => ({ label, value: label, unitId: unitIds.get(label) ?? null }));
-  }
-
-  // The little cross on a unit option: takes it off the company's list. The
-  // click must not also pick the option (it'd select it in the line that
-  // opened the dropdown), hence stopPropagation. A line already using that
-  // unit keeps it - it's free text there.
-  archiveUnit(unitId: number, event: Event): void {
-    event.stopPropagation();
-    event.preventDefault();
-
-    this.resourceUnitService.archiveUnit(unitId).subscribe({
-      next: () => this.resourceUnits.update(units => units.filter(unit => unit.id !== unitId)),
-      error: err => console.error('document-sections : ' + err)
-    });
-  }
-
-  // The footer of every unit p-select (an input + a "+" button, the same
-  // way project-list.ts adds a chantier type): persists the typed label as a
-  // resource_units row (get-or-create - see resource_unit.service.ts, it
-  // also brings an archived one back) and then applies it to that select's
-  // own line - `apply` is whatever setter that particular select needs
-  // (updateLine's patch for an already-added line, or a plain draft.unit
-  // assignment for the inline add-row).
-  addUnit(label: string, apply: (unit: string) => void): void {
-    const trimmed = label.trim();
-    if (!trimmed) {
-      return;
-    }
-
-    this.resourceUnitService.createUnit(trimmed).subscribe({
-      next: unit => {
-        this.resourceUnits.update(units => units.some(u => u.id === unit.id) ? units : [...units, unit]);
-        apply(unit.label);
-      },
-      error: err => console.error('document-sections : ' + err)
-    });
   }
 
   // Edits an already-added line in place (type/label/quantity/unit/price) -
