@@ -92,6 +92,8 @@ export const createUserService = async (userData: CreateUserData, actor: TokenPa
       early_payment_discount: 0,
       early_payment_days: null,
       early_payment_min_amount: 0,
+      accent_color: null,
+      secondary_color: null,
     });
     return await createUserDB({ ...userData, role: "ADMIN", company_id: company.id, passwordHash });
   });

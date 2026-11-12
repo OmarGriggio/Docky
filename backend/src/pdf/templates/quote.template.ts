@@ -1,12 +1,12 @@
 import { PdfWriter } from "../core/pdf-writer";
 import { QuoteDto } from "./quote.types";
 import { formatLongDate, PDF_LABELS } from "./pdf-labels";
-import { drawBottomBlock, drawConclusion, drawLetterDetails, drawLetterHead, drawPositions, drawTotalsTable } from "./business-letter";
+import { drawConditionsBlock, drawConclusion, drawLetterDetails, drawLetterHead, drawPositions, drawTotalsTable } from "./business-letter";
 
 // The shared invoice/quote layout (business-letter.ts), titled "OFFRE" -
 // what's a quote's own: no early payment discount (nothing to pay yet), the
 // client's "Bon pour accord" date and signature lines after the conclusion,
-// and its validity plus the company's payment terms at the bottom of page 1.
+// and its validity plus the company's payment terms after those.
 // No Swiss QR-bill page either.
 export class QuoteTemplate {
 
@@ -30,7 +30,10 @@ export class QuoteTemplate {
         if (quote.paymentTerms) {
             conditions.push(quote.paymentTerms);
         }
-        drawBottomBlock(pdf, labels.paymentConditions, conditions);
+        drawConditionsBlock(pdf, labels.paymentConditions, conditions, {
+            accent: quote.company.accentColor,
+            secondary: quote.company.secondaryColor,
+        });
     }
 
     // The client's own acceptance, distinct from the company's signature in
@@ -40,7 +43,8 @@ export class QuoteTemplate {
     private static drawApproval(pdf: PdfWriter, quote: QuoteDto) {
         const labels = PDF_LABELS[quote.language];
         pdf.reserve(70);
-        pdf.text(labels.approval, { bold: true, size: 10, marginTop: 10, marginBottom: 22 });
+        const secondary = quote.company.secondaryColor;
+        pdf.text(labels.approval, { bold: true, size: 10, marginTop: 10, marginBottom: 22, ...(secondary ? { color: secondary } : {}) });
 
         const rowY = pdf.remainingHeight();
         const margin = pdf.marginValue();

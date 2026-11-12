@@ -1,6 +1,6 @@
 import { PDFImage } from "pdf-lib";
 import { PdfWriter } from "../core/pdf-writer";
-import { PdfTable } from "../core/pdf-writer.types";
+import { PdfColor, PdfTable } from "../core/pdf-writer.types";
 import { ClientDto, CompanyDto, DocumentSectionDto } from "./document.types";
 import { formatLongDate, PDF_LABELS, PdfLanguage } from "./pdf-labels";
 
@@ -106,18 +106,20 @@ export const drawSectionDetails = (
     heading: string,
     sections: DocumentSectionDto[],
     language: PdfLanguage,
-    { numbered = false, sectionGap = 0 }: { numbered?: boolean; sectionGap?: number } = {}
+    { numbered = false, sectionGap = 0, color = null }: { numbered?: boolean; sectionGap?: number; color?: PdfColor | null } = {}
 ) => {
     const labels = PDF_LABELS[language];
+    // The heading and each section's title in `color`, when given.
+    const titleColor = color ? { color } : {};
 
-    pdf.text(heading, { bold: true, marginBottom: 15 });
+    pdf.text(heading, { bold: true, marginBottom: 15, ...titleColor });
 
     for (const [index, section] of sections.entries()) {
         if (index > 0) {
             pdf.moveDown(sectionGap);
         }
         const title = numbered ? `${labels.position(index + 1)} – ${section.title}` : section.title;
-        pdf.text(title, { bold: true, size: 12, marginTop: 10, marginBottom: section.description ? 2 : 4 });
+        pdf.text(title, { bold: true, size: 12, marginTop: 10, marginBottom: section.description ? 2 : 4, ...titleColor });
         if (section.description) {
             pdf.text(section.description, { size: 10, marginBottom: 4 });
         }

@@ -6,6 +6,7 @@ import { lineTotal, round2 } from "../../../modules/documents/document.calculati
 import { ClientDto, CompanyDto, DocumentSectionDto } from "../document.types";
 import { DocumentRecipient } from "../../../modules/documents/document.types";
 import { LetterDto } from "../business-letter";
+import { parseHexColor } from "../accent-color";
 import { PdfLanguage } from "../pdf-labels";
 import { fillPlaceholders } from "../placeholders";
 import { buildDocumentValues } from "../document.placeholders";
@@ -88,6 +89,8 @@ export const buildLetterDto = (
             website: company.website,
             bankName: company.bank_name,
             bankAccount: company.bank_account,
+            accentColor: parseHexColor(company.accent_color),
+            secondaryColor: parseHexColor(company.secondary_color),
         },
         client: {
             ...buildClientDto(client, document),

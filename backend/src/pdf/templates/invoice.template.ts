@@ -1,12 +1,12 @@
 import { PdfWriter } from "../core/pdf-writer";
 import { InvoiceDto } from "./invoice.types";
 import { formatLongDate, PDF_LABELS } from "./pdf-labels";
-import { drawBottomBlock, drawConclusion, drawLetterDetails, drawLetterHead, drawPositions, drawTotalsTable } from "./business-letter";
+import { drawConditionsBlock, drawConclusion, drawLetterDetails, drawLetterHead, drawPositions, drawTotalsTable } from "./business-letter";
 
 // The shared invoice/quote layout (business-letter.ts), with what's an
 // invoice's own: its Lieu/Bâtiment under the reference, the early payment
-// discount under the total, and the payment conditions at the bottom of
-// page 1. See invoice-pdf-generator.ts for how the pages are stitched
+// discount under the total, and the payment conditions after the
+// conclusion. See invoice-pdf-generator.ts for how the pages are stitched
 // together (and where the Swiss QR-bill lands).
 export class InvoiceTemplate {
 
@@ -30,7 +30,10 @@ export class InvoiceTemplate {
         if (invoice.paymentTerms) {
             conditions.push(invoice.paymentTerms);
         }
-        drawBottomBlock(pdf, labels.paymentConditions, conditions);
+        drawConditionsBlock(pdf, labels.paymentConditions, conditions, {
+            accent: invoice.company.accentColor,
+            secondary: invoice.company.secondaryColor,
+        }, invoice.paymentScale);
     }
 
     static renderDetails(pdf: PdfWriter, invoice: InvoiceDto) {

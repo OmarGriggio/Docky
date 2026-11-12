@@ -51,6 +51,15 @@ const MAX_AMOUNT = 9999999999.99;
 // 100 or a negative minimum would print a nonsensical amount. Without a
 // rate there's nothing to offer, so the days are cleared rather than kept
 // around unused.
+// "#rrggbb" or nothing - stored lowercase, an empty one as null.
+const normalizeColor = (value: string | null | undefined, field: string): string | null => {
+  const color = value?.trim() || null;
+  if (color !== null && !/^#[0-9a-f]{6}$/i.test(color)) {
+    throw new AppError(`${field} must be a color like #b8860b`, 400);
+  }
+  return color?.toLowerCase() ?? null;
+};
+
 const normalizeCompanyData = (companyData: Omit<Company, "id">): Omit<Company, "id"> => {
   for (const [field, max] of Object.entries(MAX_LENGTHS)) {
     const value = companyData[field as keyof Omit<Company, "id">];
@@ -75,6 +84,8 @@ const normalizeCompanyData = (companyData: Omit<Company, "id">): Omit<Company, "
 
   return {
     ...companyData,
+    accent_color: normalizeColor(companyData.accent_color, "accent_color"),
+    secondary_color: normalizeColor(companyData.secondary_color, "secondary_color"),
     early_payment_discount: discount,
     early_payment_days: discount > 0 ? days : null,
     early_payment_min_amount: minAmount,

@@ -1,18 +1,20 @@
 import { PDFImage } from "pdf-lib";
 import { PdfWriter } from "../core/pdf-writer";
-import { PdfTextOptions } from "../core/pdf-writer.types";
+import { PdfColor, PdfTextOptions } from "../core/pdf-writer.types";
 import { ClientDto, CompanyDto, DocumentSectionDto } from "./document.types";
 import { PDF_LABELS, PdfLanguage } from "./pdf-labels";
 import { drawLogoTopRight, drawSectionDetails, placeHeaderImage } from "./letter";
 import { formatAmount, formatIban, formatPercent, formatShortDate } from "./format";
+import { tint } from "./accent-color";
+import { PaymentScaleRow } from "./payment-scale";
 
 // The layout invoices and quotes share, modelled on the company's own Excel
 // invoices. Page 1: the client's number and the place/date on the left, the
 // address on the right, the document's title and reference, one line per
 // section ("Pos 1", "Pos 2"...) with its total, then the totals as a table
 // without borders - label, rate, deduction, running total - the signature,
-// and a block anchored at the bottom of the page (payment conditions, a
-// quote's validity). Page 2+: every section's own lines, then the same
+// and a block right after it in the right-hand column (payment conditions,
+// a quote's validity). Page 2+: every section's own lines, then the same
 // totals. On every page: the company's header image at the top and its
 // details as a footer (but not on an invoice's QR-bill page, whose slip
 // takes the whole bottom).
@@ -31,6 +33,11 @@ export interface LetterDto {
         website: string | null;
         bankName: string | null;
         bankAccount: string | null;
+        // The company's own color (see accent-color.ts) - null for a
+        // black and white PDF.
+        accentColor: PdfColor | null;
+        // The second one - the titles (see drawLetterHead, drawLetterDetails).
+        secondaryColor: PdfColor | null;
     };
     client: ClientDto & {
         // Both null for a recipient typed by hand (the "Non défini"
@@ -64,6 +71,19 @@ const LABEL_MAX_WIDTH = RATE_RIGHT - 50 - 60;
 
 const ROW = 18;
 const GRAY = { r: 0.35, g: 0.35, b: 0.35 };
+// With the company's accent color: how strongly it tints the band behind the
+// total and the one behind the early payment line - light enough for black
+// text on top. A band reaches a little past the text on either side.
+const TOTAL_BAND_TINT = 0.22;
+const EARLY_PAYMENT_BAND_TINT = 0.12;
+const BAND_PADDING = 4;
+// The bottom block sits in the right-hand column, under the client's
+// address (ADDRESS_X) - its text wraps within it, the payment scale spans it.
+const SCALE_WIDTH = TOTAL_RIGHT - ADDRESS_X;
+const SCALE_ROW = 14;
+const SCALE_GAP = 4;
+const SCALE_TINT = 0.18;
+const SCALE_GRAY = { r: 0.92, g: 0.92, b: 0.92 };
 
 // The header image sits a little below the page's top edge, at most 2.5 cm
 // tall, and the content starts the same distance below it whatever its
@@ -73,10 +93,10 @@ const HEADER_TOP_GAP = 14;
 const HEADER_MAX_HEIGHT = 2.5 * CM;
 const HEADER_MIN_ROOM = 1 * CM;
 const HEADER_GAP = 33;
-// The footer's rule sits at y=48 - flowing text keeps a little air above it,
-// and the bottom block sits right above that.
+// The footer's rule sits at y=48 - flowing text keeps a little air above it.
 const FOOTER_TOP = 64;
-const BOTTOM_BLOCK_BOTTOM = 62;
+// Between what's above the payment conditions block and the block itself.
+const CONDITIONS_GAP = 20;
 
 /** Every page from now on starts with the header image (if any) and keeps its flowing text clear of the footer. Call before drawing anything. */
 export const setUpLetterPages = (pdf: PdfWriter, headerImage: PDFImage | null) => {
@@ -138,14 +158,15 @@ export const drawLetterHead = async (
         pdf.text(letter.introduction, { size: 11, marginBottom: 14 });
     }
 
-    // The title, bold and underlined - drawn by hand, so its room is
-    // reserved first (a long introduction could otherwise push it onto the
-    // footer).
-    const titleOptions: PdfTextOptions = { size: 14, bold: true };
+    // The title, bold and underlined - in the secondary color if there's
+    // one - drawn by hand, so its room is reserved first (a long
+    // introduction could otherwise push it onto the footer).
+    const secondary = letter.company.secondaryColor;
+    const titleOptions: PdfTextOptions = { size: 14, bold: true, ...(secondary ? { color: secondary } : {}) };
     pdf.reserve(44);
     const titleY = pdf.remainingHeight() - 14;
     pdf.drawTextAt(title, left, titleY, titleOptions);
-    pdf.drawLineAt({ x: left, y: titleY - 3 }, { x: left + pdf.textWidth(title, titleOptions), y: titleY - 3 }, 1);
+    pdf.drawLineAt({ x: left, y: titleY - 3 }, { x: left + pdf.textWidth(title, titleOptions), y: titleY - 3 }, 1, secondary ?? undefined);
     pdf.moveDown(30);
 
     if (letter.referenceClient) {
@@ -194,20 +215,35 @@ export const drawTotalsTable = (
         row(pdf, vatLabel, { rate: formatPercent(letter.vatRate), total: letter.amountInclVat - letter.amountExclVat });
     }
 
-    // The total owed, between two rules.
+    // The total owed, between two rules - in the accent color, on a band of
+    // it, when the company has one.
+    const accent = letter.company.accentColor;
+    const totalHeight = ROW + 6;
     pdf.reserve(ROW * 2);
     pdf.moveDown(4);
-    rule(pdf);
-    row(pdf, labels.total, { total: letter.amountInclVat }, { size: 14, bold: true }, ROW + 6);
-    rule(pdf);
+    if (accent) {
+        band(pdf, pdf.remainingHeight() + 4, totalHeight, tint(accent, TOTAL_BAND_TINT));
+    }
+    rule(pdf, accent);
+    row(pdf, labels.total, { total: letter.amountInclVat }, { size: 14, bold: true }, totalHeight);
+    rule(pdf, accent);
 
     if (earlyPayment) {
         pdf.moveDown(6);
+        pdf.reserve(ROW);
+        if (accent) {
+            band(pdf, pdf.remainingHeight() + 2, ROW, tint(accent, EARLY_PAYMENT_BAND_TINT));
+        }
         row(pdf, labels.earlyPayment(earlyPayment.days), {
             rate: formatPercent(-earlyPayment.rate),
             deduction: -earlyPayment.amount,
             total: earlyPayment.net,
         }, { size: 11, bold: true });
+        // Underlined in the accent color, at the band's bottom edge.
+        if (accent) {
+            pdf.moveDown(2);
+            rule(pdf, accent);
+        }
     }
     pdf.moveDown(10);
 };
@@ -220,35 +256,66 @@ export const drawConclusion = (pdf: PdfWriter, letter: LetterDto) => {
 };
 
 /**
- * A heading and its lines at the bottom of the page, just above the footer
- * (payment conditions, a quote's validity). If the content above already
- * reaches down there, it simply follows it instead - never drawn over it.
+ * A heading and its lines right after the content above them, in the
+ * right-hand column (payment conditions, a quote's validity) - the heading in the accent color
+ * if there's one - then an invoice's payment scale (payment-scale.ts): a
+ * small two-column table, the discount's row on a band of the accent color
+ * and the net one on a band of the secondary color (light gray without
+ * them). Kept in one piece - on the next page if it doesn't fit, never with
+ * its heading left alone at the bottom of this one.
  */
-export const drawBottomBlock = (pdf: PdfWriter, heading: string, lines: string[]) => {
-    if (lines.length === 0) {
+export const drawConditionsBlock = (
+    pdf: PdfWriter,
+    heading: string,
+    lines: string[],
+    colors: { accent: PdfColor | null; secondary: PdfColor | null },
+    scale: PaymentScaleRow[] = [],
+) => {
+    if (lines.length === 0 && scale.length === 0) {
         return;
     }
+    const indent = ADDRESS_X - pdf.marginValue();
     const blocks: { text: string; options: PdfTextOptions }[] = [
-        { text: `${heading} :`, options: { size: 10, bold: true, marginBottom: 4 } },
-        ...lines.map(text => ({ text, options: { size: 10 } })),
+        { text: `${heading} :`, options: { size: 10, bold: true, marginBottom: 4, indent, ...(colors.accent ? { color: colors.accent } : {}) } },
+        ...lines.map(text => ({ text, options: { size: 10, indent } })),
     ];
-    const height = blocks.reduce((sum, block) => sum + pdf.textHeight(block.text, block.options), 0);
-    const top = BOTTOM_BLOCK_BOTTOM + height;
-    if (pdf.remainingHeight() - 10 > top) {
-        pdf.moveCursorTo(top);
-    } else {
-        // It follows the content instead - on a page of its own if need be,
-        // never with its heading left alone at the bottom of this one.
-        pdf.reserve(height);
-    }
+    const scaleHeight = scale.length > 0 ? SCALE_GAP + scale.length * SCALE_ROW : 0;
+    const height = blocks.reduce((sum, block) => sum + pdf.textHeight(block.text, block.options), 0) + scaleHeight;
+    pdf.moveDown(CONDITIONS_GAP);
+    pdf.reserve(height);
     for (const block of blocks) {
         pdf.text(block.text, block.options);
+    }
+    if (scale.length > 0) {
+        drawPaymentScale(pdf, scale, colors);
+    }
+};
+
+// Each row's text sits on the flowing cursor (text()'s own baseline), its
+// band reaching a little above and below it.
+const drawPaymentScale = (pdf: PdfWriter, scale: PaymentScaleRow[], colors: { accent: PdfColor | null; secondary: PdfColor | null }) => {
+    const left = ADDRESS_X;
+    const bands = {
+        early: colors.accent ? tint(colors.accent, SCALE_TINT) : SCALE_GRAY,
+        net: colors.secondary ? tint(colors.secondary, SCALE_TINT) : SCALE_GRAY,
+    };
+    pdf.moveDown(SCALE_GAP);
+    for (const row of scale) {
+        const y = pdf.remainingHeight();
+        if (row.highlight) {
+            pdf.drawRect(left - BAND_PADDING, y - 4, SCALE_WIDTH + BAND_PADDING * 2, SCALE_ROW, bands[row.highlight]);
+        }
+        pdf.drawTextAt(row.label, left, y, { size: 10 });
+        if (row.value) {
+            pdf.drawTextRightAt(row.value, left + SCALE_WIDTH, y, { size: 10 });
+        }
+        pdf.moveDown(SCALE_ROW);
     }
 };
 
 /** Page 2+: every section's own lines ("Pos 1 – ..." titles, a little space between sections), then the same totals as page 1. */
 export const drawLetterDetails = (pdf: PdfWriter, letter: LetterDto, heading: string) => {
-    drawSectionDetails(pdf, heading, letter.sections, letter.language, { numbered: true, sectionGap: 12 });
+    drawSectionDetails(pdf, heading, letter.sections, letter.language, { numbered: true, sectionGap: 12, color: letter.company.secondaryColor });
     pdf.moveDown(16);
     drawTotalsTable(pdf, letter);
 };
@@ -275,9 +342,18 @@ const row = (
     pdf.moveDown(height);
 };
 
-const rule = (pdf: PdfWriter) => {
+// In the accent color, a rule spans its band's width too.
+const rule = (pdf: PdfWriter, color: PdfColor | null = null) => {
     const y = pdf.remainingHeight() + 4;
-    pdf.drawLineAt({ x: pdf.marginValue(), y }, { x: TOTAL_RIGHT, y }, 0.8);
+    const padding = color ? BAND_PADDING : 0;
+    pdf.drawLineAt({ x: pdf.marginValue() - padding, y }, { x: TOTAL_RIGHT + padding, y }, 0.8, color ?? undefined);
+};
+
+// A colored background from `top` down `height` across the totals' width,
+// drawn before the row it sits behind.
+const band = (pdf: PdfWriter, top: number, height: number, color: PdfColor) => {
+    const left = pdf.marginValue() - BAND_PADDING;
+    pdf.drawRect(left, top - height, TOTAL_RIGHT + BAND_PADDING - left, height, color);
 };
 
 // A section title too long for its column is cut with an ellipsis rather
@@ -305,6 +381,12 @@ const drawFooter = (pdf: PdfWriter, letter: LetterDto) => {
     const company = letter.company;
     const left = pdf.marginValue();
     const options: PdfTextOptions = { size: 7, color: GRAY };
+    // With an accent color: the rule, the company's name (bold) and its
+    // website and email in it.
+    const accent = company.accentColor;
+    const accentOptions: PdfTextOptions = accent ? { ...options, color: accent } : options;
+    const leftOptions = [accent ? { ...accentOptions, bold: true } : options, options, options];
+    const rightOptions = [accentOptions, accentOptions, options];
 
     const bank = [company.bankName, company.bankAccount].filter(Boolean).join(" ");
     const iban = company.iban ? `IBAN ${formatIban(company.iban)}` : "";
@@ -318,14 +400,14 @@ const drawFooter = (pdf: PdfWriter, letter: LetterDto) => {
     if (![...leftLines, ...rightLines].some(Boolean)) {
         return;
     }
-    pdf.drawLineAt({ x: left, y: 48 }, { x: TOTAL_RIGHT, y: 48 }, 0.4);
+    pdf.drawLineAt({ x: left, y: 48 }, { x: TOTAL_RIGHT, y: 48 }, 0.4, accent ?? undefined);
     [39, 30, 21].forEach((y, index) => {
         if (leftLines[index]) {
-            pdf.drawTextAt(fitText(pdf, leftLines[index], FOOTER_COLUMN_WIDTH, options), left, y, options);
+            pdf.drawTextAt(fitText(pdf, leftLines[index], FOOTER_COLUMN_WIDTH, leftOptions[index]), left, y, leftOptions[index]);
         }
         const right = rightLines[index];
         if (right) {
-            pdf.drawTextRightAt(fitText(pdf, right, FOOTER_COLUMN_WIDTH, options), TOTAL_RIGHT, y, options);
+            pdf.drawTextRightAt(fitText(pdf, right, FOOTER_COLUMN_WIDTH, rightOptions[index]), TOTAL_RIGHT, y, rightOptions[index]);
         }
     });
 };

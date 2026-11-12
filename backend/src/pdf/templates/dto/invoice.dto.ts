@@ -4,7 +4,8 @@ import { DocumentComplete } from "../../../modules/documents/document_complete.t
 import { Company } from "../../../modules/companies/company.types";
 import { computeEarlyPayment } from "../../../modules/documents/document.calculations";
 import { InvoiceDto } from "../invoice.types";
-import { toPdfLanguage } from "../pdf-labels";
+import { PDF_LABELS, toPdfLanguage } from "../pdf-labels";
+import { buildPaymentScale, daysUntilDue } from "../payment-scale";
 import { buildLetterDto } from "./shared";
 
 // null unless documents.address_id was actually picked - same
@@ -30,11 +31,19 @@ export const createInvoiceDto = (document: DocumentComplete, client: ClientWithA
         ? computeEarlyPayment(document.amount_incl_vat, document.early_payment_discount, document.early_payment_min_amount)
         : null;
 
+    const language = toPdfLanguage(client.language);
+    const paymentScale = buildPaymentScale(
+        { rate: document.early_payment_discount, days, minAmount: document.early_payment_min_amount },
+        daysUntilDue(document.date, document.due_date),
+        PDF_LABELS[language]
+    );
+
     return {
-        ...buildLetterDto(document, client, company, toPdfLanguage(client.language)),
+        ...buildLetterDto(document, client, company, language),
         location: resolveLocation(document, client),
         earlyPayment: days && earlyPayment ? { days, rate: document.early_payment_discount, ...earlyPayment } : null,
         dueDate: document.due_date,
         paymentTerms: document.payment_terms,
+        paymentScale,
     };
 }

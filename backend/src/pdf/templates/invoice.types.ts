@@ -1,4 +1,5 @@
 import { LetterDto } from "./business-letter";
+import { PaymentScaleRow } from "./payment-scale";
 
 // The shared invoice/quote fields (business-letter.ts's LetterDto), plus an
 // invoice's own.
@@ -14,4 +15,7 @@ export interface InvoiceDto extends LetterDto {
     // documents.due_date - null shows nothing rather than a bare "-".
     dueDate: Date | null;
     paymentTerms: string | null;
+    // The early payment discount's scale under the payment conditions (see
+    // payment-scale.ts) - empty without one.
+    paymentScale: PaymentScaleRow[];
 }

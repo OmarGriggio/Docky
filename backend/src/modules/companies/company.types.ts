@@ -35,4 +35,9 @@ export interface Company {
   early_payment_discount: number;
   early_payment_days: number | null;
   early_payment_min_amount: number;
+  // "#rrggbb", printed on invoices and quotes (see backend/src/pdf's
+  // business-letter.ts) - null for none.
+  accent_color: string | null;
+  // Same, for what's printed in the second color - null for none.
+  secondary_color: string | null;
 }

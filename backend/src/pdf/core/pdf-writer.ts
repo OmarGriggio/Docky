@@ -71,6 +71,7 @@ export class PdfWriter {
         const marginBottom = options.marginBottom ?? 0;
         const marginTop = options.marginTop ?? 0;
         const font = options.bold ? this.boldFont : this.regularFont;
+        const color = options.color ?? { r: 0, g: 0, b: 0 };
         const maxWidth = this.page.getWidth() - this.options.margin * 2 - indent;
 
         this.cursorY -= marginTop;
@@ -84,7 +85,7 @@ export class PdfWriter {
                     y: this.cursorY,
                     size,
                     font,
-                    color: rgb(0, 0, 0),
+                    color: rgb(color.r, color.g, color.b),
                 });
 
                 this.cursorY -= size + 4;
@@ -300,8 +301,8 @@ export class PdfWriter {
     }
 
     /** Draws a line between two explicit points, bypassing the flowing text cursor. */
-    drawLineAt(from: { x: number; y: number }, to: { x: number; y: number }, thickness = 1) {
-        this.page.drawLine({ start: from, end: to, thickness });
+    drawLineAt(from: { x: number; y: number }, to: { x: number; y: number }, thickness = 1, color: PdfColor = { r: 0, g: 0, b: 0 }) {
+        this.page.drawLine({ start: from, end: to, thickness, color: rgb(color.r, color.g, color.b) });
     }
 
     drawRect(x: number, y: number, width: number, height: number, color: PdfColor) {
