@@ -1,5 +1,5 @@
 import { db } from "../../shared/config/database";
-import { Document, UpdateDocumentData, DocumentStatus } from "./document.types";
+import { Document, UpdateDocumentData, DocumentStatus, BilledAddress } from "./document.types";
 
 // client_id is an optional extra narrowing on top of company_id - used by
 // client-detail.ts's own expandable rows (a client's own documents), kept
@@ -125,14 +125,16 @@ export const unarchiveDocumentInDB = async (id: number, company_id: number): Pro
 // acceptQuoteServ's transaction, a second concurrent accept waits on this
 // row's lock, then finds the status already ACCEPTED and matches nothing -
 // so one quote can never spawn two chantiers.
-export const acceptDocumentInDB = async (id: number, company_id: number): Promise<Document | null> => {
+// `billed_address`: what the quote is frozen with (see billed-address.ts) -
+// an address it already has is kept.
+export const acceptDocumentInDB = async (id: number, company_id: number, billed_address: BilledAddress | null): Promise<Document | null> => {
   const query = `
-    UPDATE documents SET status = 'ACCEPTED'
+    UPDATE documents SET status = 'ACCEPTED', billed_address = COALESCE(billed_address, $3::jsonb)
       WHERE id = $1 AND company_id = $2 AND status IN ('DRAFT', 'SENT') AND is_active = true
     RETURNING *;
   `;
 
-  const result = await db().query(query, [id, company_id]);
+  const result = await db().query(query, [id, company_id, billed_address]);
   return result.rows[0] ?? null;
 };
 
@@ -168,14 +170,18 @@ export const archiveDocumentContentInDB = async (document_id: number, company_id
 // Checked in the UPDATE itself for the same reason as acceptDocumentInDB: a
 // REJECTED racing an accept on the same quote waits for it, then matches
 // nothing instead of overwriting ACCEPTED.
-export const updateDocumentStatusInDB = async (id: number, company_id: number, status: DocumentStatus): Promise<Document | null> => {
+// `billed_address`: what the document is frozen with from now on (see
+// billed-address.ts) - null back to DRAFT, an address it already has kept
+// otherwise.
+export const updateDocumentStatusInDB = async (id: number, company_id: number, status: DocumentStatus, billed_address: BilledAddress | null): Promise<Document | null> => {
   const query = `
-    UPDATE documents SET status = $1
+    UPDATE documents SET status = $1,
+      billed_address = CASE WHEN $5 THEN NULL ELSE COALESCE(billed_address, $4::jsonb) END
       WHERE id = $2 AND company_id = $3 AND status IN ('DRAFT', 'SENT') AND is_active = true
     RETURNING *;
   `;
 
-  const result = await db().query(query, [status, id, company_id]);
+  const result = await db().query(query, [status, id, company_id, billed_address, status === "DRAFT"]);
   return result.rows[0] ?? null;
 };
 
@@ -234,8 +240,9 @@ export const updateDocumentInDB = async (
   return result.rows[0] ?? null;
 };
 
+// A new document is never frozen yet (billed_address, see billed-address.ts).
 export const createDocumentInDB = async (
-  document: Omit<Document, "id">
+  document: Omit<Document, "id" | "billed_address">
 ): Promise<Document> => {
   const query = `
     INSERT INTO documents (
@@ -299,4 +306,11 @@ export const createDocumentInDB = async (
 
   const result = await db().query(query, values);
   return result.rows[0];
+};
+
+// A sent quote is still editable (see document.service.ts's
+// isOpenForEditing) - an edit freezes its address afresh, its client or
+// Lieu/Bâtiment may just have changed.
+export const updateBilledAddressInDB = async (id: number, company_id: number, billed_address: BilledAddress | null): Promise<void> => {
+  await db().query("UPDATE documents SET billed_address = $1::jsonb WHERE id = $2 AND company_id = $3", [billed_address, id, company_id]);
 };

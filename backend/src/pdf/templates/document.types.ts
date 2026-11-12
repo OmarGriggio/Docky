@@ -27,7 +27,7 @@ export interface CompanyDto {
     logo: string | null;
 }
 
-// The client's own billing address - see dto/shared.ts's resolveBillingAddress -
+// The client's own billing address - see billed-address.ts's billedAddressOf -
 // or the recipient typed by hand on a document made out to "Non défini".
 export interface ClientDto {
     name: string;

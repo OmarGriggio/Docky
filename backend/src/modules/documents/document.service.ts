@@ -13,6 +13,7 @@ import {
   updateDocumentTotalsInDB,
   acceptDocumentInDB,
   updateDocumentStatusInDB,
+  updateBilledAddressInDB,
   getInvoiceForProjectDocumentFromDB,
   archiveDocumentContentInDB,
   getDocumentByIdForUpdateFromDB
@@ -20,7 +21,8 @@ import {
 import { getLinesByDocumentIdFromDB, createLineInDB } from "./document_line.repository";
 import { getSectionsByDocumentIdFromDB, createSectionInDB } from "./document_section.repository";
 import { getClientByIdFromDB } from "../clients/client.repository";
-import { getAddressByIdFromDB } from "../clients/address.repository";
+import { getAddressByIdFromDB, getAddressesByClientIdFromDB } from "../clients/address.repository";
+import { buildBilledAddress } from "./billed-address";
 import { clientDisplayName } from "../clients/client.display";
 import { getProjectByDocumentIdFromDB, createProjectInDB } from "../projects/project.repository";
 import { getResourceByIdFromDB } from "../catalog/resource.repository";
@@ -249,6 +251,17 @@ export const addDocumentServ = async (documentData: CreateDocumentData, company_
 // A PROJECT document's status is always null (its lifecycle lives on
 // projects.status instead), so it's never editable through this generic
 // flow either - see assertContentEditableServ for its own rule.
+// The client's name and address as they are right now, for a document
+// leaving DRAFT (see billed-address.ts).
+const currentBilledAddress = async (document: Pick<Document, "client_id" | "address_id">, company_id: number) => {
+  const client = await getClientByIdFromDB(document.client_id, company_id);
+  if (!client) {
+    throw new NotFoundError("Client not found");
+  }
+  const addresses = await getAddressesByClientIdFromDB(client.id);
+  return buildBilledAddress({ ...client, addresses }, document);
+};
+
 const isOpenForEditing = (document: Pick<Document, "type" | "status">): boolean => {
   if (document.type === "INVOICE") {
     return document.status === "DRAFT";
@@ -276,6 +289,10 @@ export const updateDocumentServ = async (id: number, company_id: number, documen
   const updated = await updateDocumentInDB(id, company_id, { ...documentData, ...recipient });
   if (!updated) {
     throw new ConflictError("This document can no longer be edited");
+  }
+  // A sent quote edited: frozen afresh with what it now says.
+  if (updated.billed_address !== null) {
+    await updateBilledAddressInDB(id, company_id, await currentBilledAddress(updated, company_id));
   }
   // discount/vat_rate may have just changed - the stored totals were
   // computed against the old ones, so the row just written back isn't the
@@ -427,7 +444,10 @@ export const updateDocumentStatusServ = async (id: number, company_id: number, s
     throw new ConflictError("This document's status can't be changed this way");
   }
 
-  const updated = await updateDocumentStatusInDB(id, company_id, status);
+  // Leaving DRAFT freezes the address it's sent to; back to DRAFT (a quote)
+  // follows the client again (see updateDocumentStatusInDB).
+  const billedAddress = status === "DRAFT" || document.billed_address ? null : await currentBilledAddress(document, company_id);
+  const updated = await updateDocumentStatusInDB(id, company_id, status, billedAddress);
   if (!updated) {
     throw new ConflictError("This document's status can't be changed this way");
   }
@@ -459,7 +479,7 @@ const acceptQuoteInTransaction = async (id: number, company_id: number) => {
     throw new ConflictError("Only a quote can be accepted");
   }
 
-  const accepted = await acceptDocumentInDB(id, company_id);
+  const accepted = await acceptDocumentInDB(id, company_id, quote.billed_address ? null : await currentBilledAddress(quote, company_id));
   if (!accepted) {
     throw new ConflictError("Only an active draft or sent quote can be accepted");
   }

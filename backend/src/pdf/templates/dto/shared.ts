@@ -4,7 +4,8 @@ import { Company } from "../../../modules/companies/company.types";
 import { DocumentComplete } from "../../../modules/documents/document_complete.types";
 import { lineTotal, round2 } from "../../../modules/documents/document.calculations";
 import { ClientDto, CompanyDto, DocumentSectionDto } from "../document.types";
-import { DocumentRecipient } from "../../../modules/documents/document.types";
+import { Document, DocumentRecipient } from "../../../modules/documents/document.types";
+import { billedAddressOf } from "../../../modules/documents/billed-address";
 import { LetterDto } from "../business-letter";
 import { parseHexColor } from "../accent-color";
 import { PdfLanguage } from "../pdf-labels";
@@ -39,15 +40,6 @@ export const buildSections = (document: DocumentComplete): DocumentSectionDto[] 
         // A section with every line archived (or none added yet) has
         // nothing to print - skip it rather than showing a bare heading.
         .filter(section => section.lines.length > 0);
-};
-
-// The client's own billing address - always their primary one (or their
-// first, if none is marked primary), same rule document-form.ts's own
-// read-only address block uses on the frontend. Never documents.address_id
-// - that's a separate, independently-picked "Lieu/Bâtiment" (see
-// invoice.dto.ts's resolveLocation), not necessarily the same address at all.
-export const resolveBillingAddress = (client: ClientWithAddresses) => {
-    return client.addresses.find(a => a.is_primary) ?? client.addresses[0];
 };
 
 export const buildCompanyDto = (company: Company): CompanyDto => ({
@@ -111,7 +103,9 @@ export const buildLetterDto = (
     };
 };
 
-export const buildClientDto = (client: ClientWithAddresses, document: DocumentRecipient): ClientDto => {
+// A real client's name and billing address: frozen on the document once it
+// was sent, its current ones on a draft (billed-address.ts's billedAddressOf).
+export const buildClientDto = (client: ClientWithAddresses, document: DocumentRecipient & Pick<Document, "address_id" | "billed_address">): ClientDto => {
     if (hasTypedRecipient(client, document)) {
         return {
             name: document.recipient_name ?? "",
@@ -121,11 +115,11 @@ export const buildClientDto = (client: ClientWithAddresses, document: DocumentRe
             postalCodeCity: `${document.recipient_postal_code ?? ""} ${document.recipient_city ?? ""}`.trim(),
         };
     }
-    const address = resolveBillingAddress(client);
+    const billed = billedAddressOf(document, client);
     return {
-        name: clientDisplayName(client),
-        street: address ? `${address.street}` : "",
-        city: address?.city ?? "",
-        postalCodeCity: address ? `${address.postal_code ?? ""} ${address.city ?? ""}` : "",
+        name: billed?.name ?? clientDisplayName(client),
+        street: billed?.street ?? "",
+        city: billed?.city ?? "",
+        postalCodeCity: `${billed?.postal_code ?? ""} ${billed?.city ?? ""}`.trim(),
     };
 };

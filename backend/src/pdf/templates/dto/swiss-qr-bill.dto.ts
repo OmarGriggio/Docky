@@ -4,7 +4,8 @@ import { DocumentComplete } from "../../../modules/documents/document_complete.t
 import { Company } from "../../../modules/companies/company.types";
 import { QrBillCreditor, SwissQrBillDto } from "../../swiss-qr-bill/swiss-qr-bill.types";
 import { PDF_LABELS, toPdfLanguage } from "../pdf-labels";
-import { buildClientDto, hasTypedRecipient, resolveBillingAddress } from "./shared";
+import { buildClientDto, hasTypedRecipient } from "./shared";
+import { billedAddressOf } from "../../../modules/documents/billed-address";
 
 // The company itself is always the creditor - shared by the invoice's own
 // QR-bill below and the standalone slip (pdf/qr-bill-slip.ts).
@@ -22,8 +23,9 @@ export const createSwissQrBillDto = (
     client: ClientWithAddresses,
     company: Company,
 ): SwissQrBillDto => {
-    // Same address the invoice itself is printed to - see shared.ts.
-    const address = resolveBillingAddress(client);
+    // Same name and address the invoice itself is printed to - frozen once
+    // it was sent (see billed-address.ts).
+    const billed = billedAddressOf(document, client);
     const labels = PDF_LABELS[toPdfLanguage(client.language)];
 
     // A recipient typed by hand: same lines as printed on the document, the
@@ -41,10 +43,10 @@ export const createSwissQrBillDto = (
                 country: "CH",
             }
             : {
-                name: clientDisplayName(client),
-                addressLine1: address ? address.street : "",
-                addressLine2: address ? `${address.postal_code ?? ""} ${address.city ?? ""}`.trim() : "",
-                country: toIsoCountryCode(address?.country ?? null),
+                name: billed?.name ?? clientDisplayName(client),
+                addressLine1: billed?.street ?? "",
+                addressLine2: `${billed?.postal_code ?? ""} ${billed?.city ?? ""}`.trim(),
+                country: toIsoCountryCode(billed?.country ?? null),
             },
         payment: {
             amount: document.amount_incl_vat,

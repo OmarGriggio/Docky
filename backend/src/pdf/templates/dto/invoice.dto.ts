@@ -1,4 +1,3 @@
-import { Address } from "../../../modules/clients/address.types";
 import { ClientWithAddresses } from "../../../modules/clients/client.types";
 import { DocumentComplete } from "../../../modules/documents/document_complete.types";
 import { Company } from "../../../modules/companies/company.types";
@@ -7,23 +6,7 @@ import { InvoiceDto } from "../invoice.types";
 import { PDF_LABELS, toPdfLanguage } from "../pdf-labels";
 import { buildPaymentScale, daysUntilDue } from "../payment-scale";
 import { buildLetterDto } from "./shared";
-
-// null unless documents.address_id was actually picked - same
-// "Attention : Street, NPA City" shape as the frontend's own addressLabel
-// (shared/utils/display.ts), duplicated here rather than shared across
-// front/back (different languages, no shared package between them).
-const resolveLocation = (document: DocumentComplete, client: ClientWithAddresses): string | null => {
-    if (document.address_id === null) {
-        return null;
-    }
-    const address: Address | undefined = client.addresses.find(a => a.id === document.address_id);
-    if (!address) {
-        return null;
-    }
-
-    const prefix = address.attention ? `${address.attention} : ` : "";
-    return `${prefix}${address.street}, ${address.postal_code} ${address.city}`;
-};
+import { billedAddressOf, formatLocation } from "../../../modules/documents/billed-address";
 
 export const createInvoiceDto = (document: DocumentComplete, client: ClientWithAddresses, company: Company): InvoiceDto => {
     const days = document.early_payment_days;
@@ -41,7 +24,8 @@ export const createInvoiceDto = (document: DocumentComplete, client: ClientWithA
 
     return {
         ...buildLetterDto(document, client, company, language),
-        location: resolveLocation(document, client),
+        // Frozen with the rest of the address once sent (billed-address.ts).
+        location: billedAddressOf(document, client)?.location ?? formatLocation(document, client),
         earlyPayment: days && earlyPayment ? { days, rate: document.early_payment_discount, ...earlyPayment } : null,
         dueDate: document.due_date,
         paymentTerms: document.payment_terms,

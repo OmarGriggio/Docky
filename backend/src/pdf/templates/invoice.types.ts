@@ -5,7 +5,7 @@ import { PaymentScaleRow } from "./payment-scale";
 // invoice's own.
 export interface InvoiceDto extends LetterDto {
     // documents.address_id, formatted - null unless one was actually picked
-    // (see resolveLocation in invoice.dto.ts). Distinct from client: where
+    // (see billed-address.ts's formatLocation). Distinct from client: where
     // the chantier/work itself is, not where the invoice is billed.
     location: string | null;
     // The early payment discount this invoice offers, already computed

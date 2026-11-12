@@ -6,6 +6,17 @@ export type DocumentType = "QUOTE" | "INVOICE" | "PROJECT";
 
 export type DocumentStatus = "DRAFT" | "SENT" | "ACCEPTED" | "REJECTED" | "PAID" | "CANCELLED";
 
+// See billed-address.ts.
+export interface BilledAddress {
+  name: string;
+  street: string;
+  postal_code: string;
+  city: string;
+  country: string | null;
+  // The Lieu/Bâtiment (address_id) as printed - null when none was picked.
+  location: string | null;
+}
+
 export interface Document {
   id: number;
 
@@ -52,6 +63,10 @@ export interface Document {
   recipient_street: string | null;
   recipient_postal_code: string | null;
   recipient_city: string | null;
+  // The client's name and address this document was sent to - frozen once it
+  // leaves DRAFT (see billed-address.ts), null before that and for a typed-in
+  // recipient. Never written from a request.
+  billed_address: BilledAddress | null;
 }
 
 export type DocumentRecipient = Pick<
