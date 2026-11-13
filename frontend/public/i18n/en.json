@@ -85,7 +85,10 @@
     "save": "Save",
     "edit": "Edit",
     "requiredFields": "Fill in the required fields (*).",
-    "unsavedChanges": "This document has unsaved changes. Leave anyway? They will be lost."
+    "unsavedChanges": "This document has unsaved changes. If you leave the page, they will be lost.",
+    "unsavedChangesTitle": "Unsaved changes",
+    "leaveWithoutSaving": "Leave without saving",
+    "stay": "Stay on the page"
   },
   "clients": {
     "import": {
@@ -179,7 +182,8 @@
         "note": "Note"
       },
       "fileTooLarge": "File too large: 10 MB at most.",
-      "backLosesEdits": "The corrections and rows left out in the preview will be lost. Go back to the columns anyway?"
+      "backLosesEdits": "The corrections and rows left out in the preview will be lost if you go back to the columns.",
+      "leaveLosesWork": "The import isn't finished. If you leave the page, the file read and your corrections will be lost."
     },
     "newClient": "New client",
     "columnNumber": "Client no.",

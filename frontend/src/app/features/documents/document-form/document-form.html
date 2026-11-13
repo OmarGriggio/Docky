@@ -193,4 +193,15 @@
       />
     </div>
   </p-dialog>
+
+  <!-- Leaving with unsaved work (unsavedChangesGuard, LeaveConfirmation). -->
+  <app-confirm-dialog
+    [(visible)]="leave.visible"
+    [title]="'common.unsavedChangesTitle' | transloco"
+    [message]="leave.message() | transloco"
+    [confirmLabel]="'common.leaveWithoutSaving' | transloco"
+    [cancelLabel]="'common.stay' | transloco"
+    (confirmed)="leave.answer(true)"
+    (cancelled)="leave.answer(false)"
+  />
 </div>

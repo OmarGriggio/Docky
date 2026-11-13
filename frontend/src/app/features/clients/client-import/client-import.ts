@@ -5,13 +5,14 @@ import { Card } from 'primeng/card';
 import { Select } from 'primeng/select';
 import { Button } from 'primeng/button';
 import { TableModule } from 'primeng/table';
-import { TranslocoPipe, TranslocoService, translateObjectSignal, translateSignal } from '@jsverse/transloco';
+import { TranslocoPipe, translateObjectSignal, translateSignal } from '@jsverse/transloco';
 import {
   buildImportLines, guessMapping, headerRowIndex, IMPORT_FIELDS, ImportField, MAX_IMPORT_ROWS, mapsAName,
 } from './import-columns';
 import { MAX_FILE_BYTES, readSpreadsheet, Spreadsheet } from './spreadsheet-reader';
 import { ClientImportPreview } from './client-import-preview/client-import-preview';
-import { HasUnsavedChanges } from '../../../shared/guards/unsaved-changes.guard';
+import { HasUnsavedChanges, LeaveConfirmation } from '../../../shared/guards/unsaved-changes.guard';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { NotificationService } from '../../../shared/services/notification.service';
 
 type Step = 'file' | 'columns' | 'preview';
@@ -23,14 +24,13 @@ type Step = 'file' | 'columns' | 'preview';
 @Component({
   selector: 'app-client-import',
   standalone: true,
-  imports: [FormsModule, RouterLink, Card, Select, Button, TableModule, ClientImportPreview, TranslocoPipe],
+  imports: [FormsModule, RouterLink, Card, Select, Button, TableModule, ClientImportPreview, ConfirmDialogComponent, TranslocoPipe],
   templateUrl: './client-import.html',
 })
 export class ClientImport implements HasUnsavedChanges {
 
   private router = inject(Router);
   private notifications = inject(NotificationService);
-  private transloco = inject(TranslocoService);
 
   readonly maxRows = MAX_IMPORT_ROWS;
 
@@ -143,6 +143,12 @@ export class ClientImport implements HasUnsavedChanges {
 
   // A file read, its columns matched or its rows previewed: leaving asks first
   // (unsavedChangesGuard, in app.routes.ts) - until the import is done.
+  readonly leave = new LeaveConfirmation();
+
+  confirmLeave(): Promise<boolean> {
+    return this.leave.ask('clients.import.leaveLosesWork');
+  }
+
   hasUnsavedChanges(): boolean {
     return this.step() !== 'file' && !this.done;
   }
@@ -157,8 +163,8 @@ export class ClientImport implements HasUnsavedChanges {
 
   // Back to the columns from the preview: its corrections and left-out rows
   // are rebuilt from the file once back - asked first when there are some.
-  backToColumns(previewEdited: boolean): void {
-    if (previewEdited && !window.confirm(this.transloco.translate('clients.import.backLosesEdits'))) {
+  async backToColumns(previewEdited: boolean): Promise<void> {
+    if (previewEdited && !(await this.leave.ask('clients.import.backLosesEdits'))) {
       return;
     }
     this.step.set('columns');

@@ -3,7 +3,8 @@ import { PricePipe } from '../../../shared/pipes/price.pipe';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { HasUnsavedChanges } from '../../../shared/guards/unsaved-changes.guard';
+import { HasUnsavedChanges, LeaveConfirmation } from '../../../shared/guards/unsaved-changes.guard';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { HttpErrorResponse } from '@angular/common/http';
 import { InputNumber } from 'primeng/inputnumber';
 import { FloatLabel } from 'primeng/floatlabel';
@@ -64,7 +65,7 @@ const isOpenForEditing = (type: DocumentType, status: DocumentStatus | null): bo
 @Component({
   selector: 'app-document-form',
   standalone: true,
-  imports: [FormsModule, PricePipe, InputNumber, FloatLabel, Button, Card, Dialog, DocumentHeader, DocumentTextBlock, DocumentSections, TranslocoPipe],
+  imports: [FormsModule, PricePipe, InputNumber, FloatLabel, Button, Card, Dialog, DocumentHeader, DocumentTextBlock, DocumentSections, ConfirmDialogComponent, TranslocoPipe],
   templateUrl: './document-form.html',
   styleUrl: './document-form.css',
 })
@@ -326,6 +327,12 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
 
   private markClean(): void {
     this.cleanState = this.formState();
+  }
+
+  readonly leave = new LeaveConfirmation();
+
+  confirmLeave(): Promise<boolean> {
+    return this.leave.ask();
   }
 
   hasUnsavedChanges(): boolean {

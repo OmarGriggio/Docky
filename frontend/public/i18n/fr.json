@@ -85,7 +85,10 @@
     "save": "Enregistrer",
     "edit": "Modifier",
     "requiredFields": "Remplis les champs obligatoires (*).",
-    "unsavedChanges": "Tu as des modifications non enregistrées sur ce document. Quitter quand même ? Elles seront perdues."
+    "unsavedChanges": "Tu as des modifications non enregistrées sur ce document. Si tu quittes la page, elles seront perdues.",
+    "unsavedChangesTitle": "Modifications non enregistrées",
+    "leaveWithoutSaving": "Quitter sans enregistrer",
+    "stay": "Rester sur la page"
   },
   "clients": {
     "import": {
@@ -179,7 +182,8 @@
         "note": "Note"
       },
       "fileTooLarge": "Fichier trop volumineux : 10 Mo au plus.",
-      "backLosesEdits": "Les corrections et exclusions faites dans l'aperçu seront perdues. Revenir aux colonnes quand même ?"
+      "backLosesEdits": "Les corrections et exclusions faites dans l'aperçu seront perdues si tu reviens aux colonnes.",
+      "leaveLosesWork": "L'import n'est pas terminé. Si tu quittes la page, le fichier lu et tes corrections seront perdus."
     },
     "newClient": "Nouveau client",
     "columnNumber": "N° client",
