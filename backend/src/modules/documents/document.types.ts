@@ -6,6 +6,17 @@ export type DocumentType = "QUOTE" | "INVOICE" | "PROJECT";
 
 export type DocumentStatus = "DRAFT" | "SENT" | "ACCEPTED" | "REJECTED" | "PAID" | "CANCELLED";
 
+// See deposit.ts: a chantier's deposit invoices, before its final (STANDARD) one.
+export type InvoiceKind = "STANDARD" | "DEPOSIT";
+
+// A deposit invoice deducted from a chantier's final invoice (see deposit.ts).
+export interface DepositDeduction {
+  document_id: number;
+  number: string;
+  date: Date;
+  amount_incl_vat: number;
+}
+
 // See billed-address.ts.
 export interface BilledAddress {
   name: string;
@@ -67,6 +78,13 @@ export interface Document {
   // leaves DRAFT (see billed-address.ts), null before that and for a typed-in
   // recipient. Never written from a request.
   billed_address: BilledAddress | null;
+  // STANDARD but for a chantier's deposit invoice (017_add_invoice_kind.sql) -
+  // never taken from a request, set by the flow creating the invoice.
+  invoice_kind: InvoiceKind;
+  // A chantier's final invoice: the deposits it deducts, frozen once it leaves
+  // DRAFT (018_add_deposit_deductions.sql) - null before that, and for any
+  // other document. Never written from a request.
+  deposit_deductions: DepositDeduction[] | null;
 }
 
 export type DocumentRecipient = Pick<

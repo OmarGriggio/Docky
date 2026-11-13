@@ -7,6 +7,9 @@ import { ClientWithAddresses } from "../../modules/clients/client.types";
 import { getCompanyByIdServ } from "../../modules/companies/company.service";
 import { Company } from "../../modules/companies/company.types";
 import { getFileServ } from "../../shared/storage/storage.service";
+import { DepositDeduction } from "../../modules/documents/document.types";
+import { getDepositDeductionsServ } from "../../modules/documents/document.service";
+import { amountDue } from "../../modules/documents/deposit";
 
 // Everything a PDF of one document is built from - loaded once by the
 // skeleton below, handed to each step.
@@ -14,6 +17,10 @@ export interface PdfSource {
     document: DocumentComplete;
     client: ClientWithAddresses;
     company: Company;
+    // A chantier's final invoice: the deposits it deducts (none otherwise),
+    // and what's left to pay - the QR-bill's amount (see deposit.ts).
+    deductions: DepositDeduction[];
+    amountDue: number;
 }
 
 // The fixed order every document PDF (invoice, quote, payment reminder)
@@ -44,7 +51,8 @@ export abstract class DocumentPdfGenerator<TPrepared> {
 
         const client = await getClientByIdServ(document.client_id, company_id);
         const company = await getCompanyByIdServ(client.company_id);
-        return { document, client, company };
+        const deductions = await getDepositDeductionsServ(document, company_id);
+        return { document, client, company, deductions, amountDue: amountDue(document.amount_incl_vat, deductions) };
     }
 
     /** Hook: reject a document this kind of PDF makes no sense for (throw). Nothing by default. */

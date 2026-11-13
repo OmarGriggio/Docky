@@ -18,10 +18,12 @@ export const buildQrBillCreditor = (company: Company): QrBillCreditor => ({
     iban: (company.iban ?? "").replace(/\s+/g, "").toUpperCase(),
 });
 
+// `amount`: what's left to pay - a final invoice's total less its deposits.
 export const createSwissQrBillDto = (
     document: DocumentComplete,
     client: ClientWithAddresses,
     company: Company,
+    amount: number = document.amount_incl_vat,
 ): SwissQrBillDto => {
     // Same name and address the invoice itself is printed to - frozen once
     // it was sent (see billed-address.ts).
@@ -49,7 +51,7 @@ export const createSwissQrBillDto = (
                 country: toIsoCountryCode(billed?.country ?? null),
             },
         payment: {
-            amount: document.amount_incl_vat,
+            amount,
             currency: "CHF",
             additionalInfo: `${labels.invoice} ${document.number}`,
         },

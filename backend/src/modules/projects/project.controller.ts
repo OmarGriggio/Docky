@@ -9,6 +9,7 @@ import {
   completeProjectServ
 } from "./project.service";
 import { CreateProjectData, UpdateProjectData } from "./project.types";
+import { addDepositInvoiceServ, getChantierBillingServ } from "../documents/document.service";
 
 export const getProjects = async (req: Request, res: Response) => {
   const includeArchived = req.query.includeArchived === "true";
@@ -48,4 +49,12 @@ export const unarchiveProject = async (req: Request, res: Response) => {
 export const completeProject = async (req: Request, res: Response) => {
   const projectCompleted = await completeProjectServ(Number(req.params.id), req.user.company_id);
   res.json(projectCompleted);
+};
+
+export const getProjectBilling = async (req: Request, res: Response) => {
+  res.json(await getChantierBillingServ(Number(req.params.id), req.user.company_id));
+};
+
+export const createDepositInvoice = async (req: Request, res: Response) => {
+  res.json(await addDepositInvoiceServ(Number(req.params.id), req.user.company_id, req.body));
 };

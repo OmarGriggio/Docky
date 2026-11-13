@@ -58,6 +58,10 @@ export interface LetterDto {
     discount: number;
     introduction: string;
     conclusion: string;
+    // A chantier's final invoice: its deposits deducted under the total, and
+    // the balance due (see deposit.ts) - none on any other document.
+    deductions?: { label: string; amount: number }[];
+    amountDue?: number;
 }
 
 // x positions on an A4 page (595pt wide, 50pt margins): the address block,
@@ -227,6 +231,23 @@ export const drawTotalsTable = (
     rule(pdf, accent);
     row(pdf, labels.total, { total: letter.amountInclVat }, { size: 14, bold: true }, totalHeight);
     rule(pdf, accent);
+
+    // A final invoice: each deposit deducted, then the balance - owed, or the
+    // client's when the deposits were more - on the same band as the total.
+    if (letter.deductions?.length && letter.amountDue !== undefined) {
+        pdf.moveDown(4);
+        for (const deduction of letter.deductions) {
+            row(pdf, fitText(pdf, deduction.label, RATE_RIGHT - pdf.marginValue() - 10, { size: 10 }), { total: -deduction.amount });
+        }
+        pdf.reserve(ROW * 2);
+        pdf.moveDown(4);
+        if (accent) {
+            band(pdf, pdf.remainingHeight() + 4, totalHeight, tint(accent, TOTAL_BAND_TINT));
+        }
+        rule(pdf, accent);
+        row(pdf, letter.amountDue >= 0 ? labels.amountDue : labels.creditBalance, { total: Math.abs(letter.amountDue) }, { size: 14, bold: true }, totalHeight);
+        rule(pdf, accent);
+    }
 
     if (earlyPayment) {
         pdf.moveDown(6);

@@ -23,12 +23,22 @@ export const formatLongDate = (value: Date, language: PdfLanguage = "FR"): strin
     });
 };
 
+// "30", "33.5" - a deposit's percentage as typed, without trailing zeros.
+const formatPercentLabel = (percent: number): string => String(Number(percent.toFixed(2)));
+
 // Every fixed string printed on a PDF. The QR-bill's own headings follow the
 // wording the Swiss Implementation Guidelines give for each language.
 export const PDF_LABELS = {
     FR: {
         placeDate: (city: string, date: string) => `${city}, le ${date}`,
         invoice: "Facture",
+        depositInvoice: "Facture d'acompte",
+        finalInvoice: "Facture finale",
+        depositDeduction: (number: string, date: string) => `./. Acompte ${number} du ${date}`,
+        amountDue: "Solde à payer",
+        creditBalance: "Solde en votre faveur",
+        depositLine: (n: number, percent: number | null, quoteNumber: string | null) =>
+            `Acompte n° ${n}${percent !== null ? ` – ${formatPercentLabel(percent)} %` : ""}${quoteNumber ? ` selon offre ${quoteNumber}` : ""}`,
         quote: "Offre",
         reminderTitle: "Rappel - Facture N°",
         location: "Lieu/Bâtiment",
@@ -67,6 +77,13 @@ export const PDF_LABELS = {
     EN: {
         placeDate: (city: string, date: string) => `${city}, ${date}`,
         invoice: "Invoice",
+        depositInvoice: "Deposit invoice",
+        finalInvoice: "Final invoice",
+        depositDeduction: (number: string, date: string) => `Less deposit ${number} of ${date}`,
+        amountDue: "Balance due",
+        creditBalance: "Balance in your favour",
+        depositLine: (n: number, percent: number | null, quoteNumber: string | null) =>
+            `Deposit no. ${n}${percent !== null ? ` – ${formatPercentLabel(percent)}%` : ""}${quoteNumber ? ` of quote ${quoteNumber}` : ""}`,
         quote: "Quote",
         reminderTitle: "Reminder - Invoice No.",
         location: "Site/Building",

@@ -7,11 +7,22 @@ import { PDF_LABELS, toPdfLanguage } from "../pdf-labels";
 import { buildPaymentScale, daysUntilDue } from "../payment-scale";
 import { buildLetterDto } from "./shared";
 import { billedAddressOf, formatLocation } from "../../../modules/documents/billed-address";
+import { DepositDeduction } from "../../../modules/documents/document.types";
+import { formatShortDate } from "../format";
 
-export const createInvoiceDto = (document: DocumentComplete, client: ClientWithAddresses, company: Company): InvoiceDto => {
+// `deductions`/`amountDue`: a chantier's final invoice's deposits and what's
+// left to pay (see deposit.ts) - none and the whole total for any other.
+export const createInvoiceDto = (
+    document: DocumentComplete,
+    client: ClientWithAddresses,
+    company: Company,
+    deductions: DepositDeduction[] = [],
+    due: number = document.amount_incl_vat
+): InvoiceDto => {
     const days = document.early_payment_days;
     const earlyPayment = days
-        ? computeEarlyPayment(document.amount_incl_vat, document.early_payment_discount, document.early_payment_min_amount)
+        // On what's left to pay - never on the deposits already invoiced.
+        ? computeEarlyPayment(due, document.early_payment_discount, document.early_payment_min_amount)
         : null;
 
     const language = toPdfLanguage(client.language);
@@ -32,5 +43,11 @@ export const createInvoiceDto = (document: DocumentComplete, client: ClientWithA
         dueDate: document.due_date,
         paymentTerms: document.payment_terms,
         paymentScale,
+        invoiceKind: document.invoice_kind,
+        deductions: deductions.map(deduction => ({
+            label: PDF_LABELS[language].depositDeduction(deduction.number, formatShortDate(new Date(deduction.date))),
+            amount: Number(deduction.amount_incl_vat),
+        })),
+        amountDue: due,
     };
 }

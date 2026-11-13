@@ -1,5 +1,5 @@
 import { db } from "../../shared/config/database";
-import { Document, UpdateDocumentData, DocumentStatus, BilledAddress } from "./document.types";
+import { Document, UpdateDocumentData, DocumentStatus, BilledAddress, InvoiceKind, DepositDeduction } from "./document.types";
 
 // client_id is an optional extra narrowing on top of company_id - used by
 // client-detail.ts's own expandable rows (a client's own documents), kept
@@ -141,12 +141,13 @@ export const acceptDocumentInDB = async (id: number, company_id: number, billed_
 // The invoice already billing this chantier (its PROJECT document), if any.
 // Only a cancelled one doesn't count - an archived invoice still billed the
 // work (archiving is tidying up a list, not undoing an invoice), so it keeps
-// the chantier from being invoiced a second time.
+// the chantier from being invoiced a second time. Its deposit invoices don't
+// count either: they come before it (see deposit.ts).
 export const getInvoiceForProjectDocumentFromDB = async (project_document_id: number, company_id: number): Promise<Document | null> => {
   const result = await db().query(
     `SELECT * FROM documents
       WHERE parent_document_id = $1 AND company_id = $2 AND type = 'INVOICE'
-        AND status <> 'CANCELLED'
+        AND invoice_kind = 'STANDARD' AND status <> 'CANCELLED'
       LIMIT 1`,
     [project_document_id, company_id]
   );
@@ -240,9 +241,10 @@ export const updateDocumentInDB = async (
   return result.rows[0] ?? null;
 };
 
-// A new document is never frozen yet (billed_address, see billed-address.ts).
+// A new document is never frozen yet (billed_address, see billed-address.ts),
+// and an ordinary one unless said otherwise (invoice_kind, see deposit.ts).
 export const createDocumentInDB = async (
-  document: Omit<Document, "id" | "billed_address">
+  document: Omit<Document, "id" | "billed_address" | "invoice_kind" | "deposit_deductions"> & { invoice_kind?: InvoiceKind }
 ): Promise<Document> => {
   const query = `
     INSERT INTO documents (
@@ -270,9 +272,10 @@ export const createDocumentInDB = async (
       recipient_city,
       early_payment_discount,
       early_payment_days,
-      early_payment_min_amount
+      early_payment_min_amount,
+      invoice_kind
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)
     RETURNING *;
   `;
 
@@ -301,7 +304,8 @@ export const createDocumentInDB = async (
     document.recipient_city,
     document.early_payment_discount,
     document.early_payment_days,
-    document.early_payment_min_amount
+    document.early_payment_min_amount,
+    document.invoice_kind ?? "STANDARD"
   ];
 
   const result = await db().query(query, values);
@@ -316,5 +320,26 @@ export const updateBilledAddressInDB = async (id: number, company_id: number, bi
   await db().query(
     "UPDATE documents SET billed_address = $1::jsonb WHERE id = $2 AND company_id = $3 AND type = 'QUOTE' AND status = 'SENT'",
     [billed_address, id, company_id]
+  );
+};
+
+// A chantier's deposit invoices (its PROJECT document's), archived ones
+// included - archiving tidies a list, it doesn't undo an invoice - oldest first.
+export const getDepositInvoicesFromDB = async (project_document_id: number, company_id: number): Promise<Document[]> => {
+  const result = await db().query(
+    `SELECT * FROM documents
+      WHERE parent_document_id = $1 AND company_id = $2 AND type = 'INVOICE' AND invoice_kind = 'DEPOSIT'
+      ORDER BY date, id`,
+    [project_document_id, company_id]
+  );
+  return result.rows;
+};
+
+// A final invoice leaving DRAFT keeps the deposits it deducts from then on
+// (see deposit.ts) - only the first time.
+export const freezeDepositDeductionsInDB = async (id: number, company_id: number, deductions: DepositDeduction[]): Promise<void> => {
+  await db().query(
+    "UPDATE documents SET deposit_deductions = $1::jsonb WHERE id = $2 AND company_id = $3 AND deposit_deductions IS NULL",
+    [JSON.stringify(deductions), id, company_id]
   );
 };

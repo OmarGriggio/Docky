@@ -20,9 +20,13 @@ export interface PreparedQrBill {
 }
 
 // Shared by the invoice and the payment reminder - both end with the same
-// payment slip.
-export const prepareQrBill = async ({ document, client, company }: PdfSource): Promise<PreparedQrBill> => {
-    const dto = createSwissQrBillDto(document, client, company);
+// payment slip, for what's left to pay. Null when nothing is (a final invoice
+// whose deposits cover it all, or more): no slip then.
+export const prepareQrBill = async ({ document, client, company, amountDue }: PdfSource): Promise<PreparedQrBill | null> => {
+    if (!(amountDue > 0)) {
+        return null;
+    }
+    const dto = createSwissQrBillDto(document, client, company, amountDue);
     return { dto, imageBytes: await generateSwissQrBillImage(dto), language: toPdfLanguage(client.language) };
 };
 
@@ -32,9 +36,12 @@ export const prepareQrBill = async ({ document, client, company }: PdfSource): P
 // of its own - on a fresh one.
 export const renderQrBillPage = async (
     pdf: PdfWriter,
-    qrBill: PreparedQrBill,
+    qrBill: PreparedQrBill | null,
     { shareCurrentPage }: { shareCurrentPage: boolean }
 ): Promise<void> => {
+    if (!qrBill) {
+        return;
+    }
     if (!shareCurrentPage || pdf.remainingHeight() < QR_BILL_MIN_REMAINING_HEIGHT) {
         pdf.newPage();
     }

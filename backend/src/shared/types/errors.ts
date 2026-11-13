@@ -13,9 +13,10 @@ export class NotFoundError extends AppError {
     }
 }
 
+// `code`: what the frontend can tell the user precisely (see AppError).
 export class ConflictError extends AppError {
-    constructor(message = "Conflict") {
-        super(message, 409);
+    constructor(message = "Conflict", code?: string) {
+        super(message, 409, code);
     }
 }
 

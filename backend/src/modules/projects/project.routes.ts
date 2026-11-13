@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createProject, updateProject, archiveProject, unarchiveProject, completeProject, getProjects, getProjectById } from "./project.controller";
+import { createProject, updateProject, archiveProject, unarchiveProject, completeProject, getProjectBilling, createDepositInvoice, getProjects, getProjectById } from "./project.controller";
 import { authenticate } from "../../shared/middlewares/auth.middleware";
 
 const router = Router();
@@ -19,5 +19,10 @@ router.patch("/:id/archive", archiveProject);
 router.patch("/:id/unarchive", unarchiveProject);
 
 router.patch("/:id/complete", completeProject);
+
+// Its billing: deposit invoices so far, and asking for a new one (deposit.ts).
+router.get("/:id/billing", getProjectBilling);
+
+router.post("/:id/deposit-invoice", createDepositInvoice);
 
 export default router;

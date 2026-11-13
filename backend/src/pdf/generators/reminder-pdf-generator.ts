@@ -12,7 +12,7 @@ import { withCurrentAddress } from "../../modules/documents/billed-address";
 
 interface PreparedReminder {
     reminder: ReminderDto;
-    qrBill: PreparedQrBill;
+    qrBill: PreparedQrBill | null;
     logoBytes: Buffer | null;
 }
 
@@ -41,7 +41,8 @@ export class ReminderPdfGenerator extends DocumentPdfGenerator<PreparedReminder>
         const template = await getTemplateServ("REMINDER", company.id, toPdfLanguage(client.language));
 
         return {
-            reminder: createReminderDto(document, client, company, template?.introduction ?? ""),
+            // What's left to pay: a final invoice's deposits are invoices of their own.
+            reminder: createReminderDto({ ...document, amount_incl_vat: source.amountDue }, client, company, template?.introduction ?? ""),
             qrBill: await prepareQrBill(source),
             logoBytes: await this.readCompanyImage(company, "logo"),
         };

@@ -1,4 +1,4 @@
-import { CreateDocumentData, UpdateDocumentData, DocumentType, DocumentStatus, Document, DocumentContentSection, DocumentRecipient } from "./document.types";
+import { CreateDocumentData, UpdateDocumentData, DocumentType, DocumentStatus, Document, DocumentContentSection, DocumentRecipient, DepositDeduction } from "./document.types";
 import { Client } from "../clients/client.types";
 import {
   getDocumentsFromDB,
@@ -15,6 +15,8 @@ import {
   updateDocumentStatusInDB,
   updateBilledAddressInDB,
   getInvoiceForProjectDocumentFromDB,
+  getDepositInvoicesFromDB,
+  freezeDepositDeductionsInDB,
   archiveDocumentContentInDB,
   getDocumentByIdForUpdateFromDB
 } from "./document.repository";
@@ -24,7 +26,10 @@ import { getClientByIdFromDB } from "../clients/client.repository";
 import { getAddressByIdFromDB, getAddressesByClientIdFromDB } from "../clients/address.repository";
 import { buildBilledAddress } from "./billed-address";
 import { clientDisplayName } from "../clients/client.display";
-import { getProjectByDocumentIdFromDB, createProjectInDB } from "../projects/project.repository";
+import { getProjectByDocumentIdFromDB, createProjectInDB, getProjectByIdFromDB } from "../projects/project.repository";
+import { amountDue, BillingSummary, ChantierInvoice, depositAmounts, DepositRequest, depositsToDeduct, summarizeBilling } from "./deposit";
+import { getTemplateServ } from "./document_template.service";
+import { PDF_LABELS, toPdfLanguage } from "../../pdf/templates/pdf-labels";
 import { getResourceByIdFromDB } from "../catalog/resource.repository";
 import { getCompanyByIdFromDB } from "../companies/company.repository";
 import { AppError, NotFoundError, ConflictError } from "../../shared/types/errors";
@@ -208,6 +213,12 @@ export const addDocumentServ = async (documentData: CreateDocumentData, company_
       if (await getInvoiceForProjectDocumentFromDB(projectDocument.id, company_id)) {
         throw new ConflictError("This project has already been invoiced");
       }
+      // It deducts the chantier's deposits sent or paid: one still a draft
+      // must be sent or cancelled first, or it would be left out unseen.
+      const deposits = await getDepositInvoicesFromDB(projectDocument.id, company_id);
+      if (deposits.some(deposit => deposit.status === "DRAFT")) {
+        throw new ConflictError("A deposit invoice of this chantier is still a draft", "DEPOSIT_DRAFT_PENDING");
+      }
     }
 
     // An invoice offers the company's current early payment discount, copied
@@ -241,16 +252,6 @@ export const addDocumentServ = async (documentData: CreateDocumentData, company_
   });
 };
 
-// Whether a quote/invoice's header, sections and lines can still change:
-// - a quote while the client hasn't answered yet (DRAFT or SENT) - once
-//   ACCEPTED it's the frozen record a chantier was born from (see
-//   zz_docs/Project Definition.md's lifecycle), once REJECTED it's over;
-// - an invoice only while it's a DRAFT. Once SENT, the client holds it under
-//   its number - it isn't rewritten afterwards (Swiss bookkeeping, art. 957a
-//   CO); a wrong one is CANCELLED and duplicated into a new invoice instead.
-// A PROJECT document's status is always null (its lifecycle lives on
-// projects.status instead), so it's never editable through this generic
-// flow either - see assertContentEditableServ for its own rule.
 // The client's name and address as they are right now, for a document
 // leaving DRAFT (see billed-address.ts).
 const currentBilledAddress = async (document: Pick<Document, "client_id" | "address_id">, company_id: number) => {
@@ -262,6 +263,16 @@ const currentBilledAddress = async (document: Pick<Document, "client_id" | "addr
   return buildBilledAddress({ ...client, addresses }, document);
 };
 
+// Whether a quote/invoice's header, sections and lines can still change:
+// - a quote while the client hasn't answered yet (DRAFT or SENT) - once
+//   ACCEPTED it's the frozen record a chantier was born from (see
+//   zz_docs/Project Definition.md's lifecycle), once REJECTED it's over;
+// - an invoice only while it's a DRAFT. Once SENT, the client holds it under
+//   its number - it isn't rewritten afterwards (Swiss bookkeeping, art. 957a
+//   CO); a wrong one is CANCELLED and duplicated into a new invoice instead.
+// A PROJECT document's status is always null (its lifecycle lives on
+// projects.status instead), so it's never editable through this generic
+// flow either - see assertContentEditableServ for its own rule.
 const isOpenForEditing = (document: Pick<Document, "type" | "status">): boolean => {
   if (document.type === "INVOICE") {
     return document.status === "DRAFT";
@@ -445,12 +456,27 @@ export const updateDocumentStatusServ = async (id: number, company_id: number, s
     throw new ConflictError("This document's status can't be changed this way");
   }
 
+  // A deposit already deducted from its chantier's final invoice, sent: that
+  // invoice is the client's - cancel it first.
+  if (status === "CANCELLED" && document.invoice_kind === "DEPOSIT" && document.parent_document_id !== null) {
+    const final = await getInvoiceForProjectDocumentFromDB(document.parent_document_id, company_id);
+    if (final?.deposit_deductions?.some(deduction => deduction.document_id === document.id)) {
+      throw new ConflictError("This deposit is deducted from the chantier's final invoice", "DEPOSIT_DEDUCTED");
+    }
+  }
+
   // Leaving DRAFT freezes the address it's sent to; back to DRAFT (a quote)
   // follows the client again (see updateDocumentStatusInDB).
   const billedAddress = status === "DRAFT" || document.billed_address ? null : await currentBilledAddress(document, company_id);
   const updated = await updateDocumentStatusInDB(id, company_id, status, billedAddress);
   if (!updated) {
     throw new ConflictError("This document's status can't be changed this way");
+  }
+  // A chantier's final invoice leaving DRAFT: the deposits it deducts, as
+  // they stand now, are frozen on it.
+  if (isFinalInvoice(updated) && updated.deposit_deductions === null) {
+    await freezeDepositDeductionsInDB(id, company_id, await liveDepositDeductions(updated, company_id));
+    return { ...updated, deposit_deductions: await getDepositDeductionsServ(updated, company_id) };
   }
   return updated;
 };
@@ -608,4 +634,160 @@ export const unarchiveDocumentServ = async (id: number, company_id: number) => {
     throw new NotFoundError("Document not found");
   }
   return await unarchiveDocumentInDB(id, company_id);
+};
+
+// A chantier's deposit invoices and where its billing stands - for its page:
+// its final invoice once there is one, and the deposits a final invoice would
+// deduct now (what a new one's form shows).
+export interface ChantierBilling extends BillingSummary {
+  quoteNumber: string | null;
+  deposits: ChantierInvoice[];
+  finalInvoice: ChantierInvoice | null;
+  deductible: DepositDeduction[];
+}
+
+// The chantier (by its project id, scoped to the company), its PROJECT
+// document, and the accepted quote it came from - null for one created by hand.
+const chantierDocuments = async (project_id: number, company_id: number) => {
+  const project = await getProjectByIdFromDB(project_id, company_id);
+  if (!project) {
+    throw new NotFoundError("Project not found");
+  }
+  const projectDocument = await getDocumentByIdFromDB(project.document_id, company_id);
+  if (!projectDocument) {
+    throw new NotFoundError("Project not found");
+  }
+  const parent = projectDocument.parent_document_id === null ? null : await getDocumentByIdFromDB(projectDocument.parent_document_id, company_id);
+  const quote = parent?.type === "QUOTE" ? parent : null;
+  return { project, projectDocument, quote };
+};
+
+export const getChantierBillingServ = async (project_id: number, company_id: number): Promise<ChantierBilling> => {
+  const { projectDocument, quote } = await chantierDocuments(project_id, company_id);
+  const deposits = (await getDepositInvoicesFromDB(projectDocument.id, company_id))
+    .map(({ id, number, date, status, amount_incl_vat }) => ({ id, number, date, status, amount_incl_vat }));
+  const final = await getInvoiceForProjectDocumentFromDB(projectDocument.id, company_id);
+  return {
+    ...summarizeBilling(quote?.amount_incl_vat ?? null, deposits),
+    quoteNumber: quote?.number ?? null,
+    deposits,
+    finalInvoice: final && { id: final.id, number: final.number, date: final.date, status: final.status, amount_incl_vat: final.amount_incl_vat },
+    deductible: depositsToDeduct(deposits),
+  };
+};
+
+// A deposit invoice on a chantier (deposit.ts): at any time - in progress or
+// completed, before its final invoice - a percentage of its accepted quote's
+// total incl. VAT, or an amount. A draft like any invoice, numbered with the
+// others (FAC-...), to the chantier's client (or typed-in recipient) and
+// address, with one line "Acompte n° 2 - 30 % selon offre OFF-..." in the
+// client's language, at the quote's VAT rate (the company's for a chantier
+// without one), the invoice template's texts, payment terms and due date -
+// and no early payment discount: that's only ever on the final invoice.
+export const addDepositInvoiceServ = async (project_id: number, company_id: number, request: DepositRequest) => {
+  const { project, projectDocument, quote } = await chantierDocuments(project_id, company_id);
+  if (!project.is_active) {
+    throw new ConflictError("An archived chantier can't be invoiced");
+  }
+  if (await getInvoiceForProjectDocumentFromDB(projectDocument.id, company_id)) {
+    throw new ConflictError("This chantier already has its final invoice");
+  }
+  const company = await getCompanyByIdFromDB(company_id);
+  if (!company) {
+    throw new NotFoundError("Company not found");
+  }
+  const vatRate = quote?.vat_rate ?? company.vat_rate;
+  const amounts = depositAmounts(request ?? {}, quote?.amount_incl_vat ?? null, vatRate);
+
+  const client = await getClientByIdFromDB(projectDocument.client_id, company_id);
+  if (!client) {
+    throw new NotFoundError("Client not found");
+  }
+  const language = toPdfLanguage(client.language);
+  const labels = PDF_LABELS[language];
+  const template = await getTemplateServ("INVOICE", company_id, language);
+  const today = new Date();
+  const dueDate = template.due_days ? new Date(today.getFullYear(), today.getMonth(), today.getDate() + template.due_days) : null;
+
+  return await withTransaction(async () => {
+    const number = await generateDocumentNumber(company_id, "INVOICE");
+    // Under the numbering lock: two deposits asked at once get n° 2 and n° 3.
+    const position = (await getDepositInvoicesFromDB(projectDocument.id, company_id))
+      .filter(deposit => deposit.status !== "CANCELLED").length + 1;
+
+    const deposit = await createDocumentInDB({
+      company_id,
+      client_id: projectDocument.client_id,
+      address_id: projectDocument.address_id,
+      reference_client: projectDocument.reference_client,
+      parent_document_id: projectDocument.id,
+      type: "INVOICE",
+      invoice_kind: "DEPOSIT",
+      number,
+      date: today,
+      amount_excl_vat: 0,
+      amount_incl_vat: 0,
+      discount: 0,
+      vat_rate: vatRate,
+      status: "DRAFT",
+      introduction: template.introduction,
+      conclusion: template.conclusion,
+      payment_terms: company.payment_terms,
+      due_date: dueDate,
+      recipient_name: projectDocument.recipient_name,
+      recipient_complement: projectDocument.recipient_complement,
+      recipient_street: projectDocument.recipient_street,
+      recipient_postal_code: projectDocument.recipient_postal_code,
+      recipient_city: projectDocument.recipient_city,
+      early_payment_discount: 0,
+      early_payment_days: null,
+      early_payment_min_amount: 0,
+      is_active: true,
+    });
+
+    // The section's title is what page 1 lists ("Pos 1"), its one line the
+    // same words - a deposit has no details page (invoice-pdf-generator.ts).
+    const label = labels.depositLine(position, amounts.percent, quote?.number ?? null);
+    const section = await createSectionInDB({
+      company_id, document_id: deposit.id, position: 1, title: label,
+      description: null, date_start: null, date_end: null, note: null, is_active: true,
+    });
+    await createLineInDB({
+      company_id, document_id: deposit.id, section_id: section.id, position: 1, type: "SERVICE",
+      label,
+      quantity: 1, unit: null, unit_price: amounts.exclVat, discount: 0, resource_id: null, is_active: true,
+    });
+    return await recomputeDocumentTotalsServ(deposit.id, company_id);
+  });
+};
+
+// A chantier's final invoice: its one STANDARD invoice (see deposit.ts).
+const isFinalInvoice = (document: Pick<Document, "type" | "invoice_kind" | "parent_document_id">) =>
+  document.type === "INVOICE" && document.invoice_kind === "STANDARD" && document.parent_document_id !== null;
+
+const liveDepositDeductions = async (document: Pick<Document, "parent_document_id">, company_id: number): Promise<DepositDeduction[]> =>
+  depositsToDeduct(await getDepositInvoicesFromDB(document.parent_document_id!, company_id));
+
+// The deposits an invoice deducts: frozen once a final invoice was sent,
+// worked out from its chantier's deposits while it's a draft, none for any
+// other document.
+export const getDepositDeductionsServ = async (
+  document: Pick<Document, "type" | "invoice_kind" | "parent_document_id" | "deposit_deductions">,
+  company_id: number
+): Promise<DepositDeduction[]> => {
+  if (!isFinalInvoice(document)) {
+    return [];
+  }
+  return document.deposit_deductions ?? await liveDepositDeductions(document, company_id);
+};
+
+// GET /document/:id/deductions - what the document form shows under a final
+// invoice's totals: the deposits deducted and what's left to pay.
+export const getDocumentDeductionsServ = async (id: number, company_id: number) => {
+  const document = await getDocumentByIdFromDB(id, company_id);
+  if (!document) {
+    throw new NotFoundError("Document not found");
+  }
+  const deductions = await getDepositDeductionsServ(document, company_id);
+  return { deductions, amount_due: amountDue(document.amount_incl_vat, deductions) };
 };

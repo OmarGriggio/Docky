@@ -9,7 +9,7 @@ import { PreparedQrBill, prepareQrBill, renderQrBillPage } from "./qr-bill-page"
 
 interface PreparedInvoice {
     invoice: InvoiceDto;
-    qrBill: PreparedQrBill;
+    qrBill: PreparedQrBill | null;
     logoBytes: Buffer | null;
     headerImageBytes: Buffer | null;
 }
@@ -24,7 +24,7 @@ export class InvoicePdfGenerator extends DocumentPdfGenerator<PreparedInvoice> {
     protected async prepare(source: PdfSource): Promise<PreparedInvoice> {
         const { document, client, company } = source;
         return {
-            invoice: createInvoiceDto(document, client, company),
+            invoice: createInvoiceDto(document, client, company, source.deductions, source.amountDue),
             qrBill: await prepareQrBill(source),
             logoBytes: await this.readCompanyImage(company, "logo"),
             headerImageBytes: await this.readCompanyImage(company, "header"),
@@ -37,8 +37,11 @@ export class InvoicePdfGenerator extends DocumentPdfGenerator<PreparedInvoice> {
 
         await InvoiceTemplate.renderRecap(pdf, invoice, logoBytes, headerImage !== null);
 
-        pdf.newPage();
-        InvoiceTemplate.renderDetails(pdf, invoice);
+        // A deposit is one line, already on page 1 - no details page for it.
+        if (invoice.invoiceKind !== "DEPOSIT") {
+            pdf.newPage();
+            InvoiceTemplate.renderDetails(pdf, invoice);
+        }
 
         await renderQrBillPage(pdf, qrBill, { shareCurrentPage: true });
 

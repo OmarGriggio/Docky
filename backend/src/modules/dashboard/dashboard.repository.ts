@@ -1,6 +1,10 @@
 import { db } from "../../shared/config/database";
 import { OpenInvoice, PaidAmountByClient, ProjectInProgress } from "./dashboard.types";
 
+// A chantier's final invoice counts for what's left once its deposits are
+// deducted (deposit_deductions, frozen once sent) - its deposits are invoices
+// of their own, counted on their own.
+//
 // Sums amount_incl_vat (what the client actually paid, VAT included) across
 // every PAID invoice, grouped by client. is_active is deliberately not
 // filtered here - archiving an old invoice is just a list-visibility toggle
@@ -10,7 +14,7 @@ import { OpenInvoice, PaidAmountByClient, ProjectInProgress } from "./dashboard.
 export const getPaidAmountByClientFromDB = async (company_id: number): Promise<PaidAmountByClient[]> => {
   const query = `
     SELECT c.id AS client_id, c.client_number, c.company_name, c.first_name, c.last_name, c.is_placeholder,
-           SUM(d.amount_incl_vat) AS total_paid
+           SUM((d.amount_incl_vat - COALESCE((SELECT SUM((deduction->>'amount_incl_vat')::numeric) FROM jsonb_array_elements(d.deposit_deductions) deduction), 0))) AS total_paid
     FROM documents d
     JOIN clients c ON c.id = d.client_id
     WHERE d.company_id = $1 AND d.type = 'INVOICE' AND d.status = 'PAID'
@@ -32,7 +36,7 @@ export const getPaidAmountByClientFromDB = async (company_id: number): Promise<P
 // as everywhere else.
 export const getOpenInvoicesFromDB = async (company_id: number): Promise<OpenInvoice[]> => {
   const query = `
-    SELECT d.id, d.number, d.date, d.due_date, d.amount_incl_vat, d.recipient_name,
+    SELECT d.id, d.number, d.date, d.due_date, (d.amount_incl_vat - COALESCE((SELECT SUM((deduction->>'amount_incl_vat')::numeric) FROM jsonb_array_elements(d.deposit_deductions) deduction), 0)) AS amount_incl_vat, d.recipient_name,
            c.id AS client_id, c.company_name, c.first_name, c.last_name, c.is_placeholder
     FROM documents d
     JOIN clients c ON c.id = d.client_id AND c.company_id = d.company_id

@@ -14,7 +14,7 @@ export class InvoiceTemplate {
         const labels = PDF_LABELS[invoice.language];
 
         await drawLetterHead(pdf, invoice, {
-            title: `${labels.invoice.toUpperCase()} N° ${invoice.number}`,
+            title: `${(invoice.invoiceKind === "DEPOSIT" ? labels.depositInvoice : invoice.deductions?.length ? labels.finalInvoice : labels.invoice).toUpperCase()} N° ${invoice.number}`,
             logoBytes,
             hasHeaderImage,
             extraReferenceLines: invoice.location ? [`${labels.location} : ${invoice.location}`] : [],
