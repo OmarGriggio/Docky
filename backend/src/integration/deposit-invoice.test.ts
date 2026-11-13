@@ -66,6 +66,22 @@ describe("deposit invoices", () => {
     expect(summary.deductible.map((d: { document_id: number }) => d.document_id)).toEqual([first.id, second.id]);
   });
 
+  it("never gives a number twice, a cancelled deposit's included", async () => {
+    const { project } = await chantier();
+    const first = (await deposit(project.id, { percent: 30 }).expect(200)).body;
+    await setStatus(first.id, "CANCELLED").expect(200);
+    const second = (await deposit(project.id, { percent: 30 }).expect(200)).body;
+    expect((await getDocumentComplete(token, second.id)).lines[0].label).toMatch(/^Acompte n° 2 /);
+  });
+
+  it("is never created through POST /document, whatever the body says", async () => {
+    const { project } = await chantier();
+    const res = await postDocument(token, "INVOICE", clientId, { invoice_kind: "DEPOSIT" }).expect(200);
+    expect(res.body.invoice_kind).toBe("STANDARD");
+    await postDocument(token, "INVOICE", clientId, { invoice_kind: "BOGUS", deposit_deductions: [{ document_id: 1 }] }).expect(200);
+    expect((await billing(project.id)).deposits).toEqual([]);
+  });
+
   it("is possible while the chantier is in progress, and doesn't count as its one invoice", async () => {
     const { project } = await chantier();
     const first = (await deposit(project.id, { percent: 30 }).expect(200)).body;
@@ -147,14 +163,14 @@ describe("deposit invoices", () => {
       await setStatus(first.id, "SENT").expect(200);
       await complete(project.id);
       const final = (await finalInvoice(project.document_id).expect(200)).body;
+      expect(final.deposit_deductions).toBeNull();
 
-      // While it's a draft, cancelling a deposit just takes it off.
-      const second = (await api().get(`/project/${project.id}/billing`).set(auth(token)).expect(200)).body;
-      expect(second.deposits).toHaveLength(1);
-
-      await setStatus(final.id, "SENT").expect(200);
+      const sent = (await setStatus(final.id, "SENT").expect(200)).body;
+      expect(sent.deposit_deductions.map((d: { document_id: number }) => d.document_id)).toEqual([first.id]);
       const sentFinal = (await api().get(`/document/${final.id}`).set(auth(token)).expect(200)).body;
-      expect(sentFinal.deposit_deductions.map((d: { document_id: number }) => d.document_id)).toEqual([first.id]);
+      expect(sentFinal.deposit_deductions).toEqual(sent.deposit_deductions);
+      // A plain date, not an instant a time zone could shift.
+      expect(sentFinal.deposit_deductions[0].date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
 
       const res = await setStatus(first.id, "CANCELLED").expect(409);
       expect(res.body.code).toBe("DEPOSIT_DEDUCTED");
@@ -183,6 +199,34 @@ describe("deposit invoices", () => {
       const open = (await api().get("/dashboard/open-invoices").set(auth(token)).expect(200)).body;
       const row = open.find((invoice: { id: number }) => invoice.id === final.id);
       expect(Number(row.amount_incl_vat)).toBe(37835);
+    });
+
+    it("bills the chantier's balance once it's sent - nothing left to invoice", async () => {
+      const { project } = await chantier();
+      const first = (await deposit(project.id, { percent: 30 }).expect(200)).body;
+      await setStatus(first.id, "SENT").expect(200);
+      await complete(project.id);
+      const final = (await finalInvoice(project.document_id).expect(200)).body;
+      await saveContent(token, final.id, [sectionOf("Escalier", [{ quantity: 1, unit_price: 50000 }])]).expect(200);
+      await setStatus(final.id, "SENT").expect(200);
+
+      expect(await billing(project.id)).toMatchObject({ invoicedInclVat: 54050, paidInclVat: 0, remainingInclVat: 0 });
+    });
+
+    it("isn't held up by a draft deposit that was archived", async () => {
+      const { project } = await chantier();
+      const draft = (await deposit(project.id, { percent: 30 }).expect(200)).body;
+      await api().patch(`/document/${draft.id}/archive`).set(auth(token)).expect(200);
+      await complete(project.id);
+      await finalInvoice(project.document_id).expect(200);
+    });
+
+    it("keeps its deductions to the caller's own company", async () => {
+      const { project } = await chantier();
+      await complete(project.id);
+      const final = (await finalInvoice(project.document_id).expect(200)).body;
+      const other = await createCompanyWithAdmin();
+      await api().get(`/document/${final.id}/deductions`).set(auth(other.token)).expect(404);
     });
   });
 });

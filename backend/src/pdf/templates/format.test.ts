@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatAmount, formatIban, formatPercent, formatShortDate } from "./format";
+import { formatAmount, formatIban, formatPercent, formatPlainDate, formatShortDate } from "./format";
 
 describe("invoice formats", () => {
 
@@ -22,4 +22,10 @@ describe("invoice formats", () => {
         expect(formatIban("CH85 0079 0016 2476 15012")).toBe("CH85 0079 0016 2476 1501 2");
     });
 
+});
+
+describe("formatPlainDate", () => {
+  it("reads a plain date as written", () => {
+    expect(formatPlainDate("2026-03-01")).toBe("01.03.2026");
+  });
 });

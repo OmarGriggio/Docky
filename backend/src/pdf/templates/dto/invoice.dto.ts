@@ -8,7 +8,7 @@ import { buildPaymentScale, daysUntilDue } from "../payment-scale";
 import { buildLetterDto } from "./shared";
 import { billedAddressOf, formatLocation } from "../../../modules/documents/billed-address";
 import { DepositDeduction } from "../../../modules/documents/document.types";
-import { formatShortDate } from "../format";
+import { formatPlainDate, formatShortDate } from "../format";
 
 // `deductions`/`amountDue`: a chantier's final invoice's deposits and what's
 // left to pay (see deposit.ts) - none and the whole total for any other.
@@ -34,7 +34,7 @@ export const createInvoiceDto = (
     );
 
     return {
-        ...buildLetterDto(document, client, company, language),
+        ...buildLetterDto(document, client, company, language, due),
         // Frozen with the rest of the address once sent (billed-address.ts) -
         // formatLocation for a typed-in recipient or an unfrozen client
         // without any address, which have no billed address.
@@ -45,7 +45,7 @@ export const createInvoiceDto = (
         paymentScale,
         invoiceKind: document.invoice_kind,
         deductions: deductions.map(deduction => ({
-            label: PDF_LABELS[language].depositDeduction(deduction.number, formatShortDate(new Date(deduction.date))),
+            label: PDF_LABELS[language].depositDeduction(deduction.number, formatPlainDate(deduction.date)),
             amount: Number(deduction.amount_incl_vat),
         })),
         amountDue: due,

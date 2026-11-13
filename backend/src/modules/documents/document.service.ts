@@ -215,8 +215,9 @@ export const addDocumentServ = async (documentData: CreateDocumentData, company_
       }
       // It deducts the chantier's deposits sent or paid: one still a draft
       // must be sent or cancelled first, or it would be left out unseen.
+      // An archived draft was never the client's - it doesn't hold anything up.
       const deposits = await getDepositInvoicesFromDB(projectDocument.id, company_id);
-      if (deposits.some(deposit => deposit.status === "DRAFT")) {
+      if (deposits.some(deposit => deposit.status === "DRAFT" && deposit.is_active)) {
         throw new ConflictError("A deposit invoice of this chantier is still a draft", "DEPOSIT_DRAFT_PENDING");
       }
     }
@@ -244,6 +245,9 @@ export const addDocumentServ = async (documentData: CreateDocumentData, company_
       parent_document_id,
       company_id,
       number,
+      // Whatever the body says: a deposit only ever comes from its own flow
+      // (addDepositInvoiceServ).
+      invoice_kind: "STANDARD",
       status: "DRAFT",
       is_active: true,
       amount_excl_vat: 0,
@@ -450,6 +454,24 @@ export const updateDocumentStatusServ = async (id: number, company_id: number, s
   if (!document) {
     throw new NotFoundError("Document not found");
   }
+  // An invoice of a chantier - a deposit, or its final invoice: one at a
+  // time per chantier (its PROJECT document locked), so cancelling a deposit
+  // and sending the final invoice deducting it never cross, and the final
+  // invoice's status and frozen deductions are written together.
+  if (document.type === "INVOICE" && document.parent_document_id !== null) {
+    return await withTransaction(async () => {
+      await getDocumentByIdForUpdateFromDB(document.parent_document_id!, company_id);
+      return await changeDocumentStatus(id, company_id, status);
+    });
+  }
+  return await changeDocumentStatus(id, company_id, status);
+};
+
+const changeDocumentStatus = async (id: number, company_id: number, status: DocumentStatus) => {
+  const document = await getDocumentByIdFromDB(id, company_id);
+  if (!document) {
+    throw new NotFoundError("Document not found");
+  }
   const current: DocumentStatus | null = document.status;
   const settable = current ? SETTABLE_STATUSES[document.type]?.[current] ?? [] : [];
   if (!document.is_active || !settable.includes(status)) {
@@ -472,11 +494,13 @@ export const updateDocumentStatusServ = async (id: number, company_id: number, s
   if (!updated) {
     throw new ConflictError("This document's status can't be changed this way");
   }
-  // A chantier's final invoice leaving DRAFT: the deposits it deducts, as
-  // they stand now, are frozen on it.
-  if (isFinalInvoice(updated) && updated.deposit_deductions === null) {
-    await freezeDepositDeductionsInDB(id, company_id, await liveDepositDeductions(updated, company_id));
-    return { ...updated, deposit_deductions: await getDepositDeductionsServ(updated, company_id) };
+  // A chantier's final invoice sent (or paid straight away): the deposits it
+  // deducts, as they stand now, are frozen on it. Not one cancelled - it
+  // deducts nothing any more.
+  if (isFinalInvoice(updated) && updated.deposit_deductions === null && (status === "SENT" || status === "PAID")) {
+    const deductions = await liveDepositDeductions(updated, company_id);
+    await freezeDepositDeductionsInDB(id, company_id, deductions);
+    return { ...updated, deposit_deductions: deductions };
   }
   return updated;
 };
@@ -667,8 +691,9 @@ export const getChantierBillingServ = async (project_id: number, company_id: num
   const deposits = (await getDepositInvoicesFromDB(projectDocument.id, company_id))
     .map(({ id, number, date, status, amount_incl_vat }) => ({ id, number, date, status, amount_incl_vat }));
   const final = await getInvoiceForProjectDocumentFromDB(projectDocument.id, company_id);
+  const finalDue = final ? amountDue(final.amount_incl_vat, await getDepositDeductionsServ(final, company_id)) : 0;
   return {
-    ...summarizeBilling(quote?.amount_incl_vat ?? null, deposits),
+    ...summarizeBilling(quote?.amount_incl_vat ?? null, deposits, final && { status: final.status, amountDue: finalDue }),
     quoteNumber: quote?.number ?? null,
     deposits,
     finalInvoice: final && { id: final.id, number: final.number, date: final.date, status: final.status, amount_incl_vat: final.amount_incl_vat },
@@ -681,22 +706,21 @@ export const getChantierBillingServ = async (project_id: number, company_id: num
 // total incl. VAT, or an amount. A draft like any invoice, numbered with the
 // others (FAC-...), to the chantier's client (or typed-in recipient) and
 // address, with one line "Acompte n° 2 - 30 % selon offre OFF-..." in the
-// client's language, at the quote's VAT rate (the company's for a chantier
-// without one), the invoice template's texts, payment terms and due date -
+// client's language, at the company's current VAT rate, the invoice
+// template's texts, payment terms and due date -
 // and no early payment discount: that's only ever on the final invoice.
 export const addDepositInvoiceServ = async (project_id: number, company_id: number, request: DepositRequest) => {
   const { project, projectDocument, quote } = await chantierDocuments(project_id, company_id);
   if (!project.is_active) {
     throw new ConflictError("An archived chantier can't be invoiced");
   }
-  if (await getInvoiceForProjectDocumentFromDB(projectDocument.id, company_id)) {
-    throw new ConflictError("This chantier already has its final invoice");
-  }
   const company = await getCompanyByIdFromDB(company_id);
   if (!company) {
     throw new NotFoundError("Company not found");
   }
-  const vatRate = quote?.vat_rate ?? company.vat_rate;
+  // The rate in force now, the deposit being invoiced now - not the quote's,
+  // which may be older.
+  const vatRate = company.vat_rate;
   const amounts = depositAmounts(request ?? {}, quote?.amount_incl_vat ?? null, vatRate);
 
   const client = await getClientByIdFromDB(projectDocument.client_id, company_id);
@@ -711,9 +735,14 @@ export const addDepositInvoiceServ = async (project_id: number, company_id: numb
 
   return await withTransaction(async () => {
     const number = await generateDocumentNumber(company_id, "INVOICE");
-    // Under the numbering lock: two deposits asked at once get n° 2 and n° 3.
-    const position = (await getDepositInvoicesFromDB(projectDocument.id, company_id))
-      .filter(deposit => deposit.status !== "CANCELLED").length + 1;
+    // Under the numbering lock, the same one the final invoice is created
+    // under: it can't slip in between this check and the insert.
+    if (await getInvoiceForProjectDocumentFromDB(projectDocument.id, company_id)) {
+      throw new ConflictError("This chantier already has its final invoice");
+    }
+    // Every deposit counts, a cancelled one too - "Acompte n° 2" is never
+    // printed on two different invoices. Two asked at once get n° 2 and n° 3.
+    const position = (await getDepositInvoicesFromDB(projectDocument.id, company_id)).length + 1;
 
     const deposit = await createDocumentInDB({
       company_id,

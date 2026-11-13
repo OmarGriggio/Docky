@@ -7,8 +7,9 @@ import { DepositDeduction, DocumentStatus } from "./document.types";
 // zz_docs). The rules here are pure; document.service.ts's
 // addDepositInvoiceServ creates the invoice.
 
-// NUMERIC(12,2)'s own ceiling.
-const MAX_AMOUNT = 9999999999.99;
+// Far below NUMERIC(12,2)'s own ceiling: the amount excl. VAT computed back
+// and multiplied again must never overflow it.
+const MAX_AMOUNT = 99999999.99;
 
 export interface DepositRequest {
   // A percentage of the chantier's accepted quote, total incl. VAT...
@@ -78,23 +79,37 @@ export interface ChantierInvoice {
 export interface BillingSummary {
   // The accepted quote's total incl. VAT - null for a chantier created by hand.
   quoteInclVat: number | null;
-  // Deposits sent or paid - a draft isn't the client's yet, a cancelled one never was.
+  // Invoices sent or paid - deposits, and the final invoice's balance once
+  // there is one; a draft isn't the client's yet, a cancelled one never was.
   invoicedInclVat: number;
   paidInclVat: number;
-  // What's left to invoice on the quote - null without a quote.
+  // What's left to invoice on the quote - null without a quote, nothing once
+  // the final invoice is out (it bills the rest, whatever the quote said).
   remainingInclVat: number | null;
 }
 
 const counts = (invoice: ChantierInvoice) => invoice.status === "SENT" || invoice.status === "PAID";
 
-export const summarizeBilling = (quoteInclVat: number | null, deposits: ChantierInvoice[]): BillingSummary => {
-  const invoicedInclVat = round2(deposits.filter(counts).reduce((sum, deposit) => sum + deposit.amount_incl_vat, 0));
-  const paidInclVat = round2(deposits.filter(deposit => deposit.status === "PAID").reduce((sum, deposit) => sum + deposit.amount_incl_vat, 0));
+// `final`: the chantier's final invoice, with its balance (amountDue) - null
+// while there's none.
+export const summarizeBilling = (
+  quoteInclVat: number | null,
+  deposits: ChantierInvoice[],
+  final: { status: DocumentStatus | null; amountDue: number } | null = null
+): BillingSummary => {
+  const billed = [
+    ...deposits.map(deposit => ({ status: deposit.status, amount: deposit.amount_incl_vat })),
+    ...(final ? [{ status: final.status, amount: final.amountDue }] : []),
+  ];
+  const sum = (status: (s: DocumentStatus | null) => boolean) =>
+    round2(billed.filter(invoice => status(invoice.status)).reduce((total, invoice) => total + Number(invoice.amount), 0));
+  const invoicedInclVat = sum(s => s === "SENT" || s === "PAID");
+  const finalOut = final !== null && (final.status === "SENT" || final.status === "PAID");
   return {
     quoteInclVat,
     invoicedInclVat,
-    paidInclVat,
-    remainingInclVat: quoteInclVat === null ? null : round2(quoteInclVat - invoicedInclVat),
+    paidInclVat: sum(s => s === "PAID"),
+    remainingInclVat: quoteInclVat === null ? null : finalOut ? 0 : round2(quoteInclVat - invoicedInclVat),
   };
 };
 
@@ -105,7 +120,17 @@ export const summarizeBilling = (quoteInclVat: number | null, deposits: Chantier
 export const depositsToDeduct = (deposits: ChantierInvoice[]): DepositDeduction[] =>
   deposits
     .filter(counts)
-    .map(({ id, number, date, amount_incl_vat }) => ({ document_id: id, number, date, amount_incl_vat }));
+    .map(({ id, number, date, amount_incl_vat }) => ({ document_id: id, number, date: dateOnly(date), amount_incl_vat }));
+
+// A DATE column read back as a local midnight - kept as "2026-03-01", not an
+// instant a server in another time zone would shift by a day.
+const dateOnly = (date: Date | string): string => {
+  if (typeof date === "string") {
+    return date.slice(0, 10);
+  }
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+};
 
 // What's left to pay on an invoice once its deposits are deducted - the
 // whole total for any other invoice. Negative: the client paid too much.

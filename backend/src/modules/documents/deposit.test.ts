@@ -47,6 +47,16 @@ describe("summarizeBilling", () => {
   it("has nothing left to compare with for a chantier without a quote", () => {
     expect(summarizeBilling(null, [deposit("SENT", 500)]).remainingInclVat).toBeNull();
   });
+
+  it("counts the final invoice's balance once it's out, leaving nothing to invoice", () => {
+    expect(summarizeBilling(54050, [deposit("PAID", 16215)], { status: "SENT", amountDue: 40000 }))
+      .toEqual({ quoteInclVat: 54050, invoicedInclVat: 56215, paidInclVat: 16215, remainingInclVat: 0 });
+    expect(summarizeBilling(54050, [deposit("PAID", 16215)], { status: "PAID", amountDue: 37835 }).paidInclVat).toBe(54050);
+  });
+
+  it("leaves a final invoice still a draft out", () => {
+    expect(summarizeBilling(54050, [deposit("PAID", 16215)], { status: "DRAFT", amountDue: 37835 }).remainingInclVat).toBe(37835);
+  });
 });
 
 describe("depositsToDeduct", () => {
@@ -57,10 +67,14 @@ describe("depositsToDeduct", () => {
     expect(depositsToDeduct([deposit(1, "PAID"), deposit(2, "SENT"), deposit(3, "CANCELLED"), deposit(4, "DRAFT")])
       .map(deduction => deduction.document_id)).toEqual([1, 2]);
   });
+
+  it("keeps a deposit's date as a plain date", () => {
+    expect(depositsToDeduct([deposit(1, "PAID")])[0].date).toBe("2026-03-01");
+  });
 });
 
 describe("amountDue", () => {
-  const deduction = (amount: number) => ({ document_id: 1, number: "FAC", date: new Date(), amount_incl_vat: amount });
+  const deduction = (amount: number) => ({ document_id: 1, number: "FAC", date: "2026-03-01", amount_incl_vat: amount });
 
   it("is the total less every deposit", () => {
     expect(amountDue(54050, [deduction(16215), deduction(16215)])).toBe(21620);

@@ -13,7 +13,8 @@ export type InvoiceKind = "STANDARD" | "DEPOSIT";
 export interface DepositDeduction {
   document_id: number;
   number: string;
-  date: Date;
+  // "2026-03-01" - see deposit.ts's dateOnly.
+  date: string;
   amount_incl_vat: number;
 }
 
@@ -98,7 +99,7 @@ export type DocumentRecipient = Pick<
 // document's lines (see recomputeDocumentTotalsServ) — never client input.
 export type CreateDocumentData = Omit<
   Document,
-  "id" | "company_id" | "number" | "amount_excl_vat" | "amount_incl_vat"
+  "id" | "company_id" | "number" | "amount_excl_vat" | "amount_incl_vat" | "invoice_kind" | "deposit_deductions" | "billed_address"
   | "early_payment_discount" | "early_payment_days" | "early_payment_min_amount"
 >;
 

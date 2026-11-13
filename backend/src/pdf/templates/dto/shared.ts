@@ -60,13 +60,16 @@ export const hasTypedRecipient = (client: ClientWithAddresses, document: Documen
 // What an invoice and a quote print alike (see business-letter.ts) - each
 // DTO adds its own fields on top. The introduction/conclusion have their
 // {{...}} placeholders filled in already.
+// `amountDue`: what {{montant}} says - a final invoice's balance, not its
+// whole total (see deposit.ts).
 export const buildLetterDto = (
     document: DocumentComplete,
     client: ClientWithAddresses,
     company: Company,
-    language: PdfLanguage
+    language: PdfLanguage,
+    amountDue: number = document.amount_incl_vat
 ): LetterDto => {
-    const placeholders = buildDocumentValues(document, client.title, company.name, language);
+    const placeholders = buildDocumentValues({ ...document, amount_incl_vat: amountDue }, client.title, company.name, language);
     const typedRecipient = hasTypedRecipient(client, document);
     return {
         language,

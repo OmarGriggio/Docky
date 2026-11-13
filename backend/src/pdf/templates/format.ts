@@ -18,6 +18,13 @@ export const formatShortDate = (value: Date): string => {
     return `${pad(date.getDate())}.${pad(date.getMonth() + 1)}.${date.getFullYear()}`;
 };
 
+// "2026-03-01" (a DATE kept as text, see deposit.ts's dateOnly) as 01.03.2026
+// - read as written, never through a Date a time zone could shift.
+export const formatPlainDate = (value: string): string => {
+    const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+    return match ? `${match[3]}.${match[2]}.${match[1]}` : formatShortDate(new Date(value));
+};
+
 // CH85 0079 0016 2476 1501 2 - the IBAN in groups of four, as it's read out
 // and printed on the QR-bill itself.
 export const formatIban = (iban: string): string => iban.replace(/\s+/g, "").replace(/(.{4})(?=.)/g, "$1 ");
