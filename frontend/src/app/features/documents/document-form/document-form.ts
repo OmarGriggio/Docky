@@ -202,10 +202,11 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
 
   // Decided by which list (Offres/Factures) "Ajouter" was clicked from - see
   // document-list.ts's createDocument() - not editable here. Defaults to
-  // QUOTE if this page is ever reached without a type param. Set once in
-  // ngOnInit and never changes afterwards, so a plain getter (not a signal)
-  // is enough for the template to read it.
-  type: DocumentType = 'QUOTE';
+  // QUOTE if this page is ever reached without a type param. A signal, not a
+  // plain field: it's set once the page's data has arrived, after a first
+  // render - the app has no zone.js, a plain field changed then is never seen
+  // (NG0100 in dev).
+  type = signal<DocumentType>('QUOTE');
 
   // Set by loadForEdit() when this page is reached as documents/:id - null
   // means a fresh/duplicated draft (documents/new), submit() branches on it.
@@ -221,7 +222,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
 
   get pageTitle(): string {
     const editing = this.editingDocumentId() !== null;
-    const key = this.type === 'QUOTE'
+    const key = this.type() === 'QUOTE'
       ? (editing ? 'documents.form.editQuote' : 'documents.form.newQuote')
       : (editing ? 'documents.form.editInvoice' : 'documents.form.newInvoice');
     return this.transloco.translate(key);
@@ -360,7 +361,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
   // `type` is a plain property, set from the route.
   statusSteps(): DocumentStatus[] {
     const current = this.status();
-    if (this.type === 'INVOICE') {
+    if (this.type() === 'INVOICE') {
       return ['DRAFT', 'SENT', current === 'CANCELLED' ? 'CANCELLED' : 'PAID'];
     }
     return ['DRAFT', 'SENT', current === 'REJECTED' ? 'REJECTED' : 'ACCEPTED'];
@@ -427,7 +428,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
           // page is visited without a full reload.
           this.route.queryParamMap.subscribe(params => {
             const typeParam = params.get('type') as DocumentType | null;
-            this.type = (typeParam === 'QUOTE' || typeParam === 'INVOICE') ? typeParam : 'QUOTE';
+            this.type.set((typeParam === 'QUOTE' || typeParam === 'INVOICE') ? typeParam : 'QUOTE');
 
             // "Dupliquer" (document-list.ts) - pre-fills this page from an
             // existing quote's own data instead of the type's default
@@ -445,7 +446,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
             if (duplicateFromParam) {
               this.applyDuplicateFrom(Number(duplicateFromParam));
             } else {
-              this.loadTemplate(this.type);
+              this.loadTemplate(this.type());
               if (fromProjectParam) {
                 this.applyFromProject(Number(fromProjectParam));
               }
@@ -529,7 +530,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
   private applyDuplicateFrom(sourceId: number): void {
     // Only for the due date default - the duplicate keeps its source's own
     // introduction/conclusion, and the source's due date would be stale.
-    this.loadTemplate(this.type, false);
+    this.loadTemplate(this.type(), false);
 
     this.documentCompleteService.getDocumentComplete(sourceId).subscribe({
       next: source => {
@@ -542,7 +543,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
         this.discount.set(source.discount);
         this.vatRate.set(source.vat_rate);
 
-        if (this.type === 'INVOICE') {
+        if (this.type() === 'INVOICE') {
           this.referenceClient.set(source.reference_client ?? '');
 
           // parent_document_id is the chantier's own PROJECT document -
@@ -643,7 +644,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
 
     this.documentCompleteService.getDocumentComplete(id).subscribe({
       next: source => {
-        this.type = source.type;
+        this.type.set(source.type);
         this.documentNumber.set(source.number);
         // A PROJECT document's own status is always null (see
         // shared/models/document.ts) - never editable through this page
@@ -675,7 +676,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
         // resolved back to which Project that is via its document_id
         // (this.projects() is already loaded by the time this runs, see
         // ngOnInit).
-        if (this.type === 'INVOICE' && source.parent_document_id !== null) {
+        if (this.type() === 'INVOICE' && source.parent_document_id !== null) {
           const project = this.projects().find(p => p.document_id === source.parent_document_id);
           if (project) {
             this.onProjectChange(project.id);
@@ -823,7 +824,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
     }
     this.errorMessage.set(null);
     const tab = window.open('', '_blank');
-    const pdf$ = this.type === 'INVOICE' ? this.documentService.getInvoicePdf(id) : this.documentService.getQuotePdf(id);
+    const pdf$ = this.type() === 'INVOICE' ? this.documentService.getInvoicePdf(id) : this.documentService.getQuotePdf(id);
     pdf$.subscribe({
       next: blob => {
         const url = URL.createObjectURL(blob);
@@ -842,7 +843,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
   }
 
   cancel(): void {
-    this.router.navigate(['/documents'], { queryParams: { type: this.type } });
+    this.router.navigate(['/documents'], { queryParams: { type: this.type() } });
   }
 
   async submit(): Promise<void> {
@@ -916,14 +917,14 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
       }
 
       const document = await firstValueFrom(this.documentService.createDocument({
-        type: this.type,
+        type: this.type(),
         client_id: clientId,
         address_id: this.addressId(),
         reference_client: this.referenceClient().trim() || null,
         // A QUOTE never has one (forced null server-side regardless); an
         // INVOICE points at the picked chantier's own PROJECT document, not
         // the Project row's id (see selectedProjectDocumentId).
-        parent_document_id: this.type === 'INVOICE' ? this.selectedProjectDocumentId : null,
+        parent_document_id: this.type() === 'INVOICE' ? this.selectedProjectDocumentId : null,
         date: toDateOnly(this.date()),
         discount: this.discount(),
         vat_rate: this.vatRate(),

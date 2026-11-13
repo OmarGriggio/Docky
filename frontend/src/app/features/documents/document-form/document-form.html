@@ -28,7 +28,7 @@
             (onClick)="openPreview()"
           />
         }
-        @if (type === 'INVOICE' && editingDocumentId() === null) {
+        @if (type() === 'INVOICE' && editingDocumentId() === null) {
           <p-button
             size="small"
             type="button"
@@ -70,7 +70,7 @@
       [company]="company()"
       [logoUrl]="companyLogoUrl()"
       [pageTitle]="pageTitle"
-      [type]="type"
+      [type]="type()"
       [documentNumber]="documentNumber()"
       [locked]="locked()"
       [clients]="pickableClients()"
@@ -113,17 +113,17 @@
       <app-document-text-block
         field="introduction"
         [placeholder]="'documents.form.introPlaceholder' | transloco"
-        [type]="type"
+        [type]="type()"
         [resolve]="resolvePlaceholders"
         [locked]="locked()"
         [(text)]="introduction"
       />
     </div>
 
-    <app-document-sections [(sections)]="sections" [type]="type" [locked]="locked()" [showRequired]="showRequired()" />
+    <app-document-sections [(sections)]="sections" [type]="type()" [locked]="locked()" [showRequired]="showRequired()" />
 
     <div class="ui-form mb-4">
-      @if (type === 'INVOICE') {
+      @if (type() === 'INVOICE') {
         <p-floatlabel variant="on">
           <p-inputnumber
             size="small"
@@ -160,7 +160,7 @@
         <app-document-text-block
           field="conclusion"
           [placeholder]="'documents.form.conclusionPlaceholder' | transloco"
-          [type]="type"
+          [type]="type()"
           [resolve]="resolvePlaceholders"
           [locked]="locked()"
           [(text)]="conclusion"
