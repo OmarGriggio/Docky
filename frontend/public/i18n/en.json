@@ -570,6 +570,7 @@
     "pickClient": "Pick a client",
     "searchClient": "Search a client...",
     "name": "Name",
+    "attention": "Attention",
     "street": "Street and building number",
     "postalCodeCity": "Postcode and town",
     "amount": "Amount CHF",

@@ -570,6 +570,7 @@
     "pickClient": "Choisir un client",
     "searchClient": "Rechercher un client...",
     "name": "Nom",
+    "attention": "À l'attention de",
     "street": "Rue et n° du bâtiment",
     "postalCodeCity": "NPA et ville",
     "amount": "Montant CHF",

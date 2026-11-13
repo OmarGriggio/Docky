@@ -62,6 +62,9 @@ export class QrBillSlip implements OnInit {
   selectedClientId = signal<number | null>(null);
   name = signal('');
   street = signal('');
+  // A contact person - printed under "Informations supplémentaires" on the
+  // slip (the structured address has no field for it).
+  attention = signal('');
   postalCodeCity = signal('');
   // NPA and town both - what the QR-bill's structured address needs.
   postalCodeCityValid = computed(() => POSTAL_CODE_CITY_PATTERN.test(this.postalCodeCity()));
@@ -109,6 +112,7 @@ export class QrBillSlip implements OnInit {
   openSaveAsClient(): void {
     this.clientPrefill.set({
       name: this.name().trim(),
+      attention: this.attention().trim(),
       street: this.street().trim(),
       postalCodeCity: this.postalCodeCity().trim(),
     });
@@ -131,6 +135,7 @@ export class QrBillSlip implements OnInit {
     const client = this.clients().find(c => c.id === clientId);
     if (!client) {
       this.name.set('');
+      this.attention.set('');
       this.street.set('');
       this.postalCodeCity.set('');
       this.country.set(null);
@@ -141,6 +146,7 @@ export class QrBillSlip implements OnInit {
     const address = clientAddresses.find(a => a.is_primary) ?? clientAddresses[0];
 
     this.name.set(clientDisplayName(client));
+    this.attention.set(address?.attention ?? '');
     this.street.set(address?.street ?? '');
     this.postalCodeCity.set(address ? `${address.postal_code ?? ''} ${address.city ?? ''}`.trim() : '');
     this.country.set(address?.country ?? null);
@@ -149,7 +155,7 @@ export class QrBillSlip implements OnInit {
   // Any field typed in by hand: the slip shown below no longer matches it
   // (cleared until generated again, so a stale one can't be copied), and a
   // retyped postcode/town may not be in the picked client's country any more.
-  onFieldChange(field: 'name' | 'street' | 'postalCodeCity' | 'amount', value: string | number | null): void {
+  onFieldChange(field: 'name' | 'attention' | 'street' | 'postalCodeCity' | 'amount', value: string | number | null): void {
     if (field === 'amount') {
       this.amount.set(value as number | null);
     } else {
@@ -178,6 +184,7 @@ export class QrBillSlip implements OnInit {
 
     this.documentService.getQrBillSlip({
       name: this.name(),
+      attention: this.attention(),
       street: this.street(),
       postalCodeCity: this.postalCodeCity(),
       country: this.country(),

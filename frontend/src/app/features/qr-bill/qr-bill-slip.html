@@ -22,6 +22,11 @@
       </p-floatlabel>
 
       <p-floatlabel variant="on">
+        <input pInputText id="qrAttention" class="w-full" name="attention" [ngModel]="attention()" (ngModelChange)="onFieldChange('attention', $event)" />
+        <label for="qrAttention">{{ 'qrBill.attention' | transloco }}</label>
+      </p-floatlabel>
+
+      <p-floatlabel variant="on">
         <input pInputText id="qrStreet" class="w-full" name="street" [ngModel]="street()" (ngModelChange)="onFieldChange('street', $event)" />
         <label for="qrStreet">{{ 'qrBill.street' | transloco }}</label>
       </p-floatlabel>
