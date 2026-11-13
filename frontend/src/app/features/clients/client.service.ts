@@ -3,6 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Client, ClientListItem, ClientWithAddresses } from '../../shared/models/client';
 import { Address } from '../../shared/models/address';
 import { environment } from '../../../environments/environment';
+import { ClientImportRow } from './client-import/import-columns';
+import { ImportReport } from './client-import/import-report';
 
 const API_BASE = environment.apiUrl;
 
@@ -38,6 +40,15 @@ export class ClientService {
   // client.types.ts's UpdateClientData on the backend.
   updateClient(id: number, client: Pick<Client, 'type' | 'company_name' | 'last_name' | 'first_name' | 'title' | 'email' | 'phone' | 'note' | 'language'>) {
     return this.http.put<Client>(`${API_BASE}/client/${id}`, client);
+  }
+
+  // A spreadsheet's rows (see client-import/): `dryRun` only judges them -
+  // the preview. A real import creates them all, or none and answers 422
+  // with the same report when a row has an error.
+  importClients(rows: ClientImportRow[], defaultCountry: string, language: string, dryRun: boolean) {
+    return this.http.post<ImportReport>(`${API_BASE}/client/import`, { rows, defaultCountry, language }, {
+      params: dryRun ? { dryRun: 'true' } : {}
+    });
   }
 
   archiveClient(id: number) {

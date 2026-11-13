@@ -1,0 +1,102 @@
+<p-card [header]="'clients.import.title' | transloco" styleClass="ui-card--elevated w-full">
+  <!-- Where the user is: file, columns, preview. -->
+  <ol class="flex flex-wrap gap-2 m-0 mb-5 p-0 list-none text-sm">
+    @for (item of ['file', 'columns', 'preview']; track item; let index = $index) {
+      <li
+        class="flex items-center gap-2 px-3 py-1 rounded-full border"
+        [class]="step() === item ? 'border-green-700 bg-green-50 text-green-800 font-medium' : 'border-gray-200 text-gray-500'"
+      >
+        <span>{{ index + 1 }}</span>
+        <span>{{ 'clients.import.steps.' + item | transloco }}</span>
+      </li>
+    }
+  </ol>
+
+  @if (step() === 'file') {
+    <div class="flex flex-col gap-3 max-w-xl">
+      <p class="m-0 text-sm text-gray-600">{{ 'clients.import.fileHint' | transloco: { max: maxRows } }}</p>
+      <label class="self-start">
+        <input type="file" accept=".xlsx,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="hidden" #fileInput (change)="onFileSelected($event)" />
+        <p-button type="button" icon="pi pi-upload" [label]="'clients.import.chooseFile' | transloco" [loading]="reading()" (onClick)="fileInput.click()" />
+      </label>
+      @if (errorMessage(); as error) {
+        <p class="m-0 text-sm text-red-600">{{ error | transloco }}</p>
+      }
+      <a routerLink="/clients" class="text-sm text-gray-600">{{ 'clients.import.backToClients' | transloco }}</a>
+    </div>
+  }
+
+  @if (step() === 'columns') {
+    <div class="flex flex-col gap-4">
+      <div class="flex flex-wrap items-center gap-3 text-sm">
+        <span class="font-medium">{{ fileName() }}</span>
+        @if (sheetOptions().length > 1) {
+          <p-select
+            size="small"
+            [options]="sheetOptions()"
+            optionLabel="label"
+            optionValue="value"
+            [ngModel]="sheetIndex()"
+            (ngModelChange)="pickSheet($event)"
+            [ariaLabel]="'clients.import.sheet' | transloco"
+          />
+        }
+        <p-button type="button" size="small" [text]="true" severity="secondary" icon="pi pi-refresh" [label]="'clients.import.changeFile' | transloco" (onClick)="changeFile()" />
+      </div>
+
+      <p class="m-0 text-sm text-gray-600">{{ 'clients.import.columnsHint' | transloco }}</p>
+
+      <!-- One line per column of the sheet: its header, the Docky field it
+           feeds, and its value on the first row. -->
+      <p-table [value]="columns()" size="small" showGridlines>
+        <ng-template #header>
+          <tr>
+            <th>{{ 'clients.import.sheetColumn' | transloco }}</th>
+            <th class="w-72">{{ 'clients.import.dockyField' | transloco }}</th>
+            <th>{{ 'clients.import.examples' | transloco }}</th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-column let-index="rowIndex">
+          <tr>
+            <td>
+              <span class="text-xs text-gray-400 mr-1">{{ column.letter }}</span>
+              {{ column.title || ('clients.import.untitled' | transloco) }}
+            </td>
+            <td>
+              <p-select
+                size="small"
+                [fluid]="true"
+                [options]="fieldOptions()"
+                optionLabel="label"
+                optionValue="value"
+                [ngModel]="mapping()[index]"
+                (ngModelChange)="setField(index, $event)"
+                appendTo="body"
+              />
+            </td>
+            <td class="text-sm text-gray-600">{{ column.example }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+
+      <div class="flex flex-col gap-1 text-sm">
+        <span>{{ 'clients.import.rowsFound' | transloco: { count: rows().length } }}</span>
+        @if (!hasName()) {
+          <span class="text-red-600">{{ 'clients.import.nameMissing' | transloco }}</span>
+        }
+        @if (tooManyRows()) {
+          <span class="text-red-600">{{ 'clients.import.tooManyRows' | transloco: { count: rows().length, max: maxRows } }}</span>
+        }
+      </div>
+
+      <div class="flex justify-end gap-2">
+        <p-button type="button" severity="secondary" [label]="'common.cancel' | transloco" routerLink="/clients" />
+        <p-button type="button" icon="pi pi-arrow-right" iconPos="right" [label]="'clients.import.toPreview' | transloco" [disabled]="!canContinue()" (onClick)="step.set('preview')" />
+      </div>
+    </div>
+  }
+
+  @if (step() === 'preview') {
+    <app-client-import-preview [lines]="lines()" [fields]="previewFields()" (back)="step.set('columns')" (imported)="onImported($event)" />
+  }
+</p-card>

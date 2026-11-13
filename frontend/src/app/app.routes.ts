@@ -54,6 +54,14 @@ export const routes: Routes = [
     data: { breadcrumb: 'nav.clients' }
   },
   {
+    // Before clients/:id, or ":id" would match "import".
+    path: 'clients/import',
+    loadComponent: () => import('./features/clients/client-import/client-import').then(m => m.ClientImport),
+    canActivate: [authGuard],
+    canDeactivate: [unsavedChangesGuard],
+    data: { breadcrumb: (): MenuItem[] => [{ label: 'nav.clients', routerLink: '/clients' }, { label: 'clients.import.title' }] }
+  },
+  {
     path: 'clients/:id',
     loadComponent: () => import('./features/clients/client-detail/client-detail').then(m => m.ClientDetail),
     canActivate: [authGuard],

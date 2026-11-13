@@ -27,15 +27,15 @@ export class NotificationService {
     this.show('warn', 'notifications.warnTitle', key, 6000);
   }
 
-  success(key: string): void {
-    this.show('success', 'notifications.successTitle', key, 3000);
+  success(key: string, params?: Record<string, unknown>): void {
+    this.show('success', 'notifications.successTitle', key, 3000, params);
   }
 
-  private show(severity: 'error' | 'warn' | 'success', summaryKey: string, detailKey: string, life: number): void {
+  private show(severity: 'error' | 'warn' | 'success', summaryKey: string, detailKey: string, life: number, params?: Record<string, unknown>): void {
     this.messages.add({
       severity,
       summary: this.transloco.translate(summaryKey),
-      detail: this.transloco.translate(detailKey),
+      detail: this.transloco.translate(detailKey, params),
       life,
     });
   }

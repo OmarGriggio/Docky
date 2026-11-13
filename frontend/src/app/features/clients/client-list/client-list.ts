@@ -125,6 +125,12 @@ export class ClientListComponent implements OnInit {
     menu.toggle(event);
   }
 
+  // The toolbar's ⋮ menu: importing clients from a spreadsheet.
+  private importLabel = translateSignal('clients.import.menuItem');
+  toolbarMenuItems = computed<MenuItem[]>(() => [
+    { label: this.importLabel(), icon: 'pi pi-file-import', command: () => this.router.navigate(['/clients/import']) },
+  ]);
+
   private frenchLabel = translateSignal('clients.languageFrench');
   private englishLabel = translateSignal('clients.languageEnglish');
   private germanLabel = translateSignal('clients.languageGerman');

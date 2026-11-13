@@ -31,6 +31,9 @@ export class ListToolbarComponent {
   showArchived = input(false);
   // Off for a list that has nothing to create from here (chantiers).
   addable = input(true);
+  // A list's own actions, added to the ⋮ menu after "Afficher les archivés"
+  // (the clients list's "Importer des clients").
+  extraMenuItems = input<MenuItem[]>([]);
 
   showArchivedChange = output<boolean>();
   add = output<void>();
@@ -49,7 +52,8 @@ export class ListToolbarComponent {
         label: this.showArchived() ? this.hideArchivedLabel() : this.showArchivedLabel(),
         icon: 'pi pi-archive',
         command: () => this.showArchivedChange.emit(!this.showArchived())
-      }
+      },
+      ...this.extraMenuItems(),
     ];
     menu.toggle(event);
   }

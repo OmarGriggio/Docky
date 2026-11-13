@@ -4,6 +4,7 @@
   [showArchived]="showArchived()"
   (showArchivedChange)="onShowArchivedChange($event)"
   (add)="openCreateDialog()"
+  [extraMenuItems]="toolbarMenuItems()"
 />
 
 <p-tabs [value]="activeType()" (valueChange)="activeType.set($any($event))" class="mb-3">
