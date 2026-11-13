@@ -301,6 +301,7 @@ The `zz_docs/` folder contains the detailed specs this project is built from:
 - [Decisions.md](zz_docs/Decisions.md) — trade-off log for choices that had more than one reasonable option, with what was picked and what was turned down, and why
 - [Difficulties.md](zz_docs/Difficulties.md) — problems actually hit while building this, and how they were diagnosed and fixed
 - [CHANGELOG.md](CHANGELOG.md) — what each release changed
+- [Roadmap.md](zz_docs/Roadmap.md) — what's left before Docky can be sold, and in what order
 - [zz_docs/note/](zz_docs/note/) — personal notes taken while learning Express, npm, and setting up the dev environment
 
 ## Author

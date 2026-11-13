@@ -130,4 +130,5 @@ Full details moved to [zz_docs/Deployment.md](zz_docs/Deployment.md) (rarely nee
 - [zz_docs/Deployment.md](zz_docs/Deployment.md) — VPS/SSH/HTTPS setup, CI/CD, the redeploy command, the weekly demo reset cron.
 - [zz_docs/Decisions.md](zz_docs/Decisions.md) — trade-off log for choices with more than one reasonable option — what was picked *and* what was turned down, with why. Check here before re-opening a decision that's already been made.
 - [zz_docs/Difficulties.md](zz_docs/Difficulties.md) — problems actually hit while building this (business, architecture, security, infra, frontend, process), how they were diagnosed and fixed. Distinct from Decisions.md: a decision compares options in hand, a difficulty is something that broke or turned out wrong only once real use exposed it.
+- [zz_docs/Roadmap.md](zz_docs/Roadmap.md) — what's left before Docky can be sold, by phase, ticked off as items ship.
 - [zz_docs/note/](zz_docs/note/) — Omar's personal learning notes — background only, not authoritative spec.
