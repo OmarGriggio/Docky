@@ -2,6 +2,11 @@
 
 Every release of Docky, newest first. One version for the whole app (backend and frontend ship together from `main`), numbered `MAJOR.MINOR.PATCH` - see CLAUDE.md's Workflow for when each part goes up and how a release is made. Each release is tagged `vX.Y.Z` on `main`.
 
+## [1.2.3] - 2026-11-13
+
+### Added
+- Invoices' QR-bills carry a payment reference built from the invoice number, so a payment can be matched to its invoice: a creditor reference ("RF...") by default, a QR reference with a QR-IBAN, or none - set on the company's profile. An invoice keeps the reference it was sent with.
+
 ## [1.2.2] - 2026-11-13
 
 ### Added
