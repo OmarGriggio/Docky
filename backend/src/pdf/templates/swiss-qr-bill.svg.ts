@@ -29,8 +29,10 @@ const INFO_X = 123;
 const CROSS_SIZE = 7;
 const LINE_WIDTH = 0.2;
 
+// Control characters are illegal in XML 1.0 - one typed in a field would
+// make the whole SVG unreadable.
 const escapeXml = (value: string) =>
-    value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    value.replace(/[\x00-\x1F\x7F]/g, " ").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 const text = (value: string, x: number, y: number, size: number, options: { bold?: boolean; anchor?: "start" | "end" } = {}) =>
     `<text x="${x}" y="${y.toFixed(2)}" font-size="${size.toFixed(3)}"${options.bold ? ` font-weight="bold"` : ""}${options.anchor === "end" ? ` text-anchor="end"` : ""}>${escapeXml(value)}</text>`;

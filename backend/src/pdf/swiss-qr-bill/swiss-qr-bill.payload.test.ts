@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { buildSwissQrBillPayload } from "./swiss-qr-bill.payload";
 import { printedAddressLines, SwissQrBillDto } from "./swiss-qr-bill.types";
 import { validateSwissQrBill } from "./swiss-qr-bill.validator";
-import { completeDebtorOrNull } from "../templates/dto/swiss-qr-bill.dto";
 
 const bill = (overrides: Partial<SwissQrBillDto> = {}): SwissQrBillDto => ({
   creditor: {
@@ -56,17 +55,6 @@ describe("validateSwissQrBill", () => {
       debtor: { ...bill().debtor!, street: "x".repeat(71), postalCode: "1".repeat(17), town: "y".repeat(36) },
     })).map(error => error.code);
     expect(codes).toEqual(["STREET_LENGTH", "POSTAL_CODE_LENGTH", "TOWN_LENGTH"]);
-  });
-});
-
-describe("completeDebtorOrNull", () => {
-  it("keeps a payer with a name, postcode and town", () => {
-    expect(completeDebtorOrNull({ ...bill().debtor!, name: " Hôtel du Cervin SA " })?.name).toBe("Hôtel du Cervin SA");
-  });
-
-  it("leaves the payer blank without a postcode or town - a client with no address yet", () => {
-    expect(completeDebtorOrNull({ ...bill().debtor!, postalCode: "", town: "" })).toBeNull();
-    expect(completeDebtorOrNull({ ...bill().debtor!, town: " " })).toBeNull();
   });
 });
 

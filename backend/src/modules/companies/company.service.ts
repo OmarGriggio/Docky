@@ -28,14 +28,16 @@ export const addCompanyServ = async (companyData: Omit<Company, "id">) => {
 
 // Each text column's own VARCHAR length (000_base.sql, 009) - a longer
 // value is a clear 400 here rather than Postgres' "value too long" as a 500.
+// The postcode and town are held to the QR-bill's own (16 and 35): every
+// invoice prints them as its creditor's address.
 const MAX_LENGTHS: Partial<Record<keyof Company, number>> = {
   name: 100,
   email: 255,
   phone: 50,
   iban: 22,
   street: 100,
-  postal_code: 20,
-  city: 100,
+  postal_code: 16,
+  city: 35,
   country: 100,
   vat_number: 20,
   website: 255,

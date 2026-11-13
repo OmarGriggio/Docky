@@ -5,6 +5,7 @@ import { Company } from "../../../modules/companies/company.types";
 import { QrBillCreditor, QrBillDebtor, SwissQrBillDto } from "../../swiss-qr-bill/swiss-qr-bill.types";
 import { PDF_LABELS, toPdfLanguage } from "../pdf-labels";
 import { hasTypedRecipient } from "./shared";
+import { validateAddress } from "../../swiss-qr-bill/validators/address.validator";
 import { billedAddressOf } from "../../../modules/documents/billed-address";
 
 // The company itself is always the creditor - shared by the invoice's own
@@ -64,9 +65,12 @@ export const createSwissQrBillDto = (
     };
 };
 
-// A payer without a postcode and town (a client with no address yet) can't
-// be a structured address: the slip leaves "Payable by" blank for the payer
-// to fill in instead.
+// A payer the structured address can't hold - no postcode or town yet, a
+// town past 35 characters, a postcode past 16, a country that isn't a code -
+// leaves "Payable by" blank for the payer to fill in, which the guidelines
+// allow: the invoice still gets its QR-bill. Never a 422 - an invoice already
+// sent keeps its frozen address, which editing the client can't fix. An
+// address without a country is a Swiss one (the only kind typed so far).
 export const completeDebtorOrNull = (debtor: QrBillDebtor): QrBillDebtor | null => {
     const trimmed: QrBillDebtor = {
         name: debtor.name.trim(),
@@ -74,9 +78,9 @@ export const completeDebtorOrNull = (debtor: QrBillDebtor): QrBillDebtor | null 
         buildingNumber: debtor.buildingNumber.trim(),
         postalCode: debtor.postalCode.trim(),
         town: debtor.town.trim(),
-        country: debtor.country.trim(),
+        country: debtor.country.trim() || "CH",
     };
-    return trimmed.name && trimmed.postalCode && trimmed.town ? trimmed : null;
+    return validateAddress("Debtor", trimmed).length === 0 ? trimmed : null;
 };
 
 /**
