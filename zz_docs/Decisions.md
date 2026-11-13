@@ -202,3 +202,7 @@ The Excel/CSV file is read in the browser and never uploaded; the rows are sent 
 ## Deposit invoices: ordinary invoices, deducted from the final one (2026-11-13)
 
 A deposit is a normal invoice (numbering, lifecycle, QR-bill, reminder) marked `DEPOSIT`, a percentage of the quote's total incl. VAT or an amount. The chantier's final invoice is still the whole work, and deducts the deposits sent or paid - **unpaid ones too**, the client owes them on their own invoices. The early payment discount only applies to the final invoice, on its balance. The deductions are frozen once the final invoice is sent. **Turned down**: progress billing line by line (much more complex, not asked for), a retention guarantee, deducting only paid deposits (the balance would change after the invoice is sent).
+
+## Payment references: a company setting, frozen on the invoice when sent (2026-11-13)
+
+To match a bank's payments to invoices automatically, the QR-bill carries a reference built from the invoice number: a QR reference with a QR-IBAN (the standard requires the pair), otherwise a creditor reference "RF..." by default, which works with the ordinary IBAN and needs nothing from the bank. **Turned down**: a choice per invoice (a QR reference without a QR-IBAN is an invalid QR-bill, and nobody thinks "reference type" while invoicing); storing nothing and recomputing it (a company adding a QR-IBAN later would change the reference on an invoice the client already holds - so it's frozen when sent, like the address).

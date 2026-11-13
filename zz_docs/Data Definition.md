@@ -18,6 +18,8 @@ A construction company using Docky - the tenant everything else belongs to.
 - name, email, phone
 - address *(street, postal code, city, country)*
 - IBAN - printed on the Swiss QR-bill of every invoice
+- QR-IBAN *(optional)* - invoices' QR-bills are then paid to it with a QR reference
+- payment reference *(`SCOR` - a creditor reference "RF...", the default - or `NONE`)* - what invoices' QR-bills carry without a QR-IBAN
 - VAT number *(optional)*, default VAT rate *(8.1% by default, copied onto each new document)*
 - default payment terms *(free text, printed on invoices and quotes)*
 - logo, invoice header image *(optional, stored in MinIO/S3)*
@@ -137,6 +139,7 @@ A quote, an invoice, or a project's own resource ledger - one table for all thre
 - parent document - what it was derived from: a project's own accepted quote, or an invoice's project
 - billed address - the client's name and address copied onto it once it leaves `DRAFT`, so a client who moves never changes a sent document
 - early payment discount *(rate, days, minimum)* - copied from the company, frozen like the VAT rate
+- payment reference - an invoice's QR-bill reference ("RF..." or 27 digits), frozen once it's sent, to match its payment
 - deposit deductions - on a chantier's final invoice, the deposits it deducts, frozen once it's sent
 - recipient *(only when made out to "Non défini")* - name, complement, street, postcode, town typed by hand, printed instead of a client's own name and address (country: Switzerland)
 
