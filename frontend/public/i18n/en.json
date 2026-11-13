@@ -334,7 +334,8 @@
       "percentOfQuote": "Percentage of the quote ({{total}} CHF incl. VAT)",
       "amountInclVat": "Amount incl. VAT",
       "depositPreview": "Deposit asked: {{total}} CHF incl. VAT.",
-      "createDeposit": "Create the deposit"
+      "createDeposit": "Create the deposit",
+      "exceedsQuote": "With this one, the deposits exceed the quote."
     }
   },
   "documentLedger": {

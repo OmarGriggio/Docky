@@ -334,7 +334,8 @@
       "percentOfQuote": "Pourcentage de l'offre ({{total}} CHF TTC)",
       "amountInclVat": "Montant TTC",
       "depositPreview": "Acompte demandé : {{total}} CHF TTC.",
-      "createDeposit": "Créer l'acompte"
+      "createDeposit": "Créer l'acompte",
+      "exceedsQuote": "Avec celui-ci, les acomptes dépassent le montant de l'offre."
     }
   },
   "documentLedger": {

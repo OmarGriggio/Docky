@@ -70,6 +70,14 @@ export class ProjectBilling implements OnInit {
     return this.amount();
   });
 
+  // Deposits sent or paid plus this one past the quote - allowed (extra work
+  // happens), but worth a second look.
+  exceedsQuote = computed(() => {
+    const billing = this.billing();
+    const total = this.depositInclVat();
+    return !!billing && billing.quoteInclVat !== null && !!total && billing.invoicedInclVat + total > billing.quoteInclVat;
+  });
+
   ngOnInit(): void {
     this.load();
   }

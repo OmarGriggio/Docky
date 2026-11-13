@@ -37,12 +37,13 @@ export const qrBillErrorKey = async (err: unknown, fallbackKey: string): Promise
   return code && QR_BILL_ERROR_CODES.includes(code) ? `qrBillErrors.${code}` : fallbackKey;
 };
 
-// The message a failed request shows the user (NotificationService), by its
-// HTTP status - what they can do about it, never the backend's own message
-// (English, written for developers).
 // Codes the backend sends with an error the user can act on precisely - each
 // has its own message under notifications.codes.*.
 const ERROR_CODES = ['DEPOSIT_DRAFT_PENDING', 'DEPOSIT_DEDUCTED', 'DEPOSIT_NEEDS_QUOTE'];
+
+// The message a failed request shows the user (NotificationService): a code's
+// own one, else by HTTP status - what they can do about it, never the
+// backend's own message (English, written for developers).
 
 export const httpErrorKey = (err: unknown): string => {
   if (!(err instanceof HttpErrorResponse)) {

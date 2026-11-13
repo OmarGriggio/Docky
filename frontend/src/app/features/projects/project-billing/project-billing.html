@@ -89,6 +89,9 @@
       @if (depositInclVat(); as total) {
         <p class="m-0 text-sm">{{ 'projects.billing.depositPreview' | transloco: { total: (total | price) } }}</p>
       }
+      @if (exceedsQuote()) {
+        <p class="m-0 text-sm text-orange-600">{{ 'projects.billing.exceedsQuote' | transloco }}</p>
+      }
       @if (errorMessage(); as error) {
         <p class="m-0 text-sm text-red-600">{{ error }}</p>
       }

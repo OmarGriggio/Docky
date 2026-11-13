@@ -172,14 +172,14 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
   // The introduction/conclusion as the PDF will print it (see the backend's
   // pdf/templates/document.placeholders.ts): {{titre_client}} (Madame,
   // Monsieur if the client has none), {{date}} (the document's), {{montant}}
-  // (Total TTC) and {{signature_entreprise}} (the company's name). An arrow
+  // (Total TTC - a final invoice's balance, see amountDue) and {{signature_entreprise}} (the company's name). An arrow
   // property, not a method: the text blocks receive it as an input and
   // call it without this form as `this`.
   resolvePlaceholders = (text: string): string =>
     fillPlaceholders(text, {
       titre_client: this.selectedClientTitle()?.trim() || DEFAULT_CLIENT_TITLE,
       date: formatLongDate(this.date()),
-      montant: `${this.documentTotalInclVat().toFixed(2)} CHF`,
+      montant: `${this.amountDue().toFixed(2)} CHF`,
       signature_entreprise: this.company()?.name ?? '',
     });
 
@@ -524,12 +524,6 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
       return;
     }
 
-    // The deposits this final invoice will deduct, as they stand.
-    this.projectService.getBilling(projectId).subscribe({
-      next: billing => this.deductions.set(billing.deductible),
-      error: err => this.notifications.error('document-form', err)
-    });
-
     // The chantier's own address (see project.service.ts's acceptQuoteServ -
     // it lives on the chantier's own backing document, not duplicated on
     // the Project row) - fetched first so it's ready to pass as
@@ -580,8 +574,9 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
           this.referenceClient.set(source.reference_client ?? '');
 
           // parent_document_id is the chantier's own PROJECT document -
-          // resolved back to which Project that is, same as loadForEdit.
-          if (source.parent_document_id !== null) {
+          // resolved back to which Project that is, same as loadForEdit. Not
+          // a deposit's: its copy would be the chantier's final invoice.
+          if (source.parent_document_id !== null && source.invoice_kind !== 'DEPOSIT') {
             const project = this.projects().find(p => p.document_id === source.parent_document_id);
             if (project) {
               this.onProjectChange(project.id);
@@ -799,6 +794,23 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
 
     const project = this.projects().find(p => p.id === projectId);
     this.selectedProjectDocumentId = project?.document_id ?? null;
+
+    // A new invoice on a chantier is its final invoice: the deposits it will
+    // deduct, as they stand. A saved one gets the backend's own answer
+    // (loadDeductions).
+    if (this.editingDocumentId() === null) {
+      this.deductions.set([]);
+      if (projectId !== null && this.type() === 'INVOICE') {
+        this.projectService.getBilling(projectId).subscribe({
+          next: billing => {
+            if (this.selectedProjectId === projectId) {
+              this.deductions.set(billing.deductible);
+            }
+          },
+          error: err => this.notifications.error('document-form', err)
+        });
+      }
+    }
   }
 
   // "Charger chantier" - copies the selected project's own PROJECT document

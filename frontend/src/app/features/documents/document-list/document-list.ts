@@ -326,8 +326,11 @@ export class DocumentListComponent implements OnInit {
         ? [{ label: this.transloco.translate('documents.reminderPdf'), command: () => this.openReminderPdf(document) }]
         : []),
       // A quote or an invoice - a new draft pre-filled from this one (see
-      // document-form.ts's applyDuplicateFrom).
-      { label: this.transloco.translate('clients.duplicate'), command: () => this.duplicateDocument(document) }
+      // document-form.ts's applyDuplicateFrom). Not a deposit: a deposit only
+      // comes from its chantier's "Facture d'acompte".
+      ...(document.invoice_kind === 'DEPOSIT'
+        ? []
+        : [{ label: this.transloco.translate('clients.duplicate'), command: () => this.duplicateDocument(document) }])
     ];
   }
 
