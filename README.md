@@ -111,7 +111,7 @@ The parts I'd point a developer to - each one has its story in [Difficulties.md]
 - JWT access tokens + a revocable refresh token in an `httpOnly` cookie, roles, rate limiting, login history
 - Platform admin can step into any company ("impersonation") to support it
 - Archive instead of delete for business records; incremental SQL migrations applied on startup
-- Vitest on the pure business logic (118 backend + 83 frontend tests), plus 65 backend integration tests: real HTTP requests against the whole API and a throwaway Postgres started in Docker (Testcontainers) - login and roles, cross-company isolation, accepting a quote, saving a document, an invoice's lifecycle, deposit invoices, the client import, concurrent requests included
+- Vitest on the pure business logic (132 backend + 83 frontend tests), plus 65 backend integration tests: real HTTP requests against the whole API and a throwaway Postgres started in Docker (Testcontainers) - login and roles, cross-company isolation, accepting a quote, saving a document, an invoice's lifecycle, deposit invoices, the client import, concurrent requests included
 
 **Operations**
 - Docker Compose, multi-stage production images (compiled, non-root) behind Nginx, HTTPS with Let's Encrypt
