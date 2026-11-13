@@ -2,6 +2,12 @@
 
 Every release of Docky, newest first. One version for the whole app (backend and frontend ship together from `main`), numbered `MAJOR.MINOR.PATCH` - see CLAUDE.md's Workflow for when each part goes up and how a release is made. Each release is tagged `vX.Y.Z` on `main`.
 
+## [1.1.0] - 2026-11-13
+
+### Added
+- Import clients from an Excel (.xlsx) or CSV file (clients list's ⋮ menu): the file's columns are matched to Docky's fields from their headers (every match can be changed), then a preview shows every row as it will be imported - blocking errors in red, warnings in orange, each cell editable, rows can be left out - and the rows kept are created all at once or not at all. Up to 1000 clients per import.
+- A client number from the file is kept when it's a number (`867` becomes `C0867`); any other kind goes into the client's note and a number is generated.
+
 ## [1.0.1] - 2026-11-12
 
 ### Changed
