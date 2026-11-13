@@ -4,6 +4,7 @@ import { nextSequenceCode, sequencePattern } from "../../shared/numbering/sequen
 import { createAddressInDB, getAddressesByClientIdFromDB } from "./address.repository";
 import { NotFoundError, ConflictError, AppError } from "../../shared/types/errors";
 import { withTransaction } from "../../shared/config/database";
+import { checkImportRows, ClientImportRow, ImportContext, ImportRowResult, MAX_IMPORT_ROWS, nameKey } from "./client-import";
 
 export const getAllClientsServ = async (company_id: number, includeArchived = false) => {
   return await getClientsFromDB(company_id, includeArchived);
@@ -110,3 +111,78 @@ export const unarchiveClientServ = async (id: number, company_id: number) => {
   assertNotPlaceholder(client);
   return await unarchiveClientInDB(id, company_id);
 }
+
+export interface ClientImportRequest {
+  rows: ClientImportRow[];
+  // An address's country when the file has none, in the user's language.
+  defaultCountry?: string;
+  language?: "FR" | "EN";
+}
+
+export interface ClientImportReport {
+  rows: ImportRowResult[];
+  // How many clients were created - 0 for a dry run, or when any row has an error.
+  created: number;
+}
+
+// What the company already has that a row may collide with - archived
+// clients included, their numbers are never handed out again.
+const importContext = async (company_id: number, request: ClientImportRequest): Promise<ImportContext> => {
+  const clients = await getClientsFromDB(company_id, true);
+  const country = typeof request.defaultCountry === "string" && request.defaultCountry.trim()
+    ? request.defaultCountry.trim().slice(0, 100)
+    : "Suisse";
+  return {
+    existingNumbers: new Set(clients.map(client => client.client_number)),
+    existingEmails: new Set(clients.filter(client => client.email).map(client => client.email!.toLowerCase())),
+    existingNameKeys: new Set(
+      clients
+        .filter(client => !client.is_placeholder)
+        .map(client => nameKey(client.company_name || `${client.first_name ?? ""} ${client.last_name ?? ""}`, client.address_postal_code))
+    ),
+    defaultCountry: country,
+    language: request.language === "EN" ? "EN" : "FR",
+  };
+};
+
+// POST /client/import (see client-import.ts): a dry run only judges the rows
+// - the preview. A real import judges them again, under the client numbering
+// lock so nothing created meanwhile can collide, and creates them all or none:
+// a single row with an error and nothing is written. Rows with a number keep
+// it; the others get the next ones after the highest number there is then,
+// the imported ones included.
+export const importClientsServ = async (company_id: number, request: ClientImportRequest, dryRun: boolean): Promise<ClientImportReport> => {
+  if (!Array.isArray(request?.rows)) {
+    throw new AppError("rows must be a list", 400);
+  }
+  if (request.rows.length > MAX_IMPORT_ROWS) {
+    throw new AppError(`At most ${MAX_IMPORT_ROWS} rows can be imported at once`, 400, "TOO_MANY_ROWS");
+  }
+  const rows = request.rows.map(row => (row && typeof row === "object" ? row : {}));
+
+  if (dryRun) {
+    return { rows: checkImportRows(rows, await importContext(company_id, request)), created: 0 };
+  }
+
+  return await withTransaction(async () => {
+    await lockClientNumberingInDB(company_id);
+    const results = checkImportRows(rows, await importContext(company_id, request));
+    if (results.some(result => result.errors.length > 0)) {
+      return { rows: results, created: 0 };
+    }
+
+    const pattern = sequencePattern(CLIENT_NUMBER_PREFIX);
+    const importedSequences = results
+      .map(result => Number(result.client.client_number?.match(/^C(\d+)$/)?.[1] ?? 0));
+    let last = Math.max(await getLastClientSequenceFromDB(company_id, pattern) ?? 0, ...importedSequences);
+
+    for (const { client: { language, ...client }, address } of results) {
+      const client_number = client.client_number ?? nextSequenceCode(CLIENT_NUMBER_PREFIX, last++);
+      const created = await createClientInDB({ ...client, client_number, company_id, is_active: true }, language);
+      if (address) {
+        await createAddressInDB({ ...address, client_id: created.id, is_primary: true, company_id });
+      }
+    }
+    return { rows: results, created: results.length };
+  });
+};

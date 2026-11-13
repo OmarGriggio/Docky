@@ -69,3 +69,15 @@ export const attachmentUploadRateLimiter = rateLimit({
   keyGenerator: (req) => `company:${req.user.company_id}`,
   message: { message: "Too many uploads, please try again later" },
 });
+
+// Importing clients (POST /client/import, up to 1000 rows): every preview
+// check counts too - generous for someone fixing a file, a cap on someone
+// hammering it.
+export const clientImportRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  limit: 120, // 120 checks or imports per company per hour
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => `company:${req.user.company_id}`,
+  message: { message: "Too many imports, please try again later" },
+});

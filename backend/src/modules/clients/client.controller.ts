@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { addClientServ, updateClientServ, archiveClientServ, unarchiveClientServ, getAllClientsServ, getClientByIdServ } from "./client.service";
+import { addClientServ, updateClientServ, archiveClientServ, unarchiveClientServ, getAllClientsServ, getClientByIdServ, importClientsServ } from "./client.service";
 import { Client, NewClientAddress, UpdateClientData } from "./client.types";
 
 export const getClients = async (req: Request, res: Response) => {
@@ -38,3 +38,12 @@ export const unarchiveClient = async (req: Request, res: Response) => {
   const clientUnarchived = await unarchiveClientServ(Number(req.params.id), req.user.company_id)
   res.json(clientUnarchived)
 }
+
+// ?dryRun=true: the preview - every row judged, nothing written. A real import
+// with any row in error writes nothing either, and answers 422 with the same
+// report (the user's own data to fix, not a server failure).
+export const importClients = async (req: Request, res: Response) => {
+  const report = await importClientsServ(req.user.company_id, req.body, req.query.dryRun === "true");
+  const failed = req.query.dryRun !== "true" && report.created === 0 && report.rows.some(row => row.errors.length > 0);
+  res.status(failed ? 422 : 200).json(report);
+};

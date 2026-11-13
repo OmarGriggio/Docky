@@ -1,5 +1,5 @@
 import { db } from "../../shared/config/database";
-import {Client, ClientListItem, UpdateClientData} from "./client.types"
+import {Client, ClientLanguage, ClientListItem, UpdateClientData} from "./client.types"
 
 // Without an explicit ORDER BY, Postgres doesn't guarantee row order at
 // all - two calls back-to-back (e.g. list, then reload right after a save)
@@ -50,8 +50,11 @@ export const createPlaceholderClientInDB = async (company_id: number): Promise<C
     return result.rows[0];
 };
 
+// `language`: French unless said otherwise - the client form leaves it to its
+// default, an import sets what the file says (client-import.ts).
 export const createClientInDB = async (
-    client: Omit<Client, "id" | "language" | "is_placeholder">
+    client: Omit<Client, "id" | "language" | "is_placeholder">,
+    language: ClientLanguage = "FR"
 ): Promise<Client> => {
     const query = `
     INSERT INTO clients (
@@ -64,9 +67,10 @@ export const createClientInDB = async (
       title,
       email,
       phone,
-      note
+      note,
+      language
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
     RETURNING *;
   `;
 
@@ -80,7 +84,8 @@ export const createClientInDB = async (
       client.title,
       client.email,
       client.phone,
-      client.note
+      client.note,
+      language
     ];
 
     const result = await db().query(query, values);

@@ -36,6 +36,10 @@ const app = express();
 // limiting (everyone shares one counter) once this is actually deployed.
 app.set("trust proxy", 1);
 
+// A client import's body (up to 1000 rows) is bigger than express.json's own
+// 100kB default - a larger limit for that route only, parsed first (the
+// generic parser below then leaves an already parsed body alone).
+app.use("/client/import", express.json({ limit: "2mb" }));
 app.use(express.json(), cors(), cookieParser());
 
 // Streams from MinIO/S3 instead of local disk - companies/company.upload.ts
