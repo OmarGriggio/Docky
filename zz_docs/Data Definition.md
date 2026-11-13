@@ -1,6 +1,6 @@
 # Data Definition
 
-The entities Docky stores, their fields and how they relate. Mirrors the actual schema - [zz_migrations/000_base.sql](../zz_migrations/000_base.sql) plus the numbered migrations after it - described here in business terms. Rewritten 2026-10-22: the original version described the first draft of the model (suppliers, material prices, employee categories, a separate invoice table), most of which was later dropped or merged - see [Decisions.md](Decisions.md).
+The entities Docky stores, their fields and how they relate. Mirrors the actual schema - [zz_migrations/000_base.sql](../zz_migrations/000_base.sql) plus the numbered migrations after it - described here in business terms. Updated 2026-11-13. Rewritten 2026-10-22: the original version described the first draft of the model (suppliers, material prices, employee categories, a separate invoice table), most of which was later dropped or merged - see [Decisions.md](Decisions.md).
 
 Conventions that apply to almost every table:
 
@@ -21,6 +21,9 @@ A construction company using Docky - the tenant everything else belongs to.
 - VAT number *(optional)*, default VAT rate *(8.1% by default, copied onto each new document)*
 - default payment terms *(free text, printed on invoices and quotes)*
 - logo, invoice header image *(optional, stored in MinIO/S3)*
+- document colors *(accent and secondary, optional - the PDFs stay black and white without)*
+- early payment discount *(rate, days, minimum total - copied onto each new invoice)*
+- footer details *(website, bank name and account)*
 
 ## Relations
 
@@ -54,9 +57,9 @@ A company's own customer - a private individual or a business.
 
 ## Fields
 
-- client number *(unique)*
+- client number *(generated: `C0001`, `C0002`...)*
 - type *(`INDIVIDUAL` | `PROFESSIONAL`)*
-- first name, last name *(an individual)* or company name and VAT number *(a professional)*
+- first name, last name *(an individual)* or company name *(a professional)*
 - title *(the greeting printed on documents, e.g. "Monsieur", "Dear Sir/Madam")*
 - email, phone, note
 - language *(`FR` | `EN` | `DE` | `IT`)* - the language its quotes, invoices and reminders are printed in (FR/EN labels only so far, DE/IT fall back to French)
@@ -94,7 +97,8 @@ A catalog item a company sells: a material or a service (labor).
 ## Fields
 
 - type *(`MATERIAL` | `SERVICE`)*
-- code *(unique among the company's active resources)*, name
+- code *(generated per type: `MAT0001`, `SER0001`...)*, name
+- reference *(optional, e.g. a supplier's article number)*
 - unit *(picked from the company's own unit list)*
 - selling price, purchase price *(optional)*
 - parent resource *(optional, for a composite resource)*
@@ -125,18 +129,22 @@ A quote, an invoice, or a project's own resource ledger - one table for all thre
 - status *(quotes and invoices only)*:
   - quote: `DRAFT` → `SENT` → `ACCEPTED` (creates a project) or `REJECTED`
   - invoice: `DRAFT` → `SENT` → `PAID` or `CANCELLED`
-  - only `DRAFT`/`SENT` documents can still be edited
+  - a quote can be edited while `DRAFT`/`SENT`, an invoice only while `DRAFT` - a sent one is cancelled and redone
+- kind *(invoices only)*: `STANDARD`, or `DEPOSIT` - a deposit invoice on a chantier
 - discount *(% on the whole document)*, VAT rate *(one rate per document)*
 - amount excl. VAT, amount incl. VAT - always computed from the lines, never typed in
 - introduction, conclusion, payment terms *(free text printed on the PDF, with `{{placeholders}}`)*
 - parent document - what it was derived from: a project's own accepted quote, or an invoice's project
+- billed address - the client's name and address copied onto it once it leaves `DRAFT`, so a client who moves never changes a sent document
+- early payment discount *(rate, days, minimum)* - copied from the company, frozen like the VAT rate
+- deposit deductions - on a chantier's final invoice, the deposits it deducts, frozen once it's sent
 - recipient *(only when made out to "Non défini")* - name, complement, street, postcode, town typed by hand, printed instead of a client's own name and address (country: Switzerland)
 
 ## Relations
 
 - belongs to a company and a client
 - has several sections, each with several lines
-- an accepted quote has one project; a completed project is invoiced at most once *(unless that invoice is cancelled)*
+- an accepted quote has one project; a project has any number of deposit invoices and at most one final invoice *(unless cancelled)*
 
 ---
 
@@ -192,3 +200,9 @@ A job carried out for a client - born from an accepted quote, or created by hand
 # 📅 Calendar note
 
 A free-standing entry on the company's calendar (title, description, start/end), not tied to a project.
+
+---
+
+# 🐞 Error group
+
+One distinct error (server or browser) and how often it happened - first/last seen, a counter, resolved or not. Read by the platform admin only. Not tied to one company.

@@ -144,12 +144,14 @@ The core workflow the application is built around, assuming the company's catalo
 4. **Chantier.** Work happens. Real quantities almost never match what was quoted (more hours, more material) - the employee corrects the chantier's own resource quantities as reality unfolds. The original quote is never edited to reflect this: it stays a frozen record of what was proposed, the chantier is the live record of what's actually happening.
 5. **Close.** Once the work is done, the employee closes the chantier - this locks in its final quantities.
 6. **Invoice.** From a closed chantier, the employee creates the invoice - billed on the chantier's real, final quantities, not the original quote's.
+   - **Deposits** (since 2026-11-13): during the work, the chantier can be invoiced in deposits (a percentage of the quote or an amount). The final invoice deducts the deposits already sent, and the client pays the balance.
 7. **No-quote shortcut.** Not every job needs a quote first. An invoice can always be created directly, with neither a quote nor a chantier behind it, when going through the full process isn't worth it.
 
 A chantier only ever exists because a quote was accepted - there is no other way to create one, and duplicating a chantier directly (independent of a quote) isn't a supported action either. An invoice, on the other hand, can exist with no chantier and no quote at all.
 
-**Where the implementation stands** (as of 2026-10-22):
+**Where the implementation stands** (as of 2026-11-13):
 - Steps 2-3 are wired: a quote's status is set from the documents list - `SENT`, `REJECTED` (final), or `ACCEPTED` (confirmed, creates the chantier). Enforced server-side: only a `DRAFT`/`SENT` quote can be accepted, once.
 - Step 4-5: a chantier's resources are editable until it's closed, then locked (server-side too).
 - Step 6: "Facturer" on a closed chantier opens a new invoice pre-filled from it; a chantier is invoiced once (unless that invoice is cancelled), after which the list links to its invoice instead.
+- Deposits: from the chantier's "Facturation" card, until its final invoice exists.
 - **Known gaps**: a chantier *can* be created by hand from the chantiers list, contrary to the rule above - either the rule or the button needs to go. Accepting a quote copies only its catalog-backed lines into the chantier: hand-typed lines and the quote's discount don't carry over to the chantier, nor to the invoice built from it.

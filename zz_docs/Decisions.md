@@ -24,7 +24,7 @@ Surfaced by comparing Docky against Odoo's invoicing app; worked through schema-
 
 **1. Document numbering** — was `UNIQUE` globally (would've blocked two companies both using `INVOICE-2026-0001`); changed to `UNIQUE (company_id, number)`. Generated in `document.service.ts` as `{OFF|FAC}-{year}-{4-digit seq}` (French prefixes, matching the seed data/PDF convention — not `INV_YYYY_00001` as first floated). Sequence found via `LIKE 'FAC-2026-%' ORDER BY number DESC LIMIT 1` rather than a counter table — works because the zero-padded suffix keeps lexicographic and numeric order in sync; simpler for this project's write volume, revisit only on a real collision. **Revisited 2026-10-30**: the integration tests produced that collision (two creations at once reading the same last number - see [Difficulties.md](Difficulties.md)). Kept the `LIKE` lookup and added a transaction-scoped advisory lock per company + prefix around read-and-insert, rather than switching to a counter table (a new table, its rows to seed per company/type/year, for the same guarantee) or retrying on the unique violation (works for the number, but not for the "chantier already invoiced" check that raced the same way).
 
-**2. Client address on a document** — considered snapshotting the address (or a `billing_address_id` FK) so a document's printed address can't drift if the client's address is later edited. **Turned down for now**: still resolved dynamically from the client's primary address; simpler, no schema change, revisit if it causes a real problem.
+**2. Client address on a document** — considered snapshotting the address (or a `billing_address_id` FK) so a document's printed address can't drift if the client's address is later edited. **Turned down for now**: still resolved dynamically from the client's primary address; simpler, no schema change, revisit if it causes a real problem. **Reversed 2026-11-12**: a client who moves changed the address on invoices already sent. Now the name and address are copied onto the document (`billed_address`) once it leaves DRAFT. The payment reminder is the exception: a new letter, it goes to the current address.
 
 **3. Flexible document lines** — settled on a real `document_sections` table (`id`, `company_id`, `document_id`, `position`, `title`, `is_active`), with `document_lines.section_id NOT NULL` referencing it, `position` on a line scoped to its section, and `document_lines.type` back to `MATERIAL`/`SERVICE` only (both always priced, `quantity`/`unit_price` `NOT NULL`). **Turned down first, then reopened**: a flat `document_lines` list with `SECTION`/`NOTE` as extra `type` values acting as in-list markers, no join — matched how Odoo's own invoice lines work, tried first (2026-09-02), reversed (2026-09-09) once a per-section subtotal turned out to be needed after all; see [Difficulties.md](Difficulties.md) for why the flat version couldn't answer that. The invoice and quote PDFs print sections (a per-section recap on page 1, the itemized lines per section after it).
 
@@ -124,7 +124,7 @@ A quote or invoice sometimes goes to someone who isn't worth adding as a client 
 
 ## One invoice per chantier, unless cancelled (2026-10-22)
 
-`POST /document` refuses a second invoice for a chantier already invoiced (409); a cancelled or archived invoice doesn't count, so a wrong invoice gets cancelled and redone. **Turned down**: several partial invoices per chantier (deposits, progress billing - real in construction, but a feature of its own: what's left to bill, which lines each invoice covers). Revisit if progress billing is ever asked for.
+`POST /document` refuses a second invoice for a chantier already invoiced (409); a cancelled or archived invoice doesn't count, so a wrong invoice gets cancelled and redone. **Turned down**: several partial invoices per chantier (deposits, progress billing - real in construction, but a feature of its own: what's left to bill, which lines each invoice covers). Revisit if progress billing is ever asked for. **Revisited 2026-11-13** - see "Deposit invoices" below.
 
 ## Tests: start with unit tests on pure logic only
 
@@ -178,3 +178,27 @@ First tests ever on this project (2026-09-02), Omar's first on any personal proj
 ## Demo company's seed data: English, not French (2026-10-09)
 
 Company 2 (Rénov Alpes, handed to recruiters) got its own English content once the app itself became bilingual (Transloco) — a recruiter is far more likely to read English than French, so the demo should default to the language they'll actually use, not the developer's own company's convention (company 1 stays French). Its admin's `users.language` defaults to `'EN'` to match. **Turned down**: translating company 1 too, or picking a language per visitor - company 1 is the developer's own data (stays French on purpose, see the "English everywhere" bullet's exceptions in CLAUDE.md), and there's no visitor-facing language picker before login to make a per-visitor default meaningful.
+
+## Error tracking on our own server, not Sentry (2026-10-30)
+
+Server and browser errors are grouped in our own database (one row per distinct error), with a Discord alert for a new one. **Turned down**: Sentry - easier, but an error message can quote client data, and it would leave the server. The Discord alert never contains the message, only the type and location.
+
+## Versioning: one version for the whole app (2026-11-12)
+
+One `MAJOR.MINOR.PATCH` for backend and frontend, since they always ship together. A release = a merge into `main`, tagged, with its CHANGELOG section. **Turned down**: a version per side (nothing ships them separately), or no version at all (impossible to say what's in production).
+
+## Client numbers and resource codes generated by the server (2026-11-12)
+
+`C0001`, `MAT0001`, `SER0001`... per company, under a lock like the document numbers. **Turned down**: typed by hand - duplicates, gaps, and one more field to fill in. Codes typed before stay as they are.
+
+## Swiss postcodes: a static file from swisstopo (2026-11-01)
+
+The NPA/town suggestions come from a ~90 kB JSON generated from swisstopo's official directory, cached by the browser. **Turned down**: an external API (one more dependency, data sent outside) or a database table (nothing to query server-side).
+
+## Client import: read in the browser, checked by the server, all or none (2026-11-13)
+
+The Excel/CSV file is read in the browser and never uploaded; the rows are sent as JSON. The server checks every row (a dry run for the preview, then again for real) and creates all of them or none. Columns are matched from their headers, every match changeable. **Turned down**: a template to download (people already have their own file), importing the valid rows only (a half-imported file is harder to fix than a refused one), more than 1000 rows at once.
+
+## Deposit invoices: ordinary invoices, deducted from the final one (2026-11-13)
+
+A deposit is a normal invoice (numbering, lifecycle, QR-bill, reminder) marked `DEPOSIT`, a percentage of the quote's total incl. VAT or an amount. The chantier's final invoice is still the whole work, and deducts the deposits sent or paid - **unpaid ones too**, the client owes them on their own invoices. The early payment discount only applies to the final invoice, on its balance. The deductions are frozen once the final invoice is sent. **Turned down**: progress billing line by line (much more complex, not asked for), a retention guarantee, deducting only paid deposits (the balance would change after the invoice is sent).
