@@ -22,11 +22,6 @@
       </p-floatlabel>
 
       <p-floatlabel variant="on">
-        <input pInputText id="qrComplement" class="w-full" name="complement" [ngModel]="complement()" (ngModelChange)="onFieldChange('complement', $event)" />
-        <label for="qrComplement">{{ 'qrBill.complement' | transloco }}</label>
-      </p-floatlabel>
-
-      <p-floatlabel variant="on">
         <input pInputText id="qrStreet" class="w-full" name="street" [ngModel]="street()" (ngModelChange)="onFieldChange('street', $event)" />
         <label for="qrStreet">{{ 'qrBill.street' | transloco }}</label>
       </p-floatlabel>

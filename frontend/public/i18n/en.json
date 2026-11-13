@@ -570,7 +570,6 @@
     "pickClient": "Pick a client",
     "searchClient": "Search a client...",
     "name": "Name",
-    "complement": "Address complement",
     "street": "Street and building number",
     "postalCodeCity": "Postcode and town",
     "amount": "Amount CHF",
