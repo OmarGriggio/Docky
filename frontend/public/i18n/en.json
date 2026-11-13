@@ -563,7 +563,16 @@
     "logoUpdated": "The logo has been updated.",
     "logoUpdateError": "Couldn't update the logo.",
     "headerImageUpdated": "The header image has been updated.",
-    "headerImageUpdateError": "Couldn't update the header image."
+    "headerImageUpdateError": "Couldn't update the header image.",
+    "paymentReference": {
+      "title": "Payment reference",
+      "hint": "Printed on each invoice's QR-bill, it lets a payment received be matched to its invoice. An invoice keeps the reference it was sent with.",
+      "qrIban": "QR-IBAN (optional)",
+      "qrReference": "With a QR-IBAN, invoices carry a QR reference.",
+      "creditor": "Creditor reference (RF)",
+      "none": "None",
+      "qrIbanInvalid": "This isn't a QR-IBAN: it starts with CH or LI and its bank number (5th to 9th character) is between 30000 and 31999."
+    }
   },
   "qrBill": {
     "title": "QR-bill payment slip",

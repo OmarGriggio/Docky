@@ -27,4 +27,8 @@ export interface Company {
   accent_color: string | null;
   // The second one, for the titles - null for none.
   secondary_color: string | null;
+  // An optional QR-IBAN: invoices' QR-bills are then paid to it with a QR
+  // reference. Without one, a creditor reference ("RF...") or none.
+  qr_iban: string | null;
+  payment_reference_type: 'SCOR' | 'NONE';
 }

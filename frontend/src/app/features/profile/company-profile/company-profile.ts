@@ -6,9 +6,11 @@ import { InputNumber } from 'primeng/inputnumber';
 import { FloatLabel } from 'primeng/floatlabel';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
+import { SelectButton } from 'primeng/selectbutton';
 import { FileUpload, FileUploadHandlerEvent } from 'primeng/fileupload';
 import { CompanyService } from '../company.service';
-import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService, translateSignal } from '@jsverse/transloco';
+import { HttpErrorResponse } from '@angular/common/http';
 import { AuthService } from '../../auth/auth.service';
 import { PostalCodeCity } from '../../../shared/components/postal-code-city/postal-code-city';
 import { splitPostalCodeCity } from '../../../shared/utils/postal-code-search';
@@ -26,7 +28,7 @@ const earlyPaymentDaysRequired: ValidatorFn = (group: AbstractControl): Validati
 @Component({
   selector: 'app-company-profile',
   standalone: true,
-  imports: [ReactiveFormsModule, InputText, InputNumber, FloatLabel, Button, Card, FileUpload, PostalCodeCity, InvoicingReadinessBanner, TranslocoPipe],
+  imports: [ReactiveFormsModule, InputText, InputNumber, FloatLabel, Button, Card, SelectButton, FileUpload, PostalCodeCity, InvoicingReadinessBanner, TranslocoPipe],
   templateUrl: './company-profile.html',
   styleUrl: './company-profile.css',
 })
@@ -68,12 +70,28 @@ export class CompanyProfile implements OnInit {
     // "#rrggbb", or '' for none (stored as null).
     accent_color: [''],
     secondary_color: [''],
+    // The QR-bill's reference (see the backend's payment-reference.ts): a
+    // QR reference with a QR-IBAN, otherwise a creditor reference or none.
+    qr_iban: [''],
+    payment_reference_type: ['SCOR' as 'SCOR' | 'NONE'],
   }, { validators: earlyPaymentDaysRequired });
+
+  private referenceCreditorLabel = translateSignal('profile.paymentReference.creditor');
+  private referenceNoneLabel = translateSignal('profile.paymentReference.none');
+  referenceOptions = computed(() => [
+    { label: this.referenceCreditorLabel(), value: 'SCOR' },
+    { label: this.referenceNoneLabel(), value: 'NONE' },
+  ]);
 
   // Shown under the days field - the backend would refuse the save anyway,
   // with nothing but the generic error to tell which field is wrong. Reads
   // the form's status first so it re-evaluates on every change.
   private formStatus = toSignal(this.form.statusChanges, { initialValue: this.form.status });
+
+  // With a QR-IBAN, the reference is always a QR reference - the choice
+  // below only applies without one.
+  private qrIbanValue = toSignal(this.form.controls.qr_iban.valueChanges, { initialValue: '' });
+  hasQrIban = computed(() => !!this.qrIbanValue()?.trim());
   missingEarlyPaymentDays = computed(() => {
     this.formStatus();
     return this.form.hasError('earlyPaymentDaysRequired');
@@ -151,6 +169,8 @@ export class CompanyProfile implements OnInit {
           early_payment_min_amount: company.early_payment_min_amount ?? 0,
           accent_color: company.accent_color ?? '',
           secondary_color: company.secondary_color ?? '',
+          qr_iban: company.qr_iban ?? '',
+          payment_reference_type: company.payment_reference_type ?? 'SCOR',
         });
         this.logoPath.set(company.logo);
         this.headerImagePath.set(company.header_image);
@@ -197,9 +217,11 @@ export class CompanyProfile implements OnInit {
         this.savedCompany.set(company);
         this.successMessage.set(this.transloco.translate('profile.updated'));
       },
-      error: err => {
+      error: (err: HttpErrorResponse) => {
         console.error('profile : ' + err);
-        this.errorMessage.set(this.transloco.translate('profile.updateError'));
+        // A QR-IBAN that isn't one says so - the generic message wouldn't.
+        const key = err.error?.code === 'QR_IBAN_INVALID' ? 'profile.paymentReference.qrIbanInvalid' : 'profile.updateError';
+        this.errorMessage.set(this.transloco.translate(key));
       }
     });
   }

@@ -563,7 +563,16 @@
     "logoUpdated": "Le logo a été mis à jour.",
     "logoUpdateError": "Impossible de mettre à jour le logo.",
     "headerImageUpdated": "L'image d'en-tête a été mise à jour.",
-    "headerImageUpdateError": "Impossible de mettre à jour l'image d'en-tête."
+    "headerImageUpdateError": "Impossible de mettre à jour l'image d'en-tête.",
+    "paymentReference": {
+      "title": "Référence de paiement",
+      "hint": "Imprimée sur le QR-bill de chaque facture, elle permet de retrouver la facture d'un paiement reçu. Une facture garde la référence avec laquelle elle a été envoyée.",
+      "qrIban": "QR-IBAN (facultatif)",
+      "qrReference": "Avec un QR-IBAN, les factures portent une référence QR.",
+      "creditor": "Référence créancier (RF)",
+      "none": "Aucune",
+      "qrIbanInvalid": "Ce QR-IBAN n'en est pas un : il commence par CH ou LI et son numéro de banque (5e au 9e caractère) est entre 30000 et 31999."
+    }
   },
   "qrBill": {
     "title": "Bulletin QR",
