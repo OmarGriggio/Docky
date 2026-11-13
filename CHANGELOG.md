@@ -2,6 +2,16 @@
 
 Every release of Docky, newest first. One version for the whole app (backend and frontend ship together from `main`), numbered `MAJOR.MINOR.PATCH` - see CLAUDE.md's Workflow for when each part goes up and how a release is made. Each release is tagged `vX.Y.Z` on `main`.
 
+## [1.2.2] - 2026-11-13
+
+### Added
+- The standalone QR-bill slip has an "À l'attention de" field again, printed under "Informations supplémentaires".
+
+### Fixed
+- An invoice's QR-bill prints its additional information ("Facture FAC-...") in the payment part, as the standard requires.
+- The QR code on an invoice's PDF fills its exact size, lined up with the payment part, at the error correction level the standard requires.
+- The invoice's QR-bill has the same, airier spacing as the standalone slip.
+
 ## [1.2.1] - 2026-11-13
 
 ### Fixed
