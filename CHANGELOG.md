@@ -2,6 +2,15 @@
 
 Every release of Docky, newest first. One version for the whole app (backend and frontend ship together from `main`), numbered `MAJOR.MINOR.PATCH` - see CLAUDE.md's Workflow for when each part goes up and how a release is made. Each release is tagged `vX.Y.Z` on `main`.
 
+## [1.1.1] - 2026-11-13
+
+### Changed
+- Leaving a quote, an invoice or a client import with unsaved work asks in the app's own dialog ("Quitter sans enregistrer" / "Rester sur la page") instead of the browser's.
+- The "complete your profile" banner also asks for the company's VAT number when it charges VAT.
+
+### Fixed
+- Opening a new invoice no longer raised a change detection error in the browser's console.
+
 ## [1.1.0] - 2026-11-13
 
 ### Added
