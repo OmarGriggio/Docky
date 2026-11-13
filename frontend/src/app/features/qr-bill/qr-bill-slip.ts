@@ -15,6 +15,7 @@ import { DocumentService } from '../documents/document.service';
 import { Client } from '../../shared/models/client';
 import { Address } from '../../shared/models/address';
 import { clientDisplayName } from '../../shared/utils/display';
+import { POSTAL_CODE_CITY_PATTERN } from '../../shared/utils/postal-code-search';
 import { qrBillErrorKey } from '../../shared/utils/api-error';
 import { ClientForm, ClientPrefill } from '../clients/client-form/client-form';
 import { PostalCodeCity } from '../../shared/components/postal-code-city/postal-code-city';
@@ -62,6 +63,8 @@ export class QrBillSlip implements OnInit {
   name = signal('');
   street = signal('');
   postalCodeCity = signal('');
+  // NPA and town both - what the QR-bill's structured address needs.
+  postalCodeCityValid = computed(() => POSTAL_CODE_CITY_PATTERN.test(this.postalCodeCity()));
   // Set by a generation refused for a missing name or NPA/town (the
   // backend's own minimum): those fields are then outlined in red.
   showRequired = signal(false);
@@ -106,7 +109,6 @@ export class QrBillSlip implements OnInit {
   openSaveAsClient(): void {
     this.clientPrefill.set({
       name: this.name().trim(),
-      attention: '',
       street: this.street().trim(),
       postalCodeCity: this.postalCodeCity().trim(),
     });
@@ -162,7 +164,7 @@ export class QrBillSlip implements OnInit {
   generate(): void {
     this.errorMessage.set(null);
     this.copyMessage.set(null);
-    if (!this.name().trim() || !this.postalCodeCity().trim()) {
+    if (!this.name().trim() || !this.postalCodeCityValid()) {
       this.showRequired.set(true);
       this.errorMessage.set(this.transloco.translate('common.requiredFields'));
       return;

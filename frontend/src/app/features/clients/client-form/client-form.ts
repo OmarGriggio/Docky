@@ -16,7 +16,6 @@ import { PostalCodeCity } from '../../../shared/components/postal-code-city/post
 
 export interface ClientPrefill {
   name: string;
-  attention: string;
   street: string;
   postalCodeCity: string;
 }
@@ -148,10 +147,9 @@ export class ClientForm implements OnInit {
     const prefill = this.prefill();
     if (prefill) {
       this.form.patchValue(this.isProfessional ? { company_name: prefill.name } : { last_name: prefill.name });
-      if (prefill.attention || prefill.street || prefill.postalCodeCity) {
+      if (prefill.street || prefill.postalCodeCity) {
         this.toggleAddress(true);
         this.form.patchValue({
-          attention: prefill.attention,
           street: prefill.street,
           postalCodeCity: prefill.postalCodeCity,
         });
