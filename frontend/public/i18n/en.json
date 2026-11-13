@@ -577,14 +577,15 @@
   },
   "invoicingReadiness": {
     "title": "Complete your profile to be able to invoice",
-    "missing": "Invoices' QR-bill needs:",
+    "missing": "To invoice, you still need:",
     "complete": "Complete the profile",
     "askAdmin": "Ask your company's administrator to complete it.",
     "fields": {
       "name": "the company name",
       "iban": "the IBAN",
       "postalCodeCity": "the postcode and town",
-      "country": "the country"
+      "country": "the country",
+      "vatNumber": "the VAT number (you charge VAT)"
     }
   }
 }

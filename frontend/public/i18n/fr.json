@@ -577,14 +577,15 @@
   },
   "invoicingReadiness": {
     "title": "Complète ton profil pour pouvoir facturer",
-    "missing": "Le bulletin de versement QR des factures a besoin de :",
+    "missing": "Pour facturer, il manque :",
     "complete": "Compléter le profil",
     "askAdmin": "Demande à l'administrateur de ton entreprise de le compléter.",
     "fields": {
       "name": "le nom de l'entreprise",
       "iban": "l'IBAN",
       "postalCodeCity": "le NPA et la ville",
-      "country": "le pays"
+      "country": "le pays",
+      "vatNumber": "le n° TVA (tu factures de la TVA)"
     }
   }
 }
