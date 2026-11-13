@@ -1,7 +1,7 @@
 import {Client, ClientWithAddresses, NewClientAddress, UpdateClientData} from "./client.types"
-import { createClientInDB, updateClientInDB, archiveClientInDB, unarchiveClientInDB, getClientByIdFromDB, getClientByEmail, getClientsFromDB, lockClientNumberingInDB, getLastClientSequenceFromDB } from "./client.repository";
+import { createClientInDB, updateClientInDB, archiveClientInDB, unarchiveClientInDB, getClientByIdFromDB, getClientByEmail, getClientsFromDB, lockClientNumberingInDB, getLastClientSequenceFromDB, tryLockClientImportInDB, createClientsInDB } from "./client.repository";
 import { nextSequenceCode, sequencePattern } from "../../shared/numbering/sequence-code";
-import { createAddressInDB, getAddressesByClientIdFromDB } from "./address.repository";
+import { createAddressInDB, createPrimaryAddressesInDB, getAddressesByClientIdFromDB } from "./address.repository";
 import { NotFoundError, ConflictError, AppError } from "../../shared/types/errors";
 import { withTransaction } from "../../shared/config/database";
 import { checkImportRows, ClientImportRow, ImportContext, ImportRowResult, MAX_IMPORT_ROWS, nameKey } from "./client-import";
@@ -150,7 +150,9 @@ const importContext = async (company_id: number, request: ClientImportRequest): 
 // lock so nothing created meanwhile can collide, and creates them all or none:
 // a single row with an error and nothing is written. Rows with a number keep
 // it; the others get the next ones after the highest number there is then,
-// the imported ones included.
+// the imported ones included. One real import at a time per company (a 409
+// for a second one), written in two statements - its connection and lock are
+// held for milliseconds, not 2000 round trips.
 export const importClientsServ = async (company_id: number, request: ClientImportRequest, dryRun: boolean): Promise<ClientImportReport> => {
   if (!Array.isArray(request?.rows)) {
     throw new AppError("rows must be a list", 400);
@@ -165,6 +167,9 @@ export const importClientsServ = async (company_id: number, request: ClientImpor
   }
 
   return await withTransaction(async () => {
+    if (!(await tryLockClientImportInDB(company_id))) {
+      throw new ConflictError("Another import is already running for this company");
+    }
     await lockClientNumberingInDB(company_id);
     const results = checkImportRows(rows, await importContext(company_id, request));
     if (results.some(result => result.errors.length > 0)) {
@@ -176,13 +181,14 @@ export const importClientsServ = async (company_id: number, request: ClientImpor
       .map(result => Number(result.client.client_number?.match(/^C(\d+)$/)?.[1] ?? 0));
     let last = Math.max(await getLastClientSequenceFromDB(company_id, pattern) ?? 0, ...importedSequences);
 
-    for (const { client: { language, ...client }, address } of results) {
-      const client_number = client.client_number ?? nextSequenceCode(CLIENT_NUMBER_PREFIX, last++);
-      const created = await createClientInDB({ ...client, client_number, company_id, is_active: true }, language);
-      if (address) {
-        await createAddressInDB({ ...address, client_id: created.id, is_primary: true, company_id });
-      }
-    }
+    const numbered = results.map(({ client, address }) => ({
+      client: { ...client, client_number: client.client_number ?? nextSequenceCode(CLIENT_NUMBER_PREFIX, last++) },
+      address,
+    }));
+    const ids = await createClientsInDB(company_id, numbered.map(({ client }) => client));
+    await createPrimaryAddressesInDB(company_id, numbered
+      .filter(({ address }) => address !== null)
+      .map(({ client, address }) => ({ ...address!, client_id: ids.get(client.client_number)! })));
     return { rows: results, created: results.length };
   });
 };

@@ -37,10 +37,10 @@ const app = express();
 app.set("trust proxy", 1);
 
 // A client import's body (up to 1000 rows) is bigger than express.json's own
-// 100kB default - a larger limit for that route only, parsed first (the
-// generic parser below then leaves an already parsed body alone).
-app.use("/client/import", express.json({ limit: "2mb" }));
-app.use(express.json(), cors(), cookieParser());
+// 100kB default: that route reads it itself, with its own limit, only once
+// the caller is authenticated (client.routes.ts) - skipped here.
+const jsonParser = express.json();
+app.use((req, res, next) => (req.path === "/client/import" ? next() : jsonParser(req, res, next)), cors(), cookieParser());
 
 // Streams from MinIO/S3 instead of local disk - companies/company.upload.ts
 // uploads there too now. Express 5 needs a named wildcard (*splat, not a

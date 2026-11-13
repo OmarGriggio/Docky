@@ -1,5 +1,6 @@
 import { ClientLanguage, ClientType, NewClientAddress } from "./client.types";
 import { SEQUENCE_DIGITS } from "../../shared/numbering/sequence-code";
+import { toIsoCountryCode } from "../../pdf/templates/dto/swiss-qr-bill.dto";
 
 // Importing clients from a spreadsheet (POST /client/import): the frontend
 // reads the file and maps its columns onto these fields; every rule deciding
@@ -9,7 +10,7 @@ import { SEQUENCE_DIGITS } from "../../shared/numbering/sequence-code";
 export const MAX_IMPORT_ROWS = 1000;
 
 // One spreadsheet row, as mapped by the user. Any field may be missing, and a
-// value may arrive as a number (a spreadsheet cell) - see text().
+// value may arrive as a number (a spreadsheet cell) - see readValue().
 export interface ClientImportRow {
   client_number?: unknown;
   // Typed by hand in the preview, not read from the file: a number there
@@ -28,6 +29,8 @@ export interface ClientImportRow {
   language?: unknown;
   attention?: unknown;
   street?: unknown;
+  // The building number in a column of its own - added after the street.
+  house_number?: unknown;
   postal_code?: unknown;
   city?: unknown;
   // "1950 Sion" in one column.
@@ -36,6 +39,11 @@ export interface ClientImportRow {
 }
 
 export type ImportField = Exclude<keyof ClientImportRow, "client_number_edited">;
+
+const FIELDS: ImportField[] = [
+  "client_number", "type", "company_name", "last_name", "first_name", "full_name", "title", "email", "phone", "note",
+  "language", "attention", "street", "house_number", "postal_code", "city", "postal_code_city", "country",
+];
 
 // A problem found on a row - `code` is translated by the frontend
 // (clients.import.issues.*), `params` fills it in.
@@ -79,7 +87,8 @@ export interface ImportContext {
   // An address's country when the file has none - Switzerland, in the user's
   // language (like the client form's).
   defaultCountry: string;
-  // The user's language - for the "former number" line added to a note.
+  // The user's language: a client's when the file doesn't say, the title
+  // written in it, and the "former number" line added to a note.
   language: "FR" | "EN";
 }
 
@@ -101,8 +110,21 @@ const MAX_LENGTHS: Partial<Record<ImportField, number>> = {
 
 const FORMER_NUMBER_LABEL = { FR: "Ancien n° :", EN: "Former no.:" };
 
-// A cell as text, trimmed - a number cell included ("1950" from 1950).
-const text = (value: unknown): string => (value === null || value === undefined ? "" : String(value).trim());
+// A cell's value as text, trimmed - a number cell included ("1950" from
+// 1950). Anything else (an object, a list) isn't a cell: `valid` false. A
+// placeholder for "nothing" ("-", "/", "—") reads as empty.
+const readValue = (value: unknown): { text: string; valid: boolean } => {
+  if (value === null || value === undefined) {
+    return { text: "", valid: true };
+  }
+  if (typeof value !== "string" && typeof value !== "number" && typeof value !== "boolean") {
+    return { text: "", valid: false };
+  }
+  const text = String(value).trim();
+  return { text: /^[-–—/.\s]*$/.test(text) ? "" : text, valid: true };
+};
+
+const text = (value: unknown): string => readValue(value).text;
 
 // Lowercase, accents removed, inner spaces collapsed - for comparing what a
 // person typed in different ways.
@@ -112,31 +134,37 @@ const fold = (value: string): string =>
 // The client number, by the rule the user chose: digits (an Excel number cell
 // drops leading zeros, "1" = "0001") or C + digits become C and at least four
 // digits ("867" → "C0867"); anything else from the file goes to the note and a
-// number is generated, but typed by hand in the preview it's an error.
+// number is generated, but typed by hand in the preview it's an error. Six
+// digits at most: a bigger number (a date, a phone number in the wrong
+// column) would push every number generated afterwards that far, or past what
+// the numbering reads back (sequence-code.ts).
+const MAX_NUMBER_DIGITS = 6;
+
 export const resolveNumber = (raw: unknown, edited: boolean): { number: string | null; formerNumber: string | null; invalid: boolean } => {
   const value = text(raw);
   if (!value) {
     return { number: null, formerNumber: null, invalid: false };
   }
-  const digits = value.match(/^[Cc]?(\d{1,9})$/)?.[1];
-  if (digits) {
+  const digits = value.match(/^[Cc]?(\d+)$/)?.[1];
+  if (digits && String(Number(digits)).length <= MAX_NUMBER_DIGITS) {
     return { number: `C${String(Number(digits)).padStart(SEQUENCE_DIGITS, "0")}`, formerNumber: null, invalid: false };
   }
   return edited ? { number: null, formerNumber: null, invalid: true } : { number: null, formerNumber: value, invalid: false };
 };
 
-const TYPES: Record<string, ClientType> = {
-  pro: "PROFESSIONAL", professionnel: "PROFESSIONAL", professional: "PROFESSIONAL", entreprise: "PROFESSIONAL",
-  societe: "PROFESSIONAL", company: "PROFESSIONAL", business: "PROFESSIONAL", firma: "PROFESSIONAL",
-  particulier: "INDIVIDUAL", prive: "INDIVIDUAL", individual: "INDIVIDUAL", private: "INDIVIDUAL", privat: "INDIVIDUAL",
-};
+// Maps, not object literals: "constructor" or "__proto__" in a cell must not
+// find something on Object's prototype.
+const TYPES = new Map<string, ClientType>([
+  ...["pro", "professionnel", "professional", "entreprise", "societe", "company", "business", "firma"].map(word => [word, "PROFESSIONAL"] as const),
+  ...["particulier", "prive", "individual", "private", "privat"].map(word => [word, "INDIVIDUAL"] as const),
+]);
 
-const LANGUAGES: Record<string, ClientLanguage> = {
-  fr: "FR", francais: "FR", french: "FR", franzosisch: "FR",
-  en: "EN", anglais: "EN", english: "EN", englisch: "EN",
-  de: "DE", allemand: "DE", german: "DE", deutsch: "DE",
-  it: "IT", italien: "IT", italian: "IT", italiano: "IT", italienisch: "IT",
-};
+const LANGUAGES = new Map<string, ClientLanguage>([
+  ...["fr", "f", "francais", "french", "franzosisch"].map(word => [word, "FR"] as const),
+  ...["en", "e", "anglais", "english", "englisch"].map(word => [word, "EN"] as const),
+  ...["de", "d", "allemand", "german", "deutsch"].map(word => [word, "DE"] as const),
+  ...["it", "i", "italien", "italian", "italiano", "italienisch"].map(word => [word, "IT"] as const),
+]);
 
 const MALE_TITLES = new Set(["monsieur", "m", "m.", "mr", "mr.", "herr", "signor", "sig", "sig."]);
 const FEMALE_TITLES = new Set(["madame", "mme", "mme.", "mrs", "mrs.", "ms", "ms.", "miss", "frau", "signora", "sig.ra"]);
@@ -167,7 +195,19 @@ const splitPostalCodeCity = (value: string): { postalCode: string; city: string 
   return match ? { postalCode: match[1], city: match[2].trim() } : { postalCode: "", city: value };
 };
 
-const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Linear on any input: the domain's labels can't overlap (no backtracking
+// on a long run of dots), and it's only tried on an email short enough to
+// store (see checkRow) anyway.
+const EMAIL = /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/;
+
+// A company's legal form at the end of a name - "Bâtiments Rhône SA" in a
+// "Nom" column is probably a professional.
+const LEGAL_FORM = /\s(sa|sarl|s[aà]rl|ag|gmbh|snc|sas|ltd|inc|kg|co)\.?$/i;
+
+// Control characters a database text column refuses (NUL) or a printed
+// document shouldn't carry - a note may keep its line breaks and tabs.
+const CONTROL = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/;
+const CONTROL_OR_BREAK = /[\u0000-\u001F\u007F]/;
 
 // Same name and NPA - how a probable duplicate is spotted.
 export const nameKey = (name: string, postalCode: string | null | undefined): string => `${fold(name)}|${text(postalCode)}`;
@@ -175,7 +215,20 @@ export const nameKey = (name: string, postalCode: string | null | undefined): st
 const checkRow = (row: ClientImportRow, context: ImportContext): ImportRowResult => {
   const errors: ImportIssue[] = [];
   const warnings: ImportIssue[] = [];
-  const value = (field: ImportField) => text(row[field]);
+
+  // Every value a cell can hold, free of what a database or a document can't
+  // take - checked first, each field's rules below read the cleaned text.
+  const values = {} as Record<ImportField, string>;
+  for (const field of FIELDS) {
+    const { text: value, valid } = readValue(row[field]);
+    if (!valid) {
+      errors.push({ field, code: "INVALID_VALUE" });
+    } else if ((field === "note" ? CONTROL : CONTROL_OR_BREAK).test(value)) {
+      errors.push({ field, code: "CONTROL_CHARACTERS" });
+    }
+    values[field] = value;
+  }
+  const value = (field: ImportField) => values[field];
 
   // Names - a full name alone goes into the last name.
   let lastName = value("last_name");
@@ -189,10 +242,9 @@ const checkRow = (row: ClientImportRow, context: ImportContext): ImportRowResult
 
   // Type - given, or a company name makes it a professional.
   const typeText = value("type");
-  const inferredType: ClientType = companyName ? "PROFESSIONAL" : "INDIVIDUAL";
-  let type = inferredType;
+  let type: ClientType = companyName ? "PROFESSIONAL" : "INDIVIDUAL";
   if (typeText) {
-    const known = TYPES[fold(typeText)];
+    const known = TYPES.get(fold(typeText));
     if (known) {
       type = known;
     } else {
@@ -203,17 +255,24 @@ const checkRow = (row: ClientImportRow, context: ImportContext): ImportRowResult
     errors.push({ field: "company_name", code: "REQUIRED" });
   }
   if (type === "INDIVIDUAL" && !lastName) {
-    errors.push({ field: "last_name", code: "REQUIRED" });
+    errors.push({ field: fullName ? "full_name" : "last_name", code: "REQUIRED" });
+  }
+  if (type === "INDIVIDUAL" && companyName) {
+    warnings.push({ field: "company_name", code: "COMPANY_OF_INDIVIDUAL" });
+  }
+  if (type === "INDIVIDUAL" && !typeText && LEGAL_FORM.test(lastName)) {
+    warnings.push({ field: fullName && !value("last_name") ? "full_name" : "last_name", code: "PROBABLY_COMPANY" });
   }
 
-  // Language, then the title written in it.
+  // Language - the user's when the file doesn't say - then the title written in it.
   const languageText = value("language");
-  const language = languageText ? LANGUAGES[fold(languageText)] : undefined;
-  if (languageText && !language) {
-    warnings.push({ field: "language", code: "LANGUAGE_UNKNOWN", params: { value: languageText } });
+  const known = languageText ? LANGUAGES.get(fold(languageText)) : undefined;
+  const language: ClientLanguage = known ?? context.language;
+  if (languageText && !known) {
+    warnings.push({ field: "language", code: "LANGUAGE_UNKNOWN", params: { value: languageText, language } });
   }
   const titleText = value("title");
-  const { title, recognized } = resolveTitle(titleText, language ?? "FR");
+  const { title, recognized } = resolveTitle(titleText, language);
   if (!recognized) {
     warnings.push({ field: "title", code: "TITLE_UNKNOWN", params: { value: titleText } });
   } else if (title && title !== titleText) {
@@ -221,7 +280,7 @@ const checkRow = (row: ClientImportRow, context: ImportContext): ImportRowResult
   }
 
   // Number.
-  const { number, formerNumber, invalid } = resolveNumber(row.client_number, row.client_number_edited === true);
+  const { number, formerNumber, invalid } = resolveNumber(value("client_number"), row.client_number_edited === true);
   if (invalid) {
     errors.push({ field: "client_number", code: "NUMBER_INVALID", params: { value: value("client_number") } });
   } else if (number && context.existingNumbers.has(number)) {
@@ -234,15 +293,26 @@ const checkRow = (row: ClientImportRow, context: ImportContext): ImportRowResult
   const noteText = value("note");
   const note = [formerNumber ? `${FORMER_NUMBER_LABEL[context.language]} ${formerNumber}` : "", noteText].filter(Boolean).join("\n");
 
-  // Email.
+  // Email - only checked once short enough to store (see TOO_LONG below).
   const email = value("email");
-  if (email && !EMAIL.test(email)) {
-    errors.push({ field: "email", code: "EMAIL_INVALID" });
-  } else if (email && context.existingEmails.has(email.toLowerCase())) {
-    errors.push({ field: "email", code: "EMAIL_EXISTS" });
+  if (email && email.length <= (MAX_LENGTHS.email ?? 0)) {
+    if (!EMAIL.test(email)) {
+      errors.push({ field: "email", code: "EMAIL_INVALID" });
+    } else if (context.existingEmails.has(email.toLowerCase())) {
+      errors.push({ field: "email", code: "EMAIL_EXISTS" });
+    }
   }
 
-  // Address - nothing at all, or a street, an NPA and a town.
+  // Phone - a mobile number typed into a number cell loses its leading 0
+  // ("0791234567" read as 791234567): nine digits get it back.
+  let phone = value("phone");
+  if (/^[1-9]\d{8}$/.test(phone)) {
+    phone = `0${phone}`;
+    warnings.push({ field: "phone", code: "PHONE_ZERO_ADDED", params: { phone } });
+  }
+
+  // Address - nothing at all, or a street, an NPA and a town. A building
+  // number in its own column follows the street.
   let postalCode = value("postal_code");
   let city = value("city");
   const combined = value("postal_code_city");
@@ -250,29 +320,37 @@ const checkRow = (row: ClientImportRow, context: ImportContext): ImportRowResult
     ({ postalCode, city } = splitPostalCodeCity(combined));
   }
   const attention = value("attention");
-  const street = value("street");
+  const houseNumber = value("house_number");
+  const street = [value("street"), houseNumber].filter(Boolean).join(" ");
   let address: NewClientAddress | null = null;
   if (attention || street || postalCode || city) {
-    const missing: [ImportField, string][] = [["street", street], ["postal_code", postalCode], ["city", city]];
-    for (const [field, fieldValue] of missing) {
-      if (!fieldValue) {
-        errors.push({ field: field === "street" || !combined ? field : "postal_code_city", code: "ADDRESS_INCOMPLETE" });
-      }
+    if (!value("street")) {
+      errors.push({ field: "street", code: "ADDRESS_INCOMPLETE" });
     }
-    address = {
-      attention: attention || null,
-      street,
-      postal_code: postalCode,
-      city,
-      country: value("country") || context.defaultCountry,
-    };
+    if (!postalCode) {
+      errors.push({ field: combined ? "postal_code_city" : "postal_code", code: "ADDRESS_INCOMPLETE" });
+    }
+    if (!city) {
+      errors.push({ field: combined ? "postal_code_city" : "city", code: "ADDRESS_INCOMPLETE" });
+    }
+    const country = value("country") || context.defaultCountry;
+    address = { attention: attention || null, street, postal_code: postalCode, city, country };
+
+    // An NPA is four digits in Switzerland, five in a neighbouring country -
+    // "Sion" there is a column matched the wrong way round.
+    if (postalCode && !/^\d{4,5}$/.test(postalCode)) {
+      warnings.push({ field: combined ? "postal_code_city" : "postal_code", code: "POSTAL_CODE_UNUSUAL", params: { value: postalCode } });
+    }
+    // A country the QR-bill can't turn into a code fails the client's invoices later.
+    if (toIsoCountryCode(country).length !== 2) {
+      warnings.push({ field: "country", code: "COUNTRY_UNKNOWN", params: { value: country } });
+    }
   }
 
   // Lengths, on what will actually be stored.
   const stored: Partial<Record<ImportField, string>> = {
     company_name: companyName, last_name: lastName, first_name: firstName, title: title ?? "",
-    email, phone: value("phone"), note, attention, street, postal_code: postalCode, city,
-    country: address?.country ?? "",
+    email, phone, note, attention, street, postal_code: postalCode, city, country: address?.country ?? "",
   };
   for (const [field, max] of Object.entries(MAX_LENGTHS) as [ImportField, number][]) {
     const storedValue = stored[field] ?? "";
@@ -296,9 +374,9 @@ const checkRow = (row: ClientImportRow, context: ImportContext): ImportRowResult
       first_name: firstName || null,
       title,
       email: email || null,
-      phone: value("phone") || null,
+      phone: phone || null,
       note: note || null,
-      language: language ?? "FR",
+      language,
     },
     address,
     errors,

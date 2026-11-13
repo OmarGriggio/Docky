@@ -50,11 +50,8 @@ export const createPlaceholderClientInDB = async (company_id: number): Promise<C
     return result.rows[0];
 };
 
-// `language`: French unless said otherwise - the client form leaves it to its
-// default, an import sets what the file says (client-import.ts).
 export const createClientInDB = async (
-    client: Omit<Client, "id" | "language" | "is_placeholder">,
-    language: ClientLanguage = "FR"
+    client: Omit<Client, "id" | "language" | "is_placeholder">
 ): Promise<Client> => {
     const query = `
     INSERT INTO clients (
@@ -67,10 +64,9 @@ export const createClientInDB = async (
       title,
       email,
       phone,
-      note,
-      language
+      note
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
     RETURNING *;
   `;
 
@@ -84,8 +80,7 @@ export const createClientInDB = async (
       client.title,
       client.email,
       client.phone,
-      client.note,
-      language
+      client.note
     ];
 
     const result = await db().query(query, values);
@@ -174,4 +169,31 @@ export const getLastClientSequenceFromDB = async (company_id: number, pattern: s
         [company_id, pattern]
     );
     return result.rows[0]?.last ?? null;
+};
+
+// One import at a time per company (see client.service.ts's
+// importClientsServ): false when another is running - refused rather than
+// left waiting with a connection held.
+export const tryLockClientImportInDB = async (company_id: number): Promise<boolean> => {
+    const result = await db().query("SELECT pg_try_advisory_xact_lock($1, hashtext('client-import')) AS locked", [company_id]);
+    return result.rows[0].locked === true;
+};
+
+// An import's clients in one statement - not one INSERT per row, a 1000-row
+// import would otherwise hold its connection for 1000 round trips. Each
+// already numbered; their ids come back keyed by that number.
+export const createClientsInDB = async (
+    company_id: number,
+    clients: { client_number: string; type: string; company_name: string | null; last_name: string | null; first_name: string | null;
+        title: string | null; email: string | null; phone: string | null; note: string | null; language: ClientLanguage }[]
+): Promise<Map<string, number>> => {
+    const column = (key: keyof (typeof clients)[number]) => clients.map(client => client[key]);
+    const result = await db().query(
+        `INSERT INTO clients (company_id, client_number, type, company_name, last_name, first_name, title, email, phone, note, language)
+         SELECT $1, * FROM unnest($2::text[], $3::text[], $4::text[], $5::text[], $6::text[], $7::text[], $8::text[], $9::text[], $10::text[], $11::text[])
+         RETURNING id, client_number`,
+        [company_id, column("client_number"), column("type"), column("company_name"), column("last_name"), column("first_name"),
+            column("title"), column("email"), column("phone"), column("note"), column("language")]
+    );
+    return new Map(result.rows.map(row => [row.client_number, row.id]));
 };

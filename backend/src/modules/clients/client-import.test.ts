@@ -88,10 +88,12 @@ describe("checkImportRows", () => {
     expect(codes(check({ last_name: "Dupont", title: "Docteur" }).warnings)).toEqual(["TITLE_UNKNOWN"]);
   });
 
-  it("falls back to French for a language it doesn't know", () => {
-    const result = check({ last_name: "Dupont", language: "klingon" });
-    expect(result.client.language).toBe("FR");
+  it("falls back to the user's language for one it doesn't know, or none", () => {
+    const result = check({ last_name: "Dupont", language: "klingon" }, { language: "EN" });
+    expect(result.client.language).toBe("EN");
     expect(codes(result.warnings)).toEqual(["LANGUAGE_UNKNOWN"]);
+    expect(check({ last_name: "Smith", title: "Mr" }, { language: "EN" }).client).toMatchObject({ language: "EN", title: "Mr" });
+    expect(check({ last_name: "Keller", language: "D" }).client.language).toBe("DE");
   });
 
   it("keeps a former number that isn't one in the note", () => {
@@ -129,5 +131,65 @@ describe("checkImportRows", () => {
 
     const [, second] = checkImportRows([{ last_name: "Dupont" }, { last_name: "DUPONT" }], context());
     expect(codes(second.warnings)).toEqual(["PROBABLE_DUPLICATE"]);
+  });
+
+  it("takes a building number in its own column after the street", () => {
+    expect(check({ last_name: "Dupont", street: "Rue du Lac", house_number: 12, postal_code: "1950", city: "Sion" }).address?.street)
+      .toBe("Rue du Lac 12");
+  });
+
+  it("reads a placeholder for nothing as empty", () => {
+    const result = check({ company_name: "-", last_name: "Dupont" });
+    expect(result.client).toMatchObject({ type: "INDIVIDUAL", company_name: null });
+  });
+
+  it("warns about a last name that looks like a company", () => {
+    expect(codes(check({ last_name: "Bâtiments Rhône SA" }).warnings)).toEqual(["PROBABLY_COMPANY"]);
+    expect(codes(check({ last_name: "Garage Favre Sàrl" }).warnings)).toEqual(["PROBABLY_COMPANY"]);
+  });
+
+  it("warns about a company given for an individual", () => {
+    expect(codes(check({ type: "Particulier", company_name: "Dupont SA", last_name: "Dupont" }).warnings)).toEqual(["COMPANY_OF_INDIVIDUAL"]);
+  });
+
+  it("warns about an unusual NPA and a country the QR-bill doesn't know", () => {
+    const result = check({ last_name: "Dupont", street: "Rue 1", postal_code: "Sion", city: "1950", country: "Belgique" });
+    expect(codes(result.warnings)).toEqual(["POSTAL_CODE_UNUSUAL", "COUNTRY_UNKNOWN"]);
+  });
+
+  it("gives a phone number back the 0 a number cell dropped", () => {
+    const result = check({ last_name: "Dupont", phone: 791234567 });
+    expect(result.client.phone).toBe("0791234567");
+    expect(codes(result.warnings)).toEqual(["PHONE_ZERO_ADDED"]);
+    expect(check({ last_name: "Dupont", phone: "+41 79 123 45 67" }).warnings).toEqual([]);
+  });
+
+  it("moves a number of more than six digits to the note - it would push the numbering too far", () => {
+    expect(resolveNumber("20240001", false)).toEqual({ number: null, formerNumber: "20240001", invalid: false });
+    expect(resolveNumber("999999999", true).invalid).toBe(true);
+    expect(resolveNumber("999999", false).number).toBe("C999999");
+  });
+
+  it("refuses a value that isn't a cell, or carries control characters", () => {
+    expect(check({ last_name: { toString: 1 } as unknown }).errors).toEqual([
+      { field: "last_name", code: "INVALID_VALUE" },
+      { field: "last_name", code: "REQUIRED" },
+    ]);
+    expect(codes(check({ last_name: "Du pont" }).errors)).toEqual(["CONTROL_CHARACTERS"]);
+    expect(check({ last_name: "Dupont", note: "Ligne 1\nLigne 2" }).errors).toEqual([]);
+  });
+
+  it("finds nothing on Object's prototype in a type or a language", () => {
+    const result = check({ last_name: "Dupont", type: "constructor", language: "__proto__" });
+    expect(result.client).toMatchObject({ type: "INDIVIDUAL", language: "FR" });
+    expect(codes(result.warnings)).toEqual(["TYPE_UNKNOWN", "LANGUAGE_UNKNOWN"]);
+  });
+
+  it("checks a huge email quickly - too long, never run through the pattern", () => {
+    const started = Date.now();
+    const result = check({ last_name: "Dupont", email: `a@${".".repeat(100_000)}@` });
+    expect(Date.now() - started).toBeLessThan(500);
+    expect(codes(result.errors)).toEqual(["TOO_LONG"]);
+    expect(codes(check({ last_name: "Dupont", email: `a@${"b.".repeat(100)}` }).errors)).toEqual(["EMAIL_INVALID"]);
   });
 });

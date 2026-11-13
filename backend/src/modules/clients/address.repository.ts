@@ -80,3 +80,22 @@ export const createAddressInDB = async (
   const result = await db().query(query, values);
   return result.rows[0];
 };
+
+// An import's addresses in one statement, each its client's primary one
+// (see client.service.ts's importClientsServ).
+export const createPrimaryAddressesInDB = async (
+  company_id: number,
+  addresses: (Pick<Address, "client_id" | "attention" | "street" | "postal_code" | "city" | "country">)[]
+): Promise<void> => {
+  if (addresses.length === 0) {
+    return;
+  }
+  const column = (key: keyof (typeof addresses)[number]) => addresses.map(address => address[key]);
+  await db().query(
+    `INSERT INTO addresses (company_id, client_id, is_primary, attention, street, postal_code, city, country)
+     SELECT $1, client_id, true, attention, street, postal_code, city, country
+     FROM unnest($2::int[], $3::text[], $4::text[], $5::text[], $6::text[], $7::text[])
+       AS a(client_id, attention, street, postal_code, city, country)`,
+    [company_id, column("client_id"), column("attention"), column("street"), column("postal_code"), column("city"), column("country")]
+  );
+};

@@ -81,3 +81,15 @@ export const clientImportRateLimiter = rateLimit({
   keyGenerator: (req) => `company:${req.user.company_id}`,
   message: { message: "Too many imports, please try again later" },
 });
+
+// A real client import (POST /client/import without ?dryRun): up to 1000
+// clients each - on top of clientImportRateLimiter, a cap on how many a
+// company (the public demo one included) can pile up in an hour.
+export const clientImportWriteRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  limit: 10, // 10 imports per company per hour
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => `company:${req.user.company_id}`,
+  message: { message: "Too many imports, please try again later" },
+});
