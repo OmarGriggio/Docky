@@ -1,6 +1,7 @@
 import QRCode from "qrcode";
 import { printedAddressLines, SwissQrBillDto } from "../swiss-qr-bill/swiss-qr-bill.types";
 import { buildSwissQrBillPayload } from "../swiss-qr-bill/swiss-qr-bill.payload";
+import { formatReference } from "../swiss-qr-bill/payment-reference";
 import { PdfLabels } from "./pdf-labels";
 
 // The Swiss QR-bill payment slip on its own, as an SVG at its official size
@@ -104,6 +105,10 @@ export const renderSwissQrBillSvg = async (dto: SwissQrBillDto, labels: PdfLabel
     for (const value of creditorLines) {
         parts.push(text(value, 5, y += 4, FONT.receiptValue));
     }
+    if (payment.reference.type !== "NON") {
+        parts.push(text(labels.qrReference, 5, y += 6, FONT.receiptHeading, { bold: true }));
+        parts.push(text(formatReference(payment.reference), 5, y += 4, FONT.receiptValue));
+    }
     if (printedDebtor.length > 0) {
         parts.push(text(labels.qrPayableBy, 5, y += 7, FONT.receiptHeading, { bold: true }));
         for (const value of printedDebtor) {
@@ -143,6 +148,10 @@ export const renderSwissQrBillSvg = async (dto: SwissQrBillDto, labels: PdfLabel
     parts.push(text(labels.qrAccount, INFO_X, y, FONT.paymentHeading, { bold: true }));
     for (const value of creditorLines) {
         parts.push(text(value, INFO_X, y += 5, FONT.paymentValue));
+    }
+    if (payment.reference.type !== "NON") {
+        parts.push(text(labels.qrReference, INFO_X, y += 9, FONT.paymentHeading, { bold: true }));
+        parts.push(text(formatReference(payment.reference), INFO_X, y += 5, FONT.paymentValue));
     }
     if (payment.additionalInfo) {
         parts.push(text(labels.qrAdditionalInfo, INFO_X, y += 9, FONT.paymentHeading, { bold: true }));

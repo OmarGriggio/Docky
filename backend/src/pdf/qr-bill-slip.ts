@@ -1,4 +1,5 @@
 import { PDFDocument, PDFFont, StandardFonts } from "pdf-lib";
+import { NO_REFERENCE } from "./swiss-qr-bill/payment-reference";
 import { splitPostalCodeCity } from "../shared/address/postal-code-city";
 import { printedAddressLines } from "./swiss-qr-bill/swiss-qr-bill.types";
 import { getCompanyByIdServ } from "../modules/companies/company.service";
@@ -92,6 +93,8 @@ export const generateQrBillSlipSvgServ = async (company_id: number, input: QrBil
         payment: {
             amount: amount !== null ? Math.round(amount * 100) / 100 : null,
             currency: "CHF",
+            // No document behind it, nothing to match a payment to.
+            reference: NO_REFERENCE,
             additionalInfo: attention ? labels.qrAttention(attention) : "",
         },
     };

@@ -23,7 +23,7 @@ const errorCodeFor = (dto: SwissQrBillDto): string => {
     }
     // An empty invoice (0.00) or a 100% discount - nothing payable to put on
     // a slip.
-    if (validatePayment(dto.payment).length > 0) {
+    if (validatePayment(dto.payment, dto.creditor.iban).some(error => error.code === "AMOUNT_RANGE")) {
         return "QR_BILL_AMOUNT_INVALID";
     }
     return "QR_BILL_INVALID";

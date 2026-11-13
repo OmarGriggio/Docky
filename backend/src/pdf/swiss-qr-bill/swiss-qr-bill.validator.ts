@@ -8,6 +8,6 @@ export function validateSwissQrBill(dto: SwissQrBillDto): ValidationError[] {
     return [
         ...validateCreditor(dto.creditor),
         ...validateDebtor(dto.debtor),
-        ...validatePayment(dto.payment),
+        ...validatePayment(dto.payment, dto.creditor.iban),
     ];
 }

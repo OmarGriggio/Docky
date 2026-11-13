@@ -1,3 +1,5 @@
+import { PaymentReference } from "./payment-reference";
+
 /**
  * Domain model for a Swiss QR-bill (payment slip), independent of PDF rendering.
  * Addresses are structured (type "S" - the only one allowed since the
@@ -26,6 +28,8 @@ export type QrBillDebtor = QrBillAddress;
 export interface QrBillPayment {
     amount: number | null;
     currency: "CHF" | "EUR";
+    // QRR (with a QR-IBAN only), SCOR or none - see payment-reference.ts.
+    reference: PaymentReference;
     additionalInfo: string;
 }
 

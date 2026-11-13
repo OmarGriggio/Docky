@@ -6,8 +6,8 @@ import { QrBillAddress, SwissQrBillDto } from "./swiss-qr-bill.types";
  * structured address type (S): name, street, building number, postcode, town,
  * country - the combined type (K) isn't accepted any more.
  *
- * Reference numbers (QRR / SCOR) are not supported: only IBAN-only payments
- * (referenceType "NON") are produced.
+ * The reference is a QR reference (QRR, with a QR-IBAN), a creditor reference
+ * (SCOR) or none (NON) - see payment-reference.ts.
  */
 export function buildSwissQrBillPayload(dto: SwissQrBillDto): string {
     const { creditor, debtor, payment } = dto;
@@ -33,8 +33,8 @@ export function buildSwissQrBillPayload(dto: SwissQrBillDto): string {
         // No debtor: the slip prints a blank box for the payer instead.
         ...(debtor ? structuredAddress(debtor) : ["", "", "", "", "", "", ""]),
 
-        "NON",
-        "",
+        payment.reference.type,
+        payment.reference.value,
         payment.additionalInfo,
 
         "EPD",

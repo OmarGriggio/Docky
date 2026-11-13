@@ -1,10 +1,34 @@
 import { QrBillPayment } from "../swiss-qr-bill.types";
+import { isQrIban, isValidCreditorReference, isValidQrReference } from "../payment-reference";
 import { ValidationError } from "./validation-error";
 
 const SUPPORTED_CURRENCIES = ["CHF", "EUR"];
 
-export function validatePayment(payment: QrBillPayment): ValidationError[] {
-    return [...checkCurrency(payment.currency), ...checkAmount(payment.amount), ...checkAdditionalInfo(payment.additionalInfo)];
+// `iban`: the creditor's account the QR-bill is paid to - a QR-IBAN takes a
+// QR reference and nothing else, an ordinary IBAN anything but one.
+export function validatePayment(payment: QrBillPayment, iban: string): ValidationError[] {
+    return [
+        ...checkCurrency(payment.currency),
+        ...checkAmount(payment.amount),
+        ...checkReference(payment.reference, iban),
+        ...checkAdditionalInfo(payment.additionalInfo),
+    ];
+}
+
+function checkReference(reference: QrBillPayment["reference"], iban: string): ValidationError[] {
+    if (reference.type === "QRR" && !isValidQrReference(reference.value)) {
+        return [{ code: "REFERENCE_INVALID", message: "The QR reference is invalid" }];
+    }
+    if (reference.type === "SCOR" && !isValidCreditorReference(reference.value)) {
+        return [{ code: "REFERENCE_INVALID", message: "The creditor reference is invalid" }];
+    }
+    if (reference.type === "NON" && reference.value !== "") {
+        return [{ code: "REFERENCE_INVALID", message: "No reference type, but a reference" }];
+    }
+    if (isQrIban(iban) !== (reference.type === "QRR")) {
+        return [{ code: "REFERENCE_IBAN_MISMATCH", message: "A QR-IBAN takes a QR reference, and only it does" }];
+    }
+    return [];
 }
 
 function checkCurrency(value: string): ValidationError[] {

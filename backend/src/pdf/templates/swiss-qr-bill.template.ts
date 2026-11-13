@@ -1,5 +1,6 @@
 import { PdfWriter } from "../core/pdf-writer";
 import { printedAddressLines, SwissQrBillDto } from "../swiss-qr-bill/swiss-qr-bill.types";
+import { formatReference } from "../swiss-qr-bill/payment-reference";
 import { PDF_LABELS, PdfLabels, PdfLanguage } from "./pdf-labels";
 
 const mm = (value: number) => value * 2.83465;
@@ -53,6 +54,13 @@ export class SwissQrBillTemplate {
             pdf.drawTextAt(line, mm(5), mm(y -= 4), { size: SIZE.text });
         }
 
+        if (payment.reference.type !== "NON") {
+            // 6 mm, not 7: with a blank payer box below, the receipt's column
+            // would otherwise run into "Currency".
+            pdf.drawTextAt(labels.qrReference, mm(5), mm(y -= 6), { size: SIZE.title2 - 1, bold: true });
+            pdf.drawTextAt(formatReference(payment.reference), mm(5), mm(y -= 4), { size: SIZE.text });
+        }
+
         if (debtor) {
             pdf.drawTextAt(labels.qrPayableBy, mm(5), mm(y -= 7), { size: SIZE.title2, bold: true });
             pdf.drawTextAt(debtor.name, mm(5), mm(y -= 4), { size: SIZE.text });
@@ -89,6 +97,11 @@ export class SwissQrBillTemplate {
         pdf.drawTextAt(creditor.name, mm(INFO_X), mm(y -= 5), { size: SIZE.text + 2 });
         for (const line of printedAddressLines(creditor)) {
             pdf.drawTextAt(line, mm(INFO_X), mm(y -= 5), { size: SIZE.text + 2 });
+        }
+
+        if (payment.reference.type !== "NON") {
+            pdf.drawTextAt(labels.qrReference, mm(INFO_X), mm(y -= 9), { size: SIZE.title2 + 2, bold: true });
+            pdf.drawTextAt(formatReference(payment.reference), mm(INFO_X), mm(y -= 5), { size: SIZE.text + 2 });
         }
 
         // What the QR code carries is printed too - in the payment part

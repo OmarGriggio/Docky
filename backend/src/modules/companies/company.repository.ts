@@ -24,9 +24,9 @@ export const createCompanyInDB = async (
     INSERT INTO companies (
       name, email, phone, iban, street, postal_code, city, country, vat_rate, vat_number, payment_terms,
       website, bank_name, bank_account, early_payment_discount, early_payment_days, early_payment_min_amount,
-      accent_color, secondary_color
+      accent_color, secondary_color, qr_iban, payment_reference_type
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
     RETURNING *;
   `;
     const values = [
@@ -48,7 +48,9 @@ export const createCompanyInDB = async (
       company.early_payment_days ?? null,
       company.early_payment_min_amount ?? 0,
       company.accent_color ?? null,
-      company.secondary_color ?? null
+      company.secondary_color ?? null,
+      company.qr_iban ?? null,
+      company.payment_reference_type ?? "SCOR"
     ];
     const result = await db().query(query, values);
     return result.rows[0];
@@ -79,7 +81,9 @@ export const updateCompanyInDB = async (
       early_payment_days = $17,
       early_payment_min_amount = $18,
       accent_color = $19,
-      secondary_color = $20
+      secondary_color = $20,
+      qr_iban = $21,
+      payment_reference_type = $22
     WHERE id = $12
     RETURNING *;
   `;
@@ -103,7 +107,9 @@ export const updateCompanyInDB = async (
       company.early_payment_days ?? null,
       company.early_payment_min_amount ?? 0,
       company.accent_color ?? null,
-      company.secondary_color ?? null
+      company.secondary_color ?? null,
+      company.qr_iban ?? null,
+      company.payment_reference_type ?? "SCOR"
     ];
     const result = await db().query(query, values);
     return result.rows[0] ?? null;

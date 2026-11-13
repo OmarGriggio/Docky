@@ -40,4 +40,10 @@ export interface Company {
   accent_color: string | null;
   // Same, for what's printed in the second color - null for none.
   secondary_color: string | null;
+  // An optional QR-IBAN: invoices' QR-bills are then paid to it with a QR
+  // reference (020_add_payment_reference.sql, see payment-reference.ts).
+  qr_iban: string | null;
+  // Without a QR-IBAN: a creditor reference ("RF...") on invoices' QR-bills,
+  // or none.
+  payment_reference_type: "SCOR" | "NONE";
 }

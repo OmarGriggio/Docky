@@ -1,4 +1,5 @@
 import { Company } from "./company.types";
+import { isQrIban, isValidIban } from "../../pdf/swiss-qr-bill/payment-reference";
 import { createCompanyInDB, getCompanyByIdFromDB, getCompaniesFromDB, updateCompanyInDB, updateCompanyLogoInDB, updateCompanyHeaderImageInDB, updateCompanyPaymentTermsInDB } from "./company.repository";
 import { AppError, NotFoundError } from "../../shared/types/errors";
 import { createPlaceholderClientInDB } from "../clients/client.repository";
@@ -61,6 +62,20 @@ const normalizeColor = (value: unknown, field: string): string | null => {
   return color?.toLowerCase() ?? null;
 };
 
+// A QR-IBAN or nothing - stored without spaces, uppercase. An ordinary IBAN
+// typed there would make every invoice's QR-bill invalid (a QR reference
+// needs a QR-IBAN): a 400.
+const normalizeQrIban = (value: unknown): string | null => {
+  if (value !== null && value !== undefined && typeof value !== "string") {
+    throw new AppError("qr_iban must be a QR-IBAN", 400);
+  }
+  const iban = value?.replace(/\s+/g, "").toUpperCase() || null;
+  if (iban !== null && !(isQrIban(iban) && isValidIban(iban))) {
+    throw new AppError("qr_iban must be a valid QR-IBAN (CH or LI, institution id 30000-31999)", 400, "QR_IBAN_INVALID");
+  }
+  return iban;
+};
+
 // Checked on creation and on every edit. The early payment discount is
 // printed and computed on every invoice created afterwards - a rate over
 // 100 or a negative minimum would print a nonsensical amount. Without a
@@ -93,6 +108,9 @@ const normalizeCompanyData = (companyData: Omit<Company, "id">): Omit<Company, "
     ...companyData,
     accent_color: normalizeColor(companyData.accent_color, "accent_color"),
     secondary_color: normalizeColor(companyData.secondary_color, "secondary_color"),
+    qr_iban: normalizeQrIban(companyData.qr_iban),
+    // Anything but "NONE" is the default, a creditor reference.
+    payment_reference_type: companyData.payment_reference_type === "NONE" ? "NONE" : "SCOR",
     early_payment_discount: discount,
     early_payment_days: discount > 0 ? days : null,
     early_payment_min_amount: minAmount,

@@ -7,18 +7,47 @@ import { PDF_LABELS, toPdfLanguage } from "../pdf-labels";
 import { hasTypedRecipient } from "./shared";
 import { validateAddress } from "../../swiss-qr-bill/validators/address.validator";
 import { billedAddressOf } from "../../../modules/documents/billed-address";
+import { Document } from "../../../modules/documents/document.types";
+import {
+    isQrIban, NO_REFERENCE, PaymentReference, referenceForDocumentNumber, referenceOf,
+} from "../../swiss-qr-bill/payment-reference";
+
+// Typed with spaces in Profil ("CH93 0076 ...") is still the same IBAN.
+const compactIban = (value: string | null) => (value ?? "").replace(/\s+/g, "").toUpperCase();
+
+// The company's QR-IBAN: its own field, or its IBAN when that's one.
+export const qrIbanOf = (company: Pick<Company, "iban" | "qr_iban">): string =>
+    compactIban(company.qr_iban) || (isQrIban(company.iban) ? compactIban(company.iban) : "");
+
+// The reference an invoice numbered so gets from the company's settings as
+// they stand: a QR reference with a QR-IBAN, otherwise a creditor reference
+// or none, as the company chose.
+export const paymentReferenceFor = (
+    company: Pick<Company, "iban" | "qr_iban" | "payment_reference_type">,
+    number: string,
+): PaymentReference =>
+    referenceForDocumentNumber(number, qrIbanOf(company) ? "QRR" : company.payment_reference_type === "NONE" ? "NON" : "SCOR");
+
+// An invoice's reference: the company's settings while it's a draft, the
+// one frozen on it once it left DRAFT (document.service.ts's
+// updateDocumentStatusServ) - none for one sent before references existed.
+export const paymentReferenceOf = (
+    document: Pick<Document, "status" | "number" | "payment_reference">,
+    company: Pick<Company, "iban" | "qr_iban" | "payment_reference_type">,
+): PaymentReference =>
+    document.status === "DRAFT" ? paymentReferenceFor(company, document.number) : referenceOf(document.payment_reference);
 
 // The company itself is always the creditor - shared by the invoice's own
-// QR-bill below and the standalone slip (pdf/qr-bill-slip.ts).
-export const buildQrBillCreditor = (company: Company): QrBillCreditor => ({
+// QR-bill below and the standalone slip (pdf/qr-bill-slip.ts). Paid to its
+// ordinary IBAN unless given its QR-IBAN.
+export const buildQrBillCreditor = (company: Company, iban: string = compactIban(company.iban)): QrBillCreditor => ({
     name: (company.name ?? "").trim(),
     street: (company.street ?? "").trim(),
     buildingNumber: "",
     postalCode: (company.postal_code ?? "").trim(),
     town: (company.city ?? "").trim(),
     country: toIsoCountryCode(company.country),
-    // Typed with spaces in Profil ("CH93 0076 ...") is still the same IBAN.
-    iban: (company.iban ?? "").replace(/\s+/g, "").toUpperCase(),
+    iban,
 });
 
 // `amount`: what's left to pay - a final invoice's total less its deposits.
@@ -54,12 +83,22 @@ export const createSwissQrBillDto = (
             country: toIsoCountryCode(billed?.country ?? null),
         };
 
+    // A QR reference is paid to the QR-IBAN. One frozen on an invoice whose
+    // company has since dropped its QR-IBAN can't be: no reference then, to
+    // the ordinary IBAN - still paid, just not matched automatically.
+    let reference = paymentReferenceOf(document, company);
+    const qrIban = qrIbanOf(company);
+    if (reference.type === "QRR" && !qrIban) {
+        reference = NO_REFERENCE;
+    }
+
     return {
-        creditor: buildQrBillCreditor(company),
+        creditor: buildQrBillCreditor(company, reference.type === "QRR" ? qrIban : undefined),
         debtor: completeDebtorOrNull(debtor),
         payment: {
             amount,
             currency: "CHF",
+            reference,
             additionalInfo: `${labels.invoice} ${document.number}`,
         },
     };

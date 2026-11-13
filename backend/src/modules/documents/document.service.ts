@@ -1,4 +1,5 @@
 import { CreateDocumentData, UpdateDocumentData, DocumentType, DocumentStatus, Document, DocumentContentSection, DocumentRecipient, DepositDeduction } from "./document.types";
+import { paymentReferenceFor } from "../../pdf/templates/dto/swiss-qr-bill.dto";
 import { Client } from "../clients/client.types";
 import {
   getDocumentsFromDB,
@@ -483,7 +484,13 @@ const changeDocumentStatus = async (id: number, company_id: number, status: Docu
   // Leaving DRAFT freezes the address it's sent to; back to DRAFT (a quote)
   // follows the client again (see updateDocumentStatusInDB).
   const billedAddress = status === "DRAFT" || document.billed_address ? null : await currentBilledAddress(document, company_id);
-  const updated = await updateDocumentStatusInDB(id, company_id, status, billedAddress);
+  // An invoice leaving DRAFT freezes its QR-bill reference, as the company's
+  // settings give it now - the one the client pays with, whatever the
+  // company changes later.
+  const paymentReference = document.type === "INVOICE" && status !== "DRAFT" && !document.payment_reference
+    ? paymentReferenceFor(await getCompanyByIdFromDB(company_id), document.number).value || null
+    : null;
+  const updated = await updateDocumentStatusInDB(id, company_id, status, billedAddress, paymentReference);
   if (!updated) {
     throw new ConflictError("This document's status can't be changed this way");
   }

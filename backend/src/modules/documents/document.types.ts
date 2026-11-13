@@ -79,6 +79,10 @@ export interface Document {
   // leaves DRAFT (see billed-address.ts), null before that and for a typed-in
   // recipient. Never written from a request.
   billed_address: BilledAddress | null;
+  // An invoice's QR-bill reference ("RF..." or 27 digits), frozen once it
+  // leaves DRAFT - null for a draft and for one sent without a reference
+  // (see templates/dto/swiss-qr-bill.dto.ts's paymentReferenceOf).
+  payment_reference: string | null;
   // STANDARD but for a chantier's deposit invoice (017_add_invoice_kind.sql) -
   // never taken from a request, set by the flow creating the invoice.
   invoice_kind: InvoiceKind;
@@ -99,7 +103,7 @@ export type DocumentRecipient = Pick<
 // document's lines (see recomputeDocumentTotalsServ) — never client input.
 export type CreateDocumentData = Omit<
   Document,
-  "id" | "company_id" | "number" | "amount_excl_vat" | "amount_incl_vat" | "invoice_kind" | "deposit_deductions" | "billed_address"
+  "id" | "company_id" | "number" | "amount_excl_vat" | "amount_incl_vat" | "invoice_kind" | "deposit_deductions" | "billed_address" | "payment_reference"
   | "early_payment_discount" | "early_payment_days" | "early_payment_min_amount"
 >;
 

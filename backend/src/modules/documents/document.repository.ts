@@ -174,15 +174,24 @@ export const archiveDocumentContentInDB = async (document_id: number, company_id
 // `billed_address`: what the document is frozen with from now on (see
 // billed-address.ts) - null back to DRAFT, an address it already has kept
 // otherwise.
-export const updateDocumentStatusInDB = async (id: number, company_id: number, status: DocumentStatus, billed_address: BilledAddress | null): Promise<Document | null> => {
+// `payment_reference`: an invoice's QR-bill reference, frozen the first time
+// it leaves DRAFT and never rewritten (null: none to freeze).
+export const updateDocumentStatusInDB = async (
+  id: number,
+  company_id: number,
+  status: DocumentStatus,
+  billed_address: BilledAddress | null,
+  payment_reference: string | null = null
+): Promise<Document | null> => {
   const query = `
     UPDATE documents SET status = $1,
-      billed_address = CASE WHEN $5 THEN NULL ELSE COALESCE(billed_address, $4::jsonb) END
+      billed_address = CASE WHEN $5 THEN NULL ELSE COALESCE(billed_address, $4::jsonb) END,
+      payment_reference = COALESCE(payment_reference, $6)
       WHERE id = $2 AND company_id = $3 AND status IN ('DRAFT', 'SENT') AND is_active = true
     RETURNING *;
   `;
 
-  const result = await db().query(query, [status, id, company_id, billed_address, status === "DRAFT"]);
+  const result = await db().query(query, [status, id, company_id, billed_address, status === "DRAFT", payment_reference]);
   return result.rows[0] ?? null;
 };
 
@@ -244,7 +253,7 @@ export const updateDocumentInDB = async (
 // A new document is never frozen yet (billed_address, see billed-address.ts),
 // and an ordinary one unless said otherwise (invoice_kind, see deposit.ts).
 export const createDocumentInDB = async (
-  document: Omit<Document, "id" | "billed_address" | "invoice_kind" | "deposit_deductions"> & { invoice_kind?: InvoiceKind }
+  document: Omit<Document, "id" | "billed_address" | "invoice_kind" | "deposit_deductions" | "payment_reference"> & { invoice_kind?: InvoiceKind }
 ): Promise<Document> => {
   const query = `
     INSERT INTO documents (
