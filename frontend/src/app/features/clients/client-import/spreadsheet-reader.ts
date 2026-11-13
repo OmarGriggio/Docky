@@ -27,6 +27,10 @@ const readText = async (file: File): Promise<string> => {
   return text.replace(/^﻿/, '');
 };
 
+// Far more than 1000 clients take - a bigger file is refused before it's read
+// (an .xlsx is a zip: a crafted one could otherwise freeze the tab).
+export const MAX_FILE_BYTES = 10 * 1024 * 1024;
+
 export const isCsv = (file: File): boolean => /\.csv$/i.test(file.name) || file.type === 'text/csv';
 
 // The libraries are loaded only here, when a file is picked - out of every

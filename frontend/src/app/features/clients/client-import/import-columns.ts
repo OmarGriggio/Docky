@@ -6,7 +6,7 @@
 // Every field a column can feed - the order the mapping screen lists them in.
 export const IMPORT_FIELDS = [
   'client_number', 'type', 'company_name', 'title', 'last_name', 'first_name', 'full_name',
-  'email', 'phone', 'language', 'attention', 'street', 'postal_code', 'city', 'postal_code_city', 'country', 'note',
+  'email', 'phone', 'language', 'attention', 'street', 'house_number', 'postal_code', 'city', 'postal_code_city', 'country', 'note',
 ] as const;
 
 export type ImportField = typeof IMPORT_FIELDS[number];
@@ -25,7 +25,8 @@ const fold = (text: string): string =>
 // The headers each field is recognized by, folded - French, English, German,
 // the words a small Swiss company's own spreadsheet is likely to use.
 const SYNONYMS: Record<ImportField, string[]> = {
-  client_number: ['nclient', 'noclient', 'numeroclient', 'numclient', 'nrclient', 'clientnumber', 'clientno', 'clientnr', 'kundennummer', 'kundennr', 'numero', 'no', 'n', 'nr', 'codeclient', 'clientcode'],
+  // Never a bare "N°"/"No": in an address list that's the building number.
+  client_number: ['nclient', 'noclient', 'numeroclient', 'numclient', 'nrclient', 'clientnumber', 'clientno', 'clientnr', 'kundennummer', 'kundennr', 'codeclient', 'clientcode'],
   type: ['type', 'typeclient', 'typedeclient', 'categorie', 'category', 'kategorie', 'clienttype'],
   company_name: ['societe', 'entreprise', 'raisonsociale', 'nomentreprise', 'nomsociete', 'company', 'companyname', 'firma', 'firmenname', 'organisation', 'organization'],
   title: ['civilite', 'titre', 'title', 'salutation', 'anrede', 'politesse', 'appellation'],
@@ -37,6 +38,7 @@ const SYNONYMS: Record<ImportField, string[]> = {
   language: ['langue', 'language', 'sprache', 'lingua', 'langage'],
   attention: ['attention', 'alattentionde', 'co', 'complement', 'complementdadresse', 'adressecomplement', 'zusatz', 'adresszusatz'],
   street: ['rue', 'rueetnumero', 'rueetno', 'rueetn', 'ruen', 'rueetndubatiment', 'adresse', 'address', 'street', 'strasse', 'adresse1', 'address1', 'ligneadresse'],
+  house_number: ['n', 'no', 'nr', 'num', 'numero', 'nrue', 'numerorue', 'numerodelarue', 'nbatiment', 'numerobatiment', 'hausnummer', 'hausnr', 'housenumber', 'nummer'],
   postal_code: ['npa', 'codepostal', 'cp', 'plz', 'zip', 'zipcode', 'postalcode', 'postcode'],
   city: ['ville', 'localite', 'lieu', 'city', 'town', 'ort', 'commune', 'localita', 'gemeinde'],
   postal_code_city: ['npaville', 'npalocalite', 'npaetville', 'npaetlocalite', 'codepostalville', 'cpville', 'plzort', 'zipcity', 'postcodetown'],
@@ -110,8 +112,6 @@ export const buildImportLines = (table: string[][], mapping: (ImportField | null
     .filter(({ row }) => Object.keys(row).length > 0);
 };
 
-export const buildImportRows = (table: string[][], mapping: (ImportField | null)[]): ClientImportRow[] =>
-  buildImportLines(table, mapping).map(({ row }) => row);
 
 // What the mapping still lacks to make a client of a row: a name.
 export const mapsAName = (mapping: (ImportField | null)[]): boolean =>

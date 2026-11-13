@@ -1,15 +1,15 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, HostListener, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Card } from 'primeng/card';
 import { Select } from 'primeng/select';
 import { Button } from 'primeng/button';
 import { TableModule } from 'primeng/table';
-import { TranslocoPipe, translateObjectSignal, translateSignal } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService, translateObjectSignal, translateSignal } from '@jsverse/transloco';
 import {
   buildImportLines, guessMapping, headerRowIndex, IMPORT_FIELDS, ImportField, MAX_IMPORT_ROWS, mapsAName,
 } from './import-columns';
-import { readSpreadsheet, Spreadsheet } from './spreadsheet-reader';
+import { MAX_FILE_BYTES, readSpreadsheet, Spreadsheet } from './spreadsheet-reader';
 import { ClientImportPreview } from './client-import-preview/client-import-preview';
 import { HasUnsavedChanges } from '../../../shared/guards/unsaved-changes.guard';
 import { NotificationService } from '../../../shared/services/notification.service';
@@ -30,6 +30,7 @@ export class ClientImport implements HasUnsavedChanges {
 
   private router = inject(Router);
   private notifications = inject(NotificationService);
+  private transloco = inject(TranslocoService);
 
   readonly maxRows = MAX_IMPORT_ROWS;
 
@@ -101,6 +102,10 @@ export class ClientImport implements HasUnsavedChanges {
       return;
     }
     this.errorMessage.set(null);
+    if (file.size > MAX_FILE_BYTES) {
+      this.errorMessage.set('clients.import.fileTooLarge');
+      return;
+    }
     this.reading.set(true);
     try {
       const sheets = (await readSpreadsheet(file)).filter(sheet => headerRowIndex(sheet.rows) >= 0);
@@ -140,6 +145,23 @@ export class ClientImport implements HasUnsavedChanges {
   // (unsavedChangesGuard, in app.routes.ts) - until the import is done.
   hasUnsavedChanges(): boolean {
     return this.step() !== 'file' && !this.done;
+  }
+
+  // A reload or a closed tab - the browser asks with its own message.
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent): void {
+    if (this.hasUnsavedChanges()) {
+      event.preventDefault();
+    }
+  }
+
+  // Back to the columns from the preview: its corrections and left-out rows
+  // are rebuilt from the file once back - asked first when there are some.
+  backToColumns(previewEdited: boolean): void {
+    if (previewEdited && !window.confirm(this.transloco.translate('clients.import.backLosesEdits'))) {
+      return;
+    }
+    this.step.set('columns');
   }
 
   onImported(count: number): void {

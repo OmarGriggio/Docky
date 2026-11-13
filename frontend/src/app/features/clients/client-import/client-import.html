@@ -97,6 +97,6 @@
   }
 
   @if (step() === 'preview') {
-    <app-client-import-preview [lines]="lines()" [fields]="previewFields()" (back)="step.set('columns')" (imported)="onImported($event)" />
+    <app-client-import-preview [lines]="lines()" [fields]="previewFields()" (back)="backToColumns($event)" (imported)="onImported($event)" />
   }
 </p-card>

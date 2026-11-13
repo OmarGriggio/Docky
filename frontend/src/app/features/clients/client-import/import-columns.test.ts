@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildImportLines, buildImportRows, cellText, guessField, guessMapping, headerRowIndex, mapsAName } from './import-columns';
+import { buildImportLines, cellText, guessField, guessMapping, headerRowIndex, mapsAName } from './import-columns';
 
 describe('guessField', () => {
   it('recognizes a header whatever its case, accents and punctuation', () => {
@@ -10,6 +10,12 @@ describe('guessField', () => {
     expect(guessField('E-mail')).toBe('email');
     expect(guessField('NPA / Ville')).toBe('postal_code_city');
     expect(guessField('Rue et n°')).toBe('street');
+  });
+
+  it('takes a bare "N°" for the building number, never the client number', () => {
+    expect(guessField('N°')).toBe('house_number');
+    expect(guessField('No')).toBe('house_number');
+    expect(guessField('N° client')).toBe('client_number');
   });
 
   it('knows nothing of a header it has no word for', () => {
@@ -53,7 +59,7 @@ describe('buildImportRows', () => {
   });
 
   it('keeps the mapped columns only, and leaves out a row with nothing in them', () => {
-    expect(buildImportRows(table, ['last_name', 'city', null])).toEqual([
+    expect(buildImportLines(table, ['last_name', 'city', null]).map(({ row }) => row)).toEqual([
       { last_name: 'Dupont', city: 'Sion' },
       { last_name: 'Martin' },
     ]);
@@ -64,7 +70,7 @@ describe('buildImportRows', () => {
   });
 
   it('has no rows for an empty sheet', () => {
-    expect(buildImportRows([['', '']], ['last_name', null])).toEqual([]);
+    expect(buildImportLines([['', '']], ['last_name', null])).toEqual([]);
   });
 });
 

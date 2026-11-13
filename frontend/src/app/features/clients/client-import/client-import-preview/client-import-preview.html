@@ -85,7 +85,7 @@
   </div>
 
   <div class="flex flex-wrap justify-between gap-2">
-    <p-button type="button" severity="secondary" icon="pi pi-arrow-left" [label]="'clients.import.backToColumns' | transloco" (onClick)="back.emit()" />
+    <p-button type="button" severity="secondary" icon="pi pi-arrow-left" [label]="'clients.import.backToColumns' | transloco" (onClick)="goBack()" />
     <div class="flex flex-wrap gap-2">
       @if (errorCount() > 0) {
         <p-button type="button" severity="secondary" [outlined]="true" icon="pi pi-ban" [label]="'clients.import.excludeErrors' | transloco" [disabled]="checking() || importing()" (onClick)="excludeErrors()" />

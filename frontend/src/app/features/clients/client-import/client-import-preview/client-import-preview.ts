@@ -44,7 +44,8 @@ export class ClientImportPreview implements OnInit {
   lines = input.required<{ line: number; row: ClientImportRow }[]>();
   // The fields the columns were matched to, in the mapping screen's order.
   fields = input.required<ImportField[]>();
-  back = output<void>();
+  // Whether anything was changed here (lost going back - see client-import.ts).
+  back = output<boolean>();
   imported = output<number>();
 
   // Edited in place (a cell's value, excluded) and the array replaced - same
@@ -53,7 +54,12 @@ export class ClientImportPreview implements OnInit {
   checking = signal(false);
   importing = signal(false);
   // Something changed since the last check - the verdicts shown may be stale.
-  stale = signal(false);
+  // Stale until a first check succeeds: nothing is importable unchecked.
+  stale = signal(true);
+  // Bumped by every change: a check answering after one made meanwhile leaves
+  // the verdicts stale (they're about the values sent).
+  private version = 0;
+  private edited = false;
   filter = signal<Filter>('all');
   // An import refused because rows had errors after all (see importRows).
   failed = signal(false);
@@ -138,7 +144,13 @@ export class ClientImportPreview implements OnInit {
     this.check();
   }
 
+  goBack(): void {
+    this.back.emit(this.edited);
+  }
+
   private touch(): void {
+    this.version++;
+    this.edited = true;
     this.stale.set(true);
     this.failed.set(false);
     this.rows.update(rows => [...rows]);
@@ -155,9 +167,9 @@ export class ClientImportPreview implements OnInit {
     };
   }
 
-  private applyReport(kept: PreviewRow[], report: ImportReport): void {
+  private applyReport(kept: PreviewRow[], report: ImportReport, version: number): void {
     kept.forEach((row, index) => row.result = report.rows[index] ?? null);
-    this.stale.set(false);
+    this.stale.set(version !== this.version);
     this.rows.update(rows => [...rows]);
   }
 
@@ -168,8 +180,9 @@ export class ClientImportPreview implements OnInit {
       return;
     }
     this.checking.set(true);
+    const version = this.version;
     try {
-      this.applyReport(kept, await firstValueFrom(this.clientService.importClients(rows, country, language, true)));
+      this.applyReport(kept, await firstValueFrom(this.clientService.importClients(rows, country, language, true)), version);
     } catch (err) {
       this.notifications.error('client-import-preview', err);
     } finally {
@@ -182,13 +195,14 @@ export class ClientImportPreview implements OnInit {
   // verdicts, and nothing is created.
   async importRows(): Promise<void> {
     const { kept, rows, country, language } = this.payload();
+    const version = this.version;
     this.importing.set(true);
     try {
       const report = await firstValueFrom(this.clientService.importClients(rows, country, language, false));
       this.imported.emit(report.created);
     } catch (err) {
       if (err instanceof HttpErrorResponse && err.status === 422 && err.error?.rows) {
-        this.applyReport(kept, err.error as ImportReport);
+        this.applyReport(kept, err.error as ImportReport, version);
         this.failed.set(true);
         this.filter.set('errors');
       } else {
