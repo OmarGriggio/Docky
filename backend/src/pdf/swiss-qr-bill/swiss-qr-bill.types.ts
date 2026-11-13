@@ -1,24 +1,27 @@
 /**
  * Domain model for a Swiss QR-bill (payment slip), independent of PDF rendering.
- * Addresses use the "combined" format (2 free-text lines) rather than the
- * "structured" one, since neither the companies nor the clients/addresses tables
- * split street name from building number.
+ * Addresses are structured (type "S" - the only one allowed since the
+ * guidelines' version 2.3, 22.11.2025): the street keeps its building number
+ * when typed together ("Rue de Lausanne 12"), which the guidelines tolerate,
+ * since neither the companies nor the addresses tables split them. A c/o or
+ * complement has no field here - "irrelevant for the payer", it stays on the
+ * document's own address.
  */
 
-export interface QrBillCreditor {
+export interface QrBillAddress {
     name: string;
-    addressLine1: string; // street + building number
-    addressLine2: string; // postal code + town
+    street: string; // street, with its building number when typed together
+    buildingNumber: string;
+    postalCode: string;
+    town: string;
     country: string; // ISO 3166-1 alpha-2
+}
+
+export interface QrBillCreditor extends QrBillAddress {
     iban: string;
 }
 
-export interface QrBillDebtor {
-    name: string;
-    addressLine1: string;
-    addressLine2: string;
-    country: string;
-}
+export type QrBillDebtor = QrBillAddress;
 
 export interface QrBillPayment {
     amount: number | null;
@@ -31,3 +34,10 @@ export interface SwissQrBillDto {
     debtor: QrBillDebtor | null;
     payment: QrBillPayment;
 }
+
+// The address as printed on the receipt and the payment part: street and
+// building number, then postcode and town - empty lines left out.
+export const printedAddressLines = (address: QrBillAddress): string[] => [
+    [address.street, address.buildingNumber].map(value => value.trim()).filter(Boolean).join(" "),
+    [address.postalCode, address.town].map(value => value.trim()).filter(Boolean).join(" "),
+].filter(Boolean);

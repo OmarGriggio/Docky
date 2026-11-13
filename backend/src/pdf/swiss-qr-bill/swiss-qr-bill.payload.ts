@@ -1,10 +1,10 @@
-import { SwissQrBillDto } from "./swiss-qr-bill.types";
+import { QrBillAddress, SwissQrBillDto } from "./swiss-qr-bill.types";
 
 /**
  * Builds the Swiss Payments Code (SPC) payload encoded by the QR code, per the
- * Swiss QR-bill implementation guidelines. Uses the "combined" address type
- * (K) for both parties: no separate street/building-number or postal-code/town
- * fields are sent, only free-text address lines.
+ * Swiss QR-bill implementation guidelines (version 2.3). Both parties use the
+ * structured address type (S): name, street, building number, postcode, town,
+ * country - the combined type (K) isn't accepted any more.
  *
  * Reference numbers (QRR / SCOR) are not supported: only IBAN-only payments
  * (referenceType "NON") are produced.
@@ -22,13 +22,7 @@ export function buildSwissQrBillPayload(dto: SwissQrBillDto): string {
 
         creditor.iban,
 
-        "K",
-        creditor.name,
-        creditor.addressLine1,
-        creditor.addressLine2,
-        "",
-        "",
-        creditor.country,
+        ...structuredAddress(creditor),
 
         // Ultimate creditor block: unused, reserved by the spec.
         "", "", "", "", "", "", "",
@@ -36,13 +30,8 @@ export function buildSwissQrBillPayload(dto: SwissQrBillDto): string {
         payment.amount != null ? payment.amount.toFixed(2) : "",
         payment.currency,
 
-        debtor ? "K" : "",
-        debtor?.name ?? "",
-        debtor?.addressLine1 ?? "",
-        debtor?.addressLine2 ?? "",
-        "",
-        "",
-        debtor?.country ?? "",
+        // No debtor: the slip prints a blank box for the payer instead.
+        ...(debtor ? structuredAddress(debtor) : ["", "", "", "", "", "", ""]),
 
         "NON",
         "",
@@ -52,3 +41,13 @@ export function buildSwissQrBillPayload(dto: SwissQrBillDto): string {
         "", "", "",
     ].map(field => String(field).replace(/[\x00-\x1F\x7F]/g, " ")).join("\n");
 }
+
+const structuredAddress = (address: QrBillAddress): string[] => [
+    "S",
+    address.name,
+    address.street,
+    address.buildingNumber,
+    address.postalCode,
+    address.town,
+    address.country,
+];

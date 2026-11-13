@@ -1,5 +1,5 @@
 import QRCode from "qrcode";
-import { SwissQrBillDto } from "../swiss-qr-bill/swiss-qr-bill.types";
+import { printedAddressLines, SwissQrBillDto } from "../swiss-qr-bill/swiss-qr-bill.types";
 import { buildSwissQrBillPayload } from "../swiss-qr-bill/swiss-qr-bill.payload";
 import { PdfLabels } from "./pdf-labels";
 
@@ -81,18 +81,10 @@ const qrCode = async (payload: string): Promise<string> => {
     return nested + cross;
 };
 
-// `debtorLines` are the lines printed under "Payable by" - by default the
-// debtor's own name and two address lines, but the standalone slip prints an
-// extra address complement on a line of its own (it's folded into address
-// line 1 in the QR payload itself, see qr-bill-slip.ts).
-export const renderSwissQrBillSvg = async (
-    dto: SwissQrBillDto,
-    labels: PdfLabels,
-    debtorLines: string[] | null = dto.debtor ? [dto.debtor.name, dto.debtor.addressLine1, dto.debtor.addressLine2] : null
-): Promise<string> => {
-    const { creditor, payment } = dto;
-    const creditorLines = [formatIban(creditor.iban), creditor.name, creditor.addressLine1, creditor.addressLine2].filter(Boolean);
-    const printedDebtor = debtorLines?.filter(Boolean) ?? [];
+export const renderSwissQrBillSvg = async (dto: SwissQrBillDto, labels: PdfLabels): Promise<string> => {
+    const { creditor, debtor, payment } = dto;
+    const creditorLines = [formatIban(creditor.iban), creditor.name, ...printedAddressLines(creditor)].filter(Boolean);
+    const printedDebtor = debtor ? [debtor.name, ...printedAddressLines(debtor)].filter(Boolean) : [];
     const amount = payment.amount != null ? formatAmount(payment.amount) : null;
     const parts: string[] = [];
 

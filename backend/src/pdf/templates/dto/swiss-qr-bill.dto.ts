@@ -2,17 +2,19 @@ import { ClientWithAddresses } from "../../../modules/clients/client.types";
 import { clientDisplayName } from "../../../modules/clients/client.display";
 import { DocumentComplete } from "../../../modules/documents/document_complete.types";
 import { Company } from "../../../modules/companies/company.types";
-import { QrBillCreditor, SwissQrBillDto } from "../../swiss-qr-bill/swiss-qr-bill.types";
+import { QrBillCreditor, QrBillDebtor, SwissQrBillDto } from "../../swiss-qr-bill/swiss-qr-bill.types";
 import { PDF_LABELS, toPdfLanguage } from "../pdf-labels";
-import { buildClientDto, hasTypedRecipient } from "./shared";
+import { hasTypedRecipient } from "./shared";
 import { billedAddressOf } from "../../../modules/documents/billed-address";
 
 // The company itself is always the creditor - shared by the invoice's own
 // QR-bill below and the standalone slip (pdf/qr-bill-slip.ts).
 export const buildQrBillCreditor = (company: Company): QrBillCreditor => ({
-    name: company.name ?? "",
-    addressLine1: company.street ?? "",
-    addressLine2: `${company.postal_code ?? ""} ${company.city ?? ""}`.trim(),
+    name: (company.name ?? "").trim(),
+    street: (company.street ?? "").trim(),
+    buildingNumber: "",
+    postalCode: (company.postal_code ?? "").trim(),
+    town: (company.city ?? "").trim(),
     country: toIsoCountryCode(company.country),
     // Typed with spaces in Profil ("CH93 0076 ...") is still the same IBAN.
     iban: (company.iban ?? "").replace(/\s+/g, "").toUpperCase(),
@@ -30,32 +32,51 @@ export const createSwissQrBillDto = (
     const billed = billedAddressOf(document, client);
     const labels = PDF_LABELS[toPdfLanguage(client.language)];
 
-    // A recipient typed by hand: same lines as printed on the document, the
-    // complement folded in front of the street (the combined address format
-    // has no field of its own for it), always in Switzerland for now.
-    const recipient = hasTypedRecipient(client, document) ? buildClientDto(client, document) : null;
+    // A recipient typed by hand: always in Switzerland for now. Its
+    // complement (a c/o...) stays on the document's own address - the
+    // structured address has no field for it.
+    const debtor: QrBillDebtor = hasTypedRecipient(client, document)
+        ? {
+            name: document.recipient_name ?? "",
+            street: document.recipient_street ?? "",
+            buildingNumber: "",
+            postalCode: document.recipient_postal_code ?? "",
+            town: document.recipient_city ?? "",
+            country: "CH",
+        }
+        : {
+            name: billed?.name ?? clientDisplayName(client),
+            street: billed?.street ?? "",
+            buildingNumber: "",
+            postalCode: billed?.postal_code ?? "",
+            town: billed?.city ?? "",
+            country: toIsoCountryCode(billed?.country ?? null),
+        };
 
     return {
         creditor: buildQrBillCreditor(company),
-        debtor: recipient
-            ? {
-                name: recipient.name,
-                addressLine1: [recipient.complement, recipient.street].filter(Boolean).join(", "),
-                addressLine2: recipient.postalCodeCity,
-                country: "CH",
-            }
-            : {
-                name: billed?.name ?? clientDisplayName(client),
-                addressLine1: billed?.street ?? "",
-                addressLine2: `${billed?.postal_code ?? ""} ${billed?.city ?? ""}`.trim(),
-                country: toIsoCountryCode(billed?.country ?? null),
-            },
+        debtor: completeDebtorOrNull(debtor),
         payment: {
             amount,
             currency: "CHF",
             additionalInfo: `${labels.invoice} ${document.number}`,
         },
     };
+};
+
+// A payer without a postcode and town (a client with no address yet) can't
+// be a structured address: the slip leaves "Payable by" blank for the payer
+// to fill in instead.
+export const completeDebtorOrNull = (debtor: QrBillDebtor): QrBillDebtor | null => {
+    const trimmed: QrBillDebtor = {
+        name: debtor.name.trim(),
+        street: debtor.street.trim(),
+        buildingNumber: debtor.buildingNumber.trim(),
+        postalCode: debtor.postalCode.trim(),
+        town: debtor.town.trim(),
+        country: debtor.country.trim(),
+    };
+    return trimmed.name && trimmed.postalCode && trimmed.town ? trimmed : null;
 };
 
 /**

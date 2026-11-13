@@ -97,7 +97,8 @@ const NO_RECIPIENT: DocumentRecipient = {
 };
 
 // Column widths of 008_add_document_recipient_columns.sql - also the QR-bill's
-// own limits for a name/address line.
+// own limits for a structured address's fields (the complement isn't in it,
+// it only prints on the document).
 const RECIPIENT_MAX_LENGTHS: Record<keyof DocumentRecipient, number> = {
   recipient_name: 70,
   recipient_complement: 70,
@@ -112,7 +113,6 @@ const RECIPIENT_MAX_LENGTHS: Record<keyof DocumentRecipient, number> = {
 // carries one: whatever the body sent is dropped, its client's own address
 // is what prints.
 const CONTROL_CHARACTERS = /[\x00-\x1F\x7F]/;
-const QR_ADDRESS_LINE_MAX = 70;
 
 const resolveRecipient = (client: Client, data: Partial<DocumentRecipient>): DocumentRecipient => {
   if (!client.is_placeholder) {
@@ -133,13 +133,6 @@ const resolveRecipient = (client: Client, data: Partial<DocumentRecipient>): Doc
   }
   if (!recipient.recipient_name || !recipient.recipient_postal_code || !recipient.recipient_city) {
     throw new AppError("A recipient typed by hand needs at least a name, a postcode and a town", 400);
-  }
-  // The QR-bill folds the complement in front of the street on one 70-character
-  // line ("complement, street") - checked now rather than found out when the
-  // invoice's PDF fails, possibly once it's already sent and frozen.
-  const qrAddressLine = [recipient.recipient_complement, recipient.recipient_street].filter(Boolean).join(", ");
-  if (qrAddressLine.length > QR_ADDRESS_LINE_MAX) {
-    throw new AppError(`The complement and the street together can't be longer than ${QR_ADDRESS_LINE_MAX - 2} characters`, 400, "RECIPIENT_ADDRESS_TOO_LONG");
   }
   return recipient;
 };

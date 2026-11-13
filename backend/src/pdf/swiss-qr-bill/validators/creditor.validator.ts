@@ -1,49 +1,12 @@
 import { QrBillCreditor } from "../swiss-qr-bill.types";
+import { validateAddress } from "./address.validator";
 import { ValidationError } from "./validation-error";
 
 export function validateCreditor(creditor: QrBillCreditor): ValidationError[] {
     return [
-        ...checkName(creditor.name),
-        ...checkAddressLine("ADDR1", creditor.addressLine1),
-        ...checkAddressLine("ADDR2", creditor.addressLine2, { required: true }),
-        ...checkCountry(creditor.country),
+        ...validateAddress("Creditor", creditor),
         ...checkIban(creditor.iban),
     ];
-}
-
-function checkName(value: string): ValidationError[] {
-    const data = normalize(value);
-    if (data.length === 0) {
-        return [{ code: "NAME_EMPTY", message: "Creditor name is empty" }];
-    }
-    if (data.length > 70) {
-        return [{ code: "NAME_LENGTH", message: "Creditor name exceeds 70 characters" }];
-    }
-    return [];
-}
-
-function checkAddressLine(field: "ADDR1" | "ADDR2", value: string, options: { required?: boolean } = {}): ValidationError[] {
-    const data = normalize(value);
-    if (data.length === 0) {
-        return options.required
-            ? [{ code: `${field}_EMPTY`, message: "Creditor address is incomplete" }]
-            : [];
-    }
-    if (data.length > 70) {
-        return [{ code: `${field}_LENGTH`, message: "A creditor address line exceeds 70 characters" }];
-    }
-    return [];
-}
-
-function checkCountry(value: string): ValidationError[] {
-    const data = normalize(value);
-    if (data.length === 0) {
-        return [{ code: "COUNTRY_EMPTY", message: "Creditor country is empty" }];
-    }
-    if (data.length !== 2) {
-        return [{ code: "COUNTRY_FORMAT", message: "Creditor country must be a 2-letter ISO code" }];
-    }
-    return [];
 }
 
 function checkIban(value: string): ValidationError[] {
@@ -57,12 +20,4 @@ function checkIban(value: string): ValidationError[] {
         return [{ code: "IBAN_COUNTRY", message: "IBAN must start with CH or LI" }];
     }
     return [];
-}
-
-function normalize(value: string): string {
-    return String(value ?? "").trim();
-}
-
-function isNumeric(value: string): boolean {
-    return !isNaN(parseFloat(value)) && isFinite(Number(value));
 }

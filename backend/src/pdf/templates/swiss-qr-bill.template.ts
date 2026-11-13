@@ -1,5 +1,5 @@
 import { PdfWriter } from "../core/pdf-writer";
-import { SwissQrBillDto } from "../swiss-qr-bill/swiss-qr-bill.types";
+import { printedAddressLines, SwissQrBillDto } from "../swiss-qr-bill/swiss-qr-bill.types";
 import { PDF_LABELS, PdfLabels, PdfLanguage } from "./pdf-labels";
 
 const mm = (value: number) => value * 2.83465;
@@ -42,14 +42,16 @@ export class SwissQrBillTemplate {
         pdf.drawTextAt(labels.qrAccount, mm(5), mm(y -= 7), { size: SIZE.title2 - 1, bold: true });
         pdf.drawTextAt(formatIban(creditor.iban), mm(5), mm(y -= 4), { size: SIZE.text });
         pdf.drawTextAt(creditor.name, mm(5), mm(y -= 4), { size: SIZE.text });
-        pdf.drawTextAt(creditor.addressLine1, mm(5), mm(y -= 4), { size: SIZE.text });
-        pdf.drawTextAt(creditor.addressLine2, mm(5), mm(y -= 4), { size: SIZE.text });
+        for (const line of printedAddressLines(creditor)) {
+            pdf.drawTextAt(line, mm(5), mm(y -= 4), { size: SIZE.text });
+        }
 
         if (debtor) {
             pdf.drawTextAt(labels.qrPayableBy, mm(5), mm(y -= 7), { size: SIZE.title2, bold: true });
             pdf.drawTextAt(debtor.name, mm(5), mm(y -= 4), { size: SIZE.text });
-            pdf.drawTextAt(debtor.addressLine1, mm(5), mm(y -= 4), { size: SIZE.text });
-            pdf.drawTextAt(debtor.addressLine2, mm(5), mm(y -= 4), { size: SIZE.text });
+            for (const line of printedAddressLines(debtor)) {
+                pdf.drawTextAt(line, mm(5), mm(y -= 4), { size: SIZE.text });
+            }
         } else {
             pdf.drawTextAt(labels.qrPayableByBlank, mm(5), mm(y -= 5), { size: SIZE.title2 - 1, bold: true });
             drawCornerMarks(pdf, mm(5), mm(y - 20), mm(57), mm(y - 2));
@@ -77,14 +79,16 @@ export class SwissQrBillTemplate {
         pdf.drawTextAt(labels.qrAccount, mm(118), mm(y), { size: SIZE.title2 + 2, bold: true });
         pdf.drawTextAt(formatIban(creditor.iban), mm(118), mm(y -= 5), { size: SIZE.text + 2 });
         pdf.drawTextAt(creditor.name, mm(118), mm(y -= 5), { size: SIZE.text + 2 });
-        pdf.drawTextAt(creditor.addressLine1, mm(118), mm(y -= 5), { size: SIZE.text + 2 });
-        pdf.drawTextAt(creditor.addressLine2, mm(118), mm(y -= 5), { size: SIZE.text + 2 });
+        for (const line of printedAddressLines(creditor)) {
+            pdf.drawTextAt(line, mm(118), mm(y -= 5), { size: SIZE.text + 2 });
+        }
 
         if (debtor) {
             pdf.drawTextAt(labels.qrPayableBy, mm(118), mm(y -= 9), { size: SIZE.title2 + 2, bold: true });
             pdf.drawTextAt(debtor.name, mm(118), mm(y -= 5), { size: SIZE.text + 2 });
-            pdf.drawTextAt(debtor.addressLine1, mm(118), mm(y -= 5), { size: SIZE.text + 2 });
-            pdf.drawTextAt(debtor.addressLine2, mm(118), mm(y -= 5), { size: SIZE.text + 2 });
+            for (const line of printedAddressLines(debtor)) {
+                pdf.drawTextAt(line, mm(118), mm(y -= 5), { size: SIZE.text + 2 });
+            }
         } else {
             pdf.drawTextAt(labels.qrPayableByBlank, mm(118), mm(y -= 5), { size: SIZE.title2 + 2, bold: true });
             drawCornerMarks(pdf, mm(118), mm(y - 28), mm(205), mm(y - 2));

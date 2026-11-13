@@ -1,4 +1,6 @@
 import { PDFDocument, PDFFont, StandardFonts } from "pdf-lib";
+import { splitPostalCodeCity } from "../shared/address/postal-code-city";
+import { printedAddressLines } from "./swiss-qr-bill/swiss-qr-bill.types";
 import { getCompanyByIdServ } from "../modules/companies/company.service";
 import { AppError } from "../shared/types/errors";
 import { SwissQrBillDto } from "./swiss-qr-bill/swiss-qr-bill.types";
@@ -15,7 +17,6 @@ import { renderSwissQrBillSvg } from "./templates/swiss-qr-bill.svg";
 // company's own country otherwise.
 export interface QrBillSlipInput {
     name?: string;
-    complement?: string;
     street?: string;
     postalCodeCity?: string;
     country?: string;
@@ -49,24 +50,22 @@ const fitsReceiptColumn = async (value: string): Promise<boolean> => {
 const clean = (value: unknown) => (typeof value === "string" ? value.trim() : "");
 
 // A blank-payer slip when nothing is filled in at all (the payer writes it by
-// hand, the slip prints empty boxes); otherwise the name and the postcode +
-// town are required - the QR payload's combined address needs that second
-// line. The complement has no field of its own in that payload, so it's put
-// in front of the street on address line 1, while still printed on a line of
-// its own.
+// hand, the slip prints empty boxes); otherwise the name, postcode and town
+// are required - a structured address needs them. A complement (a c/o...)
+// has no field in that address and isn't printed: the guidelines leave it to
+// the invoice itself.
 export const generateQrBillSlipSvgServ = async (company_id: number, input: QrBillSlipInput): Promise<string> => {
     const name = clean(input.name);
-    const complement = clean(input.complement);
     const street = clean(input.street);
-    const postalCodeCity = clean(input.postalCodeCity);
-    const hasDebtor = [name, complement, street, postalCodeCity].some(Boolean);
+    const { postalCode, city } = splitPostalCodeCity(clean(input.postalCodeCity));
+    const hasDebtor = [name, street, postalCode, city].some(Boolean);
     const amount = input.amount ?? null;
 
     if (amount !== null && (typeof amount !== "number" || !Number.isFinite(amount))) {
         throw new AppError("The amount must be a number", 400);
     }
 
-    if (hasDebtor && (!name || !postalCodeCity)) {
+    if (hasDebtor && (!name || !postalCode || !city)) {
         throw new AppError("The payer needs at least a name and a postcode/town", 400);
     }
 
@@ -77,8 +76,10 @@ export const generateQrBillSlipSvgServ = async (company_id: number, input: QrBil
         debtor: hasDebtor
             ? {
                 name,
-                addressLine1: [complement, street].filter(Boolean).join(", "),
-                addressLine2: postalCodeCity,
+                street,
+                buildingNumber: "",
+                postalCode,
+                town: city,
                 country: toIsoCountryCode(clean(input.country) || company.country) || "CH",
             }
             : null,
@@ -91,8 +92,8 @@ export const generateQrBillSlipSvgServ = async (company_id: number, input: QrBil
         throw new SwissQrBillValidationError(errors, dto);
     }
 
-    const debtorLines = hasDebtor ? [name, complement, street, postalCodeCity] : null;
-    const printed = [dto.creditor.name, dto.creditor.addressLine1, dto.creditor.addressLine2, ...(debtorLines ?? [])];
+    const printed = [dto.creditor, ...(dto.debtor ? [dto.debtor] : [])]
+        .flatMap(party => [party.name, ...printedAddressLines(party)]);
     for (const value of printed) {
         if (!(await fitsReceiptColumn(value))) {
             throw new AppError(`Too long to fit on the slip: "${value}"`, 400);
@@ -100,5 +101,5 @@ export const generateQrBillSlipSvgServ = async (company_id: number, input: QrBil
     }
 
     const labels = PDF_LABELS[input.language === "EN" ? "EN" : "FR"];
-    return renderSwissQrBillSvg(dto, labels, debtorLines);
+    return renderSwissQrBillSvg(dto, labels);
 };

@@ -1,4 +1,5 @@
 import { ClientLanguage, ClientType, NewClientAddress } from "./client.types";
+import { splitPostalCodeCity } from "../../shared/address/postal-code-city";
 import { SEQUENCE_DIGITS } from "../../shared/numbering/sequence-code";
 import { toIsoCountryCode } from "../../pdf/templates/dto/swiss-qr-bill.dto";
 
@@ -183,16 +184,6 @@ const resolveTitle = (raw: string, language: ClientLanguage): { title: string | 
     return { title: language === "EN" ? "Ms" : "Madame", recognized: true };
   }
   return { title: raw, recognized: false };
-};
-
-// "1950 Sion" → NPA + town; a number alone is an NPA; anything else is all
-// the town - the same rule as the frontend's splitPostalCodeCity.
-const splitPostalCodeCity = (value: string): { postalCode: string; city: string } => {
-  if (/^\d+$/.test(value)) {
-    return { postalCode: value, city: "" };
-  }
-  const match = value.match(/^(\d+)\s+(.+)$/);
-  return match ? { postalCode: match[1], city: match[2].trim() } : { postalCode: "", city: value };
 };
 
 // Linear on any input: the domain's labels can't overlap (no backtracking
