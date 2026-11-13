@@ -2,6 +2,17 @@
 
 Every release of Docky, newest first. One version for the whole app (backend and frontend ship together from `main`), numbered `MAJOR.MINOR.PATCH` - see CLAUDE.md's Workflow for when each part goes up and how a release is made. Each release is tagged `vX.Y.Z` on `main`.
 
+## [1.2.0] - 2026-11-13
+
+### Added
+- Deposit invoices ("factures d'acompte") on a chantier, from its new "Facturation" card: a percentage of the accepted quote's total incl. VAT, or an amount, at any time until the final invoice - an ordinary invoice of its own (numbering, PDF titled "FACTURE D'ACOMPTE", QR-bill, reminder), with a warning when the deposits would pass the quote.
+- The chantier's "Facturation" card: the quote, what's been invoiced, received and is left to invoice, and each deposit.
+- The final invoice deducts the deposits sent or paid: its PDF is titled "FACTURE FINALE", lists each deposit and the balance to pay, and the QR-bill, early payment discount, `{{montant}}`, payment reminder and dashboard all use that balance.
+- Demo company: deposits and a final invoice to look at.
+
+### Changed
+- The documents list tags a deposit "Acompte" and a final invoice "Finale", and shows what's still due on it.
+
 ## [1.1.1] - 2026-11-13
 
 ### Changed
