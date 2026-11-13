@@ -1,4 +1,5 @@
 import { DocumentLineType } from './document-line';
+import { DepositDeduction } from './billing';
 
 // PROJECT is a chantier itself - see shared/models/project.ts. Its own
 // document_sections/document_lines are that chantier's resource ledger.
@@ -47,6 +48,10 @@ export interface Document {
   // left DRAFT (backend billed-address.ts), what its PDF prints from then on.
   // Null for a draft.
   billed_address?: BilledAddress | null;
+  // STANDARD, or DEPOSIT for a chantier's deposit invoice (backend deposit.ts).
+  invoice_kind?: 'STANDARD' | 'DEPOSIT';
+  // A chantier's final invoice, once sent: the deposits it deducts.
+  deposit_deductions?: DepositDeduction[] | null;
 }
 
 export interface BilledAddress {

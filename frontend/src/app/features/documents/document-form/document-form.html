@@ -106,6 +106,17 @@
         >
           <span>{{ 'documents.form.totalInclVat' | transloco }}</span><span>{{ documentTotalInclVat() | price }} CHF</span>
         </div>
+        <!-- A chantier's final invoice: its deposits deducted, and the balance. -->
+        @for (deduction of deductions(); track deduction.document_id) {
+          <div class="flex gap-6 w-80 justify-between text-gray-600">
+            <span>{{ 'documents.form.lessDeposit' | transloco: { number: deduction.number } }}</span><span>-{{ deduction.amount_incl_vat | price }} CHF</span>
+          </div>
+        }
+        @if (deductions().length > 0) {
+          <div class="flex gap-6 w-80 justify-between font-bold text-[1.1rem] border-t border-[#ddd] pt-[0.35rem]">
+            <span>{{ (amountDue() >= 0 ? 'documents.form.amountDue' : 'documents.form.creditBalance') | transloco }}</span><span>{{ (amountDue() < 0 ? -amountDue() : amountDue()) | price }} CHF</span>
+          </div>
+        }
       </div>
     </app-document-header>
 

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { clientDisplayName, archiveActionLabel, formatFileSize, formatSectionDate, addressLabel, formatPrice, toDateOnly, fromDateOnly, addDays, daysOverdue, daysFromToday, fillPlaceholders, matchesSearch } from './display';
+import { clientDisplayName, archiveActionLabel, formatFileSize, formatSectionDate, addressLabel, formatPrice, toDateOnly, fromDateOnly, addDays, daysOverdue, daysFromToday, fillPlaceholders, matchesSearch, invoiceAmountDue } from './display';
 
 describe('daysFromToday', () => {
 
@@ -188,4 +188,17 @@ describe('matchesSearch', () => {
     expect(matchesSearch('Jean Dupont', 'jean martin')).toBe(false);
   });
 
+});
+
+describe('invoiceAmountDue', () => {
+  it('takes a final invoice\'s deposits off its total', () => {
+    expect(invoiceAmountDue({ amount_incl_vat: 54050, deposit_deductions: [
+      { document_id: 1, number: 'FAC-2026-0001', date: '2026-03-01', amount_incl_vat: 16215 },
+      { document_id: 2, number: 'FAC-2026-0002', date: '2026-04-01', amount_incl_vat: 16215 },
+    ] })).toBe(21620);
+  });
+
+  it('is the whole total for any other invoice', () => {
+    expect(invoiceAmountDue({ amount_incl_vat: 500, deposit_deductions: null })).toBe(500);
+  });
 });

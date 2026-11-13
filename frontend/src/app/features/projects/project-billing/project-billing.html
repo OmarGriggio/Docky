@@ -1,0 +1,101 @@
+@if (billing(); as b) {
+  <p-card styleClass="ui-card--elevated mb-6">
+    <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
+      <h2 class="m-0 text-lg">{{ 'projects.billing.title' | transloco }}</h2>
+      <div class="flex flex-wrap gap-2">
+        @if (canAddDeposit()) {
+          <p-button size="small" icon="pi pi-plus" [outlined]="true" [label]="'projects.billing.addDeposit' | transloco" (onClick)="openDepositDialog()" />
+        }
+        @if (canInvoiceFinal()) {
+          <p-button size="small" icon="pi pi-file" [label]="'projects.billing.invoiceFinal' | transloco" (onClick)="invoiceFinal()" />
+        }
+        @if (b.finalInvoice; as final) {
+          <a [routerLink]="['/documents', final.id]" class="text-sm font-medium">{{ 'projects.billing.viewFinal' | transloco: { number: final.number } }}</a>
+        }
+      </div>
+    </div>
+
+    <!-- Where it stands, incl. VAT. -->
+    <div class="grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] gap-y-4 gap-x-6 mb-4">
+      <div class="flex flex-col gap-1">
+        <span class="text-xs text-gray-500 uppercase tracking-wide">{{ 'projects.billing.quote' | transloco }}</span>
+        <span class="font-medium">
+          @if (b.quoteInclVat !== null) {
+            {{ b.quoteInclVat | price }} CHF <span class="text-xs text-gray-500">{{ b.quoteNumber }}</span>
+          } @else {
+            —
+          }
+        </span>
+      </div>
+      <div class="flex flex-col gap-1">
+        <span class="text-xs text-gray-500 uppercase tracking-wide">{{ 'projects.billing.invoiced' | transloco }}</span>
+        <span class="font-medium">{{ b.invoicedInclVat | price }} CHF</span>
+      </div>
+      <div class="flex flex-col gap-1">
+        <span class="text-xs text-gray-500 uppercase tracking-wide">{{ 'projects.billing.paid' | transloco }}</span>
+        <span class="font-medium">{{ b.paidInclVat | price }} CHF</span>
+      </div>
+      <div class="flex flex-col gap-1">
+        <span class="text-xs text-gray-500 uppercase tracking-wide">{{ 'projects.billing.remaining' | transloco }}</span>
+        <span class="font-medium">{{ b.remainingInclVat !== null ? (b.remainingInclVat | price) + ' CHF' : '—' }}</span>
+      </div>
+    </div>
+
+    @if (b.deposits.length > 0) {
+      <div class="flex flex-col divide-y divide-gray-100 border border-gray-200 rounded-md">
+        @for (deposit of b.deposits; track deposit.id) {
+          <a [routerLink]="['/documents', deposit.id]" class="flex flex-wrap items-center justify-between gap-2 px-3 py-2 no-underline text-inherit hover:bg-gray-50">
+            <span class="flex items-center gap-2">
+              <span class="font-medium">{{ 'projects.billing.depositNumber' | transloco: { n: $index + 1 } }}</span>
+              <span class="text-sm text-gray-500">{{ deposit.number }} · {{ deposit.date | appDate }}</span>
+            </span>
+            <span class="flex items-center gap-3">
+              <p-tag [value]="statusLabel(deposit)" [severity]="statusSeverity(deposit)" />
+              <span class="font-medium whitespace-nowrap">{{ deposit.amount_incl_vat | price }} CHF</span>
+            </span>
+          </a>
+        }
+      </div>
+    } @else {
+      <p class="m-0 text-sm text-gray-500">{{ 'projects.billing.noDeposits' | transloco }}</p>
+    }
+  </p-card>
+
+  <p-dialog
+    [(visible)]="dialogVisible"
+    [header]="'projects.billing.addDeposit' | transloco"
+    [modal]="true"
+    [style]="{ width: '26rem' }"
+  >
+    <div class="flex flex-col gap-4">
+      @if (b.quoteInclVat !== null) {
+        <p-selectbutton [options]="modeOptions()" optionLabel="label" optionValue="value" [allowEmpty]="false" [ngModel]="mode()" (ngModelChange)="mode.set($event)" />
+      } @else {
+        <p class="m-0 text-sm text-gray-600">{{ 'projects.billing.noQuoteHint' | transloco }}</p>
+      }
+
+      @if (mode() === 'percent') {
+        <label class="flex flex-col gap-1 text-sm">
+          {{ 'projects.billing.percentOfQuote' | transloco: { total: (b.quoteInclVat | price) } }}
+          <p-inputnumber [ngModel]="percent()" (ngModelChange)="percent.set($event)" [min]="0.01" [max]="100" [maxFractionDigits]="2" suffix=" %" [fluid]="true" [autofocus]="false" />
+        </label>
+      } @else {
+        <label class="flex flex-col gap-1 text-sm">
+          {{ 'projects.billing.amountInclVat' | transloco }}
+          <p-inputnumber [ngModel]="amount()" (ngModelChange)="amount.set($event)" [min]="0.01" mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="2" suffix=" CHF" [fluid]="true" />
+        </label>
+      }
+
+      @if (depositInclVat(); as total) {
+        <p class="m-0 text-sm">{{ 'projects.billing.depositPreview' | transloco: { total: (total | price) } }}</p>
+      }
+      @if (errorMessage(); as error) {
+        <p class="m-0 text-sm text-red-600">{{ error }}</p>
+      }
+    </div>
+    <ng-template #footer>
+      <p-button severity="secondary" [label]="'common.cancel' | transloco" (onClick)="dialogVisible.set(false)" />
+      <p-button [label]="'projects.billing.createDeposit' | transloco" [loading]="creating()" (onClick)="createDeposit()" />
+    </ng-template>
+  </p-dialog>
+}

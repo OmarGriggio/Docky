@@ -316,6 +316,25 @@
       "loadError": "Could not load the project's resources.",
       "saveError": "Could not save the resources.",
       "incompleteLine": "Each line needs a label and a price."
+    },
+    "billing": {
+      "title": "Billing",
+      "addDeposit": "Deposit invoice",
+      "invoiceFinal": "Final invoice",
+      "viewFinal": "View the final invoice {{number}}",
+      "quote": "Quote",
+      "invoiced": "Invoiced in deposits",
+      "paid": "Received",
+      "remaining": "Left to invoice",
+      "depositNumber": "Deposit no. {{n}}",
+      "noDeposits": "No deposit invoiced for this site yet.",
+      "byPercent": "% of the quote",
+      "byAmount": "Amount",
+      "noQuoteHint": "This site has no quote: give the deposit's amount.",
+      "percentOfQuote": "Percentage of the quote ({{total}} CHF incl. VAT)",
+      "amountInclVat": "Amount incl. VAT",
+      "depositPreview": "Deposit asked: {{total}} CHF incl. VAT.",
+      "createDeposit": "Create the deposit"
     }
   },
   "documentLedger": {
@@ -430,9 +449,18 @@
       "recipientRequired": "Typed-in recipient: the name, postcode and town are required.",
       "preview": "Preview",
       "saved": "Document saved.",
-      "recipientTooLong": "Typed-in recipient: the complement and the street together can't exceed 68 characters (the QR-bill's limit)."
+      "recipientTooLong": "Typed-in recipient: the complement and the street together can't exceed 68 characters (the QR-bill's limit).",
+      "depositInvoice": "Deposit invoice",
+      "finalInvoice": "Final invoice",
+      "lessDeposit": "Less deposit {{number}}",
+      "amountDue": "Balance due",
+      "creditBalance": "Balance in the client's favour"
     },
-    "pdfError": "Couldn't generate the PDF."
+    "pdfError": "Couldn't generate the PDF.",
+    "kind": {
+      "deposit": "Deposit",
+      "final": "Final"
+    }
   },
   "dashboard": {
     "openTotal": "Total awaiting payment",
@@ -573,6 +601,11 @@
       "conflict": "Not possible: the data changed in the meantime or it already exists. Reload the page.",
       "tooLarge": "File too large.",
       "tooManyRequests": "Too many attempts. Try again in a few minutes."
+    },
+    "codes": {
+      "DEPOSIT_DRAFT_PENDING": "A deposit of this site is still a draft: send or cancel it before the final invoice.",
+      "DEPOSIT_DEDUCTED": "This deposit is deducted from the final invoice already sent: cancel the final invoice first.",
+      "DEPOSIT_NEEDS_QUOTE": "This site has no quote: give an amount rather than a percentage."
     }
   },
   "invoicingReadiness": {

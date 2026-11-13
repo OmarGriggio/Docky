@@ -50,6 +50,11 @@ describe('httpErrorKey', () => {
     expect(httpErrorKey(new Error('boom'))).toBe('notifications.errors.generic');
   });
 
+  it('tells a known error code apart from its status', () => {
+    expect(httpErrorKey(new HttpErrorResponse({ status: 409, error: { code: 'DEPOSIT_DEDUCTED' } }))).toBe('notifications.codes.DEPOSIT_DEDUCTED');
+    expect(httpErrorKey(new HttpErrorResponse({ status: 409, error: { code: 'SOMETHING_ELSE' } }))).toBe('notifications.errors.conflict');
+  });
+
   it('recognizes an expired session', () => {
     expect(isSessionExpired(status(401))).toBe(true);
     expect(isSessionExpired(status(500))).toBe(false);

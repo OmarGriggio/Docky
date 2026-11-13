@@ -2,7 +2,7 @@
 // Same idea as backend/document.calculations.ts: same input always gives the
 // same output, so no setup is needed to test them.
 
-import { DocumentStatus } from '../models/document';
+import { Document, DocumentStatus } from '../models/document';
 
 export interface NameableClient {
   company_name: string | null;
@@ -198,4 +198,12 @@ export const matchesSearch = (text: string, query: string): boolean => {
   const normalize = (value: string) => value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
   const haystack = normalize(text);
   return normalize(query).split(/\s+/).filter(Boolean).every(word => haystack.includes(word));
+};
+
+// What's left to pay on an invoice: a chantier's final invoice, once sent,
+// less the deposits it deducts (backend deposit.ts's amountDue) - the whole
+// total for any other.
+export const invoiceAmountDue = (document: Pick<Document, 'amount_incl_vat' | 'deposit_deductions'>): number => {
+  const deducted = (document.deposit_deductions ?? []).reduce((sum, deduction) => sum + Number(deduction.amount_incl_vat), 0);
+  return Math.round((Number(document.amount_incl_vat) - deducted) * 100) / 100;
 };

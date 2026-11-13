@@ -316,6 +316,25 @@
       "loadError": "Impossible de charger les ressources du chantier.",
       "saveError": "Impossible d'enregistrer les ressources.",
       "incompleteLine": "Chaque ligne a besoin d'un libellé et d'un prix."
+    },
+    "billing": {
+      "title": "Facturation",
+      "addDeposit": "Facture d'acompte",
+      "invoiceFinal": "Facture finale",
+      "viewFinal": "Voir la facture finale {{number}}",
+      "quote": "Offre",
+      "invoiced": "Facturé en acomptes",
+      "paid": "Encaissé",
+      "remaining": "Reste à facturer",
+      "depositNumber": "Acompte n° {{n}}",
+      "noDeposits": "Aucun acompte facturé pour ce chantier.",
+      "byPercent": "% de l'offre",
+      "byAmount": "Montant",
+      "noQuoteHint": "Ce chantier n'a pas d'offre : indique le montant de l'acompte.",
+      "percentOfQuote": "Pourcentage de l'offre ({{total}} CHF TTC)",
+      "amountInclVat": "Montant TTC",
+      "depositPreview": "Acompte demandé : {{total}} CHF TTC.",
+      "createDeposit": "Créer l'acompte"
     }
   },
   "documentLedger": {
@@ -430,9 +449,18 @@
       "recipientRequired": "Saisie manuelle : le nom, le NPA et la ville sont obligatoires.",
       "preview": "Aperçu",
       "saved": "Document enregistré.",
-      "recipientTooLong": "Saisie manuelle : le complément et la rue ensemble ne peuvent pas dépasser 68 caractères (limite du bulletin QR)."
+      "recipientTooLong": "Saisie manuelle : le complément et la rue ensemble ne peuvent pas dépasser 68 caractères (limite du bulletin QR).",
+      "depositInvoice": "Facture d'acompte",
+      "finalInvoice": "Facture finale",
+      "lessDeposit": "./. Acompte {{number}}",
+      "amountDue": "Solde à payer",
+      "creditBalance": "Solde en faveur du client"
     },
-    "pdfError": "Impossible de générer le PDF."
+    "pdfError": "Impossible de générer le PDF.",
+    "kind": {
+      "deposit": "Acompte",
+      "final": "Finale"
+    }
   },
   "dashboard": {
     "openTotal": "Total à encaisser",
@@ -573,6 +601,11 @@
       "conflict": "Impossible : les données ont changé entre-temps ou l'élément existe déjà. Recharge la page.",
       "tooLarge": "Fichier trop volumineux.",
       "tooManyRequests": "Trop de tentatives. Réessaie dans quelques minutes."
+    },
+    "codes": {
+      "DEPOSIT_DRAFT_PENDING": "Un acompte de ce chantier est encore en brouillon : envoie-le ou annule-le avant la facture finale.",
+      "DEPOSIT_DEDUCTED": "Cet acompte est déduit de la facture finale déjà envoyée : annule d'abord la facture finale.",
+      "DEPOSIT_NEEDS_QUOTE": "Ce chantier n'a pas d'offre : indique un montant plutôt qu'un pourcentage."
     }
   },
   "invoicingReadiness": {

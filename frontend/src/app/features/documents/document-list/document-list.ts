@@ -11,7 +11,7 @@ import { MenuItem } from 'primeng/api';
 import { TranslocoPipe, TranslocoService, translateSignal } from '@jsverse/transloco';
 import { DocumentService } from '../document.service';
 import { Document, DocumentType, DocumentStatus } from '../../../shared/models/document';
-import { documentStatusSeverity, daysOverdue, formatPrice, matchesSearch } from '../../../shared/utils/display';
+import { documentStatusSeverity, daysOverdue, formatPrice, matchesSearch, invoiceAmountDue } from '../../../shared/utils/display';
 import { ClientService } from '../../clients/client.service';
 import { Client } from '../../../shared/models/client';
 import { AddressService } from '../../addresses/address.service';
@@ -158,6 +158,20 @@ export class DocumentListComponent implements OnInit {
   // why that shared one isn't touched yet.
   statusLabel(document: Document): string {
     return document.status ? this.transloco.translate(`documents.status.${document.status}`) : '—';
+  }
+
+  // "Acompte" for a chantier's deposit invoice, "Finale" for its final
+  // invoice once sent with deposits deducted (backend deposit.ts).
+  kindLabel(document: Document): string | null {
+    if (document.invoice_kind === 'DEPOSIT') {
+      return this.transloco.translate('documents.kind.deposit');
+    }
+    return document.deposit_deductions?.length ? this.transloco.translate('documents.kind.final') : null;
+  }
+
+  // What's left to pay - a final invoice's deposits are invoices of their own.
+  amountDue(document: Document): number {
+    return invoiceAmountDue(document);
   }
 
   statusSeverity(document: Document): 'secondary' | 'info' | 'success' | 'danger' {

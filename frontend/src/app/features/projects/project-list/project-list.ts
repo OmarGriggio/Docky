@@ -145,7 +145,8 @@ export class ProjectListComponent implements OnInit {
   private invoiceByProjectDocumentId = computed(() => {
     const invoices = new Map<number, Document>();
     for (const invoice of this.invoices()) {
-      if (invoice.parent_document_id !== null && invoice.status !== 'CANCELLED') {
+      // Its deposit invoices come before it - not "the" invoice (backend deposit.ts).
+      if (invoice.parent_document_id !== null && invoice.status !== 'CANCELLED' && invoice.invoice_kind !== 'DEPOSIT') {
         invoices.set(invoice.parent_document_id, invoice);
       }
     }

@@ -20,8 +20,13 @@
       <div class="flex flex-col gap-2 bg-white border border-gray-200 rounded-lg p-3">
         <a [routerLink]="['/documents', document.id]" class="flex flex-col gap-1 no-underline text-inherit">
           <div class="flex items-start justify-between gap-2">
-            <span class="font-medium text-gray-900">{{ document.number }}</span>
-            <span class="shrink-0 font-medium text-gray-900 whitespace-nowrap">{{ document.amount_incl_vat | price }} CHF</span>
+            <span class="font-medium text-gray-900">
+              {{ document.number }}
+              @if (kindLabel(document); as kind) {
+                <p-tag [value]="kind" severity="secondary" class="ml-1" />
+              }
+            </span>
+            <span class="shrink-0 font-medium text-gray-900 whitespace-nowrap">{{ amountDue(document) | price }} CHF</span>
           </div>
           <span class="text-sm text-gray-600">{{ clientName(document) }}</span>
           <span class="text-sm text-gray-500 truncate"><i class="pi pi-map-marker text-xs mr-1"></i>{{ location(document) }}</span>
@@ -94,7 +99,12 @@
             [pRowToggler]="document"
           />
         </td>
-        <td>{{ document.number }}</td>
+        <td>
+          {{ document.number }}
+          @if (kindLabel(document); as kind) {
+            <p-tag [value]="kind" severity="secondary" class="ml-1" />
+          }
+        </td>
         <td>{{ clientName(document) }}</td>
         <td>{{ location(document) }}</td>
         <td>{{ document.date | appDate }}</td>
@@ -109,7 +119,7 @@
           }
         </td>
         <td>{{ document.amount_excl_vat | price }}</td>
-        <td>{{ document.amount_incl_vat | price }}</td>
+        <td>{{ amountDue(document) | price }}</td>
         <td>{{ document.discount }}</td>
         <td
           [pEditableColumn]="document.status" pEditableColumnField="status" [pEditableColumnRowIndex]="rowIndex"

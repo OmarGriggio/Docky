@@ -35,6 +35,8 @@ import { matchClientByName } from './document-scan-match';
 import { qrBillErrorKey } from '../../../shared/utils/api-error';
 import { POSTAL_CODE_CITY_PATTERN, splitPostalCodeCity } from '../../../shared/utils/postal-code-search';
 import { NotificationService } from '../../../shared/services/notification.service';
+import { DepositDeduction } from '../../../shared/models/billing';
+import { httpErrorKey } from '../../../shared/utils/api-error';
 
 // Matches document.service.ts's own isOpenForEditing on the backend -
 // duplicated here purely so the form can hide/disable itself instead of
@@ -222,10 +224,35 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
 
   get pageTitle(): string {
     const editing = this.editingDocumentId() !== null;
+    if (this.invoiceKind() === 'DEPOSIT') {
+      return this.transloco.translate('documents.form.depositInvoice');
+    }
+    if (this.deductions().length > 0) {
+      return this.transloco.translate('documents.form.finalInvoice');
+    }
     const key = this.type() === 'QUOTE'
       ? (editing ? 'documents.form.editQuote' : 'documents.form.newQuote')
       : (editing ? 'documents.form.editInvoice' : 'documents.form.newInvoice');
     return this.transloco.translate(key);
+  }
+
+  // A chantier's deposit invoice (backend deposit.ts) - titled so here.
+  invoiceKind = signal<'STANDARD' | 'DEPOSIT'>('STANDARD');
+
+  // A chantier's final invoice: the deposits it deducts - the backend's own
+  // answer for a saved one (GET /document/:id/deductions), its chantier's
+  // deductible deposits for a new one from "Facturer" - and so what's left to
+  // pay under the totals.
+  deductions = signal<DepositDeduction[]>([]);
+  amountDue = computed(() =>
+    Math.round((this.documentTotalInclVat() - this.deductions().reduce((sum, d) => sum + Number(d.amount_incl_vat), 0)) * 100) / 100
+  );
+
+  private loadDeductions(documentId: number): void {
+    this.documentService.getDeductions(documentId).subscribe({
+      next: ({ deductions }) => this.deductions.set(deductions),
+      error: err => this.notifications.error('document-form', err)
+    });
   }
 
   date = signal(new Date());
@@ -497,6 +524,12 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
       return;
     }
 
+    // The deposits this final invoice will deduct, as they stand.
+    this.projectService.getBilling(projectId).subscribe({
+      next: billing => this.deductions.set(billing.deductible),
+      error: err => this.notifications.error('document-form', err)
+    });
+
     // The chantier's own address (see project.service.ts's acceptQuoteServ -
     // it lives on the chantier's own backing document, not duplicated on
     // the Project row) - fetched first so it's ready to pass as
@@ -650,6 +683,10 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
         // shared/models/document.ts) - never editable through this page
         // either way, though nothing currently routes one here.
         this.locked.set(!isOpenForEditing(source.type, source.status));
+        this.invoiceKind.set(source.invoice_kind ?? 'STANDARD');
+        if (source.type === 'INVOICE' && source.parent_document_id !== null && source.invoice_kind !== 'DEPOSIT') {
+          this.loadDeductions(id);
+        }
         if (source.status) {
           this.status.set(source.status);
         }
@@ -957,7 +994,9 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
     } catch (err) {
       console.error('document-form : ' + err);
       this.submitting.set(false);
-      this.errorMessage.set(this.transloco.translate('documents.form.saveError'));
+      // A code the user can act on (a deposit still a draft...), or the generic one.
+      const key = httpErrorKey(err);
+      this.errorMessage.set(this.transloco.translate(key.startsWith('notifications.codes.') ? key : 'documents.form.saveError'));
     }
   }
 

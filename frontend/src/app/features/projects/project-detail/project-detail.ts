@@ -11,6 +11,7 @@ import { Address } from '../../../shared/models/address';
 import { ProjectResources } from '../project-resources/project-resources';
 import { clientDisplayName } from '../../../shared/utils/display';
 import { NotificationService } from '../../../shared/services/notification.service';
+import { ProjectBilling } from '../project-billing/project-billing';
 
 // The chantier's own header (name, client, type, address, status) is
 // read-only here - it's set once, either by hand (project-form, currently
@@ -21,7 +22,7 @@ import { NotificationService } from '../../../shared/services/notification.servi
 @Component({
   selector: 'app-project-detail',
   standalone: true,
-  imports: [Card, Tag, ProjectResources, TranslocoPipe],
+  imports: [Card, Tag, ProjectResources, ProjectBilling, TranslocoPipe],
   templateUrl: './project-detail.html',
 })
 export class ProjectDetail implements OnInit {

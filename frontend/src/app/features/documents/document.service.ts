@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Document, DocumentType, DocumentStatus, DocumentContentSection, DocumentRecipient } from '../../shared/models/document';
 import { environment } from '../../../environments/environment';
+import { DocumentDeductions } from '../../shared/models/billing';
 
 const API_BASE = environment.apiUrl;
 
@@ -20,6 +21,11 @@ export class DocumentService {
         ...(clientId ? { client_id: clientId } : {})
       }
     });
+  }
+
+  // A chantier's final invoice: the deposits it deducts, and its balance.
+  getDeductions(id: number) {
+    return this.http.get<DocumentDeductions>(`${API_BASE}/document/${id}/deductions`);
   }
 
   getDocument(id: number) {

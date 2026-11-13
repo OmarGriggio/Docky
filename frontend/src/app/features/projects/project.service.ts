@@ -2,6 +2,8 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Project, CreateProjectPayload, ProjectType } from '../../shared/models/project';
 import { environment } from '../../../environments/environment';
+import { ChantierBilling } from '../../shared/models/billing';
+import { Document } from '../../shared/models/document';
 
 const API_BASE = environment.apiUrl;
 
@@ -38,6 +40,16 @@ export class ProjectService {
 
   unarchiveProject(id: number) {
     return this.http.patch<Project>(`${API_BASE}/project/${id}/unarchive`, {});
+  }
+
+  // Its deposit invoices and where its billing stands (backend deposit.ts).
+  getBilling(id: number) {
+    return this.http.get<ChantierBilling>(`${API_BASE}/project/${id}/billing`);
+  }
+
+  // A deposit invoice: a percentage of the quote's total incl. VAT, or an amount.
+  createDepositInvoice(id: number, body: { percent?: number | null; amount_incl_vat?: number | null }) {
+    return this.http.post<Document>(`${API_BASE}/project/${id}/deposit-invoice`, body);
   }
 
   completeProject(id: number) {
