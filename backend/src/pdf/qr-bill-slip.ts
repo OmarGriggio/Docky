@@ -11,12 +11,14 @@ import { PDF_LABELS } from "./templates/pdf-labels";
 import { renderSwissQrBillSvg } from "./templates/swiss-qr-bill.svg";
 
 // What the standalone slip page sends: who pays, typed or prefilled from a
-// client - no document behind it, so no additional information, and the
-// amount is optional (left out, the payer fills it in by hand). `country` is
+// client - no document behind it; its "attention" (a contact person) goes in
+// the additional information, the structured address has no field for it.
+// The amount is optional (left out, the payer fills it in by hand). `country` is
 // optional free text, mapped to an ISO code like a client's own address; the
 // company's own country otherwise.
 export interface QrBillSlipInput {
     name?: string;
+    attention?: string;
     street?: string;
     postalCodeCity?: string;
     country?: string;
@@ -25,26 +27,27 @@ export interface QrBillSlipInput {
 }
 
 // The narrowest column a payer/creditor line is printed in: the receipt's,
-// 52 mm at 8pt (the payment part fits 87 mm at 10pt, wider in proportion).
-// Measured with Helvetica's own metrics (pdf-lib ships them) - a line
+// 52 mm at 8pt (the payment part fits 82 mm at 10pt, wider in proportion).
+// The additional information is only printed in the payment part: 82 mm at
+// 10pt. Measured with Helvetica's own metrics (pdf-lib ships them) - a line
 // that doesn't fit would run over the payment part or the QR code.
-const RECEIPT_COLUMN_MM = 52;
-const RECEIPT_VALUE_PT = 8;
+const RECEIPT_COLUMN = { mm: 52, pt: 8 };
+const PAYMENT_COLUMN = { mm: 82, pt: 10 };
 const PT_TO_MM = 25.4 / 72;
 
 let helvetica: Promise<PDFFont> | null = null;
 const getHelvetica = () => helvetica ??= PDFDocument.create().then(doc => doc.embedFont(StandardFonts.Helvetica));
 
-const fitsReceiptColumn = async (value: string): Promise<boolean> => {
+const fitsColumn = async (value: string, column: { mm: number; pt: number }): Promise<boolean> => {
     let widthPt: number;
     try {
-        widthPt = (await getHelvetica()).widthOfTextAtSize(value, RECEIPT_VALUE_PT);
+        widthPt = (await getHelvetica()).widthOfTextAtSize(value, column.pt);
     } catch {
         // A character Helvetica's WinAnsi encoding doesn't cover - estimate
         // from an average glyph width instead.
-        widthPt = value.length * RECEIPT_VALUE_PT * 0.6;
+        widthPt = value.length * column.pt * 0.6;
     }
-    return widthPt * PT_TO_MM <= RECEIPT_COLUMN_MM;
+    return widthPt * PT_TO_MM <= column.mm;
 };
 
 const clean = (value: unknown) => (typeof value === "string" ? value.trim() : "");
@@ -56,6 +59,7 @@ const clean = (value: unknown) => (typeof value === "string" ? value.trim() : ""
 // the invoice itself.
 export const generateQrBillSlipSvgServ = async (company_id: number, input: QrBillSlipInput): Promise<string> => {
     const name = clean(input.name);
+    const attention = clean(input.attention);
     const street = clean(input.street);
     const { postalCode, city } = splitPostalCodeCity(clean(input.postalCodeCity));
     const hasDebtor = [name, street, postalCode, city].some(Boolean);
@@ -70,6 +74,7 @@ export const generateQrBillSlipSvgServ = async (company_id: number, input: QrBil
     }
 
     const company = await getCompanyByIdServ(company_id);
+    const labels = PDF_LABELS[input.language === "EN" ? "EN" : "FR"];
 
     const dto: SwissQrBillDto = {
         creditor: buildQrBillCreditor(company),
@@ -84,7 +89,11 @@ export const generateQrBillSlipSvgServ = async (company_id: number, input: QrBil
             }
             : null,
         // Range (0.01 to 999 999 999.99) checked by validateSwissQrBill below.
-        payment: { amount: amount !== null ? Math.round(amount * 100) / 100 : null, currency: "CHF", additionalInfo: "" },
+        payment: {
+            amount: amount !== null ? Math.round(amount * 100) / 100 : null,
+            currency: "CHF",
+            additionalInfo: attention ? labels.qrAttention(attention) : "",
+        },
     };
 
     const errors = validateSwissQrBill(dto);
@@ -95,11 +104,13 @@ export const generateQrBillSlipSvgServ = async (company_id: number, input: QrBil
     const printed = [dto.creditor, ...(dto.debtor ? [dto.debtor] : [])]
         .flatMap(party => [party.name, ...printedAddressLines(party)]);
     for (const value of printed) {
-        if (!(await fitsReceiptColumn(value))) {
+        if (!(await fitsColumn(value, RECEIPT_COLUMN))) {
             throw new AppError(`Too long to fit on the slip: "${value}"`, 400);
         }
     }
+    if (!(await fitsColumn(dto.payment.additionalInfo, PAYMENT_COLUMN))) {
+        throw new AppError(`Too long to fit on the slip: "${dto.payment.additionalInfo}"`, 400);
+    }
 
-    const labels = PDF_LABELS[input.language === "EN" ? "EN" : "FR"];
     return renderSwissQrBillSvg(dto, labels);
 };

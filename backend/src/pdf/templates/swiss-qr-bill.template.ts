@@ -10,8 +10,15 @@ const SIZE = {
     title2: mm(2.5),
 };
 
+// Same layout as the standalone slip's SVG (swiss-qr-bill.svg.ts): the
+// payment part's content starts 7 mm right of the receipt's line (the
+// guidelines' 5 mm, a little airier), its text column 8 mm right of the QR
+// code.
+const PAYMENT_X = 69;
+const INFO_X = 123;
+
 const QR_SIZE = mm(46);
-const QR_X = mm(67);
+const QR_X = mm(PAYMENT_X);
 const QR_Y = mm(42);
 
 /**
@@ -68,30 +75,39 @@ export class SwissQrBillTemplate {
     private static drawPaymentSection(pdf: PdfWriter, dto: SwissQrBillDto, labels: PdfLabels) {
         const { creditor, debtor, payment } = dto;
 
-        pdf.drawTextAt(labels.qrPaymentPart, mm(67), mm(94), { size: SIZE.title1, bold: true });
+        pdf.drawTextAt(labels.qrPaymentPart, mm(PAYMENT_X), mm(94), { size: SIZE.title1, bold: true });
 
         this.drawAmountBlock(pdf, payment, labels, {
-            x: 67, currencyY: 33, amountX: 87, emptyAmountX: 83, sizeBoost: 2,
-            emptyBox: { x1: 83, y1: 18, x2: 114, y2: 30 },
+            // The guidelines' blank amount field there: 40 × 15 mm.
+            x: PAYMENT_X, currencyY: 33, amountX: PAYMENT_X + 20, emptyAmountX: 82, sizeBoost: 2,
+            emptyBox: { x1: 82, y1: 16, x2: 122, y2: 31 },
         });
 
         let y = 94;
-        pdf.drawTextAt(labels.qrAccount, mm(118), mm(y), { size: SIZE.title2 + 2, bold: true });
-        pdf.drawTextAt(formatIban(creditor.iban), mm(118), mm(y -= 5), { size: SIZE.text + 2 });
-        pdf.drawTextAt(creditor.name, mm(118), mm(y -= 5), { size: SIZE.text + 2 });
+        pdf.drawTextAt(labels.qrAccount, mm(INFO_X), mm(y), { size: SIZE.title2 + 2, bold: true });
+        pdf.drawTextAt(formatIban(creditor.iban), mm(INFO_X), mm(y -= 5), { size: SIZE.text + 2 });
+        pdf.drawTextAt(creditor.name, mm(INFO_X), mm(y -= 5), { size: SIZE.text + 2 });
         for (const line of printedAddressLines(creditor)) {
-            pdf.drawTextAt(line, mm(118), mm(y -= 5), { size: SIZE.text + 2 });
+            pdf.drawTextAt(line, mm(INFO_X), mm(y -= 5), { size: SIZE.text + 2 });
+        }
+
+        // What the QR code carries is printed too - in the payment part
+        // only, the guidelines leave it off the receipt.
+        if (payment.additionalInfo) {
+            pdf.drawTextAt(labels.qrAdditionalInfo, mm(INFO_X), mm(y -= 9), { size: SIZE.title2 + 2, bold: true });
+            pdf.drawTextAt(payment.additionalInfo, mm(INFO_X), mm(y -= 5), { size: SIZE.text + 2 });
         }
 
         if (debtor) {
-            pdf.drawTextAt(labels.qrPayableBy, mm(118), mm(y -= 9), { size: SIZE.title2 + 2, bold: true });
-            pdf.drawTextAt(debtor.name, mm(118), mm(y -= 5), { size: SIZE.text + 2 });
+            pdf.drawTextAt(labels.qrPayableBy, mm(INFO_X), mm(y -= 9), { size: SIZE.title2 + 2, bold: true });
+            pdf.drawTextAt(debtor.name, mm(INFO_X), mm(y -= 5), { size: SIZE.text + 2 });
             for (const line of printedAddressLines(debtor)) {
-                pdf.drawTextAt(line, mm(118), mm(y -= 5), { size: SIZE.text + 2 });
+                pdf.drawTextAt(line, mm(INFO_X), mm(y -= 5), { size: SIZE.text + 2 });
             }
         } else {
-            pdf.drawTextAt(labels.qrPayableByBlank, mm(118), mm(y -= 5), { size: SIZE.title2 + 2, bold: true });
-            drawCornerMarks(pdf, mm(118), mm(y - 28), mm(205), mm(y - 2));
+            pdf.drawTextAt(labels.qrPayableByBlank, mm(INFO_X), mm(y -= 5), { size: SIZE.title2 + 2, bold: true });
+            // The guidelines' blank payer field: 65 × 25 mm.
+            drawCornerMarks(pdf, mm(INFO_X), mm(y - 27), mm(INFO_X + 65), mm(y - 2));
         }
     }
 

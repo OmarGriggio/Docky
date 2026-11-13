@@ -4,7 +4,7 @@ import { ValidationError } from "./validation-error";
 const SUPPORTED_CURRENCIES = ["CHF", "EUR"];
 
 export function validatePayment(payment: QrBillPayment): ValidationError[] {
-    return [...checkCurrency(payment.currency), ...checkAmount(payment.amount)];
+    return [...checkCurrency(payment.currency), ...checkAmount(payment.amount), ...checkAdditionalInfo(payment.additionalInfo)];
 }
 
 function checkCurrency(value: string): ValidationError[] {
@@ -20,6 +20,14 @@ function checkAmount(value: number | null): ValidationError[] {
     }
     if (value < 0.01 || value > 999_999_999.99) {
         return [{ code: "AMOUNT_RANGE", message: "Le montant doit être compris entre 0.01 et 999999999.99" }];
+    }
+    return [];
+}
+
+// The unstructured message: 140 characters at most.
+function checkAdditionalInfo(value: string): ValidationError[] {
+    if (value.trim().length > 140) {
+        return [{ code: "ADDITIONAL_INFO_LENGTH", message: "Additional information exceeds 140 characters" }];
     }
     return [];
 }

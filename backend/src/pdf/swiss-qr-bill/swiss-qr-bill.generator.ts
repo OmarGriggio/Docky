@@ -46,5 +46,9 @@ export async function generateSwissQrBillImage(dto: SwissQrBillDto): Promise<Buf
 
     const payload = buildSwissQrBillPayload(dto);
 
-    return QRCode.toBuffer(payload, { errorCorrectionLevel: "Q" });
+    // No margin of its own: the code fills its 46 × 46 mm exactly, its edge
+    // lined up with the payment part's text (the quiet zone around it is the
+    // layout's). Error correction "M", what the guidelines require. Drawn
+    // big enough to stay sharp once scaled down into the PDF.
+    return QRCode.toBuffer(payload, { errorCorrectionLevel: "M", margin: 0, width: 1000 });
 }

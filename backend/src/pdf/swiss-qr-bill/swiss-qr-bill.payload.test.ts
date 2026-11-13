@@ -56,6 +56,13 @@ describe("validateSwissQrBill", () => {
     })).map(error => error.code);
     expect(codes).toEqual(["STREET_LENGTH", "POSTAL_CODE_LENGTH", "TOWN_LENGTH"]);
   });
+
+  it("holds the additional information to 140 characters", () => {
+    const codes = (additionalInfo: string) =>
+      validateSwissQrBill(bill({ payment: { ...bill().payment, additionalInfo } })).map(error => error.code);
+    expect(codes("x".repeat(140))).toEqual([]);
+    expect(codes("x".repeat(141))).toEqual(["ADDITIONAL_INFO_LENGTH"]);
+  });
 });
 
 describe("printedAddressLines", () => {
