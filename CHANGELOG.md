@@ -2,6 +2,16 @@
 
 Every release of Docky, newest first. One version for the whole app (backend and frontend ship together from `main`), numbered `MAJOR.MINOR.PATCH` - see CLAUDE.md's Workflow for when each part goes up and how a release is made. Each release is tagged `vX.Y.Z` on `main`.
 
+## [1.2.1] - 2026-11-13
+
+### Fixed
+- The QR-bill now carries structured addresses (street, postcode and town in fields of their own), the only kind the Swiss QR-bill standard accepts since November 2025 - banks stop processing the old combined ones in November 2026.
+- A client whose address can't fit the QR-bill (no postcode or town yet, a town too long for it) gets a blank "Payable by" box to fill in by hand instead of the PDF failing.
+
+### Changed
+- The standalone QR-bill slip no longer has an address complement field (a c/o isn't part of a payment slip) and needs both the NPA and the town.
+- The company's town is limited to 35 characters and its NPA to 16, what the QR-bill holds.
+
 ## [1.2.0] - 2026-11-13
 
 ### Added

@@ -16,7 +16,7 @@
   <img src="https://img.shields.io/badge/Docker-2496ed?logo=docker&logoColor=white" alt="Docker">
 </p>
 
-*Last updated: 13.11.2026 - version 1.2.0 ([changelog](CHANGELOG.md))*
+*Last updated: 13.11.2026 - version 1.2.1 ([changelog](CHANGELOG.md))*
 
 ## Live demo
 
