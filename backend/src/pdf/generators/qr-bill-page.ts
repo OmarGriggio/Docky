@@ -45,7 +45,11 @@ export const renderQrBillPage = async (
     if (!shareCurrentPage || pdf.remainingHeight() < QR_BILL_MIN_REMAINING_HEIGHT) {
         pdf.newPage();
     }
+    // The guidelines' own fonts (Helvetica, Arial...), whatever the
+    // document's - back to it for whatever comes after (the footers).
+    pdf.useStandardFont();
     await SwissQrBillTemplate.render(pdf, qrBill.dto, qrBill.imageBytes, qrBill.language);
+    pdf.useDocumentFont();
 
     // Whichever page the QR-bill ended up on (fresh or shared with the
     // details' own tail) - its strict official layout has no room for a

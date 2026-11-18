@@ -22,6 +22,8 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install --omit=dev
 COPY --from=build /app/dist ./dist
+# The fonts documents can be printed in (src/pdf/core/pdf-fonts.ts reads them from /app/assets/fonts).
+COPY --from=build /app/assets ./assets
 USER node
 EXPOSE 3000
 CMD ["npm", "start"]

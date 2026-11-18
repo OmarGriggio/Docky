@@ -7,6 +7,7 @@ import { drawLogoTopRight, drawSectionDetails, placeHeaderImage } from "./letter
 import { formatAmount, formatIban, formatPercent, formatShortDate } from "./format";
 import { tint } from "./accent-color";
 import { PaymentScaleRow } from "./payment-scale";
+import { DocumentLayout } from "../../modules/companies/company.types";
 
 // The layout invoices and quotes share, modelled on the company's own Excel
 // invoices. Page 1: the client's number and the place/date on the left, the
@@ -38,6 +39,8 @@ export interface LetterDto {
         accentColor: PdfColor | null;
         // The second one - the titles (see drawLetterHead, drawLetterDetails).
         secondaryColor: PdfColor | null;
+        // Which layout draws it: this file's (CLASSIC) or modern-letter.ts's.
+        layout: DocumentLayout;
     };
     client: ClientDto & {
         // Both null for a recipient typed by hand (the "Non défini"
@@ -212,11 +215,7 @@ export const drawTotalsTable = (
         row(pdf, labels.discount, { rate: formatPercent(-letter.discount), deduction: letter.amountExclVat - subtotal, total: letter.amountExclVat });
     }
     if (hasVat) {
-        // "TVA N° CHE-123.456.789" - the number is usually stored with its
-        // own "TVA"/"MWST" suffix, which the label already says.
-        const vatNumber = letter.company.vatNumber?.replace(/\s+(TVA|MWST|IVA|VAT)$/i, "");
-        const vatLabel = vatNumber ? labels.vatWithNumber(vatNumber) : labels.vat;
-        row(pdf, vatLabel, { rate: formatPercent(letter.vatRate), total: letter.amountInclVat - letter.amountExclVat });
+        row(pdf, vatLabelOf(letter), { rate: formatPercent(letter.vatRate), total: letter.amountInclVat - letter.amountExclVat });
     }
 
     // The total owed, between two rules - in the accent color, on a band of
@@ -267,6 +266,13 @@ export const drawTotalsTable = (
         }
     }
     pdf.moveDown(10);
+};
+
+/** "TVA N° CHE-123.456.789" - the number is usually stored with its own "TVA"/"MWST" suffix, which the label already says. Just "TVA" without one. */
+export const vatLabelOf = (letter: LetterDto): string => {
+    const labels = PDF_LABELS[letter.language];
+    const vatNumber = letter.company.vatNumber?.replace(/\s+(TVA|MWST|IVA|VAT)$/i, "");
+    return vatNumber ? labels.vatWithNumber(vatNumber) : labels.vat;
 };
 
 /** The signature/closing text under the totals. */

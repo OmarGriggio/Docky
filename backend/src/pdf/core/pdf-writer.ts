@@ -1,9 +1,17 @@
 import { PDFDocument, PDFFont, PDFImage, PDFPage, StandardFonts, rgb } from "pdf-lib";
+import fontkit from "@pdf-lib/fontkit";
 import { PdfColor, PdfDocumentOptions, PdfTable, PdfTextOptions } from "./pdf-writer.types";
+import { PdfFontFamily, readFontFiles } from "./pdf-fonts";
+
+interface FontPair {
+    regular: PDFFont;
+    bold: PDFFont;
+}
 
 const DEFAULT_OPTIONS: Required<PdfDocumentOptions> = {
     margin: 50,
     pageSize: [595.28, 841.89], // A4
+    font: "HELVETICA",
 };
 
 const LINE_SPACING = 16;
@@ -35,12 +43,18 @@ export class PdfWriter {
     // default, higher when the bottom margin holds a footer (setBottomLimit).
     private bottomLimit: number;
 
+    // The fonts text is drawn in: the document's own (options.font), or
+    // Helvetica while useStandardFont() is on - the Swiss QR-bill's payment
+    // part must be printed in Helvetica/Arial/Frutiger/Liberation Sans.
+    private fonts: FontPair;
+
     private constructor(
         private readonly doc: PDFDocument,
-        private readonly regularFont: PDFFont,
-        private readonly boldFont: PDFFont,
+        private readonly documentFonts: FontPair,
+        private readonly standardFonts: FontPair,
         private readonly options: Required<PdfDocumentOptions>,
     ) {
+        this.fonts = documentFonts;
         this.page = doc.addPage(options.pageSize);
         this.cursorY = this.page.getHeight() - options.margin;
         this.allPages = [this.page];
@@ -53,11 +67,37 @@ export class PdfWriter {
     }
 
     static async create(options: PdfDocumentOptions = {}): Promise<PdfWriter> {
+        const resolved = { ...DEFAULT_OPTIONS, ...options };
         const doc = await PDFDocument.create();
-        const regularFont = await doc.embedFont(StandardFonts.Helvetica);
-        const boldFont = await doc.embedFont(StandardFonts.HelveticaBold);
+        const standardFonts = {
+            regular: await doc.embedFont(StandardFonts.Helvetica),
+            bold: await doc.embedFont(StandardFonts.HelveticaBold),
+        };
+        const documentFonts = await PdfWriter.embedFamily(doc, resolved.font) ?? standardFonts;
 
-        return new PdfWriter(doc, regularFont, boldFont, { ...DEFAULT_OPTIONS, ...options });
+        return new PdfWriter(doc, documentFonts, standardFonts, resolved);
+    }
+
+    private static async embedFamily(doc: PDFDocument, family: PdfFontFamily): Promise<FontPair | null> {
+        if (family === "HELVETICA") {
+            return null;
+        }
+        doc.registerFontkit(fontkit);
+        const files = await readFontFiles(family);
+        return {
+            regular: await doc.embedFont(files.regular, { subset: true }),
+            bold: await doc.embedFont(files.bold, { subset: true }),
+        };
+    }
+
+    /** Draws in Helvetica from now on, whatever the document's font - the Swiss QR-bill's page. */
+    useStandardFont() {
+        this.fonts = this.standardFonts;
+    }
+
+    /** Back to the document's own font. */
+    useDocumentFont() {
+        this.fonts = this.documentFonts;
     }
 
     title(text: string) {
@@ -70,7 +110,7 @@ export class PdfWriter {
         const indent = options.indent ?? 0;
         const marginBottom = options.marginBottom ?? 0;
         const marginTop = options.marginTop ?? 0;
-        const font = options.bold ? this.boldFont : this.regularFont;
+        const font = options.bold ? this.fonts.bold : this.fonts.regular;
         const color = options.color ?? { r: 0, g: 0, b: 0 };
         const maxWidth = this.page.getWidth() - this.options.margin * 2 - indent;
 
@@ -117,7 +157,7 @@ export class PdfWriter {
 
     /** `text` split into the lines text() would draw it on within `maxWidth` - for a block laid out by hand (drawTextAt), e.g. an address in a fixed column. */
     wrapLines(text: string, maxWidth: number, options: PdfTextOptions = {}): string[] {
-        const font = options.bold ? this.boldFont : this.regularFont;
+        const font = options.bold ? this.fonts.bold : this.fonts.regular;
         return text.replace(/\t/g, " ").replace(/\r\n?/g, "\n").split("\n")
             .flatMap(paragraph => this.wrapText(this.printable(paragraph, font), font, options.size ?? 11, maxWidth));
     }
@@ -166,11 +206,11 @@ export class PdfWriter {
 
         let x = this.options.margin;
         for (const column of table.columns) {
-            this.page.drawText(this.printable(column.title, this.boldFont), {
+            this.page.drawText(this.printable(column.title, this.fonts.bold), {
                 x,
                 y: this.cursorY,
                 size: 11,
-                font: this.boldFont,
+                font: this.fonts.bold,
                 color: rgb(0, 0, 0),
             });
             x += column.width;
@@ -185,11 +225,11 @@ export class PdfWriter {
             x = this.options.margin;
             for (const column of table.columns) {
                 const value = row[column.key];
-                this.page.drawText(this.printable(value == null ? "" : String(value), this.regularFont), {
+                this.page.drawText(this.printable(value == null ? "" : String(value), this.fonts.regular), {
                     x,
                     y: this.cursorY,
                     size: 11,
-                    font: this.regularFont,
+                    font: this.fonts.regular,
                     color: rgb(0, 0, 0),
                 });
                 x += column.width;
@@ -228,6 +268,11 @@ export class PdfWriter {
         this.page = current;
     }
 
+    /** How many pages there are so far - a template compares it before and after reserve() to know a page break happened (a table repeating its header). */
+    pageCount(): number {
+        return this.allPages.length;
+    }
+
     pageWidth(): number {
         return this.page.getWidth();
     }
@@ -253,7 +298,7 @@ export class PdfWriter {
     /** Draws text at an explicit position, bypassing the flowing text cursor. */
     drawTextAt(text: string, x: number, y: number, options: PdfTextOptions = {}) {
         const color = options.color ?? { r: 0, g: 0, b: 0 };
-        const font = options.bold ? this.boldFont : this.regularFont;
+        const font = options.bold ? this.fonts.bold : this.fonts.regular;
         this.page.drawText(this.printable(text, font), {
             x,
             y,
@@ -269,7 +314,7 @@ export class PdfWriter {
     }
 
     textWidth(text: string, options: PdfTextOptions = {}): number {
-        const font = options.bold ? this.boldFont : this.regularFont;
+        const font = options.bold ? this.fonts.bold : this.fonts.regular;
         return font.widthOfTextAtSize(this.printable(text, font), options.size ?? 11);
     }
 
@@ -288,7 +333,7 @@ export class PdfWriter {
     /** The height text() would take to write `text` with these options, its line wrapping and margins included. */
     textHeight(text: string, options: PdfTextOptions = {}): number {
         const size = options.size ?? 11;
-        const font = options.bold ? this.boldFont : this.regularFont;
+        const font = options.bold ? this.fonts.bold : this.fonts.regular;
         const maxWidth = this.page.getWidth() - this.options.margin * 2 - (options.indent ?? 0);
         const lines = text.replace(/\t/g, " ").replace(/\r\n?/g, "\n").split("\n")
             .reduce((count, paragraph) => count + this.wrapText(this.printable(paragraph, font), font, size, maxWidth).length, 0);
@@ -355,13 +400,13 @@ export class PdfWriter {
 
         numberedPages.forEach((page, index) => {
             const label = `Page ${index + 1}/${total}`;
-            const width = this.regularFont.widthOfTextAtSize(label, size);
+            const width = this.fonts.regular.widthOfTextAtSize(label, size);
 
             page.drawText(label, {
                 x: (page.getWidth() - width) / 2,
                 y: this.options.margin / 2 - size / 2,
                 size,
-                font: this.regularFont,
+                font: this.fonts.regular,
                 color: rgb(0.5, 0.5, 0.5),
             });
         });

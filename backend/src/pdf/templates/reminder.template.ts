@@ -2,6 +2,7 @@ import { PdfWriter } from "../core/pdf-writer";
 import { ReminderDto } from "./reminder.types";
 import { PDF_LABELS } from "./pdf-labels";
 import { drawLetterHead } from "./business-letter";
+import { drawModernHead } from "./modern-letter";
 
 // Page 1 of a payment reminder: the invoice's own letterhead (business-
 // letter.ts - header image or company name, logo, address, place/date, the
@@ -15,7 +16,9 @@ export class ReminderTemplate {
         const { letter } = reminder;
         const labels = PDF_LABELS[letter.language];
 
-        await drawLetterHead(pdf, letter, {
+        // The company's layout's own letterhead (business-letter.ts or modern-letter.ts).
+        const draw = letter.company.layout === "MODERN" ? drawModernHead : drawLetterHead;
+        await draw(pdf, letter, {
             title: `${labels.reminderTitle.toUpperCase()} ${letter.number}`,
             logoBytes,
             hasHeaderImage,

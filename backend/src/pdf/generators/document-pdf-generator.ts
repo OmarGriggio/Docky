@@ -1,5 +1,6 @@
 import { buffer } from "stream/consumers";
 import { PdfWriter } from "../core/pdf-writer";
+import { isFontFamily } from "../core/pdf-fonts";
 import { getDocumentCompleteServ } from "../../modules/documents/document_complete.service";
 import { DocumentComplete } from "../../modules/documents/document_complete.types";
 import { getClientByIdServ } from "../../modules/clients/client.service";
@@ -37,7 +38,8 @@ export abstract class DocumentPdfGenerator<TPrepared> {
         const source = await this.load(documentId, company_id);
         const prepared = await this.prepare(source);
 
-        const pdf = await PdfWriter.create();
+        // In the company's own font (pdf-fonts.ts) - Helvetica when unknown.
+        const pdf = await PdfWriter.create({ font: isFontFamily(source.company.document_font) ? source.company.document_font : "HELVETICA" });
         await this.render(pdf, prepared);
 
         // Only once everything is drawn: the total isn't known before then.

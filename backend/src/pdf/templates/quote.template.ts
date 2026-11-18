@@ -2,6 +2,7 @@ import { PdfWriter } from "../core/pdf-writer";
 import { QuoteDto } from "./quote.types";
 import { formatLongDate, PDF_LABELS } from "./pdf-labels";
 import { drawConditionsBlock, drawConclusion, drawLetterDetails, drawLetterHead, drawPositions, drawTotalsTable } from "./business-letter";
+import { drawModernHead, drawModernItems, drawModernTotals } from "./modern-letter";
 
 // The shared invoice/quote layout (business-letter.ts), titled "OFFRE" -
 // what's a quote's own: no early payment discount (nothing to pay yet), the
@@ -13,13 +14,17 @@ export class QuoteTemplate {
     static async renderRecap(pdf: PdfWriter, quote: QuoteDto, logoBytes: Buffer | null, hasHeaderImage: boolean) {
         const labels = PDF_LABELS[quote.language];
 
-        await drawLetterHead(pdf, quote, {
-            title: `${labels.quote.toUpperCase()} N° ${quote.number}`,
-            logoBytes,
-            hasHeaderImage,
-        });
-        drawPositions(pdf, quote);
-        drawTotalsTable(pdf, quote);
+        const title = `${labels.quote.toUpperCase()} N° ${quote.number}`;
+        if (quote.company.layout === "MODERN") {
+            // Every line right here (modern-letter.ts) - no details page.
+            await drawModernHead(pdf, quote, { title, logoBytes, hasHeaderImage });
+            drawModernItems(pdf, quote);
+            drawModernTotals(pdf, quote);
+        } else {
+            await drawLetterHead(pdf, quote, { title, logoBytes, hasHeaderImage });
+            drawPositions(pdf, quote);
+            drawTotalsTable(pdf, quote);
+        }
         drawConclusion(pdf, quote);
         this.drawApproval(pdf, quote);
 

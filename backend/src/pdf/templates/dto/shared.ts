@@ -86,6 +86,7 @@ export const buildLetterDto = (
             bankAccount: company.bank_account,
             accentColor: parseHexColor(company.accent_color),
             secondaryColor: parseHexColor(company.secondary_color),
+            layout: company.document_layout === "MODERN" ? "MODERN" : "CLASSIC",
         },
         client: {
             ...buildClientDto(client, document),

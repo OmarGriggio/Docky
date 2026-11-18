@@ -32,8 +32,11 @@ export class QuotePdfGenerator extends DocumentPdfGenerator<PreparedQuote> {
 
         await QuoteTemplate.renderRecap(pdf, quote, logoBytes, headerImage !== null);
 
-        pdf.newPage();
-        QuoteTemplate.renderDetails(pdf, quote);
+        // The modern layout has every line on page 1 already.
+        if (quote.company.layout === "CLASSIC") {
+            pdf.newPage();
+            QuoteTemplate.renderDetails(pdf, quote);
+        }
 
         drawLetterFooters(pdf, quote);
     }

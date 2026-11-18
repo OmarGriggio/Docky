@@ -2,6 +2,8 @@ import { PdfWriter } from "../core/pdf-writer";
 import { InvoiceDto } from "./invoice.types";
 import { formatLongDate, PDF_LABELS } from "./pdf-labels";
 import { drawConditionsBlock, drawConclusion, drawLetterDetails, drawLetterHead, drawPositions, drawTotalsTable } from "./business-letter";
+import { drawModernHead, drawModernItems, drawModernTotals } from "./modern-letter";
+import { formatShortDate } from "./format";
 
 // The shared invoice/quote layout (business-letter.ts), with what's an
 // invoice's own: its Lieu/Bâtiment under the reference, the early payment
@@ -13,14 +15,30 @@ export class InvoiceTemplate {
     static async renderRecap(pdf: PdfWriter, invoice: InvoiceDto, logoBytes: Buffer | null, hasHeaderImage: boolean) {
         const labels = PDF_LABELS[invoice.language];
 
-        await drawLetterHead(pdf, invoice, {
-            title: `${(invoice.invoiceKind === "DEPOSIT" ? labels.depositInvoice : invoice.deductions?.length ? labels.finalInvoice : labels.invoice).toUpperCase()} N° ${invoice.number}`,
-            logoBytes,
-            hasHeaderImage,
-            extraReferenceLines: invoice.location ? [`${labels.location} : ${invoice.location}`] : [],
-        });
-        drawPositions(pdf, invoice);
-        drawTotalsTable(pdf, invoice, invoice.earlyPayment);
+        const title = `${(invoice.invoiceKind === "DEPOSIT" ? labels.depositInvoice : invoice.deductions?.length ? labels.finalInvoice : labels.invoice).toUpperCase()} N° ${invoice.number}`;
+        if (invoice.company.layout === "MODERN") {
+            // Every line right here (modern-letter.ts) - no details page.
+            await drawModernHead(pdf, invoice, {
+                title,
+                logoBytes,
+                hasHeaderImage,
+                info: [
+                    ...(invoice.dueDate ? [{ label: labels.dueDate, value: formatShortDate(invoice.dueDate) }] : []),
+                    ...(invoice.location ? [{ label: labels.location, value: invoice.location }] : []),
+                ],
+            });
+            drawModernItems(pdf, invoice);
+            drawModernTotals(pdf, invoice, invoice.earlyPayment);
+        } else {
+            await drawLetterHead(pdf, invoice, {
+                title,
+                logoBytes,
+                hasHeaderImage,
+                extraReferenceLines: invoice.location ? [`${labels.location} : ${invoice.location}`] : [],
+            });
+            drawPositions(pdf, invoice);
+            drawTotalsTable(pdf, invoice, invoice.earlyPayment);
+        }
         drawConclusion(pdf, invoice);
 
         const conditions: string[] = [];

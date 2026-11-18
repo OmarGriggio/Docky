@@ -37,8 +37,9 @@ export class InvoicePdfGenerator extends DocumentPdfGenerator<PreparedInvoice> {
 
         await InvoiceTemplate.renderRecap(pdf, invoice, logoBytes, headerImage !== null);
 
-        // A deposit is one line, already on page 1 - no details page for it.
-        if (invoice.invoiceKind !== "DEPOSIT") {
+        // A deposit is one line, already on page 1 - no details page for it,
+        // nor in the modern layout, which has every line on page 1.
+        if (invoice.invoiceKind !== "DEPOSIT" && invoice.company.layout === "CLASSIC") {
             pdf.newPage();
             InvoiceTemplate.renderDetails(pdf, invoice);
         }
