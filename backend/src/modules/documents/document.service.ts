@@ -509,12 +509,13 @@ const changeDocumentStatus = async (id: number, company_id: number, status: Docu
 
 // Turns an accepted quote into a chantier: creates a brand new PROJECT
 // document (always new, never an existing one - see zz_docs/Decisions.md),
-// copies the quote's own sections/resource-backed lines into it 1:1 (that
-// document's sections/lines become the project's resource ledger), and a
-// projects row on top of it holding the chantier's own identity/lifecycle.
-// A hand-typed line (no resource_id) contributes nothing - there's no
-// catalog resource to attach it to; a section left with none of those is
-// skipped entirely rather than created empty.
+// copies the quote's own sections and lines into it 1:1 (that document's
+// sections/lines become the project's resource ledger), and a projects row
+// on top of it holding the chantier's own identity/lifecycle. Every line,
+// typed by hand ones included (the ledger takes them too) - the final
+// invoice is built from the ledger, a line left out would be left out of it.
+// Not a line's discount: the ledger has none. A section without any line is
+// skipped rather than created empty.
 //
 // All in one transaction, the quote's own status flipped first (see
 // acceptDocumentInDB): a failure halfway leaves nothing behind (no orphan
@@ -581,8 +582,8 @@ const acceptQuoteInTransaction = async (id: number, company_id: number) => {
   const lines = await getLinesByDocumentIdFromDB(id);
 
   for (const section of sections) {
-    const resourceLines = lines.filter(line => line.section_id === section.id && line.resource_id !== null);
-    if (resourceLines.length === 0) {
+    const sectionLines = lines.filter(line => line.section_id === section.id);
+    if (sectionLines.length === 0) {
       continue;
     }
 
@@ -598,7 +599,7 @@ const acceptQuoteInTransaction = async (id: number, company_id: number) => {
       is_active: true,
     });
 
-    for (const line of resourceLines) {
+    for (const line of sectionLines) {
       await createLineInDB({
         company_id,
         document_id: projectDocument.id,

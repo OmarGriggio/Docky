@@ -17,7 +17,7 @@ describe("accepting a quote", () => {
 
   const accept = (quoteId: number) => api().post(`/document/${quoteId}/accept`).set(auth(token));
 
-  it("creates a chantier holding only the quote's catalog lines", async () => {
+  it("creates a chantier holding every line of the quote, typed by hand ones included", async () => {
     const quote = await createDocument(token, "QUOTE", clientId);
     await saveContent(token, quote.id, [
       sectionOf("Cloisons", [
@@ -25,6 +25,7 @@ describe("accepting a quote", () => {
         { label: "Typed by hand", unit_price: 99 },
       ]),
       sectionOf("Only typed lines", [{ label: "Typed by hand too", unit_price: 50 }]),
+      sectionOf("No line", []),
     ]).expect(200);
 
     const accepted = await accept(quote.id).expect(200);
@@ -38,10 +39,16 @@ describe("accepting a quote", () => {
 
     const ledger = await getDocumentComplete(token, projects[0].document_id);
     expect(ledger.type).toBe("PROJECT");
-    expect(ledger.sections.map((section: { title: string }) => section.title)).toEqual(["Cloisons"]);
-    expect(ledger.lines).toHaveLength(1);
-    expect(ledger.lines[0]).toMatchObject({ label: "Plaque", quantity: 4, unit_price: 20, resource_id: resourceId });
-    expect(ledger.amount_excl_vat).toBe(80);
+    // The final invoice is built from this ledger: a line left out would be
+    // left out of it. A section without any line isn't created.
+    expect(ledger.sections.map((section: { title: string }) => section.title)).toEqual(["Cloisons", "Only typed lines"]);
+    expect(ledger.lines).toHaveLength(3);
+    expect(ledger.lines).toEqual(expect.arrayContaining([
+      expect.objectContaining({ label: "Plaque", quantity: 4, unit_price: 20, resource_id: resourceId }),
+      expect.objectContaining({ label: "Typed by hand", unit_price: 99, resource_id: null }),
+      expect.objectContaining({ label: "Typed by hand too", unit_price: 50, resource_id: null }),
+    ]));
+    expect(ledger.amount_excl_vat).toBe(80 + 99 + 50);
   });
 
   it("freezes the accepted quote: no second accept, no edit, no status change", async () => {
