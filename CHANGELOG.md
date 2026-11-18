@@ -2,10 +2,28 @@
 
 Every release of Docky, newest first. One version for the whole app (backend and frontend ship together from `main`), numbered `MAJOR.MINOR.PATCH` - see CLAUDE.md's Workflow for when each part goes up and how a release is made. Each release is tagged `vX.Y.Z` on `main`.
 
-## [1.2.3] - 2026-11-13
+## [1.3.0] - 2026-11-18
 
 ### Added
 - Invoices' QR-bills carry a payment reference built from the invoice number, so a payment can be matched to its invoice: a creditor reference ("RF...") by default, a QR reference with a QR-IBAN, or none - set on the company's profile. An invoice keeps the reference it was sent with.
+- A document's status can be changed from its own page: the status bar's next step is a button, plus "Refuser l'offre" / "Annuler la facture".
+- Guided tours of the calendar ("Comment planifier ?") and of the quote/invoice form ("Comment remplir ?"): the page dimmed but the part being explained, step by step - started by themselves on a first visit, then from their "?" icon.
+- A chantier's resources can have lines typed by hand, without the catalog.
+- A chantier can be closed from its own page.
+- The company's logo and header image can be removed from the profile.
+- Every variable in a document's text has an English name too (`{{amount}}` = `{{montant}}`...), and the app lists them in the user's language.
+
+### Changed
+- Accepting a quote opens the chantier it creates.
+- Quotes and invoices are listed newest first.
+- The payment reminder is laid out like the invoices: header image, colors and footer.
+- A new quote or invoice starts with one section.
+- The calendar's buttons are outlined, only "+ Note" stays solid green, and the sections to plan stand out as blue cards.
+- A resource's reference is for materials only.
+- The QR-bill slip page is centered, and the profile shows the logo and header image side by side, then the two colors.
+
+### Fixed
+- The "NPA et ville" field is as wide as the fields around it.
 
 ## [1.2.2] - 2026-11-13
 
