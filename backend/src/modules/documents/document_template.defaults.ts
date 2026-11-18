@@ -14,8 +14,8 @@ export const DEFAULT_REMINDER_TEXT =
 // language is EN (see reminder-pdf-generator.ts), when the company hasn't
 // written its own.
 export const DEFAULT_REMINDER_TEXT_EN =
-    "According to our records, invoice No. {{numero_facture}} dated {{date_facture}}, " +
-    "for an amount of {{montant}}, which fell due on {{date_echeance}}, remains unpaid to date.\n\n" +
+    "According to our records, invoice No. {{invoice_number}} dated {{invoice_date}}, " +
+    "for an amount of {{amount}}, which fell due on {{due_date}}, remains unpaid to date.\n\n" +
     "We kindly ask you to settle it at your earliest convenience, " +
     "using the payment slip on page 2.\n\n" +
     "If your payment has been made in the meantime, please disregard this reminder.\n\n" +

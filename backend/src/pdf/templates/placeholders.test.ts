@@ -25,6 +25,15 @@ describe("fillPlaceholders", () => {
             .toBe("{{numero_factur}} {{entreprise}} {{CLIENT}}");
     });
 
+    it("fills a placeholder by its English name too", () => {
+        expect(fillPlaceholders("{{invoice_number}} - {{ amount }} / {{montant}}", values))
+            .toBe("FAC-2026-0002 - 865.00 CHF / 865.00 CHF");
+    });
+
+    it("leaves an English name whose value isn't given as typed", () => {
+        expect(fillPlaceholders("{{due_date}} {{days_overdue}}", values)).toBe("{{due_date}} {{days_overdue}}");
+    });
+
     it("never resolves a name that is only inherited", () => {
         expect(fillPlaceholders("{{constructor}} {{to_string}}", values)).toBe("{{constructor}} {{to_string}}");
     });
