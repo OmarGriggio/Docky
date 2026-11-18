@@ -28,7 +28,7 @@ import { PostalCode, searchPostalCodes } from '../../utils/postal-code-search';
       [size]="size()"
       [invalid]="invalid()"
       [disabled]="disabled()"
-      [fluid]="true"
+      [fluid]="fluid()"
       appendTo="body"
     />
   `,
@@ -42,6 +42,9 @@ export class PostalCodeCity implements ControlValueAccessor, OnInit {
   invalid = input(false);
   size = input<'small' | 'large' | undefined>(undefined);
   maxlength = input<number | undefined>(undefined);
+  // The width of what's around it: natural in a two-column .ui-form like its
+  // other fields, the whole cell or column where they fill theirs.
+  fluid = input(false);
 
   value = signal('');
   disabled = signal(false);

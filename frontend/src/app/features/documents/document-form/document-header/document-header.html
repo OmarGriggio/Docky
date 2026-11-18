@@ -73,7 +73,7 @@
         <label for="recipient_street">{{ 'documents.header.recipientStreet' | transloco }}</label>
       </p-floatlabel>
       <p-floatlabel variant="on" class="w-full">
-        <app-postal-code-city inputId="recipient_postal_code_city" size="small" [maxlength]="52" [invalid]="showRequired() && !postalCodeCityPattern.test(recipientPostalCodeCity())" [ngModel]="recipientPostalCodeCity()" (ngModelChange)="recipientPostalCodeCity.set($event)" [disabled]="locked()" />
+        <app-postal-code-city inputId="recipient_postal_code_city" size="small" [fluid]="true" [maxlength]="52" [invalid]="showRequired() && !postalCodeCityPattern.test(recipientPostalCodeCity())" [ngModel]="recipientPostalCodeCity()" (ngModelChange)="recipientPostalCodeCity.set($event)" [disabled]="locked()" />
         <label for="recipient_postal_code_city">{{ 'documents.header.recipientPostalCodeCity' | transloco }} *</label>
       </p-floatlabel>
     } @else {

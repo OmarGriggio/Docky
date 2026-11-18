@@ -109,7 +109,7 @@
           <td>
             <p-cellEditor>
               <ng-template #input>
-                <app-postal-code-city [(ngModel)]="postalCodeCityDrafts[address.id]" />
+                <app-postal-code-city [(ngModel)]="postalCodeCityDrafts[address.id]" [fluid]="true" />
               </ng-template>
               <ng-template #output>
                 {{ address.postal_code }} {{ address.city }}

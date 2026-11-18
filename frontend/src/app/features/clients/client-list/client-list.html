@@ -150,7 +150,7 @@
         <td>
           <p-cellEditor>
             <ng-template #input>
-              <app-postal-code-city [(ngModel)]="postalCodeCityDrafts[client.id]" />
+              <app-postal-code-city [(ngModel)]="postalCodeCityDrafts[client.id]" [fluid]="true" />
             </ng-template>
             <ng-template #output>
               {{ client.address_postal_code }} {{ client.address_city }}
