@@ -54,6 +54,15 @@ describe("payment references", () => {
     await settings({ payment_reference_type: "SCOR" }).expect(200);
   });
 
+  it("gives none to an invoice sent without one when it's paid or cancelled later", async () => {
+    await settings({ payment_reference_type: "NONE" }).expect(200);
+    const paid = await sentInvoice();
+    const cancelled = await sentInvoice();
+    await settings({ payment_reference_type: "SCOR" }).expect(200);
+    expect((await setStatus(paid.id, "PAID").expect(200)).body.payment_reference).toBeNull();
+    expect((await setStatus(cancelled.id, "CANCELLED").expect(200)).body.payment_reference).toBeNull();
+  });
+
   it("gives a quote none", async () => {
     const quote = await createDocument(token, "QUOTE", clientId);
     expect((await setStatus(quote.id, "SENT").expect(200)).body.payment_reference).toBeNull();

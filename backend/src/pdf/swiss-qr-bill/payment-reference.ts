@@ -52,7 +52,9 @@ export const qrReferenceCheckDigit = (digits: string): number => {
 };
 
 // A QR reference from any digits (26 at most): zero-padded on the left,
-// then its check digit.
+// then its check digit. Its throw (like buildCreditorReference's) is an
+// invariant, never a request's mistake: a plain Error on purpose, so error
+// tracking records it - an AppError wouldn't be.
 export const buildQrReference = (digits: string): string => {
     if (!/^\d{1,26}$/.test(digits)) {
         throw new Error("A QR reference is built from 1 to 26 digits");
@@ -108,7 +110,7 @@ export const referenceForDocumentNumber = (number: string, type: PaymentReferenc
         return { type, value: buildQrReference(number.replace(/\D/g, "").slice(-26) || "0") };
     }
     if (type === "SCOR") {
-        return { type, value: buildCreditorReference(compact(number).replace(/[^0-9A-Z]/g, "").slice(-21)) };
+        return { type, value: buildCreditorReference(compact(number).replace(/[^0-9A-Z]/g, "").slice(-21) || "0") };
     }
     return NO_REFERENCE;
 };

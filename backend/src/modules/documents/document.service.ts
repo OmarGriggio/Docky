@@ -486,8 +486,10 @@ const changeDocumentStatus = async (id: number, company_id: number, status: Docu
   const billedAddress = status === "DRAFT" || document.billed_address ? null : await currentBilledAddress(document, company_id);
   // An invoice leaving DRAFT freezes its QR-bill reference, as the company's
   // settings give it now - the one the client pays with, whatever the
-  // company changes later.
-  const paymentReference = document.type === "INVOICE" && status !== "DRAFT" && !document.payment_reference
+  // company changes later. Only then: one already sent without a reference
+  // (before references existed, or with none chosen) keeps none when it's
+  // paid or cancelled - its client never saw one.
+  const paymentReference = document.type === "INVOICE" && document.status === "DRAFT" && status !== "DRAFT" && !document.payment_reference
     ? paymentReferenceFor(await getCompanyByIdFromDB(company_id), document.number).value || null
     : null;
   const updated = await updateDocumentStatusInDB(id, company_id, status, billedAddress, paymentReference);
