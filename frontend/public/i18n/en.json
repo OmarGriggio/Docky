@@ -455,7 +455,13 @@
       "finalInvoice": "Final invoice",
       "lessDeposit": "Less deposit {{number}}",
       "amountDue": "Balance due",
-      "creditBalance": "Balance in the client's favour"
+      "creditBalance": "Balance in the client's favour",
+      "saveBeforeStatus": "Save the document before changing its status.",
+      "statusConfirmTitle": "Change the status",
+      "statusConfirm": "Move this document to “{{status}}”? This can't be undone.",
+      "cancelInvoice": "Cancel invoice",
+      "rejectQuote": "Reject quote",
+      "moveTo": "Move to “{{status}}”"
     },
     "pdfError": "Couldn't generate the PDF.",
     "kind": {

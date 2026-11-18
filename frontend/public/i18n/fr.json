@@ -455,7 +455,13 @@
       "finalInvoice": "Facture finale",
       "lessDeposit": "./. Acompte {{number}}",
       "amountDue": "Solde à payer",
-      "creditBalance": "Solde en faveur du client"
+      "creditBalance": "Solde en faveur du client",
+      "saveBeforeStatus": "Enregistre d'abord le document avant de changer son statut.",
+      "statusConfirmTitle": "Changer le statut",
+      "statusConfirm": "Passer ce document au statut « {{status}} » ? Ce changement ne pourra pas être annulé.",
+      "cancelInvoice": "Annuler la facture",
+      "rejectQuote": "Refuser l'offre",
+      "moveTo": "Passer à « {{status}} »"
     },
     "pdfError": "Impossible de générer le PDF.",
     "kind": {

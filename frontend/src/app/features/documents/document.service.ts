@@ -63,8 +63,9 @@ export class DocumentService {
 
   // Turns an accepted quote into a chantier - see document.service.ts on
   // the backend (acceptQuoteServ) for what this actually does server-side.
+  // Answers the accepted quote with the new chantier's id.
   acceptQuote(id: number) {
-    return this.http.post<Document>(`${API_BASE}/document/${id}/accept`, {});
+    return this.http.post<Document & { project_id: number }>(`${API_BASE}/document/${id}/accept`, {});
   }
 
   // A plain DRAFT<->SENT toggle - every other status has its own dedicated

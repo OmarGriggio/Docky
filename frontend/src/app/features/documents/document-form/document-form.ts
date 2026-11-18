@@ -332,11 +332,11 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
   // Set by submit() when it navigates here right after creating the
   // document - read from the navigation itself (not history.state, which
   // would survive a reload and show the message again).
-  private readonly justCreated = this.router.currentNavigation()?.extras.state?.['saved'] === true;
+  private justCreated = this.router.currentNavigation()?.extras.state?.['saved'] === true;
 
   // The document's own status - DRAFT for a new one, the saved one when
-  // editing (loadForEdit). Only shown here (the status bar in the toolbar,
-  // see statusSteps); it's changed from the documents list, not this page.
+  // editing (loadForEdit). Shown and changed from the status bar in the
+  // toolbar (statusSteps, requestStatus), or from the documents list.
   status = signal<DocumentStatus>('DRAFT');
 
   // Unsaved work (see unsavedChangesGuard, in app.routes.ts): everything a
@@ -392,6 +392,87 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
       return ['DRAFT', 'SENT', current === 'CANCELLED' ? 'CANCELLED' : 'PAID'];
     }
     return ['DRAFT', 'SENT', current === 'REJECTED' ? 'REJECTED' : 'ACCEPTED'];
+  }
+
+  // Where a saved document can go from its current status - the backend's
+  // SETTABLE_STATUSES, plus ACCEPTED for a quote (its own accept flow). The
+  // status bar's steps among them are buttons; REJECTED/CANCELLED, off the
+  // bar while the document is open, get one of their own.
+  nextStatuses(): DocumentStatus[] {
+    if (this.editingDocumentId() === null) {
+      return [];
+    }
+    const current = this.status();
+    if (this.type() === 'INVOICE') {
+      return current === 'DRAFT' ? ['SENT', 'PAID', 'CANCELLED'] : current === 'SENT' ? ['PAID', 'CANCELLED'] : [];
+    }
+    return current === 'DRAFT' ? ['SENT', 'ACCEPTED', 'REJECTED'] : current === 'SENT' ? ['DRAFT', 'ACCEPTED', 'REJECTED'] : [];
+  }
+
+  // The way out that isn't on the status bar: refusing a quote, cancelling
+  // an invoice.
+  closingStatus(): DocumentStatus | null {
+    const closing: DocumentStatus = this.type() === 'INVOICE' ? 'CANCELLED' : 'REJECTED';
+    return this.nextStatuses().includes(closing) ? closing : null;
+  }
+
+  // The status being confirmed (statusConfirm dialog) - every change but a
+  // quote's DRAFT <-> SENT, which undoes itself.
+  pendingStatus = signal<DocumentStatus | null>(null);
+  statusConfirmVisible = signal(false);
+
+  requestStatus(status: DocumentStatus): void {
+    // A status change can freeze the document (a sent invoice) - whatever
+    // isn't saved yet would be lost.
+    if (this.hasUnsavedChanges()) {
+      this.notifications.warn('documents.form.saveBeforeStatus');
+      return;
+    }
+    if (this.type() === 'QUOTE' && (status === 'DRAFT' || status === 'SENT')) {
+      this.applyStatus(status);
+      return;
+    }
+    this.pendingStatus.set(status);
+    this.statusConfirmVisible.set(true);
+  }
+
+  statusConfirmMessage(): string {
+    const status = this.pendingStatus();
+    if (!status) {
+      return '';
+    }
+    return status === 'ACCEPTED'
+      ? this.transloco.translate('documents.acceptMessage')
+      : this.transloco.translate('documents.form.statusConfirm', { status: this.transloco.translate(`documents.status.${status}`) });
+  }
+
+  onStatusConfirmed(): void {
+    const status = this.pendingStatus();
+    this.pendingStatus.set(null);
+    if (status) {
+      this.applyStatus(status);
+    }
+  }
+
+  private applyStatus(status: DocumentStatus): void {
+    const id = this.editingDocumentId();
+    if (id === null) {
+      return;
+    }
+    if (status === 'ACCEPTED') {
+      // Straight to the chantier it created, like from the documents list.
+      this.documentService.acceptQuote(id).subscribe({
+        next: accepted => this.router.navigate(['/projects', accepted.project_id]),
+        error: err => this.notifications.error('document-form', err)
+      });
+      return;
+    }
+    this.documentService.updateStatus(id, status).subscribe({
+      // Reloaded whole: leaving DRAFT locks the page, freezes the address
+      // it's sent to and a final invoice's deductions.
+      next: () => this.loadForEdit(id),
+      error: err => this.notifications.error('document-form', err)
+    });
   }
 
   documentSubtotal = computed(() =>
@@ -668,6 +749,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
     // Just created by this same form (see submit()) - say so.
     if (this.justCreated) {
       this.saveMessage.set(this.transloco.translate('documents.form.saved'));
+      this.justCreated = false;
     }
 
     this.documentCompleteService.getDocumentComplete(id).subscribe({

@@ -41,16 +41,33 @@
         }
       </div>
 
-      <div class="flex text-xs font-medium" role="list" [attr.aria-label]="'projects.columnStatus' | transloco">
-        @for (step of statusSteps(); track step; let first = $first) {
-          <span
-            role="listitem"
-            [attr.aria-current]="step === status() ? 'step' : null"
-            class="py-1.5 pr-4"
-            [class]="(first ? 'pl-3 [clip-path:polygon(0_0,calc(100%_-_8px)_0,100%_50%,calc(100%_-_8px)_100%,0_100%)]' : '-ml-1 pl-5 [clip-path:polygon(0_0,calc(100%_-_8px)_0,100%_50%,calc(100%_-_8px)_100%,0_100%,8px_50%)]')
-              + (step === status() ? ' bg-green-700 text-white' : ' bg-gray-100 text-gray-500')"
-          >{{ 'documents.status.' + step | transloco }}</span>
+      <div class="flex flex-wrap items-center gap-3">
+        @if (closingStatus(); as closing) {
+          <p-button
+            size="small"
+            type="button"
+            severity="danger"
+            [text]="true"
+            [label]="(closing === 'CANCELLED' ? 'documents.form.cancelInvoice' : 'documents.form.rejectQuote') | transloco"
+            (onClick)="requestStatus(closing)"
+          />
         }
+        <div class="flex text-xs font-medium" role="list" [attr.aria-label]="'projects.columnStatus' | transloco">
+          @for (step of statusSteps(); track step; let first = $first) {
+            <!-- A step the document can move to is a button. -->
+            <button
+              type="button"
+              role="listitem"
+              [disabled]="!nextStatuses().includes(step)"
+              [attr.aria-current]="step === status() ? 'step' : null"
+              [attr.title]="nextStatuses().includes(step) ? ('documents.form.moveTo' | transloco: { status: ('documents.status.' + step | transloco) }) : null"
+              (click)="requestStatus(step)"
+              class="py-1.5 pr-4 border-0"
+              [class]="(first ? 'pl-3 [clip-path:polygon(0_0,calc(100%_-_8px)_0,100%_50%,calc(100%_-_8px)_100%,0_100%)]' : '-ml-1 pl-5 [clip-path:polygon(0_0,calc(100%_-_8px)_0,100%_50%,calc(100%_-_8px)_100%,0_100%,8px_50%)]')
+                + (step === status() ? ' bg-green-700 text-white' : nextStatuses().includes(step) ? ' bg-gray-100 text-gray-700 cursor-pointer hover:bg-green-100 hover:text-green-800' : ' bg-gray-100 text-gray-500')"
+            >{{ 'documents.status.' + step | transloco }}</button>
+          }
+        </div>
       </div>
     </div>
 
@@ -204,6 +221,16 @@
       />
     </div>
   </p-dialog>
+
+  <!-- A status change from the status bar (requestStatus). -->
+  <app-confirm-dialog
+    [(visible)]="statusConfirmVisible"
+    [title]="(pendingStatus() === 'ACCEPTED' ? 'documents.acceptTitle' : 'documents.form.statusConfirmTitle') | transloco"
+    [message]="statusConfirmMessage()"
+    [confirmLabel]="(pendingStatus() === 'ACCEPTED' ? 'documents.acceptConfirmLabel' : 'common.confirm') | transloco"
+    (confirmed)="onStatusConfirmed()"
+    (cancelled)="pendingStatus.set(null)"
+  />
 
   <!-- Leaving with unsaved work (unsavedChangesGuard, LeaveConfirmation). -->
   <app-confirm-dialog

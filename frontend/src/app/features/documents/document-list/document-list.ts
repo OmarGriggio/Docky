@@ -361,8 +361,9 @@ export class DocumentListComponent implements OnInit {
     }
     this.documentPendingAccept = null;
 
+    // Straight to the chantier it created - planning it is what comes next.
     this.documentService.acceptQuote(document.id).subscribe({
-      next: () => this.loadDocuments(),
+      next: accepted => this.router.navigate(['/projects', accepted.project_id]),
       error: err => {
         this.notifications.error('document-list', err);
         document.status = this.statusBeforeEdit;
