@@ -14,6 +14,11 @@ Written 2026-11-13 (version 1.2.3), from an honest review of what Docky lacks to
   - [ ] **Forgot password** - today a customer who forgets it is stuck until someone edits the database.
   - [ ] Email verification on registration.
   - [ ] Sending quotes, invoices and reminders from the app, PDF attached (was already on the roadmap).
+- [ ] **Configurable modules** (decided 2026-11-18 - until then, only documents had settings: colors, template, font, texts). The three worth the most, in this order:
+  - [x] **Document numbering** - the company's own format and the number it continues from, so a company moving to Docky keeps its series (Paramètres > Numérotation - on `develop`, next release).
+  - [ ] **Reminder levels** - 1st, 2nd reminder and formal notice, each with its delay after the due date, its own text and optional fees; the dashboard lists the invoices to remind. Cash collection is a small company's real problem. *(Moved up from phase 2.)*
+  - [ ] **Permissions by role** - what an employee (USER) may see and do per module, e.g. the calendar and job sites without prices or invoicing; today a USER sees every amount, so an owner won't give Docky to their workers.
+  - Later: job site types per company (a known gap - `project_types` is global), several VAT rates, the calendar's working hours.
 - [ ] **A company admin manages its own users** - adding, deactivating, resetting employees is `PLATFORM_ADMIN`-only today (see CLAUDE.md's Roles); a customer can't do it themselves.
 - [ ] **Credit notes ("notes de crédit")** - only cancelling exists; a discount granted afterwards or a partial refund needs one.
 - [ ] **Export for the accountant ("fiduciaire")** - invoices, payments (and credit notes) over a period, as CSV/Excel at least; ideally a format Bexio/Abacus/Banana import. Often the deciding point for a Swiss SME.
@@ -34,7 +39,6 @@ Written 2026-11-13 (version 1.2.3), from an honest review of what Docky lacks to
 
 - [ ] **Company 1 runs on Docky for real** for 2-3 months - the best test there is; note every friction.
 - [ ] **Payment matching from a bank file** - import a camt.054/camt.053, match payments by their reference (in place since 1.2.3), propose a match for those without one, mark invoices paid once confirmed. Needs a real, anonymized camt file from a bank.
-- [ ] **Reminder levels** - 1st, 2nd, 3rd reminder, fees, default interest; one reminder only today.
 - [ ] **QR reference with a bank customer id (BESR-ID)** - some banks require one at the start of a QR reference with a QR-IBAN; a field to add if a pilot's bank does.
 - [ ] **Deposits' ergonomics** - to be reworked (noted when they shipped in 1.2.0).
 - [ ] **2-3 pilot companies** in French-speaking Switzerland, at a reduced price in exchange for feedback.

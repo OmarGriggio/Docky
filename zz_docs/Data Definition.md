@@ -1,6 +1,6 @@
 # Data Definition
 
-The entities Docky stores, their fields and how they relate. Mirrors the actual schema - [zz_migrations/000_base.sql](../zz_migrations/000_base.sql) plus the numbered migrations after it - described here in business terms. Updated 2026-11-13. Rewritten 2026-10-22: the original version described the first draft of the model (suppliers, material prices, employee categories, a separate invoice table), most of which was later dropped or merged - see [Decisions.md](Decisions.md).
+The entities Docky stores, their fields and how they relate. Mirrors the actual schema - [zz_migrations/000_base.sql](../zz_migrations/000_base.sql) plus the numbered migrations after it - described here in business terms. Updated 2026-11-18. Rewritten 2026-10-22: the original version described the first draft of the model (suppliers, material prices, employee categories, a separate invoice table), most of which was later dropped or merged - see [Decisions.md](Decisions.md).
 
 Conventions that apply to almost every table:
 
@@ -24,6 +24,7 @@ A construction company using Docky - the tenant everything else belongs to.
 - default payment terms *(free text, printed on invoices and quotes)*
 - logo, invoice header image *(optional, stored in MinIO/S3)*
 - document colors *(accent and secondary, optional - the PDFs stay black and white without)*
+- document layout *(`CLASSIC` - positions then details - or `MODERN` - every line in one table on page 1)* and font *(`HELVETICA`, `LATO` or `PT_SERIF`)* - read when a PDF is printed, like the colors
 - early payment discount *(rate, days, minimum total - copied onto each new invoice)*
 - footer details *(website, bank name and account)*
 
@@ -31,6 +32,7 @@ A construction company using Docky - the tenant everything else belongs to.
 
 - has several users, clients, resources, documents, projects
 - has one document template per document type at most
+- has one numbering per document type at most *(quotes, invoices)*
 
 ---
 
@@ -100,7 +102,7 @@ A catalog item a company sells: a material or a service (labor).
 
 - type *(`MATERIAL` | `SERVICE`)*
 - code *(generated per type: `MAT0001`, `SER0001`...)*, name
-- reference *(optional, e.g. a supplier's article number)*
+- reference *(optional, materials only - e.g. a supplier's article number)*
 - unit *(picked from the company's own unit list)*
 - selling price, purchase price *(optional)*
 - parent resource *(optional, for a composite resource)*
@@ -125,7 +127,7 @@ A quote, an invoice, or a project's own resource ledger - one table for all thre
 ## Fields
 
 - type *(`QUOTE` | `INVOICE` | `PROJECT`)*
-- number - server-generated, `OFF-2026-0001` / `FAC-2026-0001` / `CH-2026-0001`, unique per company
+- number - server-generated in the company's numbering format *(`OFF-2026-0001` / `FAC-2026-0001` by default, `CH-2026-0001` for a project's own)*, unique per company, never given out twice
 - date, due date *(an invoice's due date, a quote's "valid until")*
 - client, job site address *(optional)*, client reference *(optional)*
 - status *(quotes and invoices only)*:
@@ -181,6 +183,20 @@ A company's default introduction, conclusion and due-date delay for one document
 
 ---
 
+# 🔢 Document numbering
+
+How a company numbers its quotes or invoices (one row per type at most - none means the default format).
+
+## Fields
+
+- type *(`QUOTE` | `INVOICE`)*
+- number format *(literal text, `{YYYY}`/`{YY}` and one `{N...}` sequence - `FAC-{YYYY}-{NNNN}`, `F{YY}/{NNN}`...; with the year in it, the sequence restarts every year)*
+- start number *(optional - the number a company moving to Docky continues from, for the year it was set)*
+
+The next number is the highest already given out with the format, plus one - no counter is stored.
+
+---
+
 # 🏗️ Project ("chantier")
 
 A job carried out for a client - born from an accepted quote, or created by hand.
@@ -195,7 +211,7 @@ A job carried out for a client - born from an accepted quote, or created by hand
 ## Relations
 
 - belongs to a company and a client
-- has exactly one `PROJECT` document - its resource ledger, sections scheduled on the calendar
+- has exactly one `PROJECT` document - its resource ledger *(an accepted quote's lines copied in, catalog or typed by hand)*, sections scheduled on the calendar
 - has several attachments *(files stored in MinIO/S3)*
 
 ---

@@ -206,3 +206,15 @@ A deposit is a normal invoice (numbering, lifecycle, QR-bill, reminder) marked `
 ## Payment references: a company setting, frozen on the invoice when sent (2026-11-13)
 
 To match a bank's payments to invoices automatically, the QR-bill carries a reference built from the invoice number: a QR reference with a QR-IBAN (the standard requires the pair), otherwise a creditor reference "RF..." by default, which works with the ordinary IBAN and needs nothing from the bank. **Turned down**: a choice per invoice (a QR reference without a QR-IBAN is an invalid QR-bill, and nobody thinks "reference type" while invoicing); storing nothing and recomputing it (a company adding a QR-IBAN later would change the reference on an invoice the client already holds - so it's frozen when sent, like the address).
+
+## Guided tours: built in, no library (2026-11-18)
+
+The calendar's and the document form's "?" start a tour over the page itself: everything dimmed but one element (a box-shadow around it), a card beside it. A small shared component (`guided-tour`) taking a list of steps - a CSS selector and two translation keys each. **Turned down**: driver.js / Shepherd (a dependency for a few positions to compute), a modal of text (the first version - nothing shows *where* things are).
+
+## Document templates: a company setting, embedded free fonts (2026-11-18)
+
+A company picks a layout (classic or modern) and a font, read when a PDF is printed - like its colors, never frozen per document. Lato and PT Serif are embedded (SIL Open Font License, subset to the characters used); Helvetica stays the default, a PDF standard font. The QR-bill's payment part is always Helvetica, as the standard requires. **Turned down**: a choice per document (not asked for, and one more thing to get wrong while invoicing); a layout editor with movable blocks (far more work than two well-made layouts); standard fonts only (three, Latin-1 only).
+
+## Document numbering: a format with tokens, still no counter (2026-11-18)
+
+A company sets its own format per type - literal text, `{YYYY}`/`{YY}` and one `{N...}` sequence - and a start number to continue its previous software's series. The next number is still found from those already given out (the highest matching the format, plus one, at least the start), under one lock per company: formats being free, two could produce the same number. The yearly reset follows from the format (with the year in it, it restarts every year). **Turned down**: a counter table (it can drift from the numbers really given out and needs care on every cancelled creation); separate "reset yearly" and "padding" settings (the format already says both); letting the quote and invoice formats be the same (the two types would share one series).
