@@ -12,6 +12,7 @@ import { TranslocoPipe, TranslocoService, translateSignal } from '@jsverse/trans
 import { DocumentService } from '../document.service';
 import { Document, DocumentType, DocumentStatus } from '../../../shared/models/document';
 import { documentStatusSeverity, daysOverdue, formatPrice, matchesSearch, invoiceAmountDue } from '../../../shared/utils/display';
+import { nextStatuses } from '../../../shared/utils/document-status';
 import { ClientService } from '../../clients/client.service';
 import { Client } from '../../../shared/models/client';
 import { AddressService } from '../../addresses/address.service';
@@ -220,35 +221,28 @@ export class DocumentListComponent implements OnInit {
     this.loadDocuments();
   }
 
-  // Whether the Statut cell can still be changed from the list: a document
+  // Whether the Statut cell can still be changed from the list: an active document
   // past DRAFT/SENT has reached a final status (see document.service.ts's
   // SETTABLE_STATUSES - a SENT invoice still moves on to PAID/CANCELLED, even
   // though its content is frozen). Public for the template.
   isEditable(document: Document): boolean {
-    return document.status === 'DRAFT' || document.status === 'SENT';
+    return nextStatuses(document.type, document.status, document.is_active).length > 0;
   }
 
-  // Statuses settable straight from the list, per type (mirrors
-  // document.service.ts's SETTABLE_STATUSES on the backend, which enforces
-  // it). A sent invoice only moves forward (paid or cancelled), never back
-  // to draft - that would reopen it for editing. Picking ACCEPTED still goes through the confirm dialog below
+  // Picking ACCEPTED goes through the confirm dialog below
   // (onStatusEditComplete/onAcceptConfirmed) rather than saving right away -
   // it creates a chantier and carries resources over, not a plain status
-  // write. Kept as two separate lists (not one shared array) so ACCEPTED
-  // never leaks into an invoice's own options.
+  // write.
   private statusOption(status: DocumentStatus): { label: string; value: DocumentStatus } {
     return { label: this.transloco.translate(`documents.status.${status}`), value: status };
   }
 
-  // Built fresh on every call (not cached) so each one picks up whatever
-  // language is active right now - see statusLabel's own reasoning above.
+  // The current status, then where it can go (document-status.ts). Built
+  // fresh on every call (not cached) so each one picks up whatever language
+  // is active right now - see statusLabel's own reasoning above.
   statusOptionsFor(document: Document): { label: string; value: DocumentStatus }[] {
-    if (document.type === 'INVOICE' && document.status === 'SENT') {
-      return [this.statusOption('SENT'), this.statusOption('PAID'), this.statusOption('CANCELLED')];
-    }
-    return document.type === 'INVOICE'
-      ? [this.statusOption('DRAFT'), this.statusOption('SENT'), this.statusOption('PAID'), this.statusOption('CANCELLED')]
-      : [this.statusOption('DRAFT'), this.statusOption('SENT'), this.statusOption('ACCEPTED'), this.statusOption('REJECTED')];
+    const current = document.status ?? 'DRAFT';
+    return [current, ...nextStatuses(document.type, current, document.is_active)].map(status => this.statusOption(status));
   }
 
   // Snapshotted right as a cell enters edit mode (before the select's own

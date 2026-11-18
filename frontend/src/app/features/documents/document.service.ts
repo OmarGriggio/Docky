@@ -68,9 +68,10 @@ export class DocumentService {
     return this.http.post<Document & { project_id: number }>(`${API_BASE}/document/${id}/accept`, {});
   }
 
-  // A plain DRAFT<->SENT toggle - every other status has its own dedicated
-  // flow (acceptQuote above, archive/unarchive) and is rejected server-side
-  // if sent here (see document.service.ts's updateDocumentStatusServ).
+  // Any status change but accepting a quote (acceptQuote above) - the
+  // documents list's Statut cell and the document form's status bar.
+  // What's allowed is the backend's SETTABLE_STATUSES (document.service.ts's
+  // updateDocumentStatusServ), mirrored by shared/utils/document-status.ts.
   updateStatus(id: number, status: DocumentStatus) {
     return this.http.patch<Document>(`${API_BASE}/document/${id}/status`, { status });
   }

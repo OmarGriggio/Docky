@@ -37,6 +37,7 @@ import { POSTAL_CODE_CITY_PATTERN, splitPostalCodeCity } from '../../../shared/u
 import { NotificationService } from '../../../shared/services/notification.service';
 import { DepositDeduction } from '../../../shared/models/billing';
 import { httpErrorKey } from '../../../shared/utils/api-error';
+import { nextStatuses } from '../../../shared/utils/document-status';
 import { GuidedTour, TourStep } from '../../../shared/components/guided-tour/guided-tour';
 import { BreakpointService } from '../../../shared/services/breakpoint.service';
 
@@ -384,6 +385,9 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
   // editing (loadForEdit). Shown and changed from the status bar in the
   // toolbar (statusSteps, requestStatus), or from the documents list.
   status = signal<DocumentStatus>('DRAFT');
+  // An archived document keeps its status - no change offered (refused
+  // server-side).
+  private isActive = signal(true);
 
   // Unsaved work (see unsavedChangesGuard, in app.routes.ts): everything a
   // save sends, compared with what it was once the page finished loading or
@@ -440,19 +444,14 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
     return ['DRAFT', 'SENT', current === 'REJECTED' ? 'REJECTED' : 'ACCEPTED'];
   }
 
-  // Where a saved document can go from its current status - the backend's
-  // SETTABLE_STATUSES, plus ACCEPTED for a quote (its own accept flow). The
-  // status bar's steps among them are buttons; REJECTED/CANCELLED, off the
-  // bar while the document is open, get one of their own.
+  // Where a saved document can go from its current status (document-status.ts).
+  // The status bar's steps among them are buttons; REJECTED/CANCELLED, off
+  // the bar while the document is open, get one of their own.
   nextStatuses(): DocumentStatus[] {
     if (this.editingDocumentId() === null) {
       return [];
     }
-    const current = this.status();
-    if (this.type() === 'INVOICE') {
-      return current === 'DRAFT' ? ['SENT', 'PAID', 'CANCELLED'] : current === 'SENT' ? ['PAID', 'CANCELLED'] : [];
-    }
-    return current === 'DRAFT' ? ['SENT', 'ACCEPTED', 'REJECTED'] : current === 'SENT' ? ['DRAFT', 'ACCEPTED', 'REJECTED'] : [];
+    return nextStatuses(this.type(), this.status(), this.isActive());
   }
 
   // The way out that isn't on the status bar: refusing a quote, cancelling
@@ -820,6 +819,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
         if (source.status) {
           this.status.set(source.status);
         }
+        this.isActive.set(source.is_active);
         this.date.set(fromDateOnly(source.date));
         this.dueDate.set(source.due_date ? fromDateOnly(source.due_date) : null);
         this.dueDateTouched = true;
