@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, viewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Card } from 'primeng/card';
 import { Tag } from 'primeng/tag';
@@ -91,6 +91,9 @@ export class ProjectDetail implements OnInit {
   }
 
   completeConfirmVisible = signal(false);
+  // Closing is refused while its resources are being edited - the chantier
+  // would close on what's stored, not on the unsaved lines still on screen.
+  resources = viewChild(ProjectResources);
 
   // Same as the chantiers list's "Clôturer": its resources freeze, the final
   // invoice can be made (the billing card below follows the new status).

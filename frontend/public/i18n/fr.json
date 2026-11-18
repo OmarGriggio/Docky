@@ -343,7 +343,8 @@
       "depositPreview": "Acompte demandé : {{total}} CHF TTC.",
       "createDeposit": "Créer l'acompte",
       "exceedsQuote": "Avec celui-ci, les acomptes dépassent le montant de l'offre."
-    }
+    },
+    "saveResourcesFirst": "Enregistre ou annule d'abord les modifications des ressources."
   },
   "documentLedger": {
     "noSections": "Aucune section.",

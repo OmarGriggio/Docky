@@ -8,6 +8,8 @@
         icon="pi pi-check-square"
         [outlined]="true"
         [label]="'projects.closeAction' | transloco"
+        [disabled]="!!resources()?.editing()"
+        [title]="resources()?.editing() ? ('projects.saveResourcesFirst' | transloco) : ''"
         (onClick)="completeConfirmVisible.set(true)"
       />
     }

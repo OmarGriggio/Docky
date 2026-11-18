@@ -343,7 +343,8 @@
       "depositPreview": "Deposit asked: {{total}} CHF incl. VAT.",
       "createDeposit": "Create the deposit",
       "exceedsQuote": "With this one, the deposits exceed the quote."
-    }
+    },
+    "saveResourcesFirst": "Save or cancel the changes to the resources first."
   },
   "documentLedger": {
     "noSections": "No sections.",
