@@ -17,7 +17,7 @@ export const getDocumentsFromDB = async (company_id: number, includeArchived = f
     conditions.push("is_active = true");
   }
 
-  const query = `SELECT * FROM documents WHERE ${conditions.join(" AND ")} ORDER BY id`;
+  const query = `SELECT * FROM documents WHERE ${conditions.join(" AND ")} ORDER BY id DESC`;
   const result = await db().query(query, values);
   return result.rows;
 };
@@ -34,7 +34,7 @@ export const getDocumentsByTypeFromDB = async (type: string, company_id: number,
     conditions.push("is_active = true");
   }
 
-  const query = `SELECT * FROM documents WHERE ${conditions.join(" AND ")} ORDER BY id`;
+  const query = `SELECT * FROM documents WHERE ${conditions.join(" AND ")} ORDER BY id DESC`;
   const result = await db().query(query, values);
   return result.rows;
 };

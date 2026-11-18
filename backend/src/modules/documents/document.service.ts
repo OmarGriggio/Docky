@@ -618,7 +618,7 @@ const acceptQuoteInTransaction = async (id: number, company_id: number) => {
 
   // The chantier's own address lives on its PROJECT document (address_id,
   // copied from the quote above) now, not duplicated on this row.
-  await createProjectInDB({
+  const project = await createProjectInDB({
     company_id,
     document_id: projectDocument.id,
     client_id: quote.client_id,
@@ -627,7 +627,8 @@ const acceptQuoteInTransaction = async (id: number, company_id: number) => {
     name: (client.is_placeholder && quote.recipient_name) || clientDisplayName(client),
   });
 
-  return accepted;
+  // The chantier's id along with the quote, so the frontend can open it.
+  return { ...accepted, project_id: project.id };
 };
 
 // The actual math lives in document.calculations.ts (computeDocumentTotals) — this

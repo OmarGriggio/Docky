@@ -33,6 +33,8 @@ describe("accepting a quote", () => {
     const projects = await findProjectsOfQuote(token, quote.number);
     expect(projects).toHaveLength(1);
     expect(projects[0]).toMatchObject({ status: "IN_PROGRESS", client_id: clientId });
+    // The frontend opens it right away.
+    expect(accepted.body.project_id).toBe(projects[0].id);
 
     const ledger = await getDocumentComplete(token, projects[0].document_id);
     expect(ledger.type).toBe("PROJECT");
