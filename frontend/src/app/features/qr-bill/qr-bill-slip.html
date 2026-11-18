@@ -1,4 +1,4 @@
-<div class="flex flex-col gap-6 p-4">
+<div class="flex flex-col items-center gap-6 py-8 px-4">
   <p-card [header]="'qrBill.title' | transloco" styleClass="ui-card--elevated w-full max-w-160">
     <form class="flex flex-col gap-4" (ngSubmit)="generate()">
       <p-select
@@ -32,7 +32,7 @@
       </p-floatlabel>
 
       <p-floatlabel variant="on">
-        <app-postal-code-city inputId="qrPostalCodeCity" [invalid]="showRequired() && !postalCodeCityValid()" name="postalCodeCity" [ngModel]="postalCodeCity()" (ngModelChange)="onFieldChange('postalCodeCity', $event)" />
+        <app-postal-code-city inputId="qrPostalCodeCity" [fluid]="true" [invalid]="showRequired() && !postalCodeCityValid()" name="postalCodeCity" [ngModel]="postalCodeCity()" (ngModelChange)="onFieldChange('postalCodeCity', $event)" />
         <label for="qrPostalCodeCity">{{ 'qrBill.postalCodeCity' | transloco }} *</label>
       </p-floatlabel>
 
@@ -68,7 +68,7 @@
   </p-dialog>
 
   @if (slipUrl(); as url) {
-    <div class="flex flex-col gap-2 overflow-x-auto">
+    <div class="flex flex-col gap-2 max-w-full overflow-x-auto">
       <p class="text-sm text-gray-600 m-0">{{ 'qrBill.clickToCopy' | transloco }}</p>
       <button type="button" class="p-0 border border-gray-300 bg-white cursor-copy self-start shrink-0" [title]="'qrBill.clickToCopy' | transloco" (click)="copy()">
         <img [src]="url" [alt]="'qrBill.title' | transloco" class="block" style="width: 210mm; height: 105mm" />
