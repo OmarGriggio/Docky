@@ -11,6 +11,8 @@ import { FloatLabel } from 'primeng/floatlabel';
 import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Dialog } from 'primeng/dialog';
+import { Popover } from 'primeng/popover';
+import { DocumentStylePicker } from '../../../shared/components/document-style-picker/document-style-picker';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { DocumentService } from '../document.service';
 import { DocumentCompleteService } from '../document-complete.service';
@@ -75,7 +77,7 @@ const isOpenForEditing = (type: DocumentType, status: DocumentStatus | null): bo
 @Component({
   selector: 'app-document-form',
   standalone: true,
-  imports: [FormsModule, PricePipe, InputNumber, FloatLabel, Button, Card, Dialog, DocumentHeader, DocumentTextBlock, DocumentSections, ConfirmDialogComponent, GuidedTour, TranslocoPipe],
+  imports: [FormsModule, PricePipe, InputNumber, FloatLabel, Button, Card, Dialog, DocumentHeader, DocumentTextBlock, DocumentSections, ConfirmDialogComponent, GuidedTour, Popover, DocumentStylePicker, TranslocoPipe],
   templateUrl: './document-form.html',
   styleUrl: './document-form.css',
 })
@@ -100,6 +102,8 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
       guideStep(`totals${kind}`, 'pi-calculator', '[data-tour="totals"]'),
       guideStep('conclusion', 'pi-align-right', '[data-tour="conclusion"]'),
       guideStep(`actions${kind}`, 'pi-save', '[data-tour="actions"]'),
+      // The "Modèle" button is an admin's only - no step without it.
+      ...(this.canChangeStyle() ? [guideStep('style', 'pi-palette', '[data-tour="style"] button')] : []),
       guideStep(`status${kind}`, 'pi-flag', '[data-tour="status"]'),
       guideStep('help', 'pi-question-circle', '[data-tour="help"] button'),
     ];
@@ -134,6 +138,30 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
   private scannerService = inject(DocumentScannerService);
 
   company = signal<Company | null>(null);
+
+  // The "Modèle" panel: the company's document template, changed right from
+  // here (it applies to every document, like on the profile) - an admin's
+  // to change, like the profile. Shown at once, put back if the save fails.
+  canChangeStyle = computed(() => this.authService.isAdmin() || this.authService.isPlatformAdmin());
+
+  changeDocumentStyle(style: Partial<Pick<Company, 'document_layout' | 'document_font'>>): void {
+    const company = this.company();
+    if (!company) {
+      return;
+    }
+    const next = { document_layout: company.document_layout, document_font: company.document_font, ...style };
+    this.company.set({ ...company, ...next });
+    this.companyService.updateDocumentStyle(company.id, next).subscribe({
+      next: saved => {
+        this.company.set(saved);
+        this.notifications.success('documents.form.styleSaved');
+      },
+      error: err => {
+        this.company.set(company);
+        this.notifications.error('document-form', err);
+      }
+    });
+  }
   companyLogoUrl = computed(() => this.companyService.getFileUrl(this.company()?.logo ?? null));
 
   clients = signal<Client[]>([]);

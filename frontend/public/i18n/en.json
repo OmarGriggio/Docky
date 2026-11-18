@@ -489,7 +489,10 @@
       "statusConfirm": "Move this document to “{{status}}”? This can't be undone.",
       "cancelInvoice": "Cancel invoice",
       "rejectQuote": "Reject quote",
-      "moveTo": "Move to “{{status}}”"
+      "moveTo": "Move to “{{status}}”",
+      "style": "Template",
+      "styleHint": "Applies to all your invoices, quotes and reminders, as on the profile. \"Preview\" shows the result.",
+      "styleSaved": "Document template saved."
     },
     "pdfError": "Couldn't generate the PDF.",
     "kind": {
@@ -534,7 +537,9 @@
       "statusInvoiceTitle": "The status",
       "statusInvoice": "Click the next step to move to it: \"Sent\" once the invoice has gone out, then \"Paid\" when the payment comes in. A sent invoice can't be changed any more: a mistake is cancelled and made again.",
       "helpTitle": "Find this guide here",
-      "help": "This button starts the guide again whenever you like."
+      "help": "This button starts the guide again whenever you like.",
+      "styleTitle": "The document template",
+      "style": "Change the layout (Classic or Modern) and the font of all your documents here, then check the result with \"Preview\". The colors, logo and header image are set on the profile."
     }
   },
   "dashboard": {

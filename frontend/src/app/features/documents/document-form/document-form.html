@@ -28,6 +28,36 @@
             (onClick)="openPreview()"
           />
         }
+        <!-- The company's document template (changeDocumentStyle) - every
+             document's, not just this one's. -->
+        @if (canChangeStyle() && company(); as currentCompany) {
+          <p-button
+            data-tour="style"
+            size="small"
+            type="button"
+            severity="secondary"
+            [outlined]="true"
+            icon="pi pi-palette"
+            [label]="'documents.form.style' | transloco"
+            (onClick)="stylePanel.toggle($event)"
+          />
+          <p-popover #stylePanel>
+            <div class="flex flex-col gap-3 w-[min(26rem,85vw)]">
+              <div class="flex flex-col gap-1">
+                <span class="font-medium">{{ 'profile.documentStyle.title' | transloco }}</span>
+                <span class="text-xs text-gray-500">{{ 'documents.form.styleHint' | transloco }}</span>
+              </div>
+              <app-document-style-picker
+                [compact]="true"
+                [layout]="currentCompany.document_layout" [font]="currentCompany.document_font" [accentColor]="currentCompany.accent_color"
+                (layoutChange)="changeDocumentStyle({ document_layout: $event })" (fontChange)="changeDocumentStyle({ document_font: $event })"
+              />
+              @if (editingDocumentId() !== null) {
+                <p-button size="small" type="button" icon="pi pi-file-pdf" [label]="'documents.form.preview' | transloco" (onClick)="openPreview()" />
+              }
+            </div>
+          </p-popover>
+        }
         @if (type() === 'INVOICE' && editingDocumentId() === null) {
           <p-button
             size="small"

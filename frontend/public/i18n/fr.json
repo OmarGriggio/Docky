@@ -489,7 +489,10 @@
       "statusConfirm": "Passer ce document au statut « {{status}} » ? Ce changement ne pourra pas être annulé.",
       "cancelInvoice": "Annuler la facture",
       "rejectQuote": "Refuser l'offre",
-      "moveTo": "Passer à « {{status}} »"
+      "moveTo": "Passer à « {{status}} »",
+      "style": "Modèle",
+      "styleHint": "S'applique à toutes tes factures, offres et rappels, comme sur le profil. « Aperçu » montre le résultat.",
+      "styleSaved": "Modèle des documents enregistré."
     },
     "pdfError": "Impossible de générer le PDF.",
     "kind": {
@@ -534,7 +537,9 @@
       "statusInvoiceTitle": "Le statut",
       "statusInvoice": "Clique sur l'étape suivante pour la franchir : « Envoyée » une fois la facture partie, puis « Payée » à réception du paiement. Une facture envoyée ne se modifie plus : une erreur s'annule et se refait.",
       "helpTitle": "Retrouve ce guide ici",
-      "help": "Ce bouton relance le guide quand tu veux."
+      "help": "Ce bouton relance le guide quand tu veux.",
+      "styleTitle": "Le modèle des documents",
+      "style": "Change ici la mise en page (Classique ou Moderne) et la police de tous tes documents, puis vérifie le résultat avec « Aperçu ». Les couleurs, le logo et l'image d'en-tête se règlent sur le profil."
     }
   },
   "dashboard": {
