@@ -6,6 +6,17 @@
   (add)="createDocument()"
 />
 
+<!-- An invoices list's deposits or final invoices on their own (kindFilter). -->
+@if (currentType() === 'INVOICE') {
+  <p-tabs [value]="kindFilter()" (valueChange)="kindFilter.set($any($event))" class="mb-3">
+    <p-tablist>
+      <p-tab value="ALL">{{ 'documents.kind.all' | transloco }}</p-tab>
+      <p-tab value="DEPOSIT">{{ 'documents.kind.deposits' | transloco }}</p-tab>
+      <p-tab value="FINAL">{{ 'documents.kind.finals' | transloco }}</p-tab>
+    </p-tablist>
+  </p-tabs>
+}
+
 @if (pdfErrorMessage()) {
   <p class="text-sm text-red-600 mt-0 mb-3">{{ pdfErrorMessage() }}</p>
 }

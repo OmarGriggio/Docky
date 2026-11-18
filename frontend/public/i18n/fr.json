@@ -494,7 +494,10 @@
     "pdfError": "Impossible de générer le PDF.",
     "kind": {
       "deposit": "Acompte",
-      "final": "Finale"
+      "final": "Finale",
+      "all": "Toutes",
+      "deposits": "Acomptes",
+      "finals": "Finales"
     },
     "guide": {
       "open": "Comment remplir ?",

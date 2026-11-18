@@ -2,6 +2,7 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Observable } from 'rxjs';
+import { Tabs, TabList, Tab } from 'primeng/tabs';
 import { TableModule, TableEditCompleteEvent, TableEditInitEvent } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { Button } from 'primeng/button';
@@ -11,7 +12,7 @@ import { MenuItem } from 'primeng/api';
 import { TranslocoPipe, TranslocoService, translateSignal } from '@jsverse/transloco';
 import { DocumentService } from '../document.service';
 import { Document, DocumentType, DocumentStatus } from '../../../shared/models/document';
-import { documentStatusSeverity, daysOverdue, formatPrice, matchesSearch, invoiceAmountDue } from '../../../shared/utils/display';
+import { documentStatusSeverity, daysOverdue, formatPrice, matchesSearch, invoiceAmountDue, invoiceKind } from '../../../shared/utils/display';
 import { nextStatuses } from '../../../shared/utils/document-status';
 import { ClientService } from '../../clients/client.service';
 import { Client } from '../../../shared/models/client';
@@ -29,7 +30,7 @@ import { NotificationService } from '../../../shared/services/notification.servi
 @Component({
   selector: 'app-document-list',
   standalone: true,
-  imports: [RouterLink, ListToolbarComponent, TableModule, TagModule, Button, Menu, Select, FormsModule, AppDatePipe, PricePipe, ConfirmDialogComponent, DocumentLedger, TranslocoPipe],
+  imports: [RouterLink, ListToolbarComponent, Tabs, TabList, Tab, TableModule, TagModule, Button, Menu, Select, FormsModule, AppDatePipe, PricePipe, ConfirmDialogComponent, DocumentLedger, TranslocoPipe],
   templateUrl: './document-list.html'
 })
 export class DocumentListComponent implements OnInit {
@@ -73,9 +74,16 @@ export class DocumentListComponent implements OnInit {
   // word anywhere among them, on the values as displayed. Done in the
   // browser on the already-loaded list.
   search = signal('');
-  filteredDocuments = computed(() =>
-    this.documents().filter(document => matchesSearch(this.searchableText(document), this.search()))
-  );
+  // The invoices list's tabs: every invoice, only the deposits, only the
+  // final invoices (invoiceKind - what the Acompte/Finale tags show). Back
+  // to every one whenever the list's type changes.
+  kindFilter = signal<'ALL' | 'DEPOSIT' | 'FINAL'>('ALL');
+  filteredDocuments = computed(() => {
+    const kind = this.kindFilter();
+    return this.documents()
+      .filter(document => kind === 'ALL' || invoiceKind(document) === kind)
+      .filter(document => matchesSearch(this.searchableText(document), this.search()));
+  });
 
   private searchableText(document: Document): string {
     const appDate = new AppDatePipe();
@@ -89,6 +97,7 @@ export class DocumentListComponent implements OnInit {
       formatPrice(document.amount_incl_vat),
       document.discount,
       this.statusLabel(document),
+      this.kindLabel(document),
     ].filter(value => value !== null && value !== undefined && value !== '').join(' ');
   }
 
@@ -131,6 +140,7 @@ export class DocumentListComponent implements OnInit {
   ngOnInit(): void {
     this.route.queryParamMap.subscribe(params => {
       this.currentType.set(params.get('type') as DocumentType | null);
+      this.kindFilter.set('ALL');
       this.loadDocuments();
     });
 
@@ -164,10 +174,10 @@ export class DocumentListComponent implements OnInit {
   // "Acompte" for a chantier's deposit invoice, "Finale" for its final
   // invoice once sent with deposits deducted (backend deposit.ts).
   kindLabel(document: Document): string | null {
-    if (document.invoice_kind === 'DEPOSIT') {
-      return this.transloco.translate('documents.kind.deposit');
-    }
-    return document.deposit_deductions?.length ? this.transloco.translate('documents.kind.final') : null;
+    const kind = invoiceKind(document);
+    return kind === 'DEPOSIT' ? this.transloco.translate('documents.kind.deposit')
+      : kind === 'FINAL' ? this.transloco.translate('documents.kind.final')
+      : null;
   }
 
   // What's left to pay - a final invoice's deposits are invoices of their own.

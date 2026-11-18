@@ -494,7 +494,10 @@
     "pdfError": "Couldn't generate the PDF.",
     "kind": {
       "deposit": "Deposit",
-      "final": "Final"
+      "final": "Final",
+      "all": "All",
+      "deposits": "Deposits",
+      "finals": "Final invoices"
     },
     "guide": {
       "open": "How to fill it in?",

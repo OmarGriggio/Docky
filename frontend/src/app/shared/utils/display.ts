@@ -222,6 +222,16 @@ export const matchesSearch = (text: string, query: string): boolean => {
   return normalize(query).split(/\s+/).filter(Boolean).every(word => haystack.includes(word));
 };
 
+// Which kind of chantier invoice a document is, as the documents list tags
+// and filters it: a deposit ("Acompte"), a final invoice sent with deposits
+// deducted ("Finale" - backend deposit.ts), or neither.
+export const invoiceKind = (document: Pick<Document, 'invoice_kind' | 'deposit_deductions'>): 'DEPOSIT' | 'FINAL' | null => {
+  if (document.invoice_kind === 'DEPOSIT') {
+    return 'DEPOSIT';
+  }
+  return document.deposit_deductions?.length ? 'FINAL' : null;
+};
+
 // What's left to pay on an invoice: a chantier's final invoice, once sent,
 // less the deposits it deducts (backend deposit.ts's amountDue) - the whole
 // total for any other.

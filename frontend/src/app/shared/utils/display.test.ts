@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { clientDisplayName, archiveActionLabel, formatFileSize, formatSectionDate, addressLabel, formatPrice, toDateOnly, fromDateOnly, addDays, daysOverdue, daysFromToday, fillPlaceholders, placeholderToken, matchesSearch, invoiceAmountDue } from './display';
+import { clientDisplayName, archiveActionLabel, formatFileSize, formatSectionDate, addressLabel, formatPrice, toDateOnly, fromDateOnly, addDays, daysOverdue, daysFromToday, fillPlaceholders, placeholderToken, matchesSearch, invoiceAmountDue, invoiceKind } from './display';
 
 describe('daysFromToday', () => {
 
@@ -219,4 +219,23 @@ describe('invoiceAmountDue', () => {
   it('is the whole total for any other invoice', () => {
     expect(invoiceAmountDue({ amount_incl_vat: 500, deposit_deductions: null })).toBe(500);
   });
+});
+
+describe('invoiceKind', () => {
+
+  const deduction = { document_id: 1, number: 'FAC-2026-0001', date: '2026-11-01', amount_incl_vat: 300 };
+
+  it('tags a deposit invoice', () => {
+    expect(invoiceKind({ invoice_kind: 'DEPOSIT', deposit_deductions: null })).toBe('DEPOSIT');
+  });
+
+  it('tags a final invoice sent with deposits deducted', () => {
+    expect(invoiceKind({ invoice_kind: 'STANDARD', deposit_deductions: [deduction] })).toBe('FINAL');
+  });
+
+  it('tags nothing else', () => {
+    expect(invoiceKind({ invoice_kind: 'STANDARD', deposit_deductions: null })).toBeNull();
+    expect(invoiceKind({ invoice_kind: 'STANDARD', deposit_deductions: [] })).toBeNull();
+  });
+
 });
