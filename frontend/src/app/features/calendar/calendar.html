@@ -1,33 +1,73 @@
 <div
   class="flex gap-4 items-start flex-wrap bg-white border border-gray-200 rounded-lg shadow-sm p-2 md:p-4"
 >
-  <div class="flex-1 min-w-0 md:min-w-80 [&_.fc-toolbar-title]:text-base! md:[&_.fc-toolbar-title]:text-2xl! max-md:[&_.fc-button]:text-xs! max-md:[&_.fc-button]:px-2! max-md:[&_.fc-button]:py-1! max-md:[&_.fc-header-toolbar]:mb-2! max-md:[&_.fc-footer-toolbar]:mt-2! max-md:[&_.fc-toolbar]:gap-1!">
-    <!-- On a phone "+ Note" lives in the calendar's own toolbar (calendar.ts's toolbarsFor). -->
-    <div class="hidden md:flex justify-end mb-2">
+  <div class="flex-1 min-w-0 md:min-w-80 [&_.fc-toolbar-title]:text-base! md:[&_.fc-toolbar-title]:text-2xl! max-md:[&_.fc-button]:text-xs! max-md:[&_.fc-button]:px-2! max-md:[&_.fc-button]:py-1! max-md:[&_.fc-header-toolbar]:mb-2! max-md:[&_.fc-footer-toolbar]:mt-2! max-md:[&_.fc-toolbar]:gap-1! [&_.fc-addNote-button]:bg-(--p-primary-color)! [&_.fc-addNote-button]:text-white!">
+    <!-- On a phone "+ Note" lives in the calendar's own toolbar (calendar.ts's
+         toolbarsFor) - the one toolbar button in solid green, like this one -
+         and there's no guide (no drag and drop there). -->
+    <div class="hidden md:flex justify-end gap-2 mb-2">
+      <p-button size="small" icon="pi pi-question-circle" severity="secondary" [text]="true" [rounded]="true" [title]="'calendar.guide.open' | transloco" [ariaLabel]="'calendar.guide.open' | transloco" (onClick)="guideVisible.set(true)" />
       <p-button size="small" icon="pi pi-plus" [label]="'calendar.addNote' | transloco" (onClick)="openNewNote()" />
     </div>
     <full-calendar #fullCalendar [options]="calendarOptions" />
   </div>
 
   <!-- Dragging a section onto a day is a desktop gesture - hidden on a phone. -->
+  <!-- Each card looks like the blue section it becomes once dropped. -->
   <div class="hidden md:flex w-64 shrink-0 flex-col gap-2">
-    <h2 class="text-sm font-semibold text-gray-500 uppercase m-0">{{ 'calendar.unscheduledSections' | transloco }}</h2>
+    <h2 class="text-sm font-semibold text-gray-700 uppercase m-0 flex items-center gap-2">
+      {{ 'calendar.unscheduledSections' | transloco }}
+      @if (unscheduledSections().length > 0) {
+        <span class="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-[#3788d8] text-white text-xs font-semibold">{{ unscheduledSections().length }}</span>
+      }
+    </h2>
     @if (unscheduledSections().length === 0) {
-      <p class="text-sm text-gray-500">{{ 'calendar.noUnscheduledSections' | transloco }}</p>
+      <p class="text-sm text-gray-500 m-0">{{ 'calendar.noUnscheduledSections' | transloco }}</p>
+    } @else {
+      <p class="text-xs text-gray-500 m-0">{{ 'calendar.unscheduledHint' | transloco }}</p>
     }
     <div #unscheduledList class="flex flex-col gap-2">
       @for (section of unscheduledSections(); track section.id) {
         <div
-          class="fc-event cursor-move border border-gray-200 rounded-md p-2 text-sm bg-white shadow-sm"
+          class="fc-event flex items-start gap-2 cursor-move rounded-md p-2 text-sm bg-blue-50! border border-blue-200 border-l-4 border-l-[#3788d8] shadow-sm hover:shadow-md hover:bg-blue-100! transition-shadow"
           [attr.data-event]="eventDataFor(section)"
+          [attr.title]="'calendar.unscheduledHint' | transloco"
         >
-          <div class="text-gray-500">{{ section.title }}</div>
-          <div class="font-medium">{{ section.project_name }}</div>
+          <i class="pi pi-arrows-alt text-[#3788d8] mt-0.5" aria-hidden="true"></i>
+          <div class="min-w-0">
+            <div class="font-medium text-gray-900">{{ section.project_name }}</div>
+            <div class="text-gray-600">{{ section.title }}</div>
+          </div>
         </div>
       }
     </div>
   </div>
 </div>
+
+<!-- "Comment planifier ?": how the calendar and the chantiers fit together. -->
+<p-dialog
+  [(visible)]="guideVisible"
+  [header]="'calendar.guide.title' | transloco"
+  [modal]="true"
+  [dismissableMask]="true"
+  [style]="{ width: '36rem' }"
+  [breakpoints]="{ '640px': '95vw' }"
+>
+  <ol class="list-none m-0 p-0 flex flex-col gap-4">
+    @for (step of guideSteps; track step.key; let index = $index) {
+      <li class="flex gap-3">
+        <span class="shrink-0 w-8 h-8 rounded-full bg-green-50 text-green-700 flex items-center justify-center"><i [class]="'pi ' + step.icon" aria-hidden="true"></i></span>
+        <div class="flex flex-col gap-0.5">
+          <span class="font-medium">{{ index + 1 }}. {{ 'calendar.guide.' + step.key + 'Title' | transloco }}</span>
+          <span class="text-sm text-gray-600">{{ 'calendar.guide.' + step.key | transloco }}</span>
+        </div>
+      </li>
+    }
+  </ol>
+  <div class="flex justify-end mt-4">
+    <p-button size="small" [label]="'calendar.guide.close' | transloco" (onClick)="guideVisible.set(false)" />
+  </div>
+</p-dialog>
 
 <p-dialog
   [(visible)]="detailDialogVisible"

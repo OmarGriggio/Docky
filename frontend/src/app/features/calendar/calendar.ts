@@ -32,6 +32,8 @@ import { NotificationService } from '../../shared/services/notification.service'
 // from a section's own (future: per-chantier) color.
 const NOTE_COLOR = '#9ca3af';
 
+const GUIDE_SEEN_KEY = 'docky_calendar_guide_seen';
+
 @Component({
   selector: 'app-calendar',
   standalone: true,
@@ -59,6 +61,19 @@ export class CalendarPage implements OnInit, AfterViewInit {
   // IN_PROGRESS chantier (a COMPLETED one's quantities are locked, nothing
   // left to plan).
   unscheduledSections = signal<SectionWithProject[]>([]);
+
+  // "Comment planifier ?" - opened by itself on a browser's first visit
+  // (remembered in localStorage), then from its button. Desktop only, like
+  // the drag and drop it explains.
+  guideVisible = signal(false);
+  readonly guideSteps = [
+    { key: 'accept', icon: 'pi-check-circle' },
+    { key: 'drag', icon: 'pi-arrows-alt' },
+    { key: 'adjust', icon: 'pi-arrows-h' },
+    { key: 'details', icon: 'pi-comment' },
+    { key: 'notes', icon: 'pi-plus' },
+    { key: 'dates', icon: 'pi-building' },
+  ];
 
   // Keyed by section id - every section ever put on the calendar (from
   // loadScheduledSections or dropped via onEventReceive), so eventClick
@@ -201,6 +216,21 @@ export class CalendarPage implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.loadUnscheduledSections();
+    this.showGuideOnFirstVisit();
+  }
+
+  private showGuideOnFirstVisit(): void {
+    if (this.isMobile()) {
+      return;
+    }
+    try {
+      if (!localStorage.getItem(GUIDE_SEEN_KEY)) {
+        localStorage.setItem(GUIDE_SEEN_KEY, 'true');
+        this.guideVisible.set(true);
+      }
+    } catch {
+      // No storage (a private window): no guide by itself, its button stays.
+    }
   }
 
   // The Draggable registration only needs to happen once - it delegates to

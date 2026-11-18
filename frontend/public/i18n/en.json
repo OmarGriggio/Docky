@@ -364,7 +364,25 @@
     "week": "Week",
     "day": "Day",
     "list": "List",
-    "addNote": "Note"
+    "addNote": "Note",
+    "unscheduledHint": "Drag a section onto a day of the calendar to schedule it.",
+    "guide": {
+      "open": "How to plan?",
+      "title": "Organising the schedule",
+      "close": "Got it",
+      "acceptTitle": "An accepted quote creates a project",
+      "accept": "Each section of the project (Item 1, Item 2…) appears under “Sections to plan”, right of the calendar.",
+      "dragTitle": "Drag a section onto a day",
+      "drag": "It's scheduled on that day and leaves the list. In the Week or Day view, drop it on a given time.",
+      "adjustTitle": "Move it or stretch it",
+      "adjust": "Drag it to another day to move it, pull its edge to spread it over several days.",
+      "detailsTitle": "Click it for the details",
+      "details": "Its lines (materials, hours), a note for the team and a link to the project.",
+      "notesTitle": "Add notes of your own",
+      "notes": "“+ Note” or a click on a day: a meeting, a delivery, a reminder. They show in grey.",
+      "datesTitle": "Or plan from the project",
+      "dates": "Each section's start and end dates can also be edited on the project's page, in its resources."
+    }
   },
   "documents": {
     "columnNumber": "Number",
