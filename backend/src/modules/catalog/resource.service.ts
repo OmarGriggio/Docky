@@ -56,7 +56,8 @@ export const addResourceServ = async (resourceData: Omit<Resource, "id" | "compa
   if (resourceData.parent_resource_id != null && !(await getResourceByIdFromDB(resourceData.parent_resource_id, company_id))) {
     throw new NotFoundError("Parent resource not found");
   }
-  const reference = normalizeReference(resourceData.reference);
+  // A supplier's article number - a material's only, a service has none.
+  const reference = resourceData.type === "MATERIAL" ? normalizeReference(resourceData.reference) : null;
 
   return await withTransaction(async () => {
     await lockResourceCodingInDB(company_id, prefix);
@@ -71,7 +72,8 @@ export const updateResourceServ = async (id: number, company_id: number, data: U
     throw new NotFoundError("Resource not found");
   }
 
-  return await updateResourceInDB(id, company_id, { ...data, reference: normalizeReference(data.reference) });
+  const reference = resource.type === "MATERIAL" ? normalizeReference(data.reference) : null;
+  return await updateResourceInDB(id, company_id, { ...data, reference });
 };
 
 export const archiveResourceServ = async (id: number, company_id: number) => {
