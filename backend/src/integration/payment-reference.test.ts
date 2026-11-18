@@ -77,4 +77,19 @@ describe("payment references", () => {
     expect(saved.qr_iban).toBe("CH4431999123000889012");
     await settings({ qr_iban: "" }).expect(200);
   });
+
+  it("keeps the QR-IBAN and reference type when a save leaves them out", async () => {
+    await settings({ qr_iban: "CH44 3199 9123 0008 8901 2", payment_reference_type: "NONE" }).expect(200);
+    // An older page, which doesn't know those fields.
+    const saved = (await api().put(`/company/${companyId}`).set(auth(token)).send({ name: "References Sàrl", vat_rate: 8.1 }).expect(200)).body;
+    expect(saved.qr_iban).toBe("CH4431999123000889012");
+    expect(saved.payment_reference_type).toBe("NONE");
+    await settings({ qr_iban: null, payment_reference_type: "SCOR" }).expect(200);
+  });
+
+  it("refuses a QR-IBAN in the ordinary IBAN field", async () => {
+    const res = await settings({ iban: "CH44 3199 9123 0008 8901 2" }).expect(400);
+    expect(res.body.code).toBe("IBAN_IS_QR_IBAN");
+    await settings({ iban: "CH9300762011623852957" }).expect(200);
+  });
 });

@@ -83,6 +83,13 @@ const normalizeQrIban = (value: unknown): string | null => {
 // around unused.
 
 const normalizeCompanyData = (companyData: Omit<Company, "id">): Omit<Company, "id"> => {
+  // A QR-IBAN goes in its own field. In the ordinary one, every invoice sent
+  // with a creditor reference or none (paid to that IBAN) would stop being
+  // printable - those can only go to an ordinary IBAN.
+  if (typeof companyData.iban === "string" && isQrIban(companyData.iban.replace(/\s+/g, "").toUpperCase())) {
+    throw new AppError("iban is a QR-IBAN - it goes in qr_iban", 400, "IBAN_IS_QR_IBAN");
+  }
+
   for (const [field, max] of Object.entries(MAX_LENGTHS)) {
     const value = companyData[field as keyof Omit<Company, "id">];
     if (typeof value === "string" && value.length > max) {
@@ -117,8 +124,17 @@ const normalizeCompanyData = (companyData: Omit<Company, "id">): Omit<Company, "
   };
 };
 
+// A field the request leaves out keeps its current value - only one sent
+// (null included) changes. A page still on an older version (cached by the
+// PWA right after a release) doesn't know a column added since, and would
+// otherwise wipe it (a QR-IBAN) on every save of the profile.
 export const updateCompanyServ = async (id: number, companyData: Omit<Company, "id">): Promise<Company> => {
-  const company = await updateCompanyInDB(id, normalizeCompanyData(companyData));
+  const current = await getCompanyByIdFromDB(id);
+  if (!current) {
+    throw new NotFoundError("Company not found");
+  }
+  const sent = Object.fromEntries(Object.entries(companyData ?? {}).filter(([, value]) => value !== undefined));
+  const company = await updateCompanyInDB(id, normalizeCompanyData({ ...current, ...sent }));
   if (!company) {
     throw new NotFoundError("Company not found");
   }
