@@ -2,6 +2,20 @@
 
 Every release of Docky, newest first. One version for the whole app (backend and frontend ship together from `main`), numbered `MAJOR.MINOR.PATCH` - see CLAUDE.md's Workflow for when each part goes up and how a release is made. Each release is tagged `vX.Y.Z` on `main`.
 
+## [1.3.1] - 2026-11-18
+
+### Added
+- The invoices list has "Toutes / Acomptes / Finales" tabs, and searching for "acompte" or "finale" finds those invoices.
+
+### Changed
+- Accepting a quote carries every one of its lines into the chantier, typed by hand ones included - the final invoice no longer misses them.
+- The profile refuses a QR-IBAN in the ordinary IBAN field - it goes in the QR-IBAN field.
+- The demo banner, once closed, stays closed for the rest of the visit.
+
+### Fixed
+- Changing a document's status from a searched or filtered list could fail with a conflict, or not be saved although the list showed it.
+- Saving the company profile from a page still on an older version no longer erases its QR-IBAN.
+
 ## [1.3.0] - 2026-11-18
 
 ### Added
