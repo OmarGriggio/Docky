@@ -83,7 +83,7 @@ export class ResourceForm implements OnInit {
     const value = this.form.getRawValue();
     this.resourceService.createResource({
       ...value,
-      reference: value.reference.trim() || null,
+      reference: value.type === 'MATERIAL' ? value.reference.trim() || null : null,
       parent_resource_id: null,
     }).subscribe({
       next: resource => {

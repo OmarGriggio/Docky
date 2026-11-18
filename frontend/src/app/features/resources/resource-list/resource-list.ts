@@ -38,6 +38,9 @@ export class ResourceListComponent implements OnInit {
 
   resources = signal<Resource[]>([]);
   currentType = signal<ResourceType | null>(null);
+  // A supplier's article number is a material's - no Référence column on the
+  // services list.
+  showReference = computed(() => this.currentType() !== 'SERVICE');
   showArchived = signal(false);
 
   private titleLabel = translateSignal('resources.title');
@@ -203,7 +206,7 @@ export class ResourceListComponent implements OnInit {
       return;
     }
     this.resourceService.updateResource(resource.id, {
-      reference: resource.reference?.trim() || null,
+      reference: resource.type === 'MATERIAL' ? resource.reference?.trim() || null : null,
       name: resource.name,
       unit: resource.unit,
       selling_price: resource.selling_price,

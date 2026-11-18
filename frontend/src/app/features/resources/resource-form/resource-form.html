@@ -8,10 +8,13 @@
     />
   </div>
 
-  <p-floatlabel variant="on">
-    <input pInputText id="reference" formControlName="reference" maxlength="50" />
-    <label for="reference">{{ 'resources.columnReference' | transloco }}</label>
-  </p-floatlabel>
+  <!-- A supplier's article number: a material's only. -->
+  @if (form.controls.type.value === 'MATERIAL') {
+    <p-floatlabel variant="on">
+      <input pInputText id="reference" formControlName="reference" maxlength="50" />
+      <label for="reference">{{ 'resources.columnReference' | transloco }}</label>
+    </p-floatlabel>
+  }
 
   <p-floatlabel variant="on">
     <input pInputText id="name" formControlName="name" />
