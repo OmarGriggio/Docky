@@ -1,13 +1,12 @@
 import { PDFImage } from "pdf-lib";
 import { PdfWriter } from "../core/pdf-writer";
 import { PdfColor, PdfTable } from "../core/pdf-writer.types";
-import { ClientDto, CompanyDto, DocumentSectionDto } from "./document.types";
-import { formatLongDate, PDF_LABELS, PdfLanguage } from "./pdf-labels";
+import { DocumentSectionDto } from "./document.types";
+import { PDF_LABELS, PdfLanguage } from "./pdf-labels";
 
 // Drawing steps shared by the letter-like PDFs: the logo, the header image
 // and the itemized section details (used by business-letter.ts, the
-// invoice/quote layout), and the payment reminder's own letterhead
-// (drawReminderLetterHead).
+// invoice/quote/reminder layout).
 
 const LOGO_MAX_WIDTH = 120;
 const LOGO_MAX_HEIGHT = 60;
@@ -54,45 +53,6 @@ export const placeHeaderImage = (pdf: PdfWriter, image: PDFImage, topGap: number
 
     pdf.drawImage(image, x, y, width, height, IMAGE_OPACITY);
     return height;
-};
-
-// Company address (left) and logo (right), side by side - drawn
-// independently (the logo via an absolute position, not the flowing cursor),
-// then the cursor is lowered past whichever of the two ends up taller. Then
-// the client's address and the place/date line, both indented to the right.
-// The payment reminder's - invoices and quotes have their own
-// (business-letter.ts's drawLetterHead).
-export const drawReminderLetterHead = async (
-    pdf: PdfWriter,
-    { company, client, date, language, logoBytes, dateMarginBottom = 15 }: {
-        company: CompanyDto;
-        client: ClientDto;
-        date: Date;
-        language: PdfLanguage;
-        logoBytes: Buffer | null;
-        dateMarginBottom?: number;
-    }
-) => {
-    const topY = pdf.remainingHeight();
-    pdf.text(company.name, { bold: true });
-    pdf.text(company.street);
-    pdf.text(company.postalCodeCity);
-
-    if (logoBytes) {
-        const logoBottomY = await drawLogoTopRight(pdf, logoBytes, topY);
-        pdf.lowerCursorTo(logoBottomY);
-    }
-    pdf.lowerCursorTo(pdf.remainingHeight() - 20);
-
-    pdf.text(client.name, { bold: true, indent: 250 });
-    if (client.complement) {
-        pdf.text(client.complement, { indent: 250 });
-    }
-    pdf.text(client.street, { indent: 250 });
-    pdf.text(client.postalCodeCity, { indent: 250, marginBottom: 15 });
-
-    const placeDate = PDF_LABELS[language].placeDate(company.city, formatLongDate(date, language));
-    pdf.text(placeDate, { marginBottom: dateMarginBottom, indent: 250 });
 };
 
 // The full itemized breakdown - every section's own lines, in a table, plus

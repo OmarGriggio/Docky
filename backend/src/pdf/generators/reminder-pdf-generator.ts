@@ -9,15 +9,19 @@ import { DocumentPdfGenerator, PdfSource } from "./document-pdf-generator";
 import { PreparedQrBill, prepareQrBill, renderQrBillPage } from "./qr-bill-page";
 import { toPdfLanguage } from "../templates/pdf-labels";
 import { withCurrentAddress } from "../../modules/documents/billed-address";
+import { embedImage } from "../templates/letter";
+import { drawLetterFooters, setUpLetterPages } from "../templates/business-letter";
 
 interface PreparedReminder {
     reminder: ReminderDto;
     qrBill: PreparedQrBill | null;
     logoBytes: Buffer | null;
+    headerImageBytes: Buffer | null;
 }
 
-// A payment reminder for an invoice: a one-page letter, then the Swiss
-// QR-bill alone on page 2 (always a fresh page - unlike the invoice there's
+// A payment reminder for an invoice: a one-page letter laid out like the
+// invoice (its header image, colors and footer), then the Swiss QR-bill
+// alone on page 2 (always a fresh page - unlike the invoice there's
 // no details table to share one with). Nothing here is stored: it's rebuilt
 // from the invoice each time, so it always shows its current amount/due
 // date.
@@ -45,13 +49,19 @@ export class ReminderPdfGenerator extends DocumentPdfGenerator<PreparedReminder>
             reminder: createReminderDto({ ...document, amount_incl_vat: source.amountDue }, client, company, template?.introduction ?? ""),
             qrBill: await prepareQrBill(source),
             logoBytes: await this.readCompanyImage(company, "logo"),
+            headerImageBytes: await this.readCompanyImage(company, "header"),
         };
     }
 
-    protected async render(pdf: PdfWriter, { reminder, qrBill, logoBytes }: PreparedReminder): Promise<void> {
-        await ReminderTemplate.render(pdf, reminder, logoBytes);
+    protected async render(pdf: PdfWriter, { reminder, qrBill, logoBytes, headerImageBytes }: PreparedReminder): Promise<void> {
+        const headerImage = headerImageBytes ? await embedImage(pdf, headerImageBytes) : null;
+        setUpLetterPages(pdf, headerImage);
+
+        await ReminderTemplate.render(pdf, reminder, logoBytes, headerImage !== null);
 
         await renderQrBillPage(pdf, qrBill, { shareCurrentPage: false });
+
+        drawLetterFooters(pdf, reminder.letter);
     }
 
 }

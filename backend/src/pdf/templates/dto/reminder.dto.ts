@@ -4,24 +4,20 @@ import { Company } from "../../../modules/companies/company.types";
 import { ReminderDto } from "../reminder.types";
 import { buildReminderValues } from "../reminder.placeholders";
 import { fillPlaceholders } from "../placeholders";
-import { toPdfLanguage } from "../pdf-labels";
-import { buildClientDto, buildCompanyDto } from "./shared";
+import { PDF_LABELS, toPdfLanguage } from "../pdf-labels";
+import { buildLetterDto } from "./shared";
 
 // templateText is the raw REMINDER template (with its {{placeholders}}).
 export const createReminderDto = (document: DocumentComplete, client: ClientWithAddresses, company: Company, templateText: string): ReminderDto => {
     const language = toPdfLanguage(client.language);
-    const clientDto = buildClientDto(client, document);
     const today = new Date();
+    const letter = buildLetterDto(document, client, company, language);
 
     return {
-        language,
-        invoiceNumber: document.number,
-        date: today,
-        company: buildCompanyDto(company),
-        client: {
-            ...clientDto,
-            title: client.title ?? "",
-        },
-        text: fillPlaceholders(templateText, buildReminderValues(document, clientDto.name, company.name ?? "", today, language)),
+        // Its own date, and none of the invoice's introduction/conclusion -
+        // the reminder's text stands in for them.
+        letter: { ...letter, date: today, introduction: "", conclusion: "" },
+        greeting: client.title?.trim() || PDF_LABELS[language].defaultClientTitle,
+        text: fillPlaceholders(templateText, buildReminderValues(document, letter.client.name, company.name ?? "", today, language)),
     };
 };
