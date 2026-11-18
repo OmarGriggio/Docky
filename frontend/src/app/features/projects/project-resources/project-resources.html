@@ -3,7 +3,9 @@
     <p class="text-sm text-gray-500">{{ 'projects.resources.readonlyNotice' | transloco }}</p>
   } @else if (!editing() && !loading()) {
     <div class="flex justify-end">
-      <p-button type="button" [label]="'common.edit' | transloco" icon="pi pi-pencil" size="small" (onClick)="startEditing()" />
+      @if (canWrite()) {
+        <p-button type="button" [label]="'common.edit' | transloco" icon="pi pi-pencil" size="small" (onClick)="startEditing()" />
+      }
     </div>
   }
 

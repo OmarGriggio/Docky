@@ -1,4 +1,5 @@
 import { Component, OnInit, computed, inject, input, model, signal } from '@angular/core';
+import { PermissionService } from '../../../../shared/services/permission.service';
 import { FormsModule } from '@angular/forms';
 import { InputText } from 'primeng/inputtext';
 import { InputNumber } from 'primeng/inputnumber';
@@ -38,6 +39,10 @@ export class DocumentSections implements OnInit {
   private notifications = inject(NotificationService);
   private resourceService = inject(ResourceService);
   private transloco = inject(TranslocoService);
+  private permissions = inject(PermissionService);
+  // "Ajouter une ressource" from the catalog picker - the catalog writable
+  // (an employee's permissions).
+  canCreateResource = computed(() => this.permissions.can('catalog', 'WRITE'));
 
   sections = model<DraftSection[]>([]);
   type = input.required<DocumentType>();

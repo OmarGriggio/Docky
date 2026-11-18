@@ -1,4 +1,5 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { PermissionService } from '../../../shared/services/permission.service';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
@@ -46,6 +47,10 @@ export class ProjectListComponent implements OnInit {
   private documentSectionService = inject(DocumentSectionService);
   private addressService = inject(AddressService);
   private transloco = inject(TranslocoService);
+  private permissions = inject(PermissionService);
+  // In read only (an employee's permissions): no editing, archiving or
+  // closing; invoicing needs the invoices module too.
+  canWrite = computed(() => this.permissions.can('projects', 'WRITE'));
 
   isMobile = inject(BreakpointService).isMobile;
 
@@ -185,10 +190,13 @@ export class ProjectListComponent implements OnInit {
       error: err => this.notifications.error('project-list', err)
     });
 
-    this.documentService.getDocuments('INVOICE', true).subscribe({
-      next: data => this.invoices.set(data),
-      error: err => this.notifications.error('project-list', err)
-    });
+    // "Voir la facture" - only with the invoices module (an employee's permissions).
+    if (this.permissions.can('invoices')) {
+      this.documentService.getDocuments('INVOICE', true).subscribe({
+        next: data => this.invoices.set(data),
+        error: err => this.notifications.error('project-list', err)
+      });
+    }
 
     this.addressService.getAddresses().subscribe({
       next: data => this.addresses.set(data),
@@ -266,9 +274,9 @@ export class ProjectListComponent implements OnInit {
 
   getActions(project: Project): MenuItem[] {
     return [
-      project.is_active
+      ...(this.canWrite() ? [project.is_active
         ? { label: this.transloco.translate('common.archive'), command: () => this.archiveProject(project) }
-        : { label: this.transloco.translate('common.unarchive'), command: () => this.unarchiveProject(project) },
+        : { label: this.transloco.translate('common.unarchive'), command: () => this.unarchiveProject(project) }] : []),
       {
         label: this.transloco.translate('common.detail'),
         command: () => this.router.navigate(['/projects', project.id])
@@ -285,9 +293,12 @@ export class ProjectListComponent implements OnInit {
   // its invoice instead of a second "Facturer" the backend would refuse.
   private statusAction(project: Project): MenuItem[] {
     if (project.status === 'IN_PROGRESS') {
-      return [{ label: this.transloco.translate('projects.closeAction'), command: () => this.completeProject(project) }];
+      return this.canWrite() ? [{ label: this.transloco.translate('projects.closeAction'), command: () => this.completeProject(project) }] : [];
     }
     const invoice = this.invoiceByProjectDocumentId().get(project.document_id);
+    if (!this.permissions.can('invoices', invoice ? 'READ' : 'WRITE')) {
+      return [];
+    }
     if (invoice) {
       return [{ label: this.transloco.translate('projects.viewInvoiceAction'), command: () => this.router.navigate(['/documents', invoice.id]) }];
     }

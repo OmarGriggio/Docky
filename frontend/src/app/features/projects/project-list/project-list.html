@@ -168,7 +168,7 @@
              left to edit here (see "Facturer" in the row menu instead). -->
         <td>
           <div class="flex gap-1">
-            @if (!editing && project.status !== 'COMPLETED') {
+            @if (!editing && project.status !== 'COMPLETED' && canWrite()) {
               <p-button type="button" pInitEditableRow icon="pi pi-pencil" [text]="true" severity="secondary" (click)="onRowEditInit(project)" />
             } @else if (editing) {
               <p-button type="button" pSaveEditableRow icon="pi pi-check" [text]="true" severity="success" (click)="onRowEditSave(project)" />

@@ -1,4 +1,5 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { PermissionService } from '../../../shared/services/permission.service';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
@@ -35,6 +36,9 @@ export class ResourceListComponent implements OnInit {
   isMobile = inject(BreakpointService).isMobile;
   private resourceService = inject(ResourceService);
   private transloco = inject(TranslocoService);
+  private permissions = inject(PermissionService);
+  // In read only (an employee's permissions): no adding, editing or archiving.
+  canWrite = computed(() => this.permissions.can('catalog', 'WRITE'));
 
   resources = signal<Resource[]>([]);
   currentType = signal<ResourceType | null>(null);
@@ -142,6 +146,9 @@ export class ResourceListComponent implements OnInit {
   }
 
   getActions(resource: Resource): MenuItem[] {
+    if (!this.canWrite()) {
+      return [];
+    }
     return [
       resource.is_active
         ? { label: this.transloco.translate('common.archive'), command: () => this.archiveResource(resource) }

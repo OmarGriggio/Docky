@@ -1,4 +1,5 @@
 import { AfterViewInit, Component, effect, ElementRef, inject, OnInit, signal, ViewChild } from '@angular/core';
+import { PermissionService } from '../../shared/services/permission.service';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { FullCalendarComponent, FullCalendarModule } from '@fullcalendar/angular';
@@ -47,6 +48,12 @@ const guideKeys = (key: string) => ({ titleKey: `calendar.guide.${key}Title`, te
 export class CalendarPage implements OnInit, AfterViewInit {
 
   private notifications = inject(NotificationService);
+  private permissions = inject(PermissionService);
+  // Planning (dragging, resizing, notes, a section's note) - an employee
+  // may only look at it (their permissions).
+  canWrite = this.permissions.can('calendar', 'WRITE');
+  // A section's link to its chantier, only with the chantiers module.
+  canSeeProjects = this.permissions.can('projects');
   private documentSectionService = inject(DocumentSectionService);
   private documentLineService = inject(DocumentLineService);
   private calendarNoteService = inject(CalendarNoteService);
@@ -141,8 +148,9 @@ export class CalendarPage implements OnInit, AfterViewInit {
     // timeGridWeek/timeGridDay only - dayGridMonth ignores these.
     slotMinTime: '06:00:00',
     slotMaxTime: '20:00:00',
-    // Drag & drop/resize is a desktop gesture - on a phone a tap is a tap.
-    editable: !this.isMobile(),
+    // Drag & drop/resize is a desktop gesture - on a phone a tap is a tap -
+    // and planning, which an employee may only look at.
+    editable: !this.isMobile() && this.canWrite,
     eventReceive: info => this.onEventReceive(info),
     eventDrop: info => this.onEventDropOrResize(info),
     eventResize: info => this.onEventDropOrResize(info),
@@ -159,7 +167,7 @@ export class CalendarPage implements OnInit, AfterViewInit {
   private toolbarsFor(mobile: boolean): { headerToolbar: ToolbarInput; footerToolbar: ToolbarInput | false } {
     return mobile
       ? {
-        headerToolbar: { left: 'prev,next', center: 'title', right: 'addNote' },
+        headerToolbar: { left: 'prev,next', center: 'title', right: this.canWrite ? 'addNote' : '' },
         footerToolbar: { left: 'today', right: 'listWeek,dayGridMonth' },
       }
       : {
@@ -180,7 +188,7 @@ export class CalendarPage implements OnInit, AfterViewInit {
     const toolbars = this.toolbarsFor(mobile);
     api.setOption('headerToolbar', toolbars.headerToolbar);
     api.setOption('footerToolbar', toolbars.footerToolbar);
-    api.setOption('editable', !mobile);
+    api.setOption('editable', !mobile && this.canWrite);
     api.changeView(mobile ? 'listWeek' : 'dayGridMonth');
   });
 
@@ -226,7 +234,8 @@ export class CalendarPage implements OnInit, AfterViewInit {
   }
 
   private showGuideOnFirstVisit(): void {
-    if (this.isMobile()) {
+    // It explains planning - nothing for whoever may only look at it.
+    if (this.isMobile() || !this.canWrite) {
       return;
     }
     try {
@@ -246,10 +255,12 @@ export class CalendarPage implements OnInit, AfterViewInit {
   // own API though, only ready once this component's view (the child
   // <full-calendar>'s own AfterViewInit already ran by then) is up.
   ngAfterViewInit(): void {
-    new Draggable(this.unscheduledListRef.nativeElement, {
-      itemSelector: '.fc-event',
-      eventData: el => JSON.parse(el.dataset['event'] ?? '{}'),
-    });
+    if (this.canWrite) {
+      new Draggable(this.unscheduledListRef.nativeElement, {
+        itemSelector: '.fc-event',
+        eventData: el => JSON.parse(el.dataset['event'] ?? '{}'),
+      });
+    }
 
     this.loadScheduledSections();
     this.loadNotes();
@@ -323,6 +334,9 @@ export class CalendarPage implements OnInit, AfterViewInit {
   // separately (see calendar.html), a bare midnight date would just have to
   // be corrected every time.
   private onDateClick(info: DateClickArg): void {
+    if (!this.canWrite) {
+      return;
+    }
     const start = new Date(info.date);
     if (info.allDay && this.isMobile()) {
       start.setHours(8, 0, 0, 0);
@@ -459,6 +473,11 @@ export class CalendarPage implements OnInit, AfterViewInit {
     this.noteDraft.set(section.note ?? '');
     this.detailDialogVisible.set(true);
 
+    // Its lines are the chantier's - only with the chantiers module (an
+    // employee's permissions).
+    if (!this.permissions.can('projects')) {
+      return;
+    }
     this.documentLineService.getLines(section.document_id).subscribe({
       next: lines => this.selectedSectionLines.set(lines.filter(l => l.section_id === section.id)),
       error: err => this.notifications.error('calendar', err)

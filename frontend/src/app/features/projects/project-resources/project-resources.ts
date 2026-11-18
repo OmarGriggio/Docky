@@ -1,4 +1,5 @@
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
+import { PermissionService } from '../../../shared/services/permission.service';
 import { PricePipe } from '../../../shared/pipes/price.pipe';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
@@ -72,11 +73,14 @@ export class ProjectResources implements OnInit {
   private documentService = inject(DocumentService);
   private resourceService = inject(ResourceService);
   private transloco = inject(TranslocoService);
+  private permissions = inject(PermissionService);
 
   // Once a chantier is closed, its resource ledger is exactly what an
   // invoice would be built from - no more changes past that point (see
   // zz_migrations/000_base.sql's comment on projects.status).
   locked = computed(() => this.project().status === 'COMPLETED');
+  // In read only (an employee's permissions): shown, never "Modifier".
+  canWrite = computed(() => this.permissions.can('projects', 'WRITE'));
 
   // An open chantier is shown read-only too until "Modifier" is clicked -
   // the page is mostly looked at, a stray click or scroll on a number field
@@ -158,7 +162,7 @@ export class ProjectResources implements OnInit {
   }
 
   startEditing(): void {
-    if (!this.locked()) {
+    if (!this.locked() && this.canWrite()) {
       this.editing.set(true);
     }
   }

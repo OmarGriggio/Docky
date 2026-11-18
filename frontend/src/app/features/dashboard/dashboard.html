@@ -6,7 +6,7 @@
   <div class="flex flex-col gap-4 min-w-0">
   <!-- Sent invoices still waiting for their payment, overdue first, and
        what they add up to on the last line. -->
-  <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-4">
+  <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-4" [class.hidden]="!canSeeInvoices()">
     <h2 class="text-lg font-medium mt-0 mb-2">{{ 'dashboard.toBePaid' | transloco }}</h2>
 
     @if (openInvoiceRows().length === 0) {
@@ -84,7 +84,7 @@
   </div>
 
   <!-- Ongoing chantiers, the one needing attention soonest first. -->
-  <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-4">
+  <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-4" [class.hidden]="!canSeeProjects()">
     <h2 class="text-lg font-medium mt-0 mb-2">{{ 'dashboard.projectsInProgress' | transloco }}</h2>
 
     @if (projectsInProgress().length === 0) {
@@ -135,7 +135,7 @@
 
   </div>
 
-  <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-4 min-w-0">
+  <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-4 min-w-0" [class.hidden]="!canSeeInvoices()">
     <h2 class="text-lg font-medium mt-0 mb-2">{{ 'dashboard.paidByClient' | transloco }}</h2>
 
     @if (paidByClient().length === 0) {

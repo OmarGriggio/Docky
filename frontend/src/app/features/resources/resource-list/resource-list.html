@@ -4,6 +4,7 @@
   [showArchived]="showArchived()"
   (showArchivedChange)="onShowArchivedChange($event)"
   (add)="openCreateDialog()"
+  [addable]="canWrite()"
 />
 
 <p-dialog
@@ -133,7 +134,7 @@
 
         <td class="w-14">
           <div class="flex gap-1">
-            @if (!editing) {
+            @if (!editing && canWrite()) {
               <p-button type="button" pInitEditableRow icon="pi pi-pencil" [text]="true" severity="secondary" (click)="onRowEditInit(item)" />
             } @else {
               <p-button type="button" pSaveEditableRow icon="pi pi-check" [text]="true" severity="success" (click)="onRowEditSave(item)" />

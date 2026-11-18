@@ -1,4 +1,5 @@
 <div class="flex flex-col gap-4">
+  @if (canWrite()) {
   <div
     class="flex flex-col items-center gap-2 rounded border-2 border-dashed border-surface-300 p-4 cursor-pointer text-center"
     [class.border-primary]="isDraggingOver()"
@@ -24,6 +25,7 @@
       <p-button type="button" [label]="'common.add' | transloco" size="small" [loading]="uploading()" (onClick)="uploadFile()" />
     </div>
   }
+  }
 
   @if (errorMessage()) {
     <p class="text-sm text-red-600">{{ errorMessage() }}</p>
@@ -48,10 +50,12 @@
             <p class="text-xs text-surface-500">{{ formatFileSize(attachment.size_bytes) }} · {{ attachment.created_at | appDate }}</p>
           </div>
           <p-button type="button" icon="pi pi-download" severity="secondary" [text]="true" size="small" (onClick)="downloadAttachment(attachment)" />
-          @if (attachment.is_active) {
-            <p-button type="button" icon="pi pi-inbox" severity="secondary" [text]="true" size="small" (onClick)="archiveAttachment(attachment)" />
-          } @else {
-            <p-button type="button" icon="pi pi-replay" severity="secondary" [text]="true" size="small" (onClick)="unarchiveAttachment(attachment)" />
+          @if (canWrite()) {
+            @if (attachment.is_active) {
+              <p-button type="button" icon="pi pi-inbox" severity="secondary" [text]="true" size="small" (onClick)="archiveAttachment(attachment)" />
+            } @else {
+              <p-button type="button" icon="pi pi-replay" severity="secondary" [text]="true" size="small" (onClick)="unarchiveAttachment(attachment)" />
+            }
           }
         </li>
       }

@@ -1,7 +1,7 @@
 @if (project(); as p) {
   <div class="flex justify-between items-center mb-4">
     <h1 class="m-0">{{ p.name }}</h1>
-    @if (p.status === 'IN_PROGRESS' && p.is_active) {
+    @if (p.status === 'IN_PROGRESS' && p.is_active && canWrite()) {
       <p-button
         size="small"
         type="button"
@@ -48,7 +48,9 @@
     </div>
   </p-card>
 
-  <app-project-billing [project]="p" />
+  @if (canSeeInvoices()) {
+    <app-project-billing [project]="p" />
+  }
 
   <h2>{{ 'nav.resources' | transloco }}</h2>
   <app-project-resources [project]="p" />

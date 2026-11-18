@@ -43,7 +43,9 @@
       <h3>{{ 'clients.detail.addresses' | transloco }}</h3>
     </ng-template>
     <ng-template #end>
-      <p-button size="small" label="" icon="pi pi-plus" (onClick)="addAddressDialogVisible.set(true)" />
+      @if (canWrite()) {
+        <p-button size="small" label="" icon="pi pi-plus" (onClick)="addAddressDialogVisible.set(true)" />
+      }
     </ng-template>
   </p-toolbar>
 
@@ -64,7 +66,9 @@
           @if (address.is_primary) {
             <p-tag [value]="'clients.detail.addressPrimary' | transloco" severity="success" />
           }
-          <p-button icon="pi pi-trash" severity="danger" [text]="true" (onClick)="deleteAddress(address)" />
+          @if (canWrite()) {
+            <p-button icon="pi pi-trash" severity="danger" [text]="true" (onClick)="deleteAddress(address)" />
+          }
         </div>
       }
     </div>
@@ -136,7 +140,7 @@
 
           <td>
             <div class="flex gap-1">
-              @if (!editing) {
+              @if (!editing && canWrite()) {
                 <p-button type="button" pInitEditableRow icon="pi pi-pencil" [text]="true" severity="secondary" (click)="onRowEditInit(address)" />
               } @else {
                 <p-button type="button" pSaveEditableRow icon="pi pi-check" [text]="true" severity="success" (click)="onRowEditSave(address)" />
@@ -145,7 +149,9 @@
             </div>
           </td>
           <td>
-            <p-button icon="pi pi-trash" severity="danger" [text]="true" (onClick)="deleteAddress(address)" />
+            @if (canWrite()) {
+              <p-button icon="pi pi-trash" severity="danger" [text]="true" (onClick)="deleteAddress(address)" />
+            }
           </td>
         </tr>
       </ng-template>

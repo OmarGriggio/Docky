@@ -1,4 +1,5 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { PermissionService } from '../../shared/services/permission.service';
 import { RouterLink } from '@angular/router';
 import { UIChart } from 'primeng/chart';
 import { Tag } from 'primeng/tag';
@@ -39,6 +40,10 @@ interface BarChartData {
 export class Dashboard implements OnInit {
 
   private notifications = inject(NotificationService);
+  private permissions = inject(PermissionService);
+  // Each card with its own module (an employee's permissions).
+  canSeeInvoices = computed(() => this.permissions.can('invoices'));
+  canSeeProjects = computed(() => this.permissions.can('projects'));
   private dashboardService = inject(DashboardService);
   private companyService = inject(CompanyService);
   private authService = inject(AuthService);
@@ -92,6 +97,7 @@ export class Dashboard implements OnInit {
       });
     }
 
+    if (this.canSeeInvoices()) {
     this.dashboardService.getPaidAmountByClient().subscribe({
       next: data => {
         this.paidByClient.set(data);
@@ -104,11 +110,14 @@ export class Dashboard implements OnInit {
       next: data => this.openInvoiceRows.set(data),
       error: err => this.notifications.error('dashboard', err)
     });
+    }
 
-    this.dashboardService.getProjectsInProgress().subscribe({
-      next: data => this.projectsInProgress.set(data),
-      error: err => this.notifications.error('dashboard', err)
-    });
+    if (this.canSeeProjects()) {
+      this.dashboardService.getProjectsInProgress().subscribe({
+        next: data => this.projectsInProgress.set(data),
+        error: err => this.notifications.error('dashboard', err)
+      });
+    }
   }
 
   // A document made out to the "Non défini" client shows the recipient

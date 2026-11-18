@@ -2,7 +2,8 @@ import { Component, HostListener, OnInit, computed, inject, signal } from '@angu
 import { PricePipe } from '../../../shared/pipes/price.pipe';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, of } from 'rxjs';
+import { PermissionService } from '../../../shared/services/permission.service';
 import { HasUnsavedChanges, LeaveConfirmation } from '../../../shared/guards/unsaved-changes.guard';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -125,6 +126,13 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
   }
 
   private notifications = inject(NotificationService);
+  private permissions = inject(PermissionService);
+
+  // Whether this user may change a document of this type (an employee's
+  // permissions - an admin always).
+  private canWriteType(type: DocumentType): boolean {
+    return this.permissions.can(type === 'QUOTE' ? 'quotes' : type === 'INVOICE' ? 'invoices' : 'projects', 'WRITE');
+  }
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private documentService = inject(DocumentService);
@@ -476,7 +484,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
   // The status bar's steps among them are buttons; REJECTED/CANCELLED, off
   // the bar while the document is open, get one of their own.
   nextStatuses(): DocumentStatus[] {
-    if (this.editingDocumentId() === null) {
+    if (this.editingDocumentId() === null || !this.canWriteType(this.type())) {
       return [];
     }
     return nextStatuses(this.type(), this.status(), this.isActive());
@@ -588,7 +596,8 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
     // editing an INVOICE needs to resolve its parent_document_id back to
     // which Project that is (see loadForEdit), which needs this list
     // already populated - a plain parallel fetch would race it.
-    this.projectService.getProjects().subscribe({
+    // Without the chantiers module (an employee's permissions), none to pick.
+    (this.permissions.can('projects') ? this.projectService.getProjects() : of([])).subscribe({
       next: data => {
         this.projects.set(data);
 
@@ -839,7 +848,9 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
         // A PROJECT document's own status is always null (see
         // shared/models/document.ts) - never editable through this page
         // either way, though nothing currently routes one here.
-        this.locked.set(!isOpenForEditing(source.type, source.status));
+        // Also locked for an employee who may only read this type (their
+        // permissions) - the backend refuses any change anyway.
+        this.locked.set(!isOpenForEditing(source.type, source.status) || !this.canWriteType(source.type));
         this.invoiceKind.set(source.invoice_kind ?? 'STANDARD');
         if (source.type === 'INVOICE' && source.parent_document_id !== null && source.invoice_kind !== 'DEPOSIT') {
           this.loadDeductions(id);

@@ -1,4 +1,5 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { PermissionService } from '../../../shared/services/permission.service';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Observable } from 'rxjs';
@@ -37,6 +38,15 @@ export class DocumentListComponent implements OnInit {
 
   private notifications = inject(NotificationService);
   private route = inject(ActivatedRoute);
+  private permissions = inject(PermissionService);
+
+  // Per the document's type (an employee's permissions): a quote or invoice
+  // in read only has no status change, archiving or duplicating.
+  canWriteType(type: DocumentType | null): boolean {
+    return type === 'QUOTE' ? this.permissions.can('quotes', 'WRITE')
+      : type === 'INVOICE' ? this.permissions.can('invoices', 'WRITE')
+      : this.permissions.can('quotes', 'WRITE') || this.permissions.can('invoices', 'WRITE');
+  }
   isMobile = inject(BreakpointService).isMobile;
   private router = inject(Router);
   private documentService = inject(DocumentService);
@@ -236,7 +246,7 @@ export class DocumentListComponent implements OnInit {
   // SETTABLE_STATUSES - a SENT invoice still moves on to PAID/CANCELLED, even
   // though its content is frozen). Public for the template.
   isEditable(document: Document): boolean {
-    return nextStatuses(document.type, document.status, document.is_active).length > 0;
+    return this.canWriteType(document.type) && nextStatuses(document.type, document.status, document.is_active).length > 0;
   }
 
   // Picking ACCEPTED goes through the confirm dialog below
@@ -324,10 +334,11 @@ export class DocumentListComponent implements OnInit {
   }
 
   getActions(document: Document): MenuItem[] {
+    const canWrite = this.canWriteType(document.type);
     return [
-      document.is_active
+      ...(canWrite ? [document.is_active
         ? { label: this.transloco.translate('common.archive'), command: () => this.archiveDocument(document) }
-        : { label: this.transloco.translate('common.unarchive'), command: () => this.unarchiveDocument(document) },
+        : { label: this.transloco.translate('common.unarchive'), command: () => this.unarchiveDocument(document) }] : []),
       {
         label: this.transloco.translate('documents.modify'),
         command: () => this.router.navigate(['/documents', document.id])
@@ -339,7 +350,7 @@ export class DocumentListComponent implements OnInit {
       // A quote or an invoice - a new draft pre-filled from this one (see
       // document-form.ts's applyDuplicateFrom). Not a deposit: a deposit only
       // comes from its chantier's "Facture d'acompte".
-      ...(document.invoice_kind === 'DEPOSIT'
+      ...(document.invoice_kind === 'DEPOSIT' || !canWrite
         ? []
         : [{ label: this.transloco.translate('clients.duplicate'), command: () => this.duplicateDocument(document) }])
     ];

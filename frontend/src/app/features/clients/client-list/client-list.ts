@@ -1,4 +1,5 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { PermissionService } from '../../../shared/services/permission.service';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TableModule, TableRowExpandEvent } from 'primeng/table';
@@ -58,6 +59,11 @@ export class ClientListComponent implements OnInit {
   private documentService = inject(DocumentService);
   private router = inject(Router);
   private transloco = inject(TranslocoService);
+  private permissions = inject(PermissionService);
+
+  // In read only (an employee's permissions): no adding, editing, archiving
+  // or importing - the backend refuses them anyway.
+  canWrite = computed(() => this.permissions.can('clients', 'WRITE'));
 
   clients = signal<ClientListItem[]>([]);
 
@@ -127,9 +133,9 @@ export class ClientListComponent implements OnInit {
 
   // The toolbar's ⋮ menu: importing clients from a spreadsheet.
   private importLabel = translateSignal('clients.import.menuItem');
-  toolbarMenuItems = computed<MenuItem[]>(() => [
-    { label: this.importLabel(), icon: 'pi pi-file-import', command: () => this.router.navigate(['/clients/import']) },
-  ]);
+  toolbarMenuItems = computed<MenuItem[]>(() => this.canWrite()
+    ? [{ label: this.importLabel(), icon: 'pi pi-file-import', command: () => this.router.navigate(['/clients/import']) }]
+    : []);
 
   private frenchLabel = translateSignal('clients.languageFrench');
   private englishLabel = translateSignal('clients.languageEnglish');
@@ -193,14 +199,14 @@ export class ClientListComponent implements OnInit {
   // resources, documents), most not translated yet; see conversation notes.
   getActions(client: Client): MenuItem[] {
     return [
-      {
+      ...(this.canWrite() ? [{
         label: archiveActionLabel(client.is_active),
         command: () => client.is_active ? this.archiveClient(client) : this.unarchiveClient(client)
       },
       {
         label: this.transloco.translate('clients.duplicate'),
         command: () => this.duplicateClient(client)
-      },
+      }] : []),
       {
         label: this.transloco.translate('common.detail'),
         command: () => this.router.navigate(['/clients', client.id])

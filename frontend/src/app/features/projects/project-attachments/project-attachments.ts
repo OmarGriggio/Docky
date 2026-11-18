@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, input, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
+import { PermissionService } from '../../../shared/services/permission.service';
 import { FormsModule } from '@angular/forms';
 import { Button } from 'primeng/button';
 import { Checkbox } from 'primeng/checkbox';
@@ -27,6 +28,10 @@ export class ProjectAttachments implements OnInit {
   private notifications = inject(NotificationService);
   private service = inject(ProjectAttachmentService);
   private transloco = inject(TranslocoService);
+  private permissions = inject(PermissionService);
+  // Adding or archiving a file with the chantiers module writable; anyone
+  // reading it can download them.
+  canWrite = computed(() => this.permissions.can('projects', 'WRITE'));
 
   attachments = signal<ProjectAttachment[]>([]);
   showArchived = signal(false);

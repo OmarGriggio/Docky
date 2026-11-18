@@ -1,4 +1,5 @@
-import { Component, inject, OnInit, signal, viewChild } from '@angular/core';
+import { Component, computed, inject, OnInit, signal, viewChild } from '@angular/core';
+import { PermissionService } from '../../../shared/services/permission.service';
 import { ActivatedRoute } from '@angular/router';
 import { Card } from 'primeng/card';
 import { Tag } from 'primeng/tag';
@@ -35,6 +36,11 @@ export class ProjectDetail implements OnInit {
   private clientService = inject(ClientService);
   private documentService = inject(DocumentService);
   private transloco = inject(TranslocoService);
+  private permissions = inject(PermissionService);
+  // Closing it with the chantiers module writable; its invoicing card with
+  // the invoices module (an employee's permissions).
+  canWrite = computed(() => this.permissions.can('projects', 'WRITE'));
+  canSeeInvoices = computed(() => this.permissions.can('invoices'));
 
   project = signal<Project | null>(null);
   clientName = signal<string>('—');

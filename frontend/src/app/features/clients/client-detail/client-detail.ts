@@ -1,4 +1,5 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { PermissionService } from '../../../shared/services/permission.service';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
@@ -31,6 +32,9 @@ export class ClientDetail implements OnInit {
 
   private notifications = inject(NotificationService);
   private route = inject(ActivatedRoute);
+  private permissions = inject(PermissionService);
+  // Its addresses changed only with the clients module writable.
+  canWrite = computed(() => this.permissions.can('clients', 'WRITE'));
   isMobile = inject(BreakpointService).isMobile;
   private clientService = inject(ClientService);
   private addressService = inject(AddressService);

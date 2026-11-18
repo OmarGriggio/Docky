@@ -1,4 +1,5 @@
 import { Component, computed, inject, input, model, output, signal } from '@angular/core';
+import { PermissionService } from '../../../../shared/services/permission.service';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { InputText } from 'primeng/inputtext';
@@ -37,6 +38,10 @@ export class DocumentHeader {
 
   private router = inject(Router);
   private transloco = inject(TranslocoService);
+  // "Ajouter un client" from the picker - the clients module writable (an
+  // employee's permissions).
+  private permissions = inject(PermissionService);
+  canCreateClient = computed(() => this.permissions.can('clients', 'WRITE'));
 
   company = input<Company | null>(null);
   logoUrl = input<string | null>(null);

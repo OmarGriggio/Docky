@@ -1,4 +1,5 @@
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
+import { PermissionService } from '../../../shared/services/permission.service';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -36,13 +37,16 @@ export class ProjectBilling implements OnInit {
   private notifications = inject(NotificationService);
   private transloco = inject(TranslocoService);
   private router = inject(Router);
+  private permissions = inject(PermissionService);
+  // Creating an invoice from here needs the invoices module writable.
+  private canInvoice = computed(() => this.permissions.can('invoices', 'WRITE'));
 
   project = input.required<Project>();
 
   billing = signal<ChantierBilling | null>(null);
 
-  canAddDeposit = computed(() => !!this.billing() && !this.billing()!.finalInvoice && this.project().is_active);
-  canInvoiceFinal = computed(() => !!this.billing() && !this.billing()!.finalInvoice && this.project().status === 'COMPLETED');
+  canAddDeposit = computed(() => this.canInvoice() && !!this.billing() && !this.billing()!.finalInvoice && this.project().is_active);
+  canInvoiceFinal = computed(() => this.canInvoice() && !!this.billing() && !this.billing()!.finalInvoice && this.project().status === 'COMPLETED');
 
   // "Facture d'acompte": a percentage of the quote's total incl. VAT (only
   // with a quote) or an amount incl. VAT.

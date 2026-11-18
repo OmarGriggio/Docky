@@ -4,6 +4,7 @@
   [showArchived]="showArchived()"
   (showArchivedChange)="onShowArchivedChange($event)"
   (add)="createDocument()"
+  [addable]="canWriteType(currentType())"
 />
 
 <!-- An invoices list's deposits or final invoices on their own (kindFilter). -->

@@ -6,15 +6,20 @@
          toolbarsFor) - the one toolbar button in solid green, like this one -
          and there's no guide (no drag and drop there). -->
     <div class="hidden md:flex justify-end gap-2 mb-2">
-      <p-button data-tour="help" size="small" icon="pi pi-question-circle" severity="secondary" [text]="true" [rounded]="true" [title]="'calendar.guide.open' | transloco" [ariaLabel]="'calendar.guide.open' | transloco" (onClick)="tour.open()" />
-      <p-button data-tour="add-note" size="small" icon="pi pi-plus" [label]="'calendar.addNote' | transloco" (onClick)="openNewNote()" />
+      @if (canWrite) {
+        <p-button data-tour="help" size="small" icon="pi pi-question-circle" severity="secondary" [text]="true" [rounded]="true" [title]="'calendar.guide.open' | transloco" [ariaLabel]="'calendar.guide.open' | transloco" (onClick)="tour.open()" />
+      }
+      @if (canWrite) {
+        <p-button data-tour="add-note" size="small" icon="pi pi-plus" [label]="'calendar.addNote' | transloco" (onClick)="openNewNote()" />
+      }
     </div>
     <full-calendar data-tour="calendar" #fullCalendar [options]="calendarOptions" />
   </div>
 
   <!-- Dragging a section onto a day is a desktop gesture - hidden on a phone. -->
   <!-- Each card looks like the blue section it becomes once dropped. -->
-  <div data-tour="unscheduled" class="hidden md:flex w-64 shrink-0 flex-col gap-2">
+  <!-- Planning only: not shown to whoever may only look at the calendar. -->
+  <div data-tour="unscheduled" class="hidden md:flex w-64 shrink-0 flex-col gap-2" [style.display]="canWrite ? null : 'none'">
     <h2 class="text-sm font-semibold text-gray-700 uppercase m-0 flex items-center gap-2">
       {{ 'calendar.unscheduledSections' | transloco }}
       @if (unscheduledSections().length > 0) {
@@ -87,12 +92,14 @@
           rows="3"
           class="w-full"
           [(ngModel)]="noteDraft"
+          [disabled]="!canWrite"
           [placeholder]="'calendar.addNotePlaceholder' | transloco"
         ></textarea>
       </div>
     </div>
 
     <div class="flex justify-end gap-2 mt-4">
+      @if (canSeeProjects) {
       <p-button
         [label]="'calendar.viewProject' | transloco"
         icon="pi pi-arrow-up-right"
@@ -101,6 +108,8 @@
         [routerLink]="['/projects', section.project_id]"
         (onClick)="detailDialogVisible.set(false)"
       />
+      }
+      @if (canWrite) {
       <p-button
         [label]="'calendar.saveNote' | transloco"
         icon="pi pi-save"
@@ -108,6 +117,7 @@
         styleClass="self-end"
         (onClick)="saveNote()"
       />
+      }
     </div>
   }
 </p-dialog>
@@ -192,12 +202,14 @@
   </div>
 
   <div class="flex justify-between gap-2 mt-4">
-    @if (editingNoteId() !== null) {
+    @if (editingNoteId() !== null && canWrite) {
       <p-button [label]="'common.delete' | transloco" icon="pi pi-trash" size="small" severity="danger" [text]="true" (onClick)="deleteNoteDialog()" />
     } @else {
       <span></span>
     }
-    <p-button [label]="'documentTemplates.save' | transloco" icon="pi pi-save" size="small" (onClick)="saveNoteDialog()" />
+    @if (canWrite) {
+      <p-button [label]="'documentTemplates.save' | transloco" icon="pi pi-save" size="small" (onClick)="saveNoteDialog()" />
+    }
   </div>
 </p-dialog>
 

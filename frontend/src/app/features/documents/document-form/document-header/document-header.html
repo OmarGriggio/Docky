@@ -91,6 +91,7 @@
         [fluid]="true"
       >
         <ng-template #footer>
+          @if (canCreateClient()) {
           <div class="p-2 border-t border-surface-200">
             <p-button
               type="button" [label]="'documents.header.addClient' | transloco" icon="pi pi-plus"
@@ -98,6 +99,7 @@
               (onClick)="createClientDialogVisible.set(true)"
             />
           </div>
+          }
         </ng-template>
       </p-select>
       <label for="client_id">{{ 'projects.columnClient' | transloco }} *</label>
