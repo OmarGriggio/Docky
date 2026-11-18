@@ -149,6 +149,13 @@ export const routes: Routes = [
         data: { breadcrumb: 'settings.documentTemplates' }
       },
       {
+        // Readable by every role - only an admin can save (the backend's
+        // document_numbering.routes.ts), the page says so.
+        path: 'numbering',
+        loadComponent: () => import('./features/settings/numbering/numbering').then(m => m.Numbering),
+        data: { breadcrumb: 'settings.numberingMenu' }
+      },
+      {
         // Open to every role, like 'templates' above - a personal
         // preference (users.language), not company/admin-scoped.
         path: 'language',

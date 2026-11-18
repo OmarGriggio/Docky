@@ -33,7 +33,36 @@
     "languageUpdated": "Langue mise à jour.",
     "languageUpdateError": "Impossible de mettre à jour la langue.",
     "french": "Français",
-    "english": "English"
+    "english": "English",
+    "numberingMenu": "Numérotation",
+    "numbering": {
+      "title": "Numérotation des documents",
+      "description": "Le format des numéros de tes offres et factures, et le numéro à partir duquel continuer - pratique pour poursuivre la série de ton ancien logiciel. Un numéro n'est jamais donné deux fois.",
+      "quotes": "Offres",
+      "invoices": "Factures",
+      "format": "Format",
+      "start": "Commencer à",
+      "next": "Prochain numéro :",
+      "tokenYear": "Année",
+      "tokenShortYear": "Année courte",
+      "tokenSequence": "Numéro",
+      "yearlyHint": "Avec l'année dans le format, la numérotation recommence à 1 chaque année.",
+      "continuousHint": "Sans l'année dans le format, la numérotation continue d'une année à l'autre.",
+      "startHint": "Le prochain numéro n'est jamais plus bas que le dernier déjà donné.",
+      "adminOnly": "Seul un administrateur de l'entreprise peut modifier la numérotation.",
+      "saved": "Numérotation enregistrée.",
+      "errors": {
+        "NUMBER_FORMAT_EMPTY": "Le format est vide.",
+        "NUMBER_FORMAT_TOO_LONG": "Le format dépasse 30 caractères.",
+        "NUMBER_FORMAT_NO_SEQUENCE": "Il manque le numéro : ajoute {NNNN}.",
+        "NUMBER_FORMAT_SEVERAL_SEQUENCES": "Un seul numéro par format.",
+        "NUMBER_FORMAT_SEQUENCE_TOO_LONG": "Le numéro a 8 chiffres au plus.",
+        "NUMBER_FORMAT_INVALID_CHARACTERS": "Seulement des lettres sans accent, des chiffres, - _ . / et les éléments {YYYY}, {YY}, {NNNN}.",
+        "NUMBER_FORMAT_TAKEN": "Ce format est déjà celui d'un autre type de document.",
+        "NUMBER_START_INVALID": "Le numéro de départ va de 1 à 99999999.",
+        "generic": "Impossible de calculer le prochain numéro."
+      }
+    }
   },
   "documentTemplates": {
     "title": "Modèles de documents",

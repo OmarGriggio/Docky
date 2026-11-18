@@ -33,7 +33,36 @@
     "languageUpdated": "Language updated.",
     "languageUpdateError": "Could not update the language.",
     "french": "Français",
-    "english": "English"
+    "english": "English",
+    "numberingMenu": "Numbering",
+    "numbering": {
+      "title": "Document numbering",
+      "description": "The format of your quotes' and invoices' numbers, and the number to continue from - handy to carry on your previous software's series. A number is never given out twice.",
+      "quotes": "Quotes",
+      "invoices": "Invoices",
+      "format": "Format",
+      "start": "Start at",
+      "next": "Next number:",
+      "tokenYear": "Year",
+      "tokenShortYear": "Short year",
+      "tokenSequence": "Number",
+      "yearlyHint": "With the year in the format, numbering starts again at 1 every year.",
+      "continuousHint": "Without the year in the format, numbering carries on from one year to the next.",
+      "startHint": "The next number is never lower than the last one given out.",
+      "adminOnly": "Only an administrator of the company can change the numbering.",
+      "saved": "Numbering saved.",
+      "errors": {
+        "NUMBER_FORMAT_EMPTY": "The format is empty.",
+        "NUMBER_FORMAT_TOO_LONG": "The format is longer than 30 characters.",
+        "NUMBER_FORMAT_NO_SEQUENCE": "The number is missing: add {NNNN}.",
+        "NUMBER_FORMAT_SEVERAL_SEQUENCES": "Only one number per format.",
+        "NUMBER_FORMAT_SEQUENCE_TOO_LONG": "The number has 8 digits at most.",
+        "NUMBER_FORMAT_INVALID_CHARACTERS": "Only letters without accents, digits, - _ . / and the {YYYY}, {YY}, {NNNN} parts.",
+        "NUMBER_FORMAT_TAKEN": "This format is already another document type's.",
+        "NUMBER_START_INVALID": "The starting number goes from 1 to 99999999.",
+        "generic": "The next number couldn't be worked out."
+      }
+    }
   },
   "documentTemplates": {
     "title": "Document templates",

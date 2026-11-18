@@ -1,0 +1,160 @@
+import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
+import { Card } from 'primeng/card';
+import { Button } from 'primeng/button';
+import { InputText } from 'primeng/inputtext';
+import { InputNumber } from 'primeng/inputnumber';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { AuthService } from '../../auth/auth.service';
+import { NotificationService } from '../../../shared/services/notification.service';
+import { NumberedDocumentType, NumberingService } from './numbering.service';
+
+interface NumberingDraft {
+  type: NumberedDocumentType;
+  format: string;
+  start: number | null;
+  // The live preview - the next number, or the reason the format isn't one.
+  preview: string | null;
+  errorKey: string | null;
+}
+
+const PREVIEW_DELAY = 300;
+
+// Paramètres > Numérotation: how the company's quotes and invoices are
+// numbered (the backend's document_numbering.service.ts) - a format with
+// the year and the sequence as tokens, and the number it starts from, for a
+// company moving to Docky that continues its own series. The next number is
+// previewed as it's typed. An admin's to change, like the profile.
+@Component({
+  selector: 'app-numbering',
+  standalone: true,
+  imports: [FormsModule, Card, Button, InputText, InputNumber, TranslocoPipe],
+  templateUrl: './numbering.html',
+})
+export class Numbering implements OnInit {
+
+  private numberingService = inject(NumberingService);
+  private authService = inject(AuthService);
+  private notifications = inject(NotificationService);
+  private transloco = inject(TranslocoService);
+
+  canEdit = computed(() => this.authService.isAdmin() || this.authService.isPlatformAdmin());
+
+  loading = signal(true);
+  saving = signal(false);
+  drafts = signal<NumberingDraft[]>([]);
+  hasError = computed(() => this.drafts().some(draft => draft.errorKey !== null));
+
+  readonly tokens = [
+    { token: '{YYYY}', label: 'settings.numbering.tokenYear' },
+    { token: '{YY}', label: 'settings.numbering.tokenShortYear' },
+    { token: '{NNNN}', label: 'settings.numbering.tokenSequence' },
+  ];
+
+  private previewTimers = new Map<NumberedDocumentType, ReturnType<typeof setTimeout>>();
+
+  constructor() {
+    inject(DestroyRef).onDestroy(() => this.previewTimers.forEach(timer => clearTimeout(timer)));
+  }
+
+  ngOnInit(): void {
+    this.numberingService.getNumbering().subscribe({
+      next: numbering => {
+        this.drafts.set(numbering.map(item => ({
+          type: item.type,
+          format: item.number_format,
+          start: item.start_number,
+          preview: item.next_number,
+          errorKey: null,
+        })));
+        this.loading.set(false);
+      },
+      error: err => {
+        this.loading.set(false);
+        this.notifications.error('numbering', err);
+      }
+    });
+  }
+
+  yearly(draft: NumberingDraft): boolean {
+    return /\{YY(YY)?\}/.test(draft.format);
+  }
+
+  update(type: NumberedDocumentType, patch: Partial<Pick<NumberingDraft, 'format' | 'start'>>): void {
+    this.drafts.update(drafts => drafts.map(draft => draft.type === type ? { ...draft, ...patch } : draft));
+    this.schedulePreview(type);
+  }
+
+  // A token at the cursor of that type's format field, or at its end.
+  insertToken(type: NumberedDocumentType, token: string, input: HTMLInputElement): void {
+    const at = input.selectionStart ?? input.value.length;
+    const end = input.selectionEnd ?? at;
+    const format = input.value.slice(0, at) + token + input.value.slice(end);
+    this.update(type, { format });
+    setTimeout(() => {
+      input.focus();
+      input.setSelectionRange(at + token.length, at + token.length);
+    });
+  }
+
+  private schedulePreview(type: NumberedDocumentType): void {
+    clearTimeout(this.previewTimers.get(type));
+    this.previewTimers.set(type, setTimeout(() => this.refreshPreview(type), PREVIEW_DELAY));
+  }
+
+  private refreshPreview(type: NumberedDocumentType): void {
+    const draft = this.drafts().find(item => item.type === type);
+    if (!draft) {
+      return;
+    }
+    this.numberingService.preview(type, { number_format: draft.format, start_number: draft.start }).subscribe({
+      next: ({ next_number }) => this.setPreview(type, draft, next_number, null),
+      error: err => this.setPreview(type, draft, null, this.errorKeyOf(err)),
+    });
+  }
+
+  // Only if the draft hasn't changed since - an older answer arriving late
+  // doesn't overwrite a newer one.
+  private setPreview(type: NumberedDocumentType, sent: NumberingDraft, preview: string | null, errorKey: string | null): void {
+    this.drafts.update(drafts => drafts.map(draft =>
+      draft.type === type && draft.format === sent.format && draft.start === sent.start ? { ...draft, preview, errorKey } : draft
+    ));
+  }
+
+  private errorKeyOf(err: unknown): string {
+    const code = err instanceof HttpErrorResponse ? (err.error as { code?: unknown } | null)?.code : null;
+    return typeof code === 'string' && code.startsWith('NUMBER_') ? `settings.numbering.errors.${code}` : 'settings.numbering.errors.generic';
+  }
+
+  async save(): Promise<void> {
+    if (!this.canEdit() || this.hasError()) {
+      return;
+    }
+    this.saving.set(true);
+    try {
+      for (const draft of this.drafts()) {
+        const saved = await firstValueFrom(this.numberingService.updateNumbering(draft.type, { number_format: draft.format, start_number: draft.start }));
+        this.drafts.update(drafts => drafts.map(item => item.type === saved.type
+          ? { type: saved.type, format: saved.number_format, start: saved.start_number, preview: saved.next_number, errorKey: null }
+          : item));
+      }
+      this.notifications.success('settings.numbering.saved');
+    } catch (err) {
+      const code = err instanceof HttpErrorResponse ? (err.error as { code?: unknown } | null)?.code : null;
+      if (typeof code === 'string' && code.startsWith('NUMBER_')) {
+        this.notifications.warn(`settings.numbering.errors.${code}`);
+      } else {
+        this.notifications.error('numbering', err);
+      }
+    } finally {
+      this.saving.set(false);
+    }
+  }
+
+  typeLabel(type: NumberedDocumentType): string {
+    return this.transloco.translate(type === 'QUOTE' ? 'settings.numbering.quotes' : 'settings.numbering.invoices');
+  }
+
+}

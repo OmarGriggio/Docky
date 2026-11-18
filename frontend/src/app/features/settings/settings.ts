@@ -31,6 +31,7 @@ export class Settings {
   // and never re-run since nothing it reads changes again afterwards.
   private documentTemplatesLabel = translateSignal('settings.documentTemplates');
   private languageLabel = translateSignal('settings.language');
+  private numberingLabel = translateSignal('settings.numberingMenu');
   private uiKitLabel = translateSignal('settings.uiKit');
   private companiesLabel = translateSignal('settings.companies');
   private usersLabel = translateSignal('settings.users');
@@ -41,6 +42,7 @@ export class Settings {
   items = computed<MenuItem[]>(() => {
     const menu: MenuItem[] = [
       { label: this.documentTemplatesLabel(), icon: 'pi pi-file-edit', routerLink: '/settings/templates' },
+      { label: this.numberingLabel(), icon: 'pi pi-hashtag', routerLink: '/settings/numbering' },
       { label: this.languageLabel(), icon: 'pi pi-language', routerLink: '/settings/language' },
     ];
 
