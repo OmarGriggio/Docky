@@ -115,7 +115,7 @@ export const updateCompanyInDB = async (
     return result.rows[0] ?? null;
 };
 
-export const updateCompanyLogoInDB = async (id: number, logo: string) => {
+export const updateCompanyLogoInDB = async (id: number, logo: string | null) => {
     const result = await db().query(
         "UPDATE companies SET logo = $1 WHERE id = $2 RETURNING *",
         [logo, id]
@@ -123,7 +123,7 @@ export const updateCompanyLogoInDB = async (id: number, logo: string) => {
     return result.rows[0] ?? null;
 };
 
-export const updateCompanyHeaderImageInDB = async (id: number, headerImage: string) => {
+export const updateCompanyHeaderImageInDB = async (id: number, headerImage: string | null) => {
     const result = await db().query(
         "UPDATE companies SET header_image = $1 WHERE id = $2 RETURNING *",
         [headerImage, id]

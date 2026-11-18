@@ -125,7 +125,7 @@ export const updateCompanyServ = async (id: number, companyData: Omit<Company, "
   return company;
 };
 
-export const updateCompanyLogoServ = async (id: number, logo: string): Promise<Company> => {
+export const updateCompanyLogoServ = async (id: number, logo: string | null): Promise<Company> => {
   const company = await updateCompanyLogoInDB(id, logo);
   if (!company) {
     throw new NotFoundError("Company not found");
@@ -133,7 +133,7 @@ export const updateCompanyLogoServ = async (id: number, logo: string): Promise<C
   return company;
 };
 
-export const updateCompanyHeaderImageServ = async (id: number, headerImage: string): Promise<Company> => {
+export const updateCompanyHeaderImageServ = async (id: number, headerImage: string | null): Promise<Company> => {
   const company = await updateCompanyHeaderImageInDB(id, headerImage);
   if (!company) {
     throw new NotFoundError("Company not found");

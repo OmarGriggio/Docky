@@ -76,6 +76,27 @@ export const uploadCompanyHeaderImage = async (req: Request, res: Response) => {
     res.json(company);
 };
 
+// Removing an image: its file under every extension it could have (S3
+// deletes are idempotent), then the column - the PDFs print without it from
+// then on (readCompanyImage reads nothing for a null column).
+const removeCompanyImage = async (companyId: number, kind: "logo" | "header") => {
+    for (const extension of Object.values(EXTENSION_BY_MIME)) {
+        await deleteFileServ(path.posix.join("companies", String(companyId), `${kind}${extension}`));
+    }
+};
+
+export const removeCompanyLogo = async (req: Request, res: Response) => {
+    const companyId = Number(req.params.id);
+    await removeCompanyImage(companyId, "logo");
+    res.json(await updateCompanyLogoServ(companyId, null));
+};
+
+export const removeCompanyHeaderImage = async (req: Request, res: Response) => {
+    const companyId = Number(req.params.id);
+    await removeCompanyImage(companyId, "header");
+    res.json(await updateCompanyHeaderImageServ(companyId, null));
+};
+
 export const updateCompanyPaymentTerms = async (req: Request, res: Response) => {
     const { payment_terms }: { payment_terms: string | null } = req.body;
 
