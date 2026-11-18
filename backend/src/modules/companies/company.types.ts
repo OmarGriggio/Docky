@@ -1,3 +1,8 @@
+import { PdfFontFamily } from "../../pdf/core/pdf-fonts";
+
+export const DOCUMENT_LAYOUTS = ["CLASSIC", "MODERN"] as const;
+export type DocumentLayout = typeof DOCUMENT_LAYOUTS[number];
+
 export interface Company {
   id: number;
 
@@ -46,4 +51,9 @@ export interface Company {
   // Without a QR-IBAN: a creditor reference ("RF...") on invoices' QR-bills,
   // or none.
   payment_reference_type: "SCOR" | "NONE";
+  // How its invoices, quotes and reminders are laid out and in which font
+  // (021_add_company_document_style.sql, see backend/src/pdf) - read when a
+  // PDF is printed, like the colors.
+  document_layout: DocumentLayout;
+  document_font: PdfFontFamily;
 }

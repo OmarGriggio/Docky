@@ -1,4 +1,5 @@
-import { Company } from "./company.types";
+import { Company, DOCUMENT_LAYOUTS } from "./company.types";
+import { isFontFamily } from "../../pdf/core/pdf-fonts";
 import { isQrIban, isValidIban } from "../../pdf/swiss-qr-bill/payment-reference";
 import { createCompanyInDB, getCompanyByIdFromDB, getCompaniesFromDB, updateCompanyInDB, updateCompanyLogoInDB, updateCompanyHeaderImageInDB, updateCompanyPaymentTermsInDB } from "./company.repository";
 import { AppError, NotFoundError } from "../../shared/types/errors";
@@ -118,6 +119,9 @@ const normalizeCompanyData = (companyData: Omit<Company, "id">): Omit<Company, "
     qr_iban: normalizeQrIban(companyData.qr_iban),
     // Anything but "NONE" is the default, a creditor reference.
     payment_reference_type: companyData.payment_reference_type === "NONE" ? "NONE" : "SCOR",
+    // Anything unknown is the default, the layout and font every document had before.
+    document_layout: (DOCUMENT_LAYOUTS as readonly unknown[]).includes(companyData.document_layout) ? companyData.document_layout : "CLASSIC",
+    document_font: isFontFamily(companyData.document_font) ? companyData.document_font : "HELVETICA",
     early_payment_discount: discount,
     early_payment_days: discount > 0 ? days : null,
     early_payment_min_amount: minAmount,

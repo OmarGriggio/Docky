@@ -96,6 +96,8 @@ export const createUserService = async (userData: CreateUserData, actor: TokenPa
       secondary_color: null,
       qr_iban: null,
       payment_reference_type: "SCOR",
+        document_layout: "CLASSIC",
+        document_font: "HELVETICA",
     });
     return await createUserDB({ ...userData, role: "ADMIN", company_id: company.id, passwordHash });
   });
