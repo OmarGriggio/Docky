@@ -21,7 +21,7 @@
       </p>
     </div>
 
-    <div class="flex gap-2">
+    <div data-tour="dates" class="flex gap-2">
       <p-floatlabel variant="on" class="w-32">
         <p-datepicker inputId="date" size="small" [ngModel]="date()" (ngModelChange)="onDateChange($event)" dateFormat="dd.mm.yy" [disabled]="locked()" [fluid]="true" />
         <label for="date">{{ 'projects.columnDate' | transloco }}</label>
@@ -46,7 +46,7 @@
     <ng-content select="[documentTotals]" />
   </div>
 
-  <div class="flex flex-col gap-3 w-full max-w-70">
+  <div data-tour="recipient" class="flex flex-col gap-3 w-full max-w-70">
     <p-selectbutton
       size="small"
       class="w-full [&_*]:whitespace-nowrap"

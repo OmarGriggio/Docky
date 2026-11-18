@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { DraftLine, DraftSection, lineTotal, nextDraftId, sectionTotal, usedResourceIds } from './document-draft';
+import { DraftLine, DraftSection, blankSection, isBlankSection, lineTotal, nextDraftId, sectionTotal, usedResourceIds } from './document-draft';
 
 const line = (overrides: Partial<DraftLine> = {}): DraftLine => ({
   id: 1, type: 'MATERIAL', label: 'Sac', quantity: 2, unit: 'Sac', unit_price: 10, discount: 0, resource_id: null,
@@ -47,6 +47,24 @@ describe('nextDraftId', () => {
 
   it('never hands out the same id twice', () => {
     expect(nextDraftId()).not.toBe(nextDraftId());
+  });
+
+});
+
+describe('isBlankSection', () => {
+
+  it('is true for the section a new document starts with', () => {
+    expect(isBlankSection(blankSection())).toBe(true);
+  });
+
+  it('ignores spaces', () => {
+    expect(isBlankSection({ ...blankSection(), title: '  ', description: ' ' })).toBe(true);
+  });
+
+  it('is false once anything is typed or added', () => {
+    expect(isBlankSection({ ...blankSection(), title: 'Gros oeuvre' })).toBe(false);
+    expect(isBlankSection({ ...blankSection(), description: 'Etage' })).toBe(false);
+    expect(isBlankSection({ ...blankSection(), lines: [line()] })).toBe(false);
   });
 
 });

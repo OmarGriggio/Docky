@@ -30,13 +30,20 @@ import { addDays, fromDateOnly, toDateOnly, fillPlaceholders, formatLongDate, DE
 import { DocumentHeader } from './document-header/document-header';
 import { DocumentTextBlock } from './document-text-block/document-text-block';
 import { DocumentSections } from './document-sections/document-sections';
-import { DraftSection, nextDraftId, round2, sectionTotal, usedResourceIds } from './document-draft';
+import { DraftSection, blankSection, isBlankSection, nextDraftId, round2, sectionTotal, usedResourceIds } from './document-draft';
 import { matchClientByName } from './document-scan-match';
 import { qrBillErrorKey } from '../../../shared/utils/api-error';
 import { POSTAL_CODE_CITY_PATTERN, splitPostalCodeCity } from '../../../shared/utils/postal-code-search';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { DepositDeduction } from '../../../shared/models/billing';
 import { httpErrorKey } from '../../../shared/utils/api-error';
+import { GuidedTour, TourStep } from '../../../shared/components/guided-tour/guided-tour';
+import { BreakpointService } from '../../../shared/services/breakpoint.service';
+
+const GUIDE_SEEN_KEY = 'docky_document_guide_seen';
+
+const guideStep = (key: string, icon: string, target?: string | string[]): TourStep =>
+  ({ target, icon, titleKey: `documents.guide.${key}Title`, textKey: `documents.guide.${key}` });
 
 // Matches document.service.ts's own isOpenForEditing on the backend -
 // duplicated here purely so the form can hide/disable itself instead of
@@ -67,11 +74,50 @@ const isOpenForEditing = (type: DocumentType, status: DocumentStatus | null): bo
 @Component({
   selector: 'app-document-form',
   standalone: true,
-  imports: [FormsModule, PricePipe, InputNumber, FloatLabel, Button, Card, Dialog, DocumentHeader, DocumentTextBlock, DocumentSections, ConfirmDialogComponent, TranslocoPipe],
+  imports: [FormsModule, PricePipe, InputNumber, FloatLabel, Button, Card, Dialog, DocumentHeader, DocumentTextBlock, DocumentSections, ConfirmDialogComponent, GuidedTour, TranslocoPipe],
   templateUrl: './document-form.html',
   styleUrl: './document-form.css',
 })
 export class DocumentForm implements OnInit, HasUnsavedChanges {
+
+  // "Comment remplir ?" - a guided tour of this form, top to bottom, started
+  // by itself the first time a browser opens a new document (remembered in
+  // localStorage), then from its button. Desktop only. The targets are the
+  // data-tour marks of this form and its header/sections; the lines and the
+  // catalog only exist once there's a section, the sections' title until then.
+  guideVisible = signal(false);
+  guideSteps = computed<TourStep[]>(() => {
+    const kind = this.type() === 'INVOICE' ? 'Invoice' : 'Quote';
+    return [
+      guideStep(`welcome${kind}`, 'pi-file-edit'),
+      guideStep('recipient', 'pi-user', '[data-tour="recipient"]'),
+      guideStep(`dates${kind}`, 'pi-calendar', '[data-tour="dates"]'),
+      guideStep('introduction', 'pi-align-left', '[data-tour="introduction"]'),
+      guideStep('sections', 'pi-list', '[data-tour="sections"]'),
+      guideStep('lines', 'pi-pencil', ['[data-tour="add-line"]', '[data-tour="sections"]']),
+      guideStep('catalog', 'pi-box', ['[data-tour="catalog"]', '[data-tour="sections"]']),
+      guideStep(`totals${kind}`, 'pi-calculator', '[data-tour="totals"]'),
+      guideStep('conclusion', 'pi-align-right', '[data-tour="conclusion"]'),
+      guideStep(`actions${kind}`, 'pi-save', '[data-tour="actions"]'),
+      guideStep(`status${kind}`, 'pi-flag', '[data-tour="status"]'),
+      guideStep('help', 'pi-question-circle', '[data-tour="help"] button'),
+    ];
+  });
+  private isMobile = inject(BreakpointService).isMobile;
+
+  private showGuideOnFirstVisit(): void {
+    if (this.isMobile()) {
+      return;
+    }
+    try {
+      if (!localStorage.getItem(GUIDE_SEEN_KEY)) {
+        localStorage.setItem(GUIDE_SEEN_KEY, 'true');
+        this.guideVisible.set(true);
+      }
+    } catch {
+      // No storage (a private window): no tour by itself, its button stays.
+    }
+  }
 
   private notifications = inject(NotificationService);
   private router = inject(Router);
@@ -528,6 +574,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
         if (idParam) {
           this.loadForEdit(Number(idParam));
         } else {
+          this.showGuideOnFirstVisit();
           // A queryParamMap subscription, not a one-time snapshot read:
           // this route (documents/new) stays the same whether it's reached
           // with ?type=QUOTE or ?type=INVOICE, so Angular reuses the same
@@ -554,6 +601,12 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
             if (duplicateFromParam) {
               this.applyDuplicateFrom(Number(duplicateFromParam));
             } else {
+              // From scratch: one section to start from, its lines right
+              // there (the tour shows them too). Before loadTemplate, so it
+              // counts as the clean state - not unsaved work.
+              if (!fromProjectParam && this.sections().length === 0) {
+                this.sections.set([blankSection()]);
+              }
               this.loadTemplate(this.type());
               if (fromProjectParam) {
                 this.applyFromProject(Number(fromProjectParam));
@@ -924,7 +977,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
         for (const section of importedSections) {
           this.importedSectionIds.add(section.id);
         }
-        this.sections.update(sections => [...sections, ...importedSections]);
+        this.sections.update(sections => [...sections.filter(section => !isBlankSection(section)), ...importedSections]);
       },
       error: err => this.notifications.error('document-form', err)
     });

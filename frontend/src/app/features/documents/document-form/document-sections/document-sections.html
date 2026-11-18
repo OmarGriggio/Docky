@@ -1,5 +1,5 @@
 <div class="border-t border-b border-dashed border-[#ddd] py-6 mb-6">
-  <div class="flex items-center justify-between mb-4">
+  <div data-tour="sections" class="flex items-center justify-between mb-4">
     <h2 class="m-0">{{ 'documents.sections.details' | transloco }}</h2>
     @if (!locked()) {
       <div class="flex items-center gap-2 flex-wrap">
@@ -176,7 +176,7 @@
 
             <!-- Inline "add a line" row -->
             @if (!locked()) {
-            <tr class="bg-[#fafafa]">
+            <tr class="bg-[#fafafa]" [attr.data-tour]="first ? 'add-line' : null">
               @let draft = newLineFor(section.id);
               <td class="py-[0.3rem] px-[0.2rem] align-middle">
                 <p-select
@@ -254,7 +254,7 @@
       </div>
 
       @if (!locked()) {
-      <div class="flex justify-end mt-3 px-2 md:px-8">
+      <div class="flex justify-end mt-3 px-2 md:px-8" [attr.data-tour]="first ? 'catalog' : null">
         <p-select
           size="small"
           class="block w-65 max-w-full"

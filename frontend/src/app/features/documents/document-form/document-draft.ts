@@ -42,6 +42,14 @@ export const round2 = (value: number) => Math.round((value + Number.EPSILON) * 1
 let nextId = 1;
 export const nextDraftId = (): number => nextId++;
 
+// The empty section a document started from scratch opens with.
+export const blankSection = (): DraftSection => ({ id: nextDraftId(), title: '', description: '', lines: [] });
+
+// Untouched - nothing typed in it, no line: dropped when a chantier's
+// resources are loaded in, rather than left behind without a title.
+export const isBlankSection = (section: DraftSection): boolean =>
+  !section.title.trim() && !section.description.trim() && section.lines.length === 0;
+
 export const lineTotal = (line: DraftLine): number =>
   round2((line.quantity ?? 0) * line.unit_price * (1 - line.discount / 100));
 

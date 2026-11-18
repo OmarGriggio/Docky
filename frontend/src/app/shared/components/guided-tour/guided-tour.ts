@@ -3,10 +3,12 @@ import { Button } from 'primeng/button';
 import { TranslocoPipe } from '@jsverse/transloco';
 
 // One step of a guided tour: the element it lights up (a CSS selector, the
-// first match on the page - none, or nothing matching, shows the step in the
-// middle of the screen) and the translation keys of what it says.
+// first match on the page, or several tried in order - an element that may
+// not be there yet, then one that always is; none, or nothing matching,
+// shows the step in the middle of the screen) and the translation keys of
+// what it says.
 export interface TourStep {
-  target?: string;
+  target?: string | string[];
   titleKey: string;
   textKey: string;
   icon: string;
@@ -66,11 +68,13 @@ export class GuidedTour {
       }
       const step = this.step();
       const element = this.targetOf(step);
-      element?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      // Centered: a sticky bar at the top of the page would hide it otherwise.
+      element?.scrollIntoView({ block: 'center', behavior: 'smooth' });
       this.measure();
       // A smooth scroll and a calendar still laying itself out: measured
       // again once they've settled.
       setTimeout(() => this.measure(), 350);
+      setTimeout(() => this.measure(), 700);
       setTimeout(() => this.card()?.nativeElement.focus(), 0);
     });
 
@@ -171,12 +175,15 @@ export class GuidedTour {
   });
 
   private targetOf(step: TourStep | undefined): HTMLElement | null {
-    if (!step?.target) {
-      return null;
+    const selectors = step?.target === undefined ? [] : Array.isArray(step.target) ? step.target : [step.target];
+    for (const selector of selectors) {
+      const element = document.querySelector<HTMLElement>(selector);
+      // A hidden element (display: none) has nothing to light up.
+      if (element && element.getClientRects().length > 0) {
+        return element;
+      }
     }
-    const element = document.querySelector<HTMLElement>(step.target);
-    // A hidden element (display: none) has nothing to light up.
-    return element && element.getClientRects().length > 0 ? element : null;
+    return null;
   }
 
 }

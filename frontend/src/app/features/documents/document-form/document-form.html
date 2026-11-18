@@ -1,7 +1,7 @@
 <div class="flex justify-center py-8 px-4" (input)="saveMessage.set(null)" (change)="saveMessage.set(null)">
   <p-card styleClass="ui-card--elevated w-full max-w-280">
     <div class="sticky top-0 md:top-12 z-10 -mx-5 -mt-5 mb-6 px-5 py-3 bg-white border-b border-gray-200 rounded-t-[inherit] flex flex-wrap items-center justify-between gap-3">
-      <div class="flex flex-wrap items-center gap-2">
+      <div data-tour="actions" class="flex flex-wrap items-center gap-2">
         <p-button
           size="small"
           type="button"
@@ -42,6 +42,9 @@
       </div>
 
       <div class="flex flex-wrap items-center gap-3">
+        <!-- "Comment remplir ?": the guided tour of this form (guideSteps). -->
+        <p-button data-tour="help" size="small" type="button" icon="pi pi-question-circle" severity="secondary" [text]="true" [rounded]="true" class="max-md:hidden"
+          [title]="'documents.guide.open' | transloco" [ariaLabel]="'documents.guide.open' | transloco" (onClick)="tour.open()" />
         @if (closingStatus(); as closing) {
           <p-button
             size="small"
@@ -52,7 +55,7 @@
             (onClick)="requestStatus(closing)"
           />
         }
-        <div class="flex text-xs font-medium" role="list" [attr.aria-label]="'projects.columnStatus' | transloco">
+        <div data-tour="status" class="flex text-xs font-medium" role="list" [attr.aria-label]="'projects.columnStatus' | transloco">
           @for (step of statusSteps(); track step; let first = $first) {
             <!-- A step the document can move to is a button. -->
             <button
@@ -110,7 +113,7 @@
       (clientChange)="onClientChange($event)"
       (clientCreated)="onClientCreated($event)"
     >
-      <div documentTotals class="flex flex-col gap-[0.35rem] text-[0.95rem] whitespace-nowrap">
+      <div documentTotals data-tour="totals" class="flex flex-col gap-[0.35rem] text-[0.95rem] whitespace-nowrap">
         <div class="flex gap-6 w-80 justify-between">
           <span>{{ 'documents.form.subtotal' | transloco }}</span><span>{{ documentSubtotal() | price }} CHF</span>
         </div>
@@ -137,7 +140,7 @@
       </div>
     </app-document-header>
 
-    <div class="mb-6">
+    <div class="mb-6" data-tour="introduction">
       <app-document-text-block
         field="introduction"
         [placeholder]="'documents.form.introPlaceholder' | transloco"
@@ -184,7 +187,7 @@
           <label for="vatRate">{{ 'documents.form.vatRate' | transloco }}</label>
         </p-floatlabel>
       }
-      <div class="ui-form__full">
+      <div class="ui-form__full" data-tour="conclusion">
         <app-document-text-block
           field="conclusion"
           [placeholder]="'documents.form.conclusionPlaceholder' | transloco"
@@ -221,6 +224,8 @@
       />
     </div>
   </p-dialog>
+
+  <app-guided-tour #tour [(visible)]="guideVisible" [steps]="guideSteps()" />
 
   <!-- A status change from the status bar (requestStatus). -->
   <app-confirm-dialog

@@ -15,7 +15,7 @@ import { Resource } from '../../../../shared/models/resource';
 import { DocumentType } from '../../../../shared/models/document';
 import { PricePipe } from '../../../../shared/pipes/price.pipe';
 import { TabIndentDirective } from '../../../../shared/directives/tab-indent.directive';
-import { DraftLine, DraftLineType, DraftSection, lineTotal, nextDraftId, sectionTotal, usedResourceIds } from '../document-draft';
+import { DraftLine, DraftLineType, DraftSection, blankSection, lineTotal, nextDraftId, sectionTotal, usedResourceIds } from '../document-draft';
 import { NotificationService } from '../../../../shared/services/notification.service';
 
 // The "Détails" block of the document form: its sections and, in each, a
@@ -149,7 +149,7 @@ export class DocumentSections implements OnInit {
   addSection(): void {
     this.sections.update(sections => [
       ...sections,
-      { id: nextDraftId(), title: '', description: '', lines: [] }
+      blankSection()
     ]);
   }
 
