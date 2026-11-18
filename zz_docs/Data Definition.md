@@ -33,6 +33,7 @@ A construction company using Docky - the tenant everything else belongs to.
 - has several users, clients, resources, documents, projects
 - has one document template per document type at most
 - has one numbering per document type at most *(quotes, invoices)*
+- has its employees' permissions *(one set for the whole company, at most)*
 
 ---
 
@@ -194,6 +195,19 @@ How a company numbers its quotes or invoices (one row per type at most - none me
 - start number *(optional - the number a company moving to Docky continues from, for the year it was set)*
 
 The next number is the highest already given out with the format, plus one - no counter is stored.
+
+---
+
+# 🔐 Employee permissions
+
+What a company's employees (role USER) may do, set by its admin - one set for every employee. Admins aren't bound by it.
+
+## Fields
+
+- per module *(clients, catalog, quotes, invoices, job sites, calendar, dashboard)*: `NONE` *(hidden)*, `READ` or `WRITE`
+- prices shown *(yes/no - not enforced yet)*
+
+Without any: every module but the dashboard and the calendar.
 
 ---
 

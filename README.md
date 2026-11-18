@@ -105,6 +105,7 @@ The parts I'd point a developer to - each one has its story in [Difficulties.md]
 - Quotes and invoices for a one-off recipient, without creating a client first
 - AI-assisted scanner: reads a scanned document (via Infomaniak's LLM) to prefill an invoice
 - Dashboard: unpaid invoices (overdue first), ongoing job sites, amount paid per client
+- Employee permissions per module (hidden, read only or editable), set by the company's admin - e.g. a worker who sees the job sites and the calendar but no invoices
 - Guided tours of the calendar and of the quote/invoice form, started on a first visit
 - French and English UI, per user; usable on a phone and installable on its home screen (PWA)
 
@@ -113,7 +114,7 @@ The parts I'd point a developer to - each one has its story in [Difficulties.md]
 - JWT access tokens + a revocable refresh token in an `httpOnly` cookie, roles, rate limiting, login history
 - Platform admin can step into any company ("impersonation") to support it
 - Archive instead of delete for business records; incremental SQL migrations applied on startup
-- Vitest on the pure business logic (164 backend + 98 frontend tests), plus 84 backend integration tests: real HTTP requests against the whole API and a throwaway Postgres started in Docker (Testcontainers) - login and roles, cross-company isolation, accepting a quote, saving a document, an invoice's lifecycle, deposit invoices, the client import, document numbering, every PDF layout and font, concurrent requests included
+- Vitest on the pure business logic (171 backend + 98 frontend tests), plus 91 backend integration tests: real HTTP requests against the whole API and a throwaway Postgres started in Docker (Testcontainers) - login and roles, cross-company isolation, accepting a quote, saving a document, an invoice's lifecycle, deposit invoices, the client import, document numbering, employee permissions, every PDF layout and font, concurrent requests included
 
 **Operations**
 - Docker Compose, multi-stage production images (compiled, non-root) behind Nginx, HTTPS with Let's Encrypt
@@ -210,6 +211,7 @@ All routes are prefixed by their resource name and return JSON. All are protecte
 | Documents (with lines)  | `/document-complete`         |
 | Document templates      | `/document-template`         |
 | Document numbering      | `/document-numbering` (+ `/:type/preview`) |
+| Employee permissions    | `/permissions` (`/me`, `/employees`) |
 | Projects                | `/project` (+ `/:id/billing`, `/:id/deposit-invoice`) |
 | Project types           | `/project-type`              |
 | Project attachments     | `/project-attachment`        |
