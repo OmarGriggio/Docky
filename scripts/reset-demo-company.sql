@@ -68,9 +68,10 @@ UPDATE companies SET
     vat_number = 'CHE-321.654.987 VAT',
     payment_terms = 'Payment due within 30 days net, no discount.
 A late payment interest of 5% per annum will be charged on overdue payments.',
-    -- 009/010/013/014's columns, back to their defaults - a visitor can set a
-    -- website, bank, early payment discount or color that every later
-    -- visitor's invoices would otherwise keep printing.
+    -- 009/010/013/014/020's columns, back to their defaults - a visitor can
+    -- set a website, bank, early payment discount, color, QR-IBAN or payment
+    -- reference that every later visitor's invoices would otherwise keep
+    -- printing.
     website = NULL,
     bank_name = NULL,
     bank_account = NULL,
@@ -78,7 +79,9 @@ A late payment interest of 5% per annum will be charged on overdue payments.',
     early_payment_days = NULL,
     early_payment_min_amount = 0,
     accent_color = NULL,
-    secondary_color = NULL
+    secondary_color = NULL,
+    qr_iban = NULL,
+    payment_reference_type = 'SCOR'
 WHERE id = 2;
 
 -- Same as 004_set_demo_company_language.sql.
