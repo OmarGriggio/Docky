@@ -1,15 +1,22 @@
 import { Request, Response } from "express";
 import { addDocumentServ, updateDocumentServ, archiveDocumentServ, unarchiveDocumentServ, getAllDocumentsServ, getDocumentsByTypeServ, getDocumentByIdServ, acceptQuoteServ, updateDocumentStatusServ, replaceDocumentContentServ, getDocumentDeductionsServ } from "./document.service";
 import { CreateDocumentData, UpdateDocumentData } from "./document.types";
+import { readableDocumentTypes } from "../permissions/permission.middleware";
+import { ForbiddenError } from "../../shared/types/errors";
 
 export const getDocuments = async (req: Request, res: Response) => {
   const type = req.query.type as string | undefined;
   const company_id = req.user.company_id;
   const includeArchived = req.query.includeArchived === "true";
   const client_id = req.query.client_id ? Number(req.query.client_id) : undefined;
+  // Only the types this user can read (an employee's permissions).
+  const readable = await readableDocumentTypes(req);
+  if (type && !readable.includes(type)) {
+    throw new ForbiddenError();
+  }
   const documents = type
     ? await getDocumentsByTypeServ(type, company_id, includeArchived, client_id)
-    : await getAllDocumentsServ(company_id, includeArchived, client_id);
+    : (await getAllDocumentsServ(company_id, includeArchived, client_id)).filter(document => readable.includes(document.type));
   res.json(documents);
 };
 

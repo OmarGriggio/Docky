@@ -1,19 +1,24 @@
 import { Router } from "express";
 import { getResources, createResource, updateResource, archiveResource, unarchiveResource } from "./resource.controller";
 import { authenticate } from "../../shared/middlewares/auth.middleware";
+import { requireAnyPermission, requirePermission } from "../permissions/permission.middleware";
 
 const router = Router();
 
 router.use(authenticate);
 
-router.get("/", getResources);
+// Read by the catalog and by the quote, invoice and chantier forms' pickers;
+// changed with the catalog module only.
+const writeCatalog = requirePermission("catalog", "WRITE");
 
-router.post("/", createResource);
+router.get("/", requireAnyPermission(["catalog", "quotes", "invoices", "projects"], "READ"), getResources);
 
-router.put("/:id", updateResource);
+router.post("/", writeCatalog, createResource);
 
-router.patch("/:id/archive", archiveResource);
+router.put("/:id", writeCatalog, updateResource);
 
-router.patch("/:id/unarchive", unarchiveResource);
+router.patch("/:id/archive", writeCatalog, archiveResource);
+
+router.patch("/:id/unarchive", writeCatalog, unarchiveResource);
 
 export default router;

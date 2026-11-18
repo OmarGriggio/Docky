@@ -1,28 +1,33 @@
 import { Router } from "express";
 import { createProject, updateProject, archiveProject, unarchiveProject, completeProject, getProjectBilling, createDepositInvoice, getProjects, getProjectById } from "./project.controller";
 import { authenticate } from "../../shared/middlewares/auth.middleware";
+import { requirePermission } from "../permissions/permission.middleware";
 
 const router = Router();
 
 router.use(authenticate);
 
-router.get("/", getProjects);
+const readProjects = requirePermission("projects", "READ");
+const writeProjects = requirePermission("projects", "WRITE");
 
-router.get("/:id", getProjectById);
+router.get("/", readProjects, getProjects);
 
-router.post("/", createProject);
+router.get("/:id", readProjects, getProjectById);
 
-router.put("/:id", updateProject);
+router.post("/", writeProjects, createProject);
 
-router.patch("/:id/archive", archiveProject);
+router.put("/:id", writeProjects, updateProject);
 
-router.patch("/:id/unarchive", unarchiveProject);
+router.patch("/:id/archive", writeProjects, archiveProject);
 
-router.patch("/:id/complete", completeProject);
+router.patch("/:id/unarchive", writeProjects, unarchiveProject);
+
+router.patch("/:id/complete", writeProjects, completeProject);
 
 // Its billing: deposit invoices so far, and asking for a new one (deposit.ts).
-router.get("/:id/billing", getProjectBilling);
+// The chantier's invoicing: the invoices module.
+router.get("/:id/billing", readProjects, requirePermission("invoices", "READ"), getProjectBilling);
 
-router.post("/:id/deposit-invoice", createDepositInvoice);
+router.post("/:id/deposit-invoice", readProjects, requirePermission("invoices", "WRITE"), createDepositInvoice);
 
 export default router;
