@@ -1,3 +1,4 @@
+import { nextDocumentNumber } from "./document_numbering.service";
 import { CreateDocumentData, UpdateDocumentData, DocumentType, DocumentStatus, Document, DocumentContentSection, DocumentRecipient, DepositDeduction } from "./document.types";
 import { paymentReferenceFor } from "../../pdf/templates/dto/swiss-qr-bill.dto";
 import { Client } from "../clients/client.types";
@@ -5,7 +6,6 @@ import {
   getDocumentsFromDB,
   getDocumentsByTypeFromDB,
   getDocumentByIdFromDB,
-  getLastDocumentNumberFromDB,
   lockDocumentNumberingInDB,
   createDocumentInDB,
   updateDocumentInDB,
@@ -54,39 +54,19 @@ export const getDocumentByIdServ = async (id: number, company_id: number) => {
   return document;
 };
 
-// "FAC"/"OFF" rather than "INV"/"QUOTE": the document number is printed on
-// the PDF and shown to the (French-speaking Swiss) client, same content-stays-
-// French reasoning as the seed data and the frontend's UI text - not a code
-// naming convention. Matches the format already used in zz_migrations/001_data.sql.
-// "CH" (chantier) for PROJECT isn't printed anywhere yet, but still needs a
-// value - documents.number is NOT NULL regardless of type.
-const DOCUMENT_NUMBER_PREFIXES: Record<DocumentType, string> = {
-  QUOTE: "OFF",
-  INVOICE: "FAC",
-  PROJECT: "CH",
-};
-
-const DOCUMENT_NUMBER_SEQUENCE_LENGTH = 4;
-
-// The sequence resets every year (the year is embedded in the number itself)
-// and is scoped per company + document type, matching the
-// UNIQUE (company_id, number) constraint on the documents table. Exported so
-// project.service.ts's addProjectServ can number a hand-created chantier's
-// own PROJECT document the same way.
-// Always called inside withTransaction, the numbered document inserted in
-// that same transaction: the lock keeps a concurrent creation from reading
-// the same last number until this one is committed (two at once used to
-// both take it, the second insert hitting UNIQUE (company_id, number) - a 500).
+// The company's own format (Paramètres > Numérotation - document_numbering.
+// service.ts), "OFF-2026-0001"/"FAC-2026-0001" by default ("FAC"/"OFF": the
+// number is printed for a French-speaking Swiss client, content not code),
+// "CH-..." for a chantier's PROJECT document. Exported so project.service.
+// ts's addProjectServ can number a hand-created chantier's own PROJECT
+// document the same way. Always called inside withTransaction, the numbered
+// document inserted in that same transaction: the lock keeps a concurrent
+// creation from reading the same last number until this one is committed
+// (two at once used to both take it, the second insert hitting UNIQUE
+// (company_id, number) - a 500).
 export const generateDocumentNumber = async (company_id: number, type: DocumentType): Promise<string> => {
-  const year = new Date().getFullYear();
-  const prefix = `${DOCUMENT_NUMBER_PREFIXES[type]}-${year}-`;
-
-  await lockDocumentNumberingInDB(company_id, prefix);
-  const lastNumber = await getLastDocumentNumberFromDB(company_id, prefix);
-  const lastSequence = lastNumber ? Number(lastNumber.slice(prefix.length)) : 0;
-  const nextSequence = String(lastSequence + 1).padStart(DOCUMENT_NUMBER_SEQUENCE_LENGTH, "0");
-
-  return `${prefix}${nextSequence}`;
+  await lockDocumentNumberingInDB(company_id);
+  return await nextDocumentNumber(company_id, type);
 };
 
 const NO_RECIPIENT: DocumentRecipient = {

@@ -86,6 +86,10 @@ A late payment interest of 5% per annum will be charged on overdue payments.',
     document_font = 'HELVETICA'
 WHERE id = 2;
 
+-- Back to the default numbering (022_add_document_numbering.sql) - the
+-- documents recreated below follow OFF-/FAC-{YYYY}-{NNNN}.
+DELETE FROM document_numbering WHERE company_id = 2;
+
 -- Same as 004_set_demo_company_language.sql.
 UPDATE users SET language = 'EN' WHERE company_id = 2;
 

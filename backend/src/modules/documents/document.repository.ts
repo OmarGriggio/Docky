@@ -59,27 +59,33 @@ export const getDocumentByIdForUpdateFromDB = async (id: number, company_id: num
 };
 
 // Held until the current transaction ends: two documents numbered at the
-// same moment for the same company + prefix take turns, so the second one
-// sees the first one's number instead of reusing it. Only meaningful inside
-// withTransaction - outside one, it's released as soon as it's taken.
-export const lockDocumentNumberingInDB = async (company_id: number, numberPrefix: string): Promise<void> => {
-  await db().query("SELECT pg_advisory_xact_lock($1, hashtext($2))", [company_id, numberPrefix]);
+// same moment for the same company take turns - whatever their type and
+// format, one lock per company (formats are the company's own, two of them
+// could give out the same number) - so the second one sees the first one's
+// number instead of reusing it. Only meaningful inside withTransaction -
+// outside one, it's released as soon as it's taken.
+export const lockDocumentNumberingInDB = async (company_id: number): Promise<void> => {
+  await db().query("SELECT pg_advisory_xact_lock($1, hashtext('document-numbering'))", [company_id]);
 };
 
-// Used by generateDocumentNumber (document.service.ts) to find the next
-// sequence number for a given company/type/year. numberPrefix already
-// includes the trailing "-" (e.g. "FAC-2026-"), and since the sequence is a
-// fixed-width, zero-padded suffix, ORDER BY number DESC correctly returns the
-// highest one lexicographically.
-export const getLastDocumentNumberFromDB = async (company_id: number, numberPrefix: string): Promise<string | null> => {
+// The highest sequence already given out with a format (document-number-
+// format.ts's numberPattern - anchored, its one group the sequence), any
+// type, archived documents included: a number is never given out twice.
+export const getHighestSequenceFromDB = async (company_id: number, pattern: string): Promise<number | null> => {
   const result = await db().query(
-    `SELECT number FROM documents
-     WHERE company_id = $1 AND number LIKE $2
-     ORDER BY number DESC
-     LIMIT 1`,
-    [company_id, `${numberPrefix}%`]
+    `SELECT max(substring(number from $2)::bigint) AS highest FROM documents
+     WHERE company_id = $1 AND number ~ $2`,
+    [company_id, pattern]
   );
-  return result.rows[0]?.number ?? null;
+  const highest = result.rows[0]?.highest;
+  return highest === null || highest === undefined ? null : Number(highest);
+};
+
+// A number the company already has - another format can happen to give out
+// the same one (a sequence alone after a year and a sequence).
+export const isDocumentNumberTakenInDB = async (company_id: number, number: string): Promise<boolean> => {
+  const result = await db().query("SELECT 1 FROM documents WHERE company_id = $1 AND number = $2", [company_id, number]);
+  return (result.rowCount ?? 0) > 0;
 };
 
 export const updateDocumentTotalsInDB = async (
