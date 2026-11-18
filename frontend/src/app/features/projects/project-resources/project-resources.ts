@@ -8,7 +8,7 @@ import { InputText } from 'primeng/inputtext';
 import { InputNumber } from 'primeng/inputnumber';
 import { Textarea } from 'primeng/textarea';
 import { DatePicker } from 'primeng/datepicker';
-import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService, translateSignal } from '@jsverse/transloco';
 import { DocumentSectionService } from '../../documents/document-section.service';
 import { DocumentLineService } from '../../documents/document-line.service';
 import { DocumentService } from '../../documents/document.service';
@@ -26,7 +26,8 @@ interface DraftLine {
   label: string;
   quantity: number | null;
   unit: string | null;
-  unit_price: number;
+  // Null for a line typed by hand until its price is filled in.
+  unit_price: number | null;
   resource_id: number | null;
 }
 
@@ -234,8 +235,38 @@ export class ProjectResources implements OnInit {
     );
   }
 
+  // A line typed by hand, like a quote's own - a material or a service not
+  // in the catalog (or not worth adding to it).
+  addFreeLine(sectionId: number): void {
+    const line: DraftLine = {
+      id: nextId++,
+      type: 'MATERIAL',
+      label: '',
+      quantity: 1,
+      unit: null,
+      unit_price: null,
+      resource_id: null,
+    };
+    this.sections.update(sections =>
+      sections.map(s => s.id === sectionId ? { ...s, lines: [...s.lines, line] } : s)
+    );
+  }
+
+  private materialLabel = translateSignal('nav.material');
+  private serviceLabel = translateSignal('nav.service');
+
+  lineTypeOptions = computed<{ label: string; value: DocumentLineType }[]>(() => [
+    { label: this.materialLabel(), value: 'MATERIAL' },
+    { label: this.serviceLabel(), value: 'SERVICE' },
+  ]);
+
+  // A catalog line's type is its resource's - only a line typed by hand picks one.
+  lineTypeLabel(line: DraftLine): string {
+    return line.type === 'MATERIAL' ? this.materialLabel() : this.serviceLabel();
+  }
+
   lineTotal(line: DraftLine): number {
-    return (line.quantity ?? 0) * line.unit_price;
+    return (line.quantity ?? 0) * (line.unit_price ?? 0);
   }
 
   updateLine(sectionId: number, lineId: number, patch: Partial<DraftLine>): void {
@@ -284,7 +315,7 @@ export class ProjectResources implements OnInit {
           label: line.label,
           quantity: line.quantity ?? 0,
           unit: line.unit,
-          unit_price: line.unit_price,
+          unit_price: line.unit_price ?? 0,
           discount: 0,
           resource_id: line.resource_id,
         })),

@@ -315,7 +315,8 @@
       "defaultSectionTitle": "Resources",
       "loadError": "Could not load the project's resources.",
       "saveError": "Could not save the resources.",
-      "incompleteLine": "Each line needs a label and a price."
+      "incompleteLine": "Each line needs a label and a price.",
+      "addFreeLine": "Add a line"
     },
     "billing": {
       "title": "Billing",

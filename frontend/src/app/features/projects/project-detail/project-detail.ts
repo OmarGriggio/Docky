@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Card } from 'primeng/card';
 import { Tag } from 'primeng/tag';
+import { Button } from 'primeng/button';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { ProjectService } from '../project.service';
 import { ClientService } from '../../clients/client.service';
@@ -12,17 +13,18 @@ import { ProjectResources } from '../project-resources/project-resources';
 import { clientDisplayName } from '../../../shared/utils/display';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { ProjectBilling } from '../project-billing/project-billing';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 
 // The chantier's own header (name, client, type, address, status) is
 // read-only here - it's set once, either by hand (project-form, currently
 // hidden) or auto-filled when an accepted quote creates it (see
 // document.service.ts's acceptQuoteServ). What actually changes as a
 // project runs is its resources, so that's the one editable thing on this
-// page - <app-project-resources> below.
+// page - <app-project-resources> below - along with closing it.
 @Component({
   selector: 'app-project-detail',
   standalone: true,
-  imports: [Card, Tag, ProjectResources, ProjectBilling, TranslocoPipe],
+  imports: [Card, Tag, Button, ProjectResources, ProjectBilling, ConfirmDialogComponent, TranslocoPipe],
   templateUrl: './project-detail.html',
 })
 export class ProjectDetail implements OnInit {
@@ -84,6 +86,21 @@ export class ProjectDetail implements OnInit {
           error: err => this.notifications.error('project-detail', err)
         });
       },
+      error: err => this.notifications.error('project-detail', err)
+    });
+  }
+
+  completeConfirmVisible = signal(false);
+
+  // Same as the chantiers list's "Clôturer": its resources freeze, the final
+  // invoice can be made (the billing card below follows the new status).
+  onCompleteConfirmed(): void {
+    const project = this.project();
+    if (!project) {
+      return;
+    }
+    this.projectService.completeProject(project.id).subscribe({
+      next: completed => this.project.set({ ...project, ...completed }),
       error: err => this.notifications.error('project-detail', err)
     });
   }

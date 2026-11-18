@@ -57,16 +57,18 @@
           <div class="overflow-x-auto">
             <table class="w-full min-w-160 border-collapse table-fixed">
               <colgroup>
-                <col style="width: 36%" />
-                <col style="width: 14%" />
+                <col style="width: 30%" />
+                <col style="width: 13%" />
                 <col style="width: 12%" />
-                <col style="width: 16%" />
-                <col style="width: 16%" />
+                <col style="width: 10%" />
+                <col style="width: 14%" />
+                <col style="width: 15%" />
                 <col style="width: 6%" />
               </colgroup>
               <thead>
                 <tr>
                   <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">{{ 'resources.columnName' | transloco }} *</th>
+                  <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">{{ 'clients.columnType' | transloco }}</th>
                   <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">{{ 'projects.resources.columnQuantity' | transloco }}</th>
                   <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">{{ 'resources.columnUnit' | transloco }}</th>
                   <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">{{ 'projects.resources.columnPrice' | transloco }} *</th>
@@ -85,6 +87,18 @@
                         [disabled]="readonly()"
                         [invalid]="showRequired() && !line.label.trim()"
                       />
+                    </td>
+                    <td class="py-[0.3rem] px-[0.2rem] align-middle text-sm">
+                      @if (line.resource_id === null && !readonly()) {
+                        <p-select
+                          size="small" [fluid]="true" appendTo="body"
+                          [options]="lineTypeOptions()" optionLabel="label" optionValue="value"
+                          [ngModel]="line.type"
+                          (ngModelChange)="updateLine(section.id, line.id, { type: $event })"
+                        />
+                      } @else {
+                        {{ lineTypeLabel(line) }}
+                      }
                     </td>
                     <td class="py-[0.3rem] px-[0.2rem] align-middle">
                       <p-inputnumber
@@ -126,7 +140,12 @@
         }
 
         @if (!readonly()) {
-          <div class="flex justify-end mt-3">
+          <div class="flex flex-wrap justify-end gap-2 mt-3">
+            <p-button
+              size="small" type="button" icon="pi pi-plus" severity="secondary" [outlined]="true"
+              [label]="'projects.resources.addFreeLine' | transloco"
+              (onClick)="addFreeLine(section.id)"
+            />
             <p-select
               size="small" class="block w-65 max-w-full"
               [options]="availableResourceOptions()"
