@@ -31,4 +31,11 @@ export interface Company {
   // reference. Without one, a creditor reference ("RF...") or none.
   qr_iban: string | null;
   payment_reference_type: 'SCOR' | 'NONE';
+  // How its invoices, quotes and reminders are laid out and in which font
+  // (the backend's pdf/templates/modern-letter.ts and pdf-fonts.ts).
+  document_layout: DocumentLayout;
+  document_font: DocumentFont;
 }
+
+export type DocumentLayout = 'CLASSIC' | 'MODERN';
+export type DocumentFont = 'HELVETICA' | 'LATO' | 'PT_SERIF';

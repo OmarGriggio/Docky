@@ -15,8 +15,9 @@ import { AuthService } from '../../auth/auth.service';
 import { PostalCodeCity } from '../../../shared/components/postal-code-city/postal-code-city';
 import { splitPostalCodeCity } from '../../../shared/utils/postal-code-search';
 import { InvoicingReadinessBanner } from '../../../shared/components/invoicing-readiness-banner/invoicing-readiness-banner';
-import { Company } from '../../../shared/models/company';
+import { Company, DocumentFont, DocumentLayout } from '../../../shared/models/company';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
+import { DocumentStylePicker } from '../../../shared/components/document-style-picker/document-style-picker';
 
 // An early payment discount with no number of days to pay within means
 // nothing - the days are required as soon as there's a rate.
@@ -29,7 +30,7 @@ const earlyPaymentDaysRequired: ValidatorFn = (group: AbstractControl): Validati
 @Component({
   selector: 'app-company-profile',
   standalone: true,
-  imports: [ReactiveFormsModule, InputText, InputNumber, FloatLabel, Button, Card, SelectButton, FileUpload, PostalCodeCity, InvoicingReadinessBanner, ConfirmDialogComponent, TranslocoPipe],
+  imports: [ReactiveFormsModule, InputText, InputNumber, FloatLabel, Button, Card, SelectButton, FileUpload, PostalCodeCity, InvoicingReadinessBanner, ConfirmDialogComponent, DocumentStylePicker, TranslocoPipe],
   templateUrl: './company-profile.html',
   styleUrl: './company-profile.css',
 })
@@ -75,7 +76,30 @@ export class CompanyProfile implements OnInit {
     // QR reference with a QR-IBAN, otherwise a creditor reference or none.
     qr_iban: [''],
     payment_reference_type: ['SCOR' as 'SCOR' | 'NONE'],
+    document_layout: ['CLASSIC' as DocumentLayout],
+    document_font: ['HELVETICA' as DocumentFont],
   }, { validators: earlyPaymentDaysRequired });
+
+  // The document style (document-style-picker), saved with the rest of the form.
+  private layoutValue = toSignal(this.form.controls.document_layout.valueChanges, { initialValue: 'CLASSIC' as DocumentLayout });
+  private fontValue = toSignal(this.form.controls.document_font.valueChanges, { initialValue: 'HELVETICA' as DocumentFont });
+  accentValue = toSignal(this.form.controls.accent_color.valueChanges, { initialValue: '' });
+  selectedLayout = computed(() => this.layoutValue());
+  selectedFont = computed(() => this.fontValue());
+
+  pickLayout(layout: DocumentLayout): void {
+    if (this.canManageCompany()) {
+      this.form.controls.document_layout.setValue(layout);
+      this.form.controls.document_layout.markAsDirty();
+    }
+  }
+
+  pickFont(font: DocumentFont): void {
+    if (this.canManageCompany()) {
+      this.form.controls.document_font.setValue(font);
+      this.form.controls.document_font.markAsDirty();
+    }
+  }
 
   private referenceCreditorLabel = translateSignal('profile.paymentReference.creditor');
   private referenceNoneLabel = translateSignal('profile.paymentReference.none');
@@ -172,6 +196,8 @@ export class CompanyProfile implements OnInit {
           secondary_color: company.secondary_color ?? '',
           qr_iban: company.qr_iban ?? '',
           payment_reference_type: company.payment_reference_type ?? 'SCOR',
+          document_layout: company.document_layout ?? 'CLASSIC',
+          document_font: company.document_font ?? 'HELVETICA',
         });
         this.logoPath.set(company.logo);
         this.headerImagePath.set(company.header_image);

@@ -654,7 +654,21 @@
     "removeImageAction": "Remove",
     "logoRemoved": "The logo has been removed.",
     "headerImageRemoved": "The header image has been removed.",
-    "imageRemoveError": "The image could not be removed."
+    "imageRemoveError": "The image could not be removed.",
+    "documentStyle": {
+      "title": "Document template",
+      "hint": "How your invoices, quotes and reminders are laid out, and their font. The colors, logo and header image above apply to both templates.",
+      "layout": "Layout",
+      "font": "Font",
+      "classic": "Classic",
+      "classicHint": "One line per position with its total on page 1, then every line in detail on a page of its own. The client's address on the right.",
+      "modern": "Modern",
+      "modernHint": "Every line on page 1 in one table, its header in the main color. The client's address on the left, the totals in a box.",
+      "detailsPage": "details",
+      "helveticaHint": "Plain and classic",
+      "latoHint": "Modern and rounded",
+      "ptSerifHint": "Serif, elegant"
+    }
   },
   "qrBill": {
     "title": "QR-bill payment slip",

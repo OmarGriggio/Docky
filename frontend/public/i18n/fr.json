@@ -654,7 +654,21 @@
     "removeImageAction": "Retirer",
     "logoRemoved": "Le logo a été retiré.",
     "headerImageRemoved": "L'image d'en-tête a été retirée.",
-    "imageRemoveError": "Impossible de retirer l'image."
+    "imageRemoveError": "Impossible de retirer l'image.",
+    "documentStyle": {
+      "title": "Modèle des documents",
+      "hint": "La mise en page et la police de tes factures, offres et rappels. Les couleurs, le logo et l'image d'en-tête ci-dessus s'appliquent aux deux modèles.",
+      "layout": "Mise en page",
+      "font": "Police",
+      "classic": "Classique",
+      "classicHint": "Une ligne par position avec son total en page 1, puis le détail de chaque ligne sur une page à part. L'adresse du client à droite.",
+      "modern": "Moderne",
+      "modernHint": "Toutes les lignes en page 1 dans un tableau, son en-tête dans la couleur principale. L'adresse du client à gauche, les totaux encadrés.",
+      "detailsPage": "détail",
+      "helveticaHint": "Sobre et classique",
+      "latoHint": "Moderne et arrondie",
+      "ptSerifHint": "À empattements, élégante"
+    }
   },
   "qrBill": {
     "title": "Bulletin QR",

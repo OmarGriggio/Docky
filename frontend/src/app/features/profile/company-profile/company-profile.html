@@ -201,6 +201,18 @@
           </div>
         }
 
+        <!-- The document style: a layout and a font (document-style-picker). -->
+        <div class="ui-form__full flex flex-col gap-1 mt-2">
+          <span class="text-sm font-medium">{{ 'profile.documentStyle.title' | transloco }}</span>
+          <p class="m-0 text-sm text-gray-500">{{ 'profile.documentStyle.hint' | transloco }}</p>
+        </div>
+
+        <app-document-style-picker
+          class="ui-form__full"
+          [layout]="selectedLayout()" [font]="selectedFont()" [accentColor]="accentValue()" [disabled]="!canManageCompany()"
+          (layoutChange)="pickLayout($event)" (fontChange)="pickFont($event)"
+        />
+
         @if (!canManageCompany()) {
           <p class="ui-form__full">{{ 'profile.adminOnly' | transloco }}</p>
         }

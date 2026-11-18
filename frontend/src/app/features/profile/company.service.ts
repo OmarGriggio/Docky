@@ -26,6 +26,13 @@ export class CompanyService {
     return this.http.put<Company>(`${API_BASE}/company/${id}`, company);
   }
 
+  // Only the document template - the backend keeps every field a save leaves
+  // out (company.service.ts's updateCompanyServ). The document form's
+  // "Modèle" panel.
+  updateDocumentStyle(id: number, style: Pick<Company, 'document_layout' | 'document_font'>) {
+    return this.http.put<Company>(`${API_BASE}/company/${id}`, style);
+  }
+
   uploadLogo(id: number, file: File) {
     const formData = new FormData();
     formData.append('logo', file);
