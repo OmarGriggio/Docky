@@ -6,15 +6,15 @@
          toolbarsFor) - the one toolbar button in solid green, like this one -
          and there's no guide (no drag and drop there). -->
     <div class="hidden md:flex justify-end gap-2 mb-2">
-      <p-button size="small" icon="pi pi-question-circle" severity="secondary" [text]="true" [rounded]="true" [title]="'calendar.guide.open' | transloco" [ariaLabel]="'calendar.guide.open' | transloco" (onClick)="guideVisible.set(true)" />
-      <p-button size="small" icon="pi pi-plus" [label]="'calendar.addNote' | transloco" (onClick)="openNewNote()" />
+      <p-button data-tour="help" size="small" icon="pi pi-question-circle" severity="secondary" [text]="true" [rounded]="true" [title]="'calendar.guide.open' | transloco" [ariaLabel]="'calendar.guide.open' | transloco" (onClick)="tour.open()" />
+      <p-button data-tour="add-note" size="small" icon="pi pi-plus" [label]="'calendar.addNote' | transloco" (onClick)="openNewNote()" />
     </div>
-    <full-calendar #fullCalendar [options]="calendarOptions" />
+    <full-calendar data-tour="calendar" #fullCalendar [options]="calendarOptions" />
   </div>
 
   <!-- Dragging a section onto a day is a desktop gesture - hidden on a phone. -->
   <!-- Each card looks like the blue section it becomes once dropped. -->
-  <div class="hidden md:flex w-64 shrink-0 flex-col gap-2">
+  <div data-tour="unscheduled" class="hidden md:flex w-64 shrink-0 flex-col gap-2">
     <h2 class="text-sm font-semibold text-gray-700 uppercase m-0 flex items-center gap-2">
       {{ 'calendar.unscheduledSections' | transloco }}
       @if (unscheduledSections().length > 0) {
@@ -44,30 +44,8 @@
   </div>
 </div>
 
-<!-- "Comment planifier ?": how the calendar and the chantiers fit together. -->
-<p-dialog
-  [(visible)]="guideVisible"
-  [header]="'calendar.guide.title' | transloco"
-  [modal]="true"
-  [dismissableMask]="true"
-  [style]="{ width: '36rem' }"
-  [breakpoints]="{ '640px': '95vw' }"
->
-  <ol class="list-none m-0 p-0 flex flex-col gap-4">
-    @for (step of guideSteps; track step.key; let index = $index) {
-      <li class="flex gap-3">
-        <span class="shrink-0 w-8 h-8 rounded-full bg-green-50 text-green-700 flex items-center justify-center"><i [class]="'pi ' + step.icon" aria-hidden="true"></i></span>
-        <div class="flex flex-col gap-0.5">
-          <span class="font-medium">{{ index + 1 }}. {{ 'calendar.guide.' + step.key + 'Title' | transloco }}</span>
-          <span class="text-sm text-gray-600">{{ 'calendar.guide.' + step.key | transloco }}</span>
-        </div>
-      </li>
-    }
-  </ol>
-  <div class="flex justify-end mt-4">
-    <p-button size="small" [label]="'calendar.guide.close' | transloco" (onClick)="guideVisible.set(false)" />
-  </div>
-</p-dialog>
+<!-- "Comment planifier ?": a guided tour over the page itself (calendar.ts's guideSteps). -->
+<app-guided-tour #tour [(visible)]="guideVisible" [steps]="guideSteps" />
 
 <p-dialog
   [(visible)]="detailDialogVisible"

@@ -1,0 +1,52 @@
+@if (visible() && step(); as current) {
+  <div class="fixed inset-0 z-[1200]">
+    <!-- Catches every click on the page while the tour runs. -->
+    <div class="absolute inset-0" [class.bg-slate-900/55]="!spotlight()" (click)="$event.stopPropagation()"></div>
+
+    @if (spotlight(); as box) {
+      <!-- The hole: its huge shadow is the dimmed page around it. -->
+      <div
+        class="absolute rounded-lg pointer-events-none ring-2 ring-white/80 shadow-[0_0_0_9999px_rgba(15,23,42,0.55)] transition-all duration-300 ease-out"
+        [style.top.px]="box.top" [style.left.px]="box.left" [style.width.px]="box.width" [style.height.px]="box.height"
+      >
+        <div class="absolute inset-0 rounded-lg ring-2 ring-(--p-primary-color) animate-pulse"></div>
+      </div>
+    }
+
+    <div
+      #card
+      role="dialog" aria-modal="true" aria-labelledby="guided-tour-title" tabindex="-1"
+      class="absolute bg-white rounded-xl shadow-2xl border border-gray-200 p-4 flex flex-col gap-3 outline-none transition-all duration-300 ease-out"
+      [style.top.px]="cardPosition().top" [style.left.px]="cardPosition().left" [style.width.px]="cardPosition().width"
+    >
+      <div class="flex items-center gap-3">
+        <span class="shrink-0 w-9 h-9 rounded-full bg-green-50 text-green-700 flex items-center justify-center">
+          <i [class]="'pi ' + current.icon" aria-hidden="true"></i>
+        </span>
+        <h2 id="guided-tour-title" class="m-0 text-base font-semibold text-gray-900 flex-1">{{ current.titleKey | transloco }}</h2>
+        <span class="text-xs text-gray-500 whitespace-nowrap">{{ index() + 1 }} / {{ steps().length }}</span>
+      </div>
+
+      <p class="m-0 text-sm text-gray-600 leading-relaxed">{{ current.textKey | transloco }}</p>
+
+      <div class="flex items-center gap-1.5" aria-hidden="true">
+        @for (s of steps(); track $index) {
+          <span class="h-1.5 rounded-full transition-all duration-300"
+            [class]="$index === index() ? 'w-5 bg-(--p-primary-color)' : $index < index() ? 'w-1.5 bg-green-300' : 'w-1.5 bg-gray-300'"></span>
+        }
+      </div>
+
+      <div class="flex items-center gap-2">
+        @if (!isLast()) {
+          <p-button size="small" severity="secondary" [text]="true" [label]="'common.tour.skip' | transloco" (onClick)="close()" />
+        }
+        <span class="flex-1"></span>
+        @if (index() > 0) {
+          <p-button size="small" severity="secondary" [outlined]="true" icon="pi pi-arrow-left" [label]="'common.tour.previous' | transloco" (onClick)="previous()" />
+        }
+        <p-button size="small" [icon]="isLast() ? 'pi pi-check' : 'pi pi-arrow-right'" iconPos="right"
+          [label]="(isLast() ? 'common.tour.finish' : 'common.tour.next') | transloco" (onClick)="next()" />
+      </div>
+    </div>
+  </div>
+}

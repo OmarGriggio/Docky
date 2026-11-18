@@ -88,7 +88,13 @@
     "unsavedChanges": "This document has unsaved changes. If you leave the page, they will be lost.",
     "unsavedChangesTitle": "Unsaved changes",
     "leaveWithoutSaving": "Leave without saving",
-    "stay": "Stay on the page"
+    "stay": "Stay on the page",
+    "tour": {
+      "next": "Next",
+      "previous": "Previous",
+      "skip": "Skip",
+      "finish": "Let's go"
+    }
   },
   "clients": {
     "import": {
@@ -368,20 +374,22 @@
     "unscheduledHint": "Drag a section onto a day of the calendar to schedule it.",
     "guide": {
       "open": "How to plan?",
-      "title": "Organising the schedule",
-      "close": "Got it",
-      "acceptTitle": "An accepted quote creates a project",
-      "accept": "Each section of the project (Item 1, Item 2…) appears under “Sections to plan”, right of the calendar.",
-      "dragTitle": "Drag a section onto a day",
-      "drag": "It's scheduled on that day and leaves the list. In the Week or Day view, drop it on a given time.",
-      "adjustTitle": "Move it or stretch it",
-      "adjust": "Drag it to another day to move it, pull its edge to spread it over several days.",
-      "detailsTitle": "Click it for the details",
-      "details": "Its lines (materials, hours), a note for the team and a link to the project.",
-      "notesTitle": "Add notes of your own",
-      "notes": "“+ Note” or a click on a day: a meeting, a delivery, a reminder. They show in grey.",
-      "datesTitle": "Or plan from the project",
-      "dates": "Each section's start and end dates can also be edited on the project's page, in its resources."
+      "welcomeTitle": "Welcome to the schedule",
+      "welcome": "Every accepted quote becomes a chantier, and its sections (Pos 1, Pos 2…) are scheduled here. Here's how, in a few steps.",
+      "unscheduledTitle": "Sections to plan",
+      "unscheduled": "The sections of chantiers in progress that don't have a date yet wait here, one blue card each.",
+      "dropTitle": "Drag them onto the calendar",
+      "drop": "Grab a card and drop it on a day: the section is scheduled and leaves the list. In the Week or Day view, drop it on an exact time.",
+      "adjustTitle": "Move, stretch, open",
+      "adjust": "A scheduled section can be dragged to another day to postpone it, stretched by its edge over several days, and a click opens it: its lines, a note for the team, the link to the chantier.",
+      "viewsTitle": "Pick your view",
+      "views": "Month for the big picture, Week or Day to place things to the hour, List to read everything at a glance.",
+      "navigateTitle": "Move through time",
+      "navigate": "The arrows go to the previous or next period, \"Today\" brings you back to the current date.",
+      "notesTitle": "Add notes",
+      "notes": "An appointment, a delivery, a reminder: \"+ Note\", or a click on a day. They show in grey, next to the sections.",
+      "helpTitle": "Find this guide here",
+      "help": "A section's dates can also be changed on its chantier's page, in its resources. This button starts the guide again whenever you like."
     }
   },
   "documents": {

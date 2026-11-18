@@ -88,7 +88,13 @@
     "unsavedChanges": "Tu as des modifications non enregistrées sur ce document. Si tu quittes la page, elles seront perdues.",
     "unsavedChangesTitle": "Modifications non enregistrées",
     "leaveWithoutSaving": "Quitter sans enregistrer",
-    "stay": "Rester sur la page"
+    "stay": "Rester sur la page",
+    "tour": {
+      "next": "Suivant",
+      "previous": "Précédent",
+      "skip": "Passer",
+      "finish": "C'est parti"
+    }
   },
   "clients": {
     "import": {
@@ -367,21 +373,23 @@
     "addNote": "Note",
     "unscheduledHint": "Glisse une section sur un jour du calendrier pour la planifier.",
     "guide": {
-      "open": "Comment planifier ?",
-      "title": "Organiser le planning",
-      "close": "Compris",
-      "acceptTitle": "Une offre acceptée crée un chantier",
-      "accept": "Chaque section du chantier (Pos 1, Pos 2…) arrive dans « Sections à planifier », à droite du calendrier.",
-      "dragTitle": "Glisse une section sur un jour",
-      "drag": "Elle est planifiée sur ce jour et quitte la liste. En vue Semaine ou Jour, dépose-la sur une heure précise.",
-      "adjustTitle": "Déplace-la ou étire-la",
-      "adjust": "Glisse-la sur un autre jour pour la reporter, tire son bord pour l'étendre sur plusieurs jours.",
-      "detailsTitle": "Clique dessus pour le détail",
-      "details": "Ses lignes (matériel, heures), une note pour l'équipe et le lien vers le chantier.",
-      "notesTitle": "Ajoute des notes libres",
-      "notes": "« + Note » ou un clic sur un jour : un rendez-vous, une livraison, un rappel. Elles s'affichent en gris.",
-      "datesTitle": "Ou planifie depuis le chantier",
-      "dates": "Les dates de début et de fin de chaque section se modifient aussi sur la fiche du chantier, dans ses ressources."
+      "open": "Comment planifier ?",
+      "welcomeTitle": "Bienvenue dans le planning",
+      "welcome": "Chaque offre acceptée devient un chantier, et ses sections (Pos 1, Pos 2…) se planifient ici. Voici comment, en quelques étapes.",
+      "unscheduledTitle": "Les sections à planifier",
+      "unscheduled": "Les sections des chantiers en cours qui n'ont pas encore de date attendent ici, une carte bleue chacune.",
+      "dropTitle": "Glisse-les sur le calendrier",
+      "drop": "Attrape une carte et dépose-la sur un jour : la section est planifiée et quitte la liste. En vue Semaine ou Jour, dépose-la sur une heure précise.",
+      "adjustTitle": "Déplace, étire, ouvre",
+      "adjust": "Une section posée se glisse sur un autre jour pour la reporter, s'étire par son bord sur plusieurs jours, et un clic l'ouvre : ses lignes, une note pour l'équipe, le lien vers le chantier.",
+      "viewsTitle": "Choisis ta vue",
+      "views": "Mois pour la vue d'ensemble, Semaine ou Jour pour placer à l'heure près, Liste pour tout lire d'un coup d'œil.",
+      "navigateTitle": "Avance dans le temps",
+      "navigate": "Les flèches passent à la période précédente ou suivante, « Aujourd'hui » te ramène à la date du jour.",
+      "notesTitle": "Ajoute des notes",
+      "notes": "Un rendez-vous, une livraison, un rappel : « + Note », ou un clic sur un jour. Elles s'affichent en gris, à côté des sections.",
+      "helpTitle": "Retrouve ce guide ici",
+      "help": "Les dates d'une section se changent aussi sur la fiche de son chantier, dans ses ressources. Ce bouton relance le guide quand tu veux."
     }
   },
   "documents": {

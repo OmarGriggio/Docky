@@ -26,6 +26,7 @@ import { PricePipe } from '../../shared/pipes/price.pipe';
 import { TabIndentDirective } from '../../shared/directives/tab-indent.directive';
 import { BreakpointService } from '../../shared/services/breakpoint.service';
 import { NotificationService } from '../../shared/services/notification.service';
+import { GuidedTour, TourStep } from '../../shared/components/guided-tour/guided-tour';
 
 // Plain calendar entries (this file's own notesById below), not tied to any
 // chantier/section - shown in a flat neutral grey so they read as distinct
@@ -34,10 +35,12 @@ const NOTE_COLOR = '#9ca3af';
 
 const GUIDE_SEEN_KEY = 'docky_calendar_guide_seen';
 
+const guideKeys = (key: string) => ({ titleKey: `calendar.guide.${key}Title`, textKey: `calendar.guide.${key}` });
+
 @Component({
   selector: 'app-calendar',
   standalone: true,
-  imports: [FullCalendarModule, Dialog, Button, Textarea, InputText, DatePicker, FloatLabel, RouterLink, FormsModule, PricePipe, TabIndentDirective, TranslocoPipe],
+  imports: [FullCalendarModule, Dialog, Button, Textarea, InputText, DatePicker, FloatLabel, RouterLink, FormsModule, PricePipe, TabIndentDirective, GuidedTour, TranslocoPipe],
   templateUrl: './calendar.html',
   styleUrl: './calendar.css',
 })
@@ -62,17 +65,20 @@ export class CalendarPage implements OnInit, AfterViewInit {
   // left to plan).
   unscheduledSections = signal<SectionWithProject[]>([]);
 
-  // "Comment planifier ?" - opened by itself on a browser's first visit
-  // (remembered in localStorage), then from its button. Desktop only, like
-  // the drag and drop it explains.
+  // "Comment planifier ?" - a guided tour over the page itself, started by
+  // itself on a browser's first visit (remembered in localStorage), then
+  // from its button. Desktop only, like the drag and drop it explains. The
+  // targets are this page's data-tour marks and FullCalendar's own toolbar.
   guideVisible = signal(false);
-  readonly guideSteps = [
-    { key: 'accept', icon: 'pi-check-circle' },
-    { key: 'drag', icon: 'pi-arrows-alt' },
-    { key: 'adjust', icon: 'pi-arrows-h' },
-    { key: 'details', icon: 'pi-comment' },
-    { key: 'notes', icon: 'pi-plus' },
-    { key: 'dates', icon: 'pi-building' },
+  readonly guideSteps: TourStep[] = [
+    { icon: 'pi-calendar', ...guideKeys('welcome') },
+    { target: '[data-tour="unscheduled"]', icon: 'pi-inbox', ...guideKeys('unscheduled') },
+    { target: '[data-tour="calendar"] .fc-view-harness', icon: 'pi-arrows-alt', ...guideKeys('drop') },
+    { target: '[data-tour="calendar"] .fc-view-harness', icon: 'pi-arrows-h', ...guideKeys('adjust') },
+    { target: '[data-tour="calendar"] .fc-header-toolbar .fc-toolbar-chunk:last-child', icon: 'pi-th-large', ...guideKeys('views') },
+    { target: '[data-tour="calendar"] .fc-header-toolbar .fc-toolbar-chunk:first-child', icon: 'pi-angle-double-right', ...guideKeys('navigate') },
+    { target: '[data-tour="add-note"] button', icon: 'pi-plus', ...guideKeys('notes') },
+    { target: '[data-tour="help"] button', icon: 'pi-question-circle', ...guideKeys('help') },
   ];
 
   // Keyed by section id - every section ever put on the calendar (from
