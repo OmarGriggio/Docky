@@ -108,7 +108,9 @@
           <label for="early_payment_min_amount">{{ 'profile.earlyPaymentMinAmount' | transloco }}</label>
         </p-floatlabel>
 
-        <div class="ui-form__full flex flex-col gap-2">
+        <!-- Side by side, the logo and the header image, then the two colors
+             (one column each, stacked on a phone). -->
+        <div class="col-start-1 min-w-0 flex flex-col gap-2">
           <span class="text-sm font-medium">{{ 'profile.logo' | transloco }}</span>
           @if (logoUrl()) {
             <img [src]="logoUrl()" [alt]="'profile.logoAlt' | transloco" class="max-h-24 max-w-48 object-contain self-start" />
@@ -140,7 +142,7 @@
           }
         </div>
 
-        <div class="ui-form__full flex flex-col gap-2">
+        <div class="min-w-0 flex flex-col gap-2">
           <span class="text-sm font-medium">{{ 'profile.headerImage' | transloco }}</span>
           @if (headerImageUrl()) {
             <img [src]="headerImageUrl()" [alt]="'profile.headerImageAlt' | transloco" class="max-h-24 max-w-full object-contain self-start" />
@@ -175,8 +177,8 @@
         <!-- A native color input: the browser's own picker, on a phone too.
              It can't be empty, so "none" is the form's '' with a hint, and
              picking any color sets one. -->
-        @for (field of colorFields; track field.control) {
-          <div class="ui-form__full flex flex-col gap-2">
+        @for (field of colorFields; track field.control; let first = $first) {
+          <div class="min-w-0 flex flex-col gap-2" [class.col-start-1]="first">
             <label [for]="field.control" class="text-sm font-medium">{{ field.label | transloco }}</label>
             <div class="flex items-center gap-3 flex-wrap">
               <input type="color" [id]="field.control" [formControlName]="field.control" class="w-12 h-9 p-0.5 border border-gray-300 rounded cursor-pointer bg-white" />
