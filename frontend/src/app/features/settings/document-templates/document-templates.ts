@@ -13,6 +13,7 @@ import { AuthService } from '../../auth/auth.service';
 import { DocumentTemplateService } from '../../documents/document-template.service';
 import { TabIndentDirective } from '../../../shared/directives/tab-indent.directive';
 import { NotificationService } from '../../../shared/services/notification.service';
+import { placeholderToken } from '../../../shared/utils/display';
 
 @Component({
   selector: 'app-document-templates',
@@ -51,25 +52,31 @@ export class DocumentTemplates implements OnInit {
   // under the reminder text field. Built here as strings (not written in the
   // template) since a literal double brace there is read as an interpolation.
   // `label`s are Transloco keys (see document-templates.html's `| transloco`),
-  // not display text - same pattern as nav-bar.ts's navItems.
-  reminderPlaceholders = [
-    { token: '{{numero_facture}}', label: 'documentTemplates.placeholders.invoiceNumber' },
-    { token: '{{date_facture}}', label: 'documentTemplates.placeholders.invoiceDate' },
-    { token: '{{date_echeance}}', label: 'documentTemplates.placeholders.dueDate' },
-    { token: '{{montant}}', label: 'documentTemplates.placeholders.amount' },
-    { token: '{{jours_retard}}', label: 'documentTemplates.placeholders.daysLate' },
-    { token: '{{client}}', label: 'documentTemplates.placeholders.clientName' },
-    { token: '{{signature_entreprise}}', label: 'documentTemplates.placeholders.signature' },
-  ];
+  // not display text - same pattern as nav-bar.ts's navItems. Each token
+  // named in the UI's language ({{montant}} / {{amount}} - both work).
+
+  private placeholders(names: [string, string][]) {
+    return names.map(([name, label]) => ({ token: placeholderToken(name, this.transloco.activeLang()), label: `documentTemplates.placeholders.${label}` }));
+  }
+
+  reminderPlaceholders = computed(() => this.placeholders([
+    ['numero_facture', 'invoiceNumber'],
+    ['date_facture', 'invoiceDate'],
+    ['date_echeance', 'dueDate'],
+    ['montant', 'amount'],
+    ['jours_retard', 'daysLate'],
+    ['client', 'clientName'],
+    ['signature_entreprise', 'signature'],
+  ]));
 
   // Same for an invoice's/quote's introduction and conclusion (see the
   // backend's pdf/templates/document.placeholders.ts).
-  documentPlaceholders = [
-    { token: '{{titre_client}}', label: 'documentTemplates.placeholders.clientTitle' },
-    { token: '{{date}}', label: 'documentTemplates.placeholders.documentDate' },
-    { token: '{{montant}}', label: 'documentTemplates.placeholders.amount' },
-    { token: '{{signature_entreprise}}', label: 'documentTemplates.placeholders.signature' },
-  ];
+  documentPlaceholders = computed(() => this.placeholders([
+    ['titre_client', 'clientTitle'],
+    ['date', 'documentDate'],
+    ['montant', 'amount'],
+    ['signature_entreprise', 'signature'],
+  ]));
 
   templatesLoading = signal(true);
   templatesSuccessMessage = signal<string | null>(null);

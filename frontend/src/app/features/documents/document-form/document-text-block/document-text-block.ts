@@ -6,6 +6,7 @@ import { TranslocoPipe, TranslocoService, translateSignal } from '@jsverse/trans
 import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import { DocumentType } from '../../../../shared/models/document';
 import { TabIndentDirective } from '../../../../shared/directives/tab-indent.directive';
+import { placeholderToken } from '../../../../shared/utils/display';
 import { DocumentTemplateService } from '../../document-template.service';
 
 // The document's introduction or conclusion (one component, used for both):
@@ -48,9 +49,10 @@ export class DocumentTextBlock {
   // either: Transloco's own interpolation syntax is {{param}} too, so an
   // unrecognized {{titre_client}} inside a *translated* value would be
   // silently swallowed by its transpiler, not left as literal text.
+  // Each named in the UI's language ({{montant}} / {{amount}} - both work).
   private placeholdersHintPrefix = translateSignal('documents.textBlock.placeholdersHint');
   placeholdersHint = computed(() =>
-    `${this.placeholdersHintPrefix()} {{titre_client}}, {{date}}, {{montant}}, {{signature_entreprise}}`
+    `${this.placeholdersHintPrefix()} ${['titre_client', 'date', 'montant', 'signature_entreprise'].map(name => placeholderToken(name, this.transloco.activeLang())).join(', ')}`
   );
 
   editing = signal(false);

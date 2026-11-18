@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { clientDisplayName, archiveActionLabel, formatFileSize, formatSectionDate, addressLabel, formatPrice, toDateOnly, fromDateOnly, addDays, daysOverdue, daysFromToday, fillPlaceholders, matchesSearch, invoiceAmountDue } from './display';
+import { clientDisplayName, archiveActionLabel, formatFileSize, formatSectionDate, addressLabel, formatPrice, toDateOnly, fromDateOnly, addDays, daysOverdue, daysFromToday, fillPlaceholders, placeholderToken, matchesSearch, invoiceAmountDue } from './display';
 
 describe('daysFromToday', () => {
 
@@ -167,6 +167,24 @@ describe('fillPlaceholders', () => {
   it('leaves unknown and inherited names as typed, and never rescans a value', () => {
     expect(fillPlaceholders('{{typo}} {{constructor}}', values)).toBe('{{typo}} {{constructor}}');
     expect(fillPlaceholders('{{titre_client}}', { titre_client: '{{montant}}', montant: 'x' })).toBe('{{montant}}');
+  });
+
+  it('fills a placeholder by its English name too', () => {
+    expect(fillPlaceholders('{{client_title}}, {{amount}} / {{montant}}', values)).toBe('Monsieur, 865.00 CHF / 865.00 CHF');
+  });
+
+});
+
+describe('placeholderToken', () => {
+
+  it('names a placeholder in the UI language, French by default', () => {
+    expect(placeholderToken('montant', 'en')).toBe('{{amount}}');
+    expect(placeholderToken('montant', 'fr')).toBe('{{montant}}');
+  });
+
+  it('keeps a name that is the same in both languages', () => {
+    expect(placeholderToken('date', 'en')).toBe('{{date}}');
+    expect(placeholderToken('client', 'en')).toBe('{{client}}');
   });
 
 });

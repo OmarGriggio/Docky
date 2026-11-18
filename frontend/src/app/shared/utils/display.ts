@@ -185,10 +185,32 @@ export const formatLongDate = (date: Date): string => {
 // the document form's read-only preview fills an introduction/conclusion the
 // way the PDF will. Only the keys of `values` are replaced; anything else
 // ({{typo}}) is left as typed. Same one-pass/own-property rules.
+// Every placeholder has an English name too (the backend's
+// PLACEHOLDER_ALIASES) - either works in any text.
+export const PLACEHOLDER_ALIASES: Record<string, string> = {
+  client_title: 'titre_client',
+  amount: 'montant',
+  company_signature: 'signature_entreprise',
+  invoice_number: 'numero_facture',
+  invoice_date: 'date_facture',
+  due_date: 'date_echeance',
+  days_overdue: 'jours_retard',
+};
+
+const hasOwn = (object: object, key: string) => Object.prototype.hasOwnProperty.call(object, key);
+
 export const fillPlaceholders = (text: string, values: Record<string, string>): string => {
   return text.replace(/\{\{\s*([a-z_]+)\s*\}\}/g, (match, name: string) => {
-    return Object.prototype.hasOwnProperty.call(values, name) ? values[name] : match;
+    const key = hasOwn(values, name) ? name : hasOwn(PLACEHOLDER_ALIASES, name) ? PLACEHOLDER_ALIASES[name] : null;
+    return key !== null && hasOwn(values, key) ? values[key] : match;
   });
+};
+
+// A placeholder as the UI offers it - "{{montant}}", or "{{amount}}" in
+// English. `name` is its French name, the one `values` are keyed by.
+export const placeholderToken = (name: string, language: string): string => {
+  const english = Object.keys(PLACEHOLDER_ALIASES).find(alias => PLACEHOLDER_ALIASES[alias] === name);
+  return `{{${language === 'en' && english ? english : name}}}`;
 };
 
 // Search-box matching for a list: every word typed must appear somewhere in

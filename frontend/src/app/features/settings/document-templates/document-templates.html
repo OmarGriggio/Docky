@@ -28,7 +28,7 @@
               <div class="ui-form__full text-sm text-gray-600 -mt-2">
                 <p class="m-0 mb-1">{{ 'documentTemplates.variablesHelp' | transloco }}</p>
                 <ul class="m-0 pl-5">
-                  @for (placeholder of documentPlaceholders; track placeholder.token) {
+                  @for (placeholder of documentPlaceholders(); track placeholder.token) {
                     <li><code>{{ placeholder.token }}</code> — {{ placeholder.label | transloco }}</li>
                   }
                 </ul>
@@ -56,7 +56,7 @@
               <div class="ui-form__full text-sm text-gray-600 -mt-2">
                 <p class="m-0 mb-1">{{ 'documentTemplates.variablesHelp' | transloco }}</p>
                 <ul class="m-0 pl-5">
-                  @for (placeholder of documentPlaceholders; track placeholder.token) {
+                  @for (placeholder of documentPlaceholders(); track placeholder.token) {
                     <li><code>{{ placeholder.token }}</code> — {{ placeholder.label | transloco }}</li>
                   }
                 </ul>
@@ -79,7 +79,7 @@
               <div class="ui-form__full text-sm text-gray-600 -mt-2">
                 <p class="m-0 mb-1">{{ 'documentTemplates.reminderVariablesHelp' | transloco }}</p>
                 <ul class="m-0 pl-5">
-                  @for (placeholder of reminderPlaceholders; track placeholder.token) {
+                  @for (placeholder of reminderPlaceholders(); track placeholder.token) {
                     <li><code>{{ placeholder.token }}</code> — {{ placeholder.label | transloco }}</li>
                   }
                 </ul>
