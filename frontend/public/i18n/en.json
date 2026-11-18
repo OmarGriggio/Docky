@@ -376,13 +376,13 @@
     "guide": {
       "open": "How to plan?",
       "welcomeTitle": "Welcome to the schedule",
-      "welcome": "Every accepted quote becomes a chantier, and its sections (Pos 1, Pos 2…) are scheduled here. Here's how, in a few steps.",
+      "welcome": "Every accepted quote becomes a project, and its sections (Pos 1, Pos 2…) are scheduled here. Here's how, in a few steps.",
       "unscheduledTitle": "Sections to plan",
-      "unscheduled": "The sections of chantiers in progress that don't have a date yet wait here, one blue card each.",
+      "unscheduled": "The sections of projects in progress that don't have a date yet wait here, one blue card each.",
       "dropTitle": "Drag them onto the calendar",
       "drop": "Grab a card and drop it on a day: the section is scheduled and leaves the list. In the Week or Day view, drop it on an exact time.",
       "adjustTitle": "Move, stretch, open",
-      "adjust": "A scheduled section can be dragged to another day to postpone it, stretched by its edge over several days, and a click opens it: its lines, a note for the team, the link to the chantier.",
+      "adjust": "A scheduled section can be dragged to another day to postpone it, stretched by its edge over several days, and a click opens it: its lines, a note for the team, the link to the project.",
       "viewsTitle": "Pick your view",
       "views": "Month for the big picture, Week or Day to place things to the hour, List to read everything at a glance.",
       "navigateTitle": "Move through time",
@@ -390,7 +390,7 @@
       "notesTitle": "Add notes",
       "notes": "An appointment, a delivery, a reminder: \"+ Note\", or a click on a day. They show in grey, next to the sections.",
       "helpTitle": "Find this guide here",
-      "help": "A section's dates can also be changed on its chantier's page, in its resources. This button starts the guide again whenever you like."
+      "help": "A section's dates can also be changed on its project's page, in its resources. This button starts the guide again whenever you like."
     }
   },
   "documents": {
@@ -527,7 +527,7 @@
       "actionsInvoiceTitle": "Save and see the PDF",
       "actionsInvoice": "\"Save\" creates the invoice and gives it its number (FAC-…). Once saved, \"Preview\" shows the PDF with its QR-bill. \"Scan a document\" fills in an invoice from an existing PDF.",
       "statusQuoteTitle": "The status",
-      "statusQuote": "Click the next step to move to it: \"Sent\" once the quote has gone out, then \"Accepted\" when the client says yes. The quote then becomes a chantier, which opens right away.",
+      "statusQuote": "Click the next step to move to it: \"Sent\" once the quote has gone out, then \"Accepted\" when the client says yes. The quote then becomes a project, which opens right away.",
       "statusInvoiceTitle": "The status",
       "statusInvoice": "Click the next step to move to it: \"Sent\" once the invoice has gone out, then \"Paid\" when the payment comes in. A sent invoice can't be changed any more: a mistake is cancelled and made again.",
       "helpTitle": "Find this guide here",

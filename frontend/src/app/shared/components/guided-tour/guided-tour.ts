@@ -62,7 +62,7 @@ export class GuidedTour {
   constructor() {
     // Every new step (or the tour opening): bring its element into view,
     // then measure it once it's there.
-    effect(() => {
+    effect(onCleanup => {
       if (!this.visible()) {
         return;
       }
@@ -73,9 +73,13 @@ export class GuidedTour {
       this.measure();
       // A smooth scroll and a calendar still laying itself out: measured
       // again once they've settled.
-      setTimeout(() => this.measure(), 350);
-      setTimeout(() => this.measure(), 700);
-      setTimeout(() => this.card()?.nativeElement.focus(), 0);
+      const timers = [
+        setTimeout(() => this.measure(), 350),
+        setTimeout(() => this.measure(), 700),
+        setTimeout(() => this.card()?.nativeElement.focus(), 0),
+      ];
+      // The next step (or closing) drops this one's pending measures.
+      onCleanup(() => timers.forEach(clearTimeout));
     });
 
     inject(DestroyRef).onDestroy(() => cancelAnimationFrame(this.frame));
@@ -109,7 +113,13 @@ export class GuidedTour {
     }
     if (event.key === 'Escape') {
       this.close();
-    } else if (event.key === 'ArrowRight') {
+      return;
+    }
+    // The arrows move the caret in a field, not the tour.
+    if (event.target instanceof HTMLElement && event.target.closest('input, textarea, select, [contenteditable="true"]')) {
+      return;
+    }
+    if (event.key === 'ArrowRight') {
       this.next();
     } else if (event.key === 'ArrowLeft') {
       this.previous();
