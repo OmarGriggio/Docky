@@ -2,20 +2,22 @@ import { Component, computed, ElementRef, HostListener, inject, signal } from '@
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AuthService } from '../../features/auth/auth.service';
-import { UserRole } from '../models/auth';
+import { PermissionModule, PermissionService } from '../services/permission.service';
 import { APP_VERSION } from '../version';
 
+// Each link shown only to someone allowed to read its module - an admin
+// always, an employee per Paramètres > Droits des employés (PermissionService).
 interface NavLink {
   label: string;
   path: string;
   queryParams?: Record<string, string>;
+  permission: PermissionModule;
 }
 
 interface NavItem {
   label: string;
   icon: string;
   links: NavLink[];
-  roles?: UserRole[];
 }
 
 // Collapsed/expanded is a per-browser display preference, not app state -
@@ -33,6 +35,7 @@ const NAV_EXPANDED_KEY = 'docky_nav_expanded';
 export class NavBar {
 
   private authService = inject(AuthService);
+  private permissionService = inject(PermissionService);
   private router = inject(Router);
   private elementRef = inject(ElementRef);
 
@@ -175,64 +178,60 @@ export class NavBar {
       label: 'nav.dashboard',
       icon: 'pi pi-home',
       links: [
-        { label: 'nav.dashboard', path: '/dashboard' }
-      ],
-      // Matches app.routes.ts's own restriction - a plain USER (employee)
-      // has no company-wide figures to look at here.
-      roles: ['ADMIN', 'PLATFORM_ADMIN']
+        { label: 'nav.dashboard', path: '/dashboard', permission: 'dashboard' }
+      ]
     },
     {
-      // Matches app.routes.ts's own restriction - a plain USER (employee)
-      // doesn't plan chantiers.
       label: 'nav.calendar',
       icon: 'pi pi-calendar',
       links: [
-        { label: 'nav.calendar', path: '/calendar' }
-      ],
-      roles: ['ADMIN', 'PLATFORM_ADMIN']
+        { label: 'nav.calendar', path: '/calendar', permission: 'calendar' }
+      ]
     },
     {
       label: 'nav.clients',
       icon: 'pi pi-address-book',
       links: [
-        { label: 'nav.list', path: '/clients' }
+        { label: 'nav.list', path: '/clients', permission: 'clients' }
       ]
     },
     {
       label: 'nav.documents',
       icon: 'pi pi-receipt',
       links: [
-        { label: 'nav.quotes', path: '/documents', queryParams: { type: 'QUOTE' } },
-        { label: 'nav.invoices', path: '/documents', queryParams: { type: 'INVOICE' } }
+        { label: 'nav.quotes', path: '/documents', queryParams: { type: 'QUOTE' }, permission: 'quotes' },
+        { label: 'nav.invoices', path: '/documents', queryParams: { type: 'INVOICE' }, permission: 'invoices' }
       ]
     },
     {
       label: 'nav.qrBill',
       icon: 'pi pi-qrcode',
       links: [
-        { label: 'nav.qrBill', path: '/qr-bill' }
+        { label: 'nav.qrBill', path: '/qr-bill', permission: 'invoices' }
       ]
     },
     {
       label: 'nav.resources',
       icon: 'pi pi-box',
       links: [
-        { label: 'nav.material', path: '/resources', queryParams: { type: 'MATERIAL' } },
-        { label: 'nav.service', path: '/resources', queryParams: { type: 'SERVICE' } }
+        { label: 'nav.material', path: '/resources', queryParams: { type: 'MATERIAL' }, permission: 'catalog' },
+        { label: 'nav.service', path: '/resources', queryParams: { type: 'SERVICE' }, permission: 'catalog' }
       ]
     },
     {
       label: 'nav.projects',
       icon: 'pi pi-hammer',
       links: [
-        { label: 'nav.list', path: '/projects' }
+        { label: 'nav.list', path: '/projects', permission: 'projects' }
       ]
     }
   ];
 
-  visibleNavItems = computed(() => {
-    const role = this.currentUser()?.role;
-    return this.navItems.filter(item => !item.roles || (role && item.roles.includes(role)));
-  });
+  // An item keeps only the links its user may read, and goes away without any.
+  visibleNavItems = computed(() =>
+    this.navItems
+      .map(item => ({ ...item, links: item.links.filter(link => this.permissionService.can(link.permission)) }))
+      .filter(item => item.links.length > 0)
+  );
 
 }

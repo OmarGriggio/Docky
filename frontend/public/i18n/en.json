@@ -62,6 +62,35 @@
         "NUMBER_START_INVALID": "The starting number goes from 1 to 99999999.",
         "generic": "The next number couldn't be worked out."
       }
+    },
+    "permissionsMenu": "Employee permissions",
+    "permissions": {
+      "title": "Employee permissions",
+      "description": "What your employees (Employee role) may do in each module: nothing (the module is hidden), look at it, or do everything. The same permissions for all your employees.",
+      "none": "None",
+      "read": "Read",
+      "write": "Edit",
+      "modules": {
+        "clients": "Clients",
+        "catalog": "Catalog",
+        "quotes": "Quotes",
+        "invoices": "Invoices",
+        "projects": "Job sites",
+        "calendar": "Calendar",
+        "dashboard": "Dashboard"
+      },
+      "hints": {
+        "clients": "The clients list, their addresses, the import",
+        "catalog": "Materials and services",
+        "quotes": "Quotes and their PDFs; accepting a quote also needs job sites",
+        "invoices": "Invoices, deposits, reminders, QR-bill and scanner",
+        "projects": "Job sites, their resources and files",
+        "calendar": "Planning sections and notes",
+        "dashboard": "The company's figures (with the invoices and job sites allowed)"
+      },
+      "adminNote": "Administrators aren't affected: they can always do everything.",
+      "workerPreset": "Worker profile",
+      "saved": "Employee permissions saved."
     }
   },
   "documentTemplates": {

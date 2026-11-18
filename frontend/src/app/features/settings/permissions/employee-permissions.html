@@ -1,0 +1,32 @@
+<p-card [header]="'settings.permissions.title' | transloco" styleClass="ui-card--elevated profile-card">
+  @if (permissions(); as current) {
+    <div class="flex flex-col gap-5">
+      <p class="m-0 text-sm text-gray-600">{{ 'settings.permissions.description' | transloco }}</p>
+
+      <div class="flex flex-col divide-y divide-gray-100 border border-gray-200 rounded-lg">
+        @for (module of modules; track module) {
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-4 py-3">
+            <div class="flex flex-col">
+              <span class="font-medium text-gray-900">{{ 'settings.permissions.modules.' + module | transloco }}</span>
+              <span class="text-xs text-gray-500">{{ 'settings.permissions.hints.' + module | transloco }}</span>
+            </div>
+            <p-selectbutton
+              size="small" [options]="levelOptions()" optionLabel="label" optionValue="value" [allowEmpty]="false"
+              [ngModel]="current.modules[module]" (ngModelChange)="setLevel(module, $event)"
+              [attr.aria-label]="'settings.permissions.modules.' + module | transloco"
+            />
+          </div>
+        }
+      </div>
+
+      <p class="m-0 text-xs text-gray-500">{{ 'settings.permissions.adminNote' | transloco }}</p>
+
+      <div class="flex flex-wrap justify-between gap-2">
+        <p-button type="button" severity="secondary" [outlined]="true" icon="pi pi-wrench" [label]="'settings.permissions.workerPreset' | transloco" (onClick)="applyWorkerPreset()" />
+        <p-button type="button" [label]="'common.save' | transloco" [loading]="saving()" (onClick)="save()" />
+      </div>
+    </div>
+  } @else {
+    <p>{{ 'common.loading' | transloco }}</p>
+  }
+</p-card>

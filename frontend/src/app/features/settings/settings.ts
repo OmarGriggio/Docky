@@ -32,6 +32,7 @@ export class Settings {
   private documentTemplatesLabel = translateSignal('settings.documentTemplates');
   private languageLabel = translateSignal('settings.language');
   private numberingLabel = translateSignal('settings.numberingMenu');
+  private permissionsLabel = translateSignal('settings.permissionsMenu');
   private uiKitLabel = translateSignal('settings.uiKit');
   private companiesLabel = translateSignal('settings.companies');
   private usersLabel = translateSignal('settings.users');
@@ -45,6 +46,11 @@ export class Settings {
       { label: this.numberingLabel(), icon: 'pi pi-hashtag', routerLink: '/settings/numbering' },
       { label: this.languageLabel(), icon: 'pi pi-language', routerLink: '/settings/language' },
     ];
+
+    // The company's admin sets what its employees may do.
+    if (this.authService.isAdmin() || this.isPlatformAdmin()) {
+      menu.splice(2, 0, { label: this.permissionsLabel(), icon: 'pi pi-lock', routerLink: '/settings/permissions' });
+    }
 
     // User management was centralized to PLATFORM_ADMIN only (see
     // user.routes.ts on the backend) - an ordinary ADMIN no longer sees

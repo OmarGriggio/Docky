@@ -62,6 +62,35 @@
         "NUMBER_START_INVALID": "Le numéro de départ va de 1 à 99999999.",
         "generic": "Impossible de calculer le prochain numéro."
       }
+    },
+    "permissionsMenu": "Droits des employés",
+    "permissions": {
+      "title": "Droits des employés",
+      "description": "Ce que tes employés (rôle Employé) peuvent faire dans chaque module : rien (le module est caché), le consulter, ou tout faire. Les mêmes droits pour tous tes employés.",
+      "none": "Aucun",
+      "read": "Lecture",
+      "write": "Modification",
+      "modules": {
+        "clients": "Clients",
+        "catalog": "Catalogue",
+        "quotes": "Offres",
+        "invoices": "Factures",
+        "projects": "Chantiers",
+        "calendar": "Calendrier",
+        "dashboard": "Tableau de bord"
+      },
+      "hints": {
+        "clients": "La liste des clients, leurs adresses, l'import",
+        "catalog": "Le matériel et les services",
+        "quotes": "Les offres et leurs PDF ; accepter une offre demande aussi les chantiers",
+        "invoices": "Les factures, acomptes, rappels, QR-bill et scanner",
+        "projects": "Les chantiers, leurs ressources et fichiers",
+        "calendar": "Le planning des sections et les notes",
+        "dashboard": "Les chiffres de l'entreprise (avec les factures et chantiers permis)"
+      },
+      "adminNote": "Les administrateurs ne sont pas concernés : ils peuvent toujours tout faire.",
+      "workerPreset": "Profil ouvrier",
+      "saved": "Droits des employés enregistrés."
     }
   },
   "documentTemplates": {

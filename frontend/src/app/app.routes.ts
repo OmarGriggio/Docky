@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { roleGuard } from './features/auth/role.guard';
+import { permissionGuard } from './features/auth/permission.guard';
 import { authGuard } from './features/auth/auth.guard';
 import { MenuItem } from 'primeng/api';
 import { RouteBreadcrumb } from './shared/header/header';
@@ -32,89 +33,89 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/register/register').then(m => m.Register)
   },
   {
-    // ADMIN/PLATFORM_ADMIN only - a plain USER (employee) has no
-    // company-wide figures to look at here.
+    // Every business page is gated by the employee permissions
+    // (permissionGuard, Paramètres > Droits des employés) - an admin always
+    // passes. The dashboard and the calendar aren't an employee's by
+    // default (company-wide figures, planning).
     path: 'dashboard',
     loadComponent: () => import('./features/dashboard/dashboard').then(m => m.Dashboard),
-    canActivate: [authGuard, roleGuard],
-    data: { roles: ['ADMIN', 'PLATFORM_ADMIN'], breadcrumb: 'nav.dashboard' }
+    canActivate: [authGuard, permissionGuard],
+    data: { permission: ['dashboard'], breadcrumb: 'nav.dashboard' }
   },
   {
-    // ADMIN/PLATFORM_ADMIN, same as dashboard above - a plain USER
-    // (employee) doesn't plan chantiers.
     path: 'calendar',
     loadComponent: () => import('./features/calendar/calendar').then(m => m.CalendarPage),
-    canActivate: [authGuard, roleGuard],
-    data: { roles: ['ADMIN', 'PLATFORM_ADMIN'], breadcrumb: 'nav.calendar' }
+    canActivate: [authGuard, permissionGuard],
+    data: { permission: ['calendar'], breadcrumb: 'nav.calendar' }
   },
   {
     path: 'clients',
     loadComponent: () => import('./features/clients/client-list/client-list').then(m => m.ClientListComponent),
-    canActivate: [authGuard],
-    data: { breadcrumb: 'nav.clients' }
+    canActivate: [authGuard, permissionGuard],
+    data: { permission: ['clients'], breadcrumb: 'nav.clients' }
   },
   {
     // Before clients/:id, or ":id" would match "import".
     path: 'clients/import',
     loadComponent: () => import('./features/clients/client-import/client-import').then(m => m.ClientImport),
-    canActivate: [authGuard],
+    canActivate: [authGuard, permissionGuard],
     canDeactivate: [unsavedChangesGuard],
-    data: { breadcrumb: (): MenuItem[] => [{ label: 'nav.clients', routerLink: '/clients' }, { label: 'clients.import.title' }] }
+    data: { permission: ['clients'], permissionLevel: 'WRITE', breadcrumb: (): MenuItem[] => [{ label: 'nav.clients', routerLink: '/clients' }, { label: 'clients.import.title' }] }
   },
   {
     path: 'clients/:id',
     loadComponent: () => import('./features/clients/client-detail/client-detail').then(m => m.ClientDetail),
-    canActivate: [authGuard],
-    data: { breadcrumb: (): MenuItem[] => [{ label: 'nav.clients', routerLink: '/clients' }, { label: 'clients.sheet' }] }
+    canActivate: [authGuard, permissionGuard],
+    data: { permission: ['clients'], breadcrumb: (): MenuItem[] => [{ label: 'nav.clients', routerLink: '/clients' }, { label: 'clients.sheet' }] }
   },
   {
     path: 'documents',
     loadComponent: () => import('./features/documents/document-list/document-list').then(m => m.DocumentListComponent),
-    canActivate: [authGuard],
-    data: { breadcrumb: typedList('nav.documents', { QUOTE: 'nav.quotes', INVOICE: 'nav.invoices' }) }
+    canActivate: [authGuard, permissionGuard],
+    data: { permission: 'documents', breadcrumb: typedList('nav.documents', { QUOTE: 'nav.quotes', INVOICE: 'nav.invoices' }) }
   },
   {
     // A standalone Swiss QR-bill payment slip, copied into the user's own
     // Word/Excel documents - see qr-bill-slip.ts.
     path: 'qr-bill',
     loadComponent: () => import('./features/qr-bill/qr-bill-slip').then(m => m.QrBillSlip),
-    canActivate: [authGuard],
-    data: { breadcrumb: 'nav.qrBill' }
+    canActivate: [authGuard, permissionGuard],
+    data: { permission: ['invoices'], breadcrumb: 'nav.qrBill' }
   },
   {
     // Must come before documents/:id, or ":id" would greedily match "new".
     path: 'documents/new',
     loadComponent: () => import('./features/documents/document-form/document-form').then(m => m.DocumentForm),
-    canActivate: [authGuard],
+    canActivate: [authGuard, permissionGuard],
     canDeactivate: [unsavedChangesGuard],
-    data: { breadcrumb: newDocumentBreadcrumb }
+    data: { permission: 'documents', permissionLevel: 'WRITE', breadcrumb: newDocumentBreadcrumb }
   },
   {
     // No more read-only detail page - editing IS the detail page now (see
     // document-form.ts's loadForEdit).
     path: 'documents/:id',
     loadComponent: () => import('./features/documents/document-form/document-form').then(m => m.DocumentForm),
-    canActivate: [authGuard],
+    canActivate: [authGuard, permissionGuard],
     canDeactivate: [unsavedChangesGuard],
-    data: { breadcrumb: (): MenuItem[] => [{ label: 'nav.documents', routerLink: '/documents' }, { label: 'documents.modify' }] }
+    data: { permission: 'documents', breadcrumb: (): MenuItem[] => [{ label: 'nav.documents', routerLink: '/documents' }, { label: 'documents.modify' }] }
   },
   {
     path: 'resources',
     loadComponent: () => import('./features/resources/resource-list/resource-list').then(m => m.ResourceListComponent),
-    canActivate: [authGuard],
-    data: { breadcrumb: typedList('nav.resources', { MATERIAL: 'nav.material', SERVICE: 'nav.service' }) }
+    canActivate: [authGuard, permissionGuard],
+    data: { permission: ['catalog'], breadcrumb: typedList('nav.resources', { MATERIAL: 'nav.material', SERVICE: 'nav.service' }) }
   },
   {
     path: 'projects',
     loadComponent: () => import('./features/projects/project-list/project-list').then(m => m.ProjectListComponent),
-    canActivate: [authGuard],
-    data: { breadcrumb: 'nav.projects' }
+    canActivate: [authGuard, permissionGuard],
+    data: { permission: ['projects'], breadcrumb: 'nav.projects' }
   },
   {
     path: 'projects/:id',
     loadComponent: () => import('./features/projects/project-detail/project-detail').then(m => m.ProjectDetail),
-    canActivate: [authGuard],
-    data: { breadcrumb: (): MenuItem[] => [{ label: 'nav.projects', routerLink: '/projects' }, { label: 'projects.sheet' }] }
+    canActivate: [authGuard, permissionGuard],
+    data: { permission: ['projects'], breadcrumb: (): MenuItem[] => [{ label: 'nav.projects', routerLink: '/projects' }, { label: 'projects.sheet' }] }
   },
   {
     // The company's own data form ("Mon entreprise") - opened from the
@@ -154,6 +155,13 @@ export const routes: Routes = [
         path: 'numbering',
         loadComponent: () => import('./features/settings/numbering/numbering').then(m => m.Numbering),
         data: { breadcrumb: 'settings.numberingMenu' }
+      },
+      {
+        // What the company's employees may do - its admin's page.
+        path: 'permissions',
+        loadComponent: () => import('./features/settings/permissions/employee-permissions').then(m => m.EmployeePermissions),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN', 'PLATFORM_ADMIN'], breadcrumb: 'settings.permissionsMenu' }
       },
       {
         // Open to every role, like 'templates' above - a personal
