@@ -114,6 +114,9 @@
           <span class="text-sm font-medium">{{ 'profile.logo' | transloco }}</span>
           @if (logoUrl()) {
             <img [src]="logoUrl()" [alt]="'profile.logoAlt' | transloco" class="max-h-24 max-w-48 object-contain self-start" />
+            @if (canManageCompany()) {
+              <p-button type="button" size="small" icon="pi pi-trash" severity="danger" [text]="true" class="self-start" [label]="'profile.removeLogo' | transloco" (onClick)="askRemoveImage('logo')" />
+            }
           }
           @if (canManageCompany()) {
             <p-fileupload
@@ -146,6 +149,9 @@
           <span class="text-sm font-medium">{{ 'profile.headerImage' | transloco }}</span>
           @if (headerImageUrl()) {
             <img [src]="headerImageUrl()" [alt]="'profile.headerImageAlt' | transloco" class="max-h-24 max-w-full object-contain self-start" />
+            @if (canManageCompany()) {
+              <p-button type="button" size="small" icon="pi pi-trash" severity="danger" [text]="true" class="self-start" [label]="'profile.removeHeaderImage' | transloco" (onClick)="askRemoveImage('header')" />
+            }
           }
           @if (canManageCompany()) {
             <p-fileupload
@@ -215,4 +221,12 @@
       </form>
     }
   </p-card>
+
+  <app-confirm-dialog
+    [(visible)]="removeConfirmVisible"
+    [title]="(imageToRemove() === 'logo' ? 'profile.removeLogo' : 'profile.removeHeaderImage') | transloco"
+    [message]="'profile.removeImageConfirm' | transloco"
+    [confirmLabel]="'profile.removeImageAction' | transloco"
+    (confirmed)="onRemoveImageConfirmed()"
+  />
 </div>

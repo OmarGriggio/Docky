@@ -597,7 +597,14 @@
       "creditor": "Creditor reference (RF)",
       "none": "None",
       "qrIbanInvalid": "This isn't a QR-IBAN: it starts with CH or LI and its bank number (5th to 9th character) is between 30000 and 31999."
-    }
+    },
+    "removeLogo": "Remove the logo",
+    "removeHeaderImage": "Remove the header image",
+    "removeImageConfirm": "Documents will be printed without this image. To put it back, you'll have to upload it again.",
+    "removeImageAction": "Remove",
+    "logoRemoved": "The logo has been removed.",
+    "headerImageRemoved": "The header image has been removed.",
+    "imageRemoveError": "The image could not be removed."
   },
   "qrBill": {
     "title": "QR-bill payment slip",

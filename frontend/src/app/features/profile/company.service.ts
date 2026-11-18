@@ -38,6 +38,14 @@ export class CompanyService {
     return this.http.post<Company>(`${API_BASE}/company/${id}/header-image`, formData);
   }
 
+  removeLogo(id: number) {
+    return this.http.delete<Company>(`${API_BASE}/company/${id}/logo`);
+  }
+
+  removeHeaderImage(id: number) {
+    return this.http.delete<Company>(`${API_BASE}/company/${id}/header-image`);
+  }
+
   updatePaymentTerms(id: number, paymentTerms: string | null) {
     return this.http.patch<Company>(`${API_BASE}/company/${id}/payment-terms`, { payment_terms: paymentTerms });
   }

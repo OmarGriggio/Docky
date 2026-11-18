@@ -597,7 +597,14 @@
       "creditor": "Référence créancier (RF)",
       "none": "Aucune",
       "qrIbanInvalid": "Ce QR-IBAN n'en est pas un : il commence par CH ou LI et son numéro de banque (5e au 9e caractère) est entre 30000 et 31999."
-    }
+    },
+    "removeLogo": "Retirer le logo",
+    "removeHeaderImage": "Retirer l'image d'en-tête",
+    "removeImageConfirm": "Les documents seront imprimés sans cette image. Pour la remettre, il faudra la téléverser à nouveau.",
+    "removeImageAction": "Retirer",
+    "logoRemoved": "Le logo a été retiré.",
+    "headerImageRemoved": "L'image d'en-tête a été retirée.",
+    "imageRemoveError": "Impossible de retirer l'image."
   },
   "qrBill": {
     "title": "Bulletin QR",

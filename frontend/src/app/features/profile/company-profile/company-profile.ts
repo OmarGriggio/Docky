@@ -16,6 +16,7 @@ import { PostalCodeCity } from '../../../shared/components/postal-code-city/post
 import { splitPostalCodeCity } from '../../../shared/utils/postal-code-search';
 import { InvoicingReadinessBanner } from '../../../shared/components/invoicing-readiness-banner/invoicing-readiness-banner';
 import { Company } from '../../../shared/models/company';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 
 // An early payment discount with no number of days to pay within means
 // nothing - the days are required as soon as there's a rate.
@@ -28,7 +29,7 @@ const earlyPaymentDaysRequired: ValidatorFn = (group: AbstractControl): Validati
 @Component({
   selector: 'app-company-profile',
   standalone: true,
-  imports: [ReactiveFormsModule, InputText, InputNumber, FloatLabel, Button, Card, SelectButton, FileUpload, PostalCodeCity, InvoicingReadinessBanner, TranslocoPipe],
+  imports: [ReactiveFormsModule, InputText, InputNumber, FloatLabel, Button, Card, SelectButton, FileUpload, PostalCodeCity, InvoicingReadinessBanner, ConfirmDialogComponent, TranslocoPipe],
   templateUrl: './company-profile.html',
   styleUrl: './company-profile.css',
 })
@@ -247,6 +248,42 @@ export class CompanyProfile implements OnInit {
         console.error('profile : ' + err);
         upload.clear();
         this.logoErrorMessage.set(this.transloco.translate('profile.logoUpdateError'));
+      }
+    });
+  }
+
+  // Which image the confirm dialog is about to remove, null while it's closed.
+  imageToRemove = signal<'logo' | 'header' | null>(null);
+  removeConfirmVisible = signal(false);
+
+  askRemoveImage(kind: 'logo' | 'header'): void {
+    this.imageToRemove.set(kind);
+    this.removeConfirmVisible.set(true);
+  }
+
+  // The PDFs print without it from then on.
+  onRemoveImageConfirmed(): void {
+    const kind = this.imageToRemove();
+    if (!kind || this.companyId === null) {
+      return;
+    }
+    const isLogo = kind === 'logo';
+    const errorMessage = isLogo ? this.logoErrorMessage : this.headerImageErrorMessage;
+    errorMessage.set(null);
+
+    const request = isLogo ? this.companyService.removeLogo(this.companyId) : this.companyService.removeHeaderImage(this.companyId);
+    request.subscribe({
+      next: company => {
+        if (isLogo) {
+          this.logoPath.set(company.logo);
+        } else {
+          this.headerImagePath.set(company.header_image);
+        }
+        this.successMessage.set(this.transloco.translate(isLogo ? 'profile.logoRemoved' : 'profile.headerImageRemoved'));
+      },
+      error: err => {
+        console.error('profile : ' + err);
+        errorMessage.set(this.transloco.translate('profile.imageRemoveError'));
       }
     });
   }
