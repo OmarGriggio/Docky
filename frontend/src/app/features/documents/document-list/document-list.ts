@@ -260,18 +260,25 @@ export class DocumentListComponent implements OnInit {
   // tell an actual change into ACCEPTED apart from picking it again, and
   // onAcceptCancelled needs it to put the select back where it was.
   private statusBeforeEdit: DocumentStatus | null = null;
+  // The row whose cell is open, kept as the document itself: event.index is
+  // its position among the rows shown (filteredDocuments - a search or a
+  // kind tab leaves some out), and those can change while the cell is open
+  // (a tab clicked) - an index into another list once picked another
+  // document, and sent it its own status (a 409) or never saved the change.
+  private editedDocument: Document | null = null;
 
   onStatusEditInit(event: TableEditInitEvent): void {
-    const document = event.index !== undefined ? this.documents()[event.index] : undefined;
-    this.statusBeforeEdit = document?.status ?? null;
+    this.editedDocument = event.index !== undefined ? this.filteredDocuments()[event.index] ?? null : null;
+    this.statusBeforeEdit = this.editedDocument?.status ?? null;
   }
 
-  // Resolved via event.index (the row), not event.data: [pEditableColumn]
+  // The document kept by onStatusEditInit, not event.data: [pEditableColumn]
   // is bound to document.status itself, matching PrimeNG's own docs/
   // internal cancel-path logic - see client-list.ts's own (former)
   // onCellEditComplete for the same reasoning.
   onStatusEditComplete(event: TableEditCompleteEvent): void {
-    const document = event.index !== undefined ? this.documents()[event.index] : undefined;
+    const document = this.editedDocument;
+    this.editedDocument = null;
     if (!document || document.status === null) {
       return;
     }
