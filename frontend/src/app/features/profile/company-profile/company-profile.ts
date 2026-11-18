@@ -221,7 +221,9 @@ export class CompanyProfile implements OnInit {
       error: (err: HttpErrorResponse) => {
         console.error('profile : ' + err);
         // A QR-IBAN that isn't one says so - the generic message wouldn't.
-        const key = err.error?.code === 'QR_IBAN_INVALID' ? 'profile.paymentReference.qrIbanInvalid' : 'profile.updateError';
+        const key = err.error?.code === 'QR_IBAN_INVALID' ? 'profile.paymentReference.qrIbanInvalid'
+          : err.error?.code === 'IBAN_IS_QR_IBAN' ? 'profile.paymentReference.ibanIsQrIban'
+          : 'profile.updateError';
         this.errorMessage.set(this.transloco.translate(key));
       }
     });

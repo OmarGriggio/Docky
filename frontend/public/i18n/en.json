@@ -642,7 +642,8 @@
       "qrReference": "With a QR-IBAN, invoices carry a QR reference.",
       "creditor": "Creditor reference (RF)",
       "none": "None",
-      "qrIbanInvalid": "This isn't a QR-IBAN: it starts with CH or LI and its bank number (5th to 9th character) is between 30000 and 31999."
+      "qrIbanInvalid": "This isn't a QR-IBAN: it starts with CH or LI and its bank number (5th to 9th character) is between 30000 and 31999.",
+      "ibanIsQrIban": "This IBAN is a QR-IBAN: put it in the \"QR-IBAN\" field, and your ordinary IBAN here."
     },
     "removeLogo": "Remove the logo",
     "removeHeaderImage": "Remove the header image",

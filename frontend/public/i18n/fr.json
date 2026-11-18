@@ -642,7 +642,8 @@
       "qrReference": "Avec un QR-IBAN, les factures portent une référence QR.",
       "creditor": "Référence créancier (RF)",
       "none": "Aucune",
-      "qrIbanInvalid": "Ce QR-IBAN n'en est pas un : il commence par CH ou LI et son numéro de banque (5e au 9e caractère) est entre 30000 et 31999."
+      "qrIbanInvalid": "Ce QR-IBAN n'en est pas un : il commence par CH ou LI et son numéro de banque (5e au 9e caractère) est entre 30000 et 31999.",
+      "ibanIsQrIban": "Cet IBAN est un QR-IBAN : mets-le dans le champ « QR-IBAN », et ton IBAN ordinaire ici."
     },
     "removeLogo": "Retirer le logo",
     "removeHeaderImage": "Retirer l'image d'en-tête",
