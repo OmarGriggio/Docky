@@ -90,6 +90,9 @@ WHERE id = 2;
 -- documents recreated below follow OFF-/FAC-{YYYY}-{NNNN}.
 DELETE FROM document_numbering WHERE company_id = 2;
 
+-- And the default employee permissions (023_add_employee_permissions.sql).
+DELETE FROM employee_permissions WHERE company_id = 2;
+
 -- Same as 004_set_demo_company_language.sql.
 UPDATE users SET language = 'EN' WHERE company_id = 2;
 

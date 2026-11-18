@@ -13,6 +13,7 @@ import documentLineRoutes from "./modules/documents/document_line.routes";
 import documentSectionRoutes from "./modules/documents/document_section.routes";
 import documentTemplateRoutes from "./modules/documents/document_template.routes";
 import documentNumberingRoutes from "./modules/documents/document_numbering.routes";
+import permissionRoutes from "./modules/permissions/permission.routes";
 import companyRoutes from "./modules/companies/company.routes";
 import projectRoutes from "./modules/projects/project.routes";
 import projectTypeRoutes from "./modules/projects/project_type.routes";
@@ -97,6 +98,8 @@ app.use("/document-section", documentSectionRoutes);
 app.use("/document-template", documentTemplateRoutes);
 
 app.use("/document-numbering", documentNumberingRoutes);
+
+app.use("/permissions", permissionRoutes);
 
 app.use("/company", companyRoutes);
 
