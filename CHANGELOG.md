@@ -2,6 +2,13 @@
 
 Every release of Docky, newest first. One version for the whole app (backend and frontend ship together from `main`), numbered `MAJOR.MINOR.PATCH` - see CLAUDE.md's Workflow for when each part goes up and how a release is made. Each release is tagged `vX.Y.Z` on `main`.
 
+## [1.4.0] - 2026-11-19
+
+### Added
+- Document templates: quotes, invoices and reminders print in a "Classique" or "Moderne" layout and in one of three fonts, picked on the profile or straight from a quote's or invoice's form ("Modèle", with a preview).
+- Paramètres > Numérotation: the company's own format for its quote, invoice, client, material and service numbers (`FAC-{YYYY}-{NNNN}`, `F{YY}/{NNN}`...) and the number to continue from - to carry on a previous software's series. The next number is previewed while typing, and a number is never given out twice. Imported clients follow the clients' format.
+- Paramètres > Droits des employés: the company's admin decides what employees may do in each module - hidden, read only or editable - with a "Profil ouvrier" preset (job sites and calendar only). The app hides what isn't allowed and shows the rest read only, and the server refuses it anyway.
+
 ## [1.3.1] - 2026-11-18
 
 ### Added
