@@ -1,17 +1,19 @@
 import { Router } from "express";
 import { getInvoicePdf, getQuotePdf, getReminderPdf, getQrBillSlip } from "./pdf.controller";
 import { authenticate } from "../shared/middlewares/auth.middleware";
-import { requirePermission } from "../modules/permissions/permission.middleware";
+import { documentFromParam, requireDocumentPermission, requirePermission } from "../modules/permissions/permission.middleware";
 
 const router = Router();
 
 router.use(authenticate);
 
-router.get("/invoice/:id", requirePermission("invoices", "READ"), getInvoicePdf);
+// The module of the document itself, not just the URL's: each generator also
+// refuses a document of another type (a 404).
+router.get("/invoice/:id", requirePermission("invoices", "READ"), requireDocumentPermission("READ", documentFromParam), getInvoicePdf);
 
-router.get("/quote/:id", requirePermission("quotes", "READ"), getQuotePdf);
+router.get("/quote/:id", requirePermission("quotes", "READ"), requireDocumentPermission("READ", documentFromParam), getQuotePdf);
 
-router.get("/reminder/:id", requirePermission("invoices", "READ"), getReminderPdf);
+router.get("/reminder/:id", requirePermission("invoices", "READ"), requireDocumentPermission("READ", documentFromParam), getReminderPdf);
 
 router.post("/qr-bill-slip", requirePermission("invoices", "READ"), getQrBillSlip);
 

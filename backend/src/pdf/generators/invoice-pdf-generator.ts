@@ -5,6 +5,8 @@ import { InvoiceDto } from "../templates/invoice.types";
 import { embedImage } from "../templates/letter";
 import { drawLetterFooters, setUpLetterPages } from "../templates/business-letter";
 import { DocumentPdfGenerator, PdfSource } from "./document-pdf-generator";
+import { DocumentComplete } from "../../modules/documents/document_complete.types";
+import { NotFoundError } from "../../shared/types/errors";
 import { PreparedQrBill, prepareQrBill, renderQrBillPage } from "./qr-bill-page";
 
 interface PreparedInvoice {
@@ -20,6 +22,14 @@ interface PreparedInvoice {
 // QR-bill's (its slip takes the whole bottom of the page - those are the
 // pages left out of the numbering).
 export class InvoicePdfGenerator extends DocumentPdfGenerator<PreparedInvoice> {
+
+    // Only an invoice: a quote or a chantier's ledger printed as one would
+    // also slip past the employee permissions of its own type.
+    protected override validate(document: DocumentComplete): void {
+        if (document.type !== "INVOICE") {
+            throw new NotFoundError("Invoice not found");
+        }
+    }
 
     protected async prepare(source: PdfSource): Promise<PreparedInvoice> {
         const { document, client, company } = source;

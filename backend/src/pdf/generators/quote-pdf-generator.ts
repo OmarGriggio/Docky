@@ -5,6 +5,8 @@ import { QuoteDto } from "../templates/quote.types";
 import { embedImage } from "../templates/letter";
 import { drawLetterFooters, setUpLetterPages } from "../templates/business-letter";
 import { DocumentPdfGenerator, PdfSource } from "./document-pdf-generator";
+import { DocumentComplete } from "../../modules/documents/document_complete.types";
+import { NotFoundError } from "../../shared/types/errors";
 
 interface PreparedQuote {
     quote: QuoteDto;
@@ -17,6 +19,13 @@ interface PreparedQuote {
 // there's nothing to pay yet on a quote, that only makes sense once it's
 // become an invoice.
 export class QuotePdfGenerator extends DocumentPdfGenerator<PreparedQuote> {
+
+    // Only a quote - see InvoicePdfGenerator's validate.
+    protected override validate(document: DocumentComplete): void {
+        if (document.type !== "QUOTE") {
+            throw new NotFoundError("Quote not found");
+        }
+    }
 
     protected async prepare({ document, client, company }: PdfSource): Promise<PreparedQuote> {
         return {
