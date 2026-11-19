@@ -1,6 +1,6 @@
 import { PdfWriter } from "../core/pdf-writer";
 import { PdfColor, PdfTextOptions } from "../core/pdf-writer.types";
-import { LetterDto, vatLabelOf } from "./business-letter";
+import { LetterDto, documentColorsOf, vatLabelOf } from "./business-letter";
 import { PDF_LABELS } from "./pdf-labels";
 import { embedImage } from "./letter";
 import { formatAmount, formatPercent, formatShortDate } from "./format";
@@ -110,8 +110,8 @@ export const drawModernHead = async (
     pdf.drawTextAt(title, left, pdf.remainingHeight() - 18, titleOptions);
     pdf.moveDown(44);
 
-    if (letter.introduction) {
-        pdf.text(letter.introduction, { size: 10.5, marginBottom: 16 });
+    if (letter.introduction.length > 0) {
+        pdf.richText(letter.introduction, documentColorsOf(letter), { size: 10.5, marginBottom: 16 });
     }
 };
 

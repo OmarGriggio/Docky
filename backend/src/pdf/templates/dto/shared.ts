@@ -9,7 +9,7 @@ import { billedAddressOf } from "../../../modules/documents/billed-address";
 import { LetterDto } from "../business-letter";
 import { parseHexColor } from "../accent-color";
 import { PdfLanguage } from "../pdf-labels";
-import { fillPlaceholders } from "../placeholders";
+import { richTextOf } from "../rich-text";
 import { buildDocumentValues } from "../document.placeholders";
 
 // document.sections/lines are already scoped to this document and active-only
@@ -102,8 +102,8 @@ export const buildLetterDto = (
         amountInclVat: document.amount_incl_vat,
         vatRate: document.vat_rate,
         discount: document.discount,
-        introduction: fillPlaceholders(document.introduction ?? "", placeholders),
-        conclusion: fillPlaceholders(document.conclusion ?? "", placeholders),
+        introduction: richTextOf(document.introduction ?? "", placeholders),
+        conclusion: richTextOf(document.conclusion ?? "", placeholders),
     };
 };
 

@@ -1,4 +1,5 @@
 import { LetterDto } from "./business-letter";
+import { TextRun } from "./rich-text";
 
 // A payment reminder for an already-sent, unpaid invoice, laid out like the
 // invoice itself (business-letter.ts: header image, colors, footer). The
@@ -10,5 +11,6 @@ export interface ReminderDto {
     letter: LetterDto;
     // "Madame, Monsieur", or the client's own title.
     greeting: string;
-    text: string;
+    // Styled by the author (rich-text.ts), placeholders already filled in.
+    text: TextRun[];
 }

@@ -3,7 +3,7 @@ import { DocumentComplete } from "../../../modules/documents/document_complete.t
 import { Company } from "../../../modules/companies/company.types";
 import { ReminderDto } from "../reminder.types";
 import { buildReminderValues } from "../reminder.placeholders";
-import { fillPlaceholders } from "../placeholders";
+import { richTextOf } from "../rich-text";
 import { PDF_LABELS, toPdfLanguage } from "../pdf-labels";
 import { buildLetterDto } from "./shared";
 
@@ -16,8 +16,8 @@ export const createReminderDto = (document: DocumentComplete, client: ClientWith
     return {
         // Its own date, and none of the invoice's introduction/conclusion -
         // the reminder's text stands in for them.
-        letter: { ...letter, date: today, introduction: "", conclusion: "" },
+        letter: { ...letter, date: today, introduction: [], conclusion: [] },
         greeting: client.title?.trim() || PDF_LABELS[language].defaultClientTitle,
-        text: fillPlaceholders(templateText, buildReminderValues(document, letter.client.name, company.name ?? "", today, language)),
+        text: richTextOf(templateText, buildReminderValues(document, letter.client.name, company.name ?? "", today, language)),
     };
 };

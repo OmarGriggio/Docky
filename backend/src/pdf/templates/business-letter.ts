@@ -8,6 +8,7 @@ import { formatAmount, formatIban, formatPercent, formatShortDate } from "./form
 import { tint } from "./accent-color";
 import { PaymentScaleRow } from "./payment-scale";
 import { DocumentLayout } from "../../modules/companies/company.types";
+import { DocumentColor, TextRun } from "./rich-text";
 
 // The layout invoices and quotes share, modelled on the company's own Excel
 // invoices. Page 1: the client's number and the place/date on the left, the
@@ -59,8 +60,9 @@ export interface LetterDto {
     vatRate: number;
     // A percentage, 0 when none is applied.
     discount: number;
-    introduction: string;
-    conclusion: string;
+    // Styled by the author (rich-text.ts), placeholders already filled in.
+    introduction: TextRun[];
+    conclusion: TextRun[];
     // A chantier's final invoice: its deposits deducted under the total, and
     // the balance due (see deposit.ts) - none on any other document.
     deductions?: { label: string; amount: number }[];
@@ -161,8 +163,8 @@ export const drawLetterHead = async (
     pdf.drawTextAt(labels.placeDate(letter.company.city, formatShortDate(letter.date)), left, top - 2 * 16, { size: 10 });
     pdf.lowerCursorTo(top - Math.max(addressLines.length, 3) * 16 - 20);
 
-    if (letter.introduction) {
-        pdf.text(letter.introduction, { size: 11, marginBottom: 14 });
+    if (letter.introduction.length > 0) {
+        pdf.richText(letter.introduction, documentColorsOf(letter), { size: 11, marginBottom: 14 });
     }
 
     // The title, bold and underlined - in the secondary color if there's
@@ -275,10 +277,16 @@ export const vatLabelOf = (letter: LetterDto): string => {
     return vatNumber ? labels.vatWithNumber(vatNumber) : labels.vat;
 };
 
+/** The colors a styled text's [c1]/[f1] and [c2]/[f2] stand for (rich-text.ts) - the company's main and secondary ones. */
+export const documentColorsOf = (letter: LetterDto): Record<DocumentColor, PdfColor | null> => ({
+    1: letter.company.accentColor,
+    2: letter.company.secondaryColor,
+});
+
 /** The signature/closing text under the totals. */
 export const drawConclusion = (pdf: PdfWriter, letter: LetterDto) => {
-    if (letter.conclusion) {
-        pdf.text(letter.conclusion, { size: 11, marginTop: 6, marginBottom: 16 });
+    if (letter.conclusion.length > 0) {
+        pdf.richText(letter.conclusion, documentColorsOf(letter), { size: 11, marginTop: 6, marginBottom: 16 });
     }
 };
 

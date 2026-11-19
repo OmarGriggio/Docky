@@ -1,7 +1,7 @@
 import { PdfWriter } from "../core/pdf-writer";
 import { ReminderDto } from "./reminder.types";
 import { PDF_LABELS } from "./pdf-labels";
-import { drawLetterHead } from "./business-letter";
+import { documentColorsOf, drawLetterHead } from "./business-letter";
 import { drawModernHead } from "./modern-letter";
 
 // Page 1 of a payment reminder: the invoice's own letterhead (business-
@@ -27,8 +27,8 @@ export class ReminderTemplate {
         pdf.text(reminder.greeting, { size: 11, marginBottom: 10 });
 
         // The whole body is the company's own text (see reminder.dto.ts) -
-        // pdf.text() already keeps its line breaks.
-        pdf.text(reminder.text, { size: 11 });
+        // pdf.richText() keeps its line breaks, like pdf.text().
+        pdf.richText(reminder.text, documentColorsOf(letter), { size: 11 });
 
         // No real signature yet - just the company's own name, standing in
         // for one (same as the invoice).

@@ -2,6 +2,7 @@ import { PDFDocument, PDFFont, PDFImage, PDFPage, StandardFonts, rgb } from "pdf
 import fontkit from "@pdf-lib/fontkit";
 import { PdfColor, PdfDocumentOptions, PdfTable, PdfTextOptions } from "./pdf-writer.types";
 import { PdfFontFamily, readFontFiles } from "./pdf-fonts";
+import { DocumentColor, TextRun, TextStyle, layoutRichLines, paragraphsOf } from "../templates/rich-text";
 
 interface FontPair {
     regular: PDFFont;
@@ -133,6 +134,45 @@ export class PdfWriter {
         }
 
         this.cursorY -= marginBottom;
+    }
+
+    /**
+     * Flowing text with styled passages (rich-text.ts: bold, the company's
+     * two colors on the characters or as a band behind them) - like text(),
+     * line by line. `colors`: the company's main (1) and secondary (2) color;
+     * one it hasn't set leaves its passages in black, without a band.
+     */
+    richText(runs: TextRun[], colors: Record<DocumentColor, PdfColor | null>, options: PdfTextOptions = {}) {
+        const size = options.size ?? 11;
+        const indent = options.indent ?? 0;
+        const black = options.color ?? { r: 0, g: 0, b: 0 };
+        const maxWidth = this.page.getWidth() - this.options.margin * 2 - indent;
+        const fontOf = (style: TextStyle) => style.bold || options.bold ? this.fonts.bold : this.fonts.regular;
+        const measure = (text: string, style: TextStyle) => fontOf(style).widthOfTextAtSize(this.printable(text, fontOf(style)), size);
+
+        this.cursorY -= options.marginTop ?? 0;
+        for (const paragraph of paragraphsOf(runs)) {
+            for (const line of layoutRichLines(paragraph, measure, maxWidth)) {
+                this.ensureSpace();
+                let x = this.options.margin + indent;
+                for (const run of line) {
+                    const font = fontOf(run.style);
+                    const text = this.printable(run.text, font);
+                    const width = font.widthOfTextAtSize(text, size);
+                    const band = run.style.background ? colors[run.style.background] : null;
+                    if (band) {
+                        // From below the descenders to above the capitals -
+                        // the bands of two lines in a row just touch.
+                        this.drawRect(x, this.cursorY - size * 0.28, width, size * 1.25, band);
+                    }
+                    const color = (run.style.color ? colors[run.style.color] : null) ?? black;
+                    this.page.drawText(text, { x, y: this.cursorY, size, font, color: rgb(color.r, color.g, color.b) });
+                    x += width;
+                }
+                this.cursorY -= size + 4;
+            }
+        }
+        this.cursorY -= options.marginBottom ?? 0;
     }
 
     // The standard Helvetica fonts only cover WinAnsi (Latin-1 plus a few
