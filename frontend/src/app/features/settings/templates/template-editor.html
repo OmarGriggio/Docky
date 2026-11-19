@@ -1,0 +1,212 @@
+<p-card styleClass="ui-card--elevated profile-card">
+  <ng-template #title>
+    <div class="flex items-center gap-2">
+      <a routerLink="/settings/templates" class="text-gray-500 hover:text-gray-800" [attr.aria-label]="'templates.back' | transloco"><i class="pi pi-arrow-left"></i></a>
+      <span>{{ template()?.name ?? ('templates.title' | transloco) }}</span>
+      @if (template()?.is_default) {
+        <span class="text-xs font-normal rounded-full bg-green-100 text-green-800 px-2 py-0.5">{{ 'templates.default' | transloco }}</span>
+      }
+    </div>
+  </ng-template>
+
+  @if (loading()) {
+    <p class="m-0 text-sm text-gray-500">{{ 'common.loading' | transloco }}</p>
+  } @else if (template()) {
+    <form [formGroup]="form" (ngSubmit)="save()" class="ui-form">
+      <p-floatlabel variant="on" class="ui-form__full">
+        <input pInputText id="name" formControlName="name" maxlength="100" />
+        <label for="name">{{ 'templates.name' | transloco }} *</label>
+      </p-floatlabel>
+
+      <!-- ===== The look ===== -->
+      <h3 class="ui-form__full m-0 mt-2 text-base font-semibold text-gray-900">{{ 'templates.lookSection' | transloco }}</h3>
+
+      <app-document-style-picker
+        class="ui-form__full"
+        [layout]="form.controls.layout.value" [font]="form.controls.font.value" [accentColor]="colors()[1]" [disabled]="!canManage()"
+        (layoutChange)="pickLayout($event)" (fontChange)="pickFont($event)"
+      />
+
+      <!-- A native color input: the browser's own picker, on a phone too. It
+           can't be empty, so "none" is the form's '' with a hint. -->
+      @for (field of colorFields; track field.control) {
+        <div class="min-w-0 flex flex-col gap-2">
+          <label [for]="field.control" class="text-sm font-medium">{{ field.label | transloco }}</label>
+          <div class="flex items-center gap-3 flex-wrap">
+            <input type="color" [id]="field.control" [formControlName]="field.control" class="w-12 h-9 p-0.5 border border-gray-300 rounded cursor-pointer bg-white" />
+            @if (form.controls[field.control].value; as color) {
+              <span class="text-sm text-gray-600 font-mono">{{ color }}</span>
+              @if (canManage()) {
+                <p-button type="button" size="small" [text]="true" severity="secondary" icon="pi pi-times" [label]="'profile.accentColorRemove' | transloco" (onClick)="form.controls[field.control].setValue(''); form.markAsDirty()" />
+              }
+            } @else {
+              <span class="text-sm text-gray-500">{{ 'profile.accentColorNone' | transloco }}</span>
+            }
+          </div>
+          <p class="m-0 text-sm text-gray-500">{{ field.hint | transloco }}</p>
+        </div>
+      }
+
+      <div class="ui-form__full min-w-0 flex flex-col gap-2">
+        <span class="text-sm font-medium">{{ 'profile.headerImage' | transloco }}</span>
+        <p class="m-0 text-sm text-gray-500">{{ 'templates.headerImageHint' | transloco }}</p>
+        @if (headerImageUrl()) {
+          <img [src]="headerImageUrl()" [alt]="'profile.headerImageAlt' | transloco" class="max-h-24 max-w-full object-contain self-start" />
+          @if (canManage()) {
+            <p-button type="button" size="small" icon="pi pi-trash" severity="danger" [text]="true" class="self-start" [label]="'profile.removeHeaderImage' | transloco" (onClick)="removeHeaderVisible.set(true)" />
+          }
+        }
+        @if (canManage()) {
+          <p-fileupload
+            #headerImageUpload
+            mode="advanced"
+            name="header_image"
+            accept="image/jpeg,image/png"
+            [maxFileSize]="5000000"
+            [multiple]="false"
+            [auto]="true"
+            [customUpload]="true"
+            [chooseLabel]="'profile.chooseHeaderImage' | transloco"
+            [invalidFileTypeMessageSummary]="'profile.invalidFileType' | transloco"
+            [invalidFileTypeMessageDetail]="'profile.invalidFileTypeDetail' | transloco"
+            [invalidFileSizeMessageSummary]="'profile.fileTooLarge' | transloco"
+            [invalidFileSizeMessageDetail]="'profile.fileTooLargeDetail' | transloco"
+            (uploadHandler)="uploadHeaderImage($event, headerImageUpload)"
+          >
+            <ng-template #empty>
+              <p class="m-0 text-sm text-gray-500">{{ 'profile.dropImage' | transloco }}</p>
+            </ng-template>
+          </p-fileupload>
+        }
+      </div>
+
+      <!-- ===== The texts ===== -->
+      <h3 class="ui-form__full m-0 mt-4 text-base font-semibold text-gray-900">{{ 'templates.textsSection' | transloco }}</h3>
+
+      <p-tabs value="quote" class="ui-form__full">
+        <p-tablist>
+          <p-tab value="quote">{{ 'documentTemplates.quoteTab' | transloco }}</p-tab>
+          <p-tab value="invoice">{{ 'documentTemplates.invoiceTab' | transloco }}</p-tab>
+          <p-tab value="reminder">{{ 'documentTemplates.reminderTab' | transloco }}</p-tab>
+        </p-tablist>
+
+        <p-tabpanels>
+          @for (kind of ['quote', 'invoice']; track kind) {
+            <p-tabpanel [value]="kind">
+              <div class="ui-form pt-2">
+                <div class="ui-form__full">
+                  @if (canManage()) {
+                    <app-text-style-toolbar [target]="introduction" [colors]="colors()" />
+                  }
+                  <p-floatlabel variant="on">
+                    <textarea #introduction pTextarea [id]="kind + '_introduction'" [formControlName]="kind + '_introduction'" rows="3"></textarea>
+                    <label [for]="kind + '_introduction'">{{ 'documentTemplates.introduction' | transloco }}</label>
+                  </p-floatlabel>
+                </div>
+
+                <div class="ui-form__full">
+                  @if (canManage()) {
+                    <app-text-style-toolbar [target]="conclusion" [colors]="colors()" />
+                  }
+                  <p-floatlabel variant="on">
+                    <textarea #conclusion pTextarea [id]="kind + '_conclusion'" [formControlName]="kind + '_conclusion'" rows="3"></textarea>
+                    <label [for]="kind + '_conclusion'">{{ 'documentTemplates.conclusion' | transloco }}</label>
+                  </p-floatlabel>
+                </div>
+
+                <div class="ui-form__full text-sm text-gray-600 -mt-2">
+                  <p class="m-0 mb-1">{{ 'documentTemplates.variablesHelp' | transloco }}</p>
+                  <ul class="m-0 pl-5">
+                    @for (placeholder of documentPlaceholders(); track placeholder.token) {
+                      <li><code>{{ placeholder.token }}</code> — {{ placeholder.label | transloco }}</li>
+                    }
+                  </ul>
+                </div>
+
+                <p-floatlabel variant="on">
+                  <p-inputnumber [inputId]="kind + '_due_days'" [formControlName]="kind + '_due_days'" [min]="0" [useGrouping]="false" [suffix]="'documentTemplates.daysSuffix' | transloco" />
+                  <label [for]="kind + '_due_days'">{{ (kind === 'quote' ? 'documentTemplates.quoteDueDays' : 'documentTemplates.invoiceDueDays') | transloco }}</label>
+                </p-floatlabel>
+              </div>
+            </p-tabpanel>
+          }
+
+          <p-tabpanel value="reminder">
+            <div class="ui-form pt-2">
+              <div class="ui-form__full">
+                @if (canManage()) {
+                  <app-text-style-toolbar [target]="reminder_text" [colors]="colors()" />
+                }
+                <p-floatlabel variant="on">
+                  <textarea #reminder_text pTextarea id="reminder_text" formControlName="reminder_text" rows="8"></textarea>
+                  <label for="reminder_text">{{ 'documentTemplates.reminderText' | transloco }}</label>
+                </p-floatlabel>
+                <p class="m-0 mt-1 text-xs text-gray-500">{{ 'templates.reminderDefaultHint' | transloco }}</p>
+              </div>
+
+              <div class="ui-form__full text-sm text-gray-600 -mt-2">
+                <p class="m-0 mb-1">{{ 'documentTemplates.reminderVariablesHelp' | transloco }}</p>
+                <ul class="m-0 pl-5">
+                  @for (placeholder of reminderPlaceholders(); track placeholder.token) {
+                    <li><code>{{ placeholder.token }}</code> — {{ placeholder.label | transloco }}</li>
+                  }
+                </ul>
+              </div>
+            </div>
+          </p-tabpanel>
+        </p-tabpanels>
+      </p-tabs>
+
+      <!-- ===== The conditions ===== -->
+      <h3 class="ui-form__full m-0 mt-4 text-base font-semibold text-gray-900">{{ 'templates.conditionsSection' | transloco }}</h3>
+
+      <p-floatlabel variant="on" class="ui-form__full">
+        <textarea pTextarea id="payment_terms" formControlName="payment_terms" rows="3"></textarea>
+        <label for="payment_terms">{{ 'documentTemplates.paymentTerms' | transloco }}</label>
+      </p-floatlabel>
+
+      <div class="ui-form__full flex flex-col gap-1">
+        <span class="text-sm font-medium">{{ 'profile.earlyPaymentTitle' | transloco }}</span>
+        <p class="m-0 text-sm text-gray-500">{{ 'profile.earlyPaymentHint' | transloco }}</p>
+      </div>
+
+      <p-floatlabel variant="on">
+        <p-inputnumber inputId="early_payment_discount" formControlName="early_payment_discount" mode="decimal" [minFractionDigits]="0" [maxFractionDigits]="2" [min]="0" [max]="100" suffix=" %" />
+        <label for="early_payment_discount">{{ 'profile.earlyPaymentDiscount' | transloco }}</label>
+      </p-floatlabel>
+
+      <p-floatlabel variant="on">
+        <p-inputnumber inputId="early_payment_days" formControlName="early_payment_days" [min]="1" [max]="365" [useGrouping]="false" />
+        <label for="early_payment_days">{{ 'profile.earlyPaymentDays' | transloco }}</label>
+      </p-floatlabel>
+      @if (missingEarlyPaymentDays()) {
+        <p class="ui-form__full m-0 text-sm text-red-600">{{ 'profile.earlyPaymentDaysRequired' | transloco }}</p>
+      }
+
+      <p-floatlabel variant="on">
+        <p-inputnumber inputId="early_payment_min_amount" formControlName="early_payment_min_amount" mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="2" [min]="0" prefix="CHF " />
+        <label for="early_payment_min_amount">{{ 'profile.earlyPaymentMinAmount' | transloco }}</label>
+      </p-floatlabel>
+
+      @if (!canManage()) {
+        <p class="ui-form__full text-sm text-gray-500">{{ 'templates.adminOnly' | transloco }}</p>
+      }
+      @if (errorMessage()) {
+        <p class="ui-form__full profile-error">{{ errorMessage() }}</p>
+      }
+      @if (canManage()) {
+        <div class="ui-form__actions">
+          <p-button type="submit" [loading]="saving()" [label]="'common.save' | transloco" />
+        </div>
+      }
+    </form>
+  }
+</p-card>
+
+<app-confirm-dialog
+  [(visible)]="removeHeaderVisible"
+  [title]="'profile.removeHeaderImage' | transloco"
+  [message]="'templates.removeHeaderMessage' | transloco"
+  [confirmLabel]="'profile.removeImageAction' | transloco"
+  (confirmed)="onRemoveHeaderConfirmed()"
+/>

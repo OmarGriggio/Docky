@@ -1,0 +1,67 @@
+<p-card [header]="'templates.title' | transloco" styleClass="ui-card--elevated profile-card">
+  <div class="flex flex-col gap-4">
+    <p class="m-0 text-sm text-gray-600">{{ 'templates.description' | transloco }}</p>
+
+    <div class="flex items-center justify-between gap-3 flex-wrap">
+      <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+        <p-checkbox [binary]="true" [ngModel]="showArchived()" (ngModelChange)="showArchived.set($event)" />
+        {{ 'common.showArchived' | transloco }}
+      </label>
+      @if (canManage()) {
+        <p-button icon="pi pi-plus" size="small" [label]="'templates.create' | transloco" (onClick)="create()" />
+      }
+    </div>
+
+    @if (loading()) {
+      <p class="m-0 text-sm text-gray-500">{{ 'common.loading' | transloco }}</p>
+    } @else {
+      <ul class="m-0 p-0 list-none flex flex-col gap-2">
+        @for (template of visibleTemplates(); track template.id) {
+          <li class="flex items-center gap-3 rounded-lg border border-gray-200 px-4 py-3 bg-white" [class.opacity-60]="!template.is_active">
+            <span class="flex gap-0.5 shrink-0" aria-hidden="true">
+              <span class="w-3 h-8 rounded-sm bg-gray-300" [style.background-color]="template.accent_color"></span>
+              <span class="w-3 h-8 rounded-sm bg-gray-200" [style.background-color]="template.secondary_color"></span>
+            </span>
+            <button type="button" class="flex flex-col min-w-0 flex-1 text-left bg-transparent border-0 p-0 cursor-pointer" (click)="open(template)">
+              <span class="font-medium text-gray-900 truncate">
+                {{ template.name }}
+                @if (template.is_default) {
+                  <span class="ml-2 text-xs font-normal rounded-full bg-green-100 text-green-800 px-2 py-0.5">{{ 'templates.default' | transloco }}</span>
+                }
+                @if (!template.is_active) {
+                  <span class="ml-2 text-xs font-normal rounded-full bg-gray-100 text-gray-600 px-2 py-0.5">{{ 'templates.archived' | transloco }}</span>
+                }
+              </span>
+              <span class="text-xs text-gray-500">
+                {{ (template.layout === 'MODERN' ? 'profile.documentStyle.modern' : 'profile.documentStyle.classic') | transloco }}
+                · {{ template.font === 'PT_SERIF' ? 'PT Serif' : template.font === 'LATO' ? 'Lato' : 'Helvetica' }}
+              </span>
+            </button>
+            <div class="flex items-center gap-1 shrink-0">
+              <p-button icon="pi pi-pencil" size="small" [text]="true" severity="secondary" [ariaLabel]="'templates.edit' | transloco" (onClick)="open(template)" />
+              @if (canManage()) {
+                @if (template.is_active && !template.is_default) {
+                  <p-button icon="pi pi-star" size="small" [text]="true" severity="secondary" [ariaLabel]="'templates.makeDefault' | transloco" [title]="'templates.makeDefault' | transloco" (onClick)="setDefault(template)" />
+                }
+                <p-button icon="pi pi-copy" size="small" [text]="true" severity="secondary" [ariaLabel]="'templates.duplicate' | transloco" [title]="'templates.duplicate' | transloco" (onClick)="duplicate(template)" />
+                @if (!template.is_active) {
+                  <p-button icon="pi pi-replay" size="small" [text]="true" severity="secondary" [ariaLabel]="'common.unarchive' | transloco" [title]="'common.unarchive' | transloco" (onClick)="restore(template)" />
+                } @else if (!template.is_default) {
+                  <p-button icon="pi pi-box" size="small" [text]="true" severity="secondary" [ariaLabel]="'common.archive' | transloco" [title]="'common.archive' | transloco" (onClick)="askArchive(template)" />
+                }
+              }
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+</p-card>
+
+<app-confirm-dialog
+  [(visible)]="archiveVisible"
+  [title]="'templates.archiveTitle' | transloco"
+  [message]="'templates.archiveMessage' | transloco: { name: toArchive()?.name ?? '' }"
+  [confirmLabel]="'common.archive' | transloco"
+  (confirmed)="onArchiveConfirmed()"
+/>

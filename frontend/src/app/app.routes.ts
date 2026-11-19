@@ -137,7 +137,7 @@ export const routes: Routes = [
     // Layout for the whole section (router-outlet + a persistent side menu,
     // see settings.html) - every child below renders inside it, so the menu
     // never disappears when navigating between them. '' redirects to
-    // 'templates' so /settings itself lands on Modèles de documents directly.
+    // 'templates' so /settings itself lands on Modèles directly.
     path: 'settings',
     loadComponent: () => import('./features/settings/settings').then(m => m.Settings),
     canActivate: [authGuard],
@@ -145,9 +145,16 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'templates', pathMatch: 'full' },
       {
+        // The company's document templates - read by every role, changed by
+        // its admin (the backend's template.routes.ts), the pages say so.
         path: 'templates',
-        loadComponent: () => import('./features/settings/document-templates/document-templates').then(m => m.DocumentTemplates),
+        loadComponent: () => import('./features/settings/templates/template-list').then(m => m.TemplateList),
         data: { breadcrumb: 'settings.documentTemplates' }
+      },
+      {
+        path: 'templates/:id',
+        loadComponent: () => import('./features/settings/templates/template-editor').then(m => m.TemplateEditor),
+        data: { breadcrumb: 'templates.edit' }
       },
       {
         // Readable by every role - only an admin can save (the backend's

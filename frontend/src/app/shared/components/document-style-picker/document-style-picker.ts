@@ -1,6 +1,6 @@
 import { Component, input, output } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { DocumentFont, DocumentLayout } from '../../models/company';
+import { DocumentFont, DocumentLayout } from '../../models/template';
 
 // The company's document template as cards to pick: its two layouts
 // sketched in miniature (the modern one's table header in the main color)
