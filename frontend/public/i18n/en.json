@@ -795,5 +795,18 @@
       "country": "the country",
       "vatNumber": "the VAT number (you charge VAT)"
     }
+  },
+  "textStyle": {
+    "toolbar": "Text formatting",
+    "bold": "Bold",
+    "boldLetter": "B",
+    "textColor1": "Text in the main color",
+    "textColor2": "Text in the secondary color",
+    "background1": "Main color background",
+    "background2": "Secondary color background",
+    "colorMissing1": "Set the main color in the profile first",
+    "colorMissing2": "Set the secondary color in the profile first",
+    "clear": "Remove formatting",
+    "hint": "Select a passage, then pick a style."
   }
 }

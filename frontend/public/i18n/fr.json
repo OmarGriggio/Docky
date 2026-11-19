@@ -795,5 +795,18 @@
       "country": "le pays",
       "vatNumber": "le n° TVA (tu factures de la TVA)"
     }
+  },
+  "textStyle": {
+    "toolbar": "Mise en forme du texte",
+    "bold": "Gras",
+    "boldLetter": "G",
+    "textColor1": "Texte en couleur principale",
+    "textColor2": "Texte en couleur secondaire",
+    "background1": "Trame de fond en couleur principale",
+    "background2": "Trame de fond en couleur secondaire",
+    "colorMissing1": "Couleur principale à définir dans le profil",
+    "colorMissing2": "Couleur secondaire à définir dans le profil",
+    "clear": "Retirer la mise en forme",
+    "hint": "Sélectionne un passage, puis choisis un style."
   }
 }
