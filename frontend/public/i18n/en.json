@@ -184,7 +184,7 @@
         "EMAIL_INVALID": "Invalid email.",
         "EMAIL_EXISTS": "This email already belongs to a client.",
         "EMAIL_DUPLICATE": "This email already appears higher up in the file.",
-        "NUMBER_INVALID": "Client no. \"{{value}}\": digits only.",
+        "NUMBER_INVALID": "Client no. \"{{value}}\": digits only, or a number in the clients' format (Settings > Numbering).",
         "NUMBER_EXISTS": "No. {{number}} already exists.",
         "NUMBER_DUPLICATE": "No. {{number}} already appears higher up in the file.",
         "ADDRESS_INCOMPLETE": "Incomplete address: \"{{field}}\" is missing.",
