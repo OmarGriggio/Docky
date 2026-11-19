@@ -246,7 +246,14 @@ export class DocumentListComponent implements OnInit {
   // SETTABLE_STATUSES - a SENT invoice still moves on to PAID/CANCELLED, even
   // though its content is frozen). Public for the template.
   isEditable(document: Document): boolean {
-    return this.canWriteType(document.type) && nextStatuses(document.type, document.status, document.is_active).length > 0;
+    return this.canWriteType(document.type) && this.reachableStatuses(document, document.status).length > 0;
+  }
+
+  // Where a document can go from there - accepting a quote creates its
+  // chantier, so only with the chantiers module too.
+  private reachableStatuses(document: Document, current: DocumentStatus | null): DocumentStatus[] {
+    return nextStatuses(document.type, current, document.is_active)
+      .filter(status => status !== 'ACCEPTED' || this.permissions.can('projects', 'WRITE'));
   }
 
   // Picking ACCEPTED goes through the confirm dialog below
@@ -262,7 +269,7 @@ export class DocumentListComponent implements OnInit {
   // is active right now - see statusLabel's own reasoning above.
   statusOptionsFor(document: Document): { label: string; value: DocumentStatus }[] {
     const current = document.status ?? 'DRAFT';
-    return [current, ...nextStatuses(document.type, current, document.is_active)].map(status => this.statusOption(status));
+    return [current, ...this.reachableStatuses(document, current)].map(status => this.statusOption(status));
   }
 
   // Snapshotted right as a cell enters edit mode (before the select's own

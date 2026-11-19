@@ -487,7 +487,9 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
     if (this.editingDocumentId() === null || !this.canWriteType(this.type())) {
       return [];
     }
-    return nextStatuses(this.type(), this.status(), this.isActive());
+    // Accepting a quote creates its chantier: the chantiers module too.
+    return nextStatuses(this.type(), this.status(), this.isActive())
+      .filter(status => status !== 'ACCEPTED' || this.permissions.can('projects', 'WRITE'));
   }
 
   // The way out that isn't on the status bar: refusing a quote, cancelling
