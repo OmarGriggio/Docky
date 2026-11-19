@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Card } from 'primeng/card';
 import { Button } from 'primeng/button';
 import { SelectButton } from 'primeng/selectbutton';
+import { ToggleSwitch } from 'primeng/toggleswitch';
 import { TranslocoPipe, translateSignal } from '@jsverse/transloco';
 import { environment } from '../../../../environments/environment';
 import { NotificationService } from '../../../shared/services/notification.service';
@@ -18,7 +19,7 @@ const API_BASE = environment.apiUrl;
 @Component({
   selector: 'app-employee-permissions',
   standalone: true,
-  imports: [FormsModule, Card, Button, SelectButton, TranslocoPipe],
+  imports: [FormsModule, Card, Button, SelectButton, ToggleSwitch, TranslocoPipe],
   templateUrl: './employee-permissions.html',
 })
 export class EmployeePermissions implements OnInit {
@@ -27,6 +28,8 @@ export class EmployeePermissions implements OnInit {
   private notifications = inject(NotificationService);
 
   readonly modules = PERMISSION_MODULES;
+  // Made of amounts: hidden whenever prices are (the backend's PRICED_MODULES).
+  private readonly pricedModules: PermissionModule[] = ['quotes', 'invoices', 'dashboard'];
   permissions = signal<Permissions | null>(null);
   saving = signal(false);
 
@@ -46,6 +49,23 @@ export class EmployeePermissions implements OnInit {
     });
   }
 
+  // Without prices, a module made of amounts can't be anything but hidden.
+  lockedByPrices(module: PermissionModule): boolean {
+    return this.permissions()?.prices === false && this.pricedModules.includes(module);
+  }
+
+  setPrices(prices: boolean): void {
+    const permissions = this.permissions();
+    if (!permissions) {
+      return;
+    }
+    const modules = { ...permissions.modules };
+    if (!prices) {
+      this.pricedModules.forEach(module => modules[module] = 'NONE');
+    }
+    this.permissions.set({ ...permissions, modules, prices });
+  }
+
   setLevel(module: PermissionModule, level: AccessLevel | null): void {
     const permissions = this.permissions();
     if (!permissions || !level) {
@@ -54,15 +74,15 @@ export class EmployeePermissions implements OnInit {
     this.permissions.set({ ...permissions, modules: { ...permissions.modules, [module]: level } });
   }
 
-  // A worker on site: the job sites and the calendar, nothing else.
+  // A worker on site: the job sites and the calendar, no prices.
   applyWorkerPreset(): void {
     const permissions = this.permissions();
     if (!permissions) {
       return;
     }
     this.permissions.set({
-      ...permissions,
       modules: { clients: 'READ', catalog: 'READ', quotes: 'NONE', invoices: 'NONE', projects: 'WRITE', calendar: 'READ', dashboard: 'NONE' },
+      prices: false,
     });
   }
 

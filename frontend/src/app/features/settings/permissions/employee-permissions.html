@@ -12,12 +12,20 @@
             </div>
             <p-selectbutton
               size="small" [options]="levelOptions()" optionLabel="label" optionValue="value" [allowEmpty]="false"
-              [ngModel]="current.modules[module]" (ngModelChange)="setLevel(module, $event)"
+              [ngModel]="current.modules[module]" (ngModelChange)="setLevel(module, $event)" [disabled]="lockedByPrices(module)"
               [attr.aria-label]="'settings.permissions.modules.' + module | transloco"
             />
           </div>
         }
       </div>
+
+      <label class="flex items-center justify-between gap-4 border border-gray-200 rounded-lg px-4 py-3 cursor-pointer">
+        <span class="flex flex-col">
+          <span class="font-medium text-gray-900">{{ 'settings.permissions.prices' | transloco }}</span>
+          <span class="text-xs text-gray-500">{{ 'settings.permissions.pricesHint' | transloco }}</span>
+        </span>
+        <p-toggleswitch [ngModel]="current.prices" (ngModelChange)="setPrices($event)" [attr.aria-label]="'settings.permissions.prices' | transloco" />
+      </label>
 
       <p class="m-0 text-xs text-gray-500">{{ 'settings.permissions.adminNote' | transloco }}</p>
 

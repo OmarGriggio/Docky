@@ -93,7 +93,9 @@
       },
       "adminNote": "Les administrateurs ne sont pas concernés : ils peuvent toujours tout faire.",
       "workerPreset": "Profil ouvrier",
-      "saved": "Droits des employés enregistrés."
+      "saved": "Droits des employés enregistrés.",
+      "prices": "Voir les prix",
+      "pricesHint": "Désactivé : aucun prix ni montant nulle part (catalogue, chantiers, calendrier), et les offres, factures et le tableau de bord sont cachés. Les lignes qu'un employé ajoute à un chantier prennent le prix du catalogue, sinon 0."
     }
   },
   "documentTemplates": {

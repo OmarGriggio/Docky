@@ -93,7 +93,9 @@
       },
       "adminNote": "Administrators aren't affected: they can always do everything.",
       "workerPreset": "Worker profile",
-      "saved": "Employee permissions saved."
+      "saved": "Employee permissions saved.",
+      "prices": "See prices",
+      "pricesHint": "Off: no price or amount anywhere (catalog, projects, calendar), and quotes, invoices and the dashboard are hidden. Lines an employee adds to a project take the catalog price, otherwise 0."
     }
   },
   "documentTemplates": {
