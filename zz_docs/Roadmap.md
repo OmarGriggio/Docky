@@ -15,7 +15,7 @@ Written 2026-11-13 (version 1.2.3), from an honest review of what Docky lacks to
   - [ ] Email verification on registration.
   - [ ] Sending quotes, invoices and reminders from the app, PDF attached (was already on the roadmap).
 - [ ] **Configurable modules** (decided 2026-11-18 - until then, only documents had settings: colors, template, font, texts). The three worth the most, in this order:
-  - [x] **Document numbering** - the company's own format and the number it continues from, so a company moving to Docky keeps its series (Paramètres > Numérotation - on `develop`, next release).
+  - [x] **Document numbering** - the company's own format and the number it continues from, so a company moving to Docky keeps its series - quotes and invoices, then clients and resources too (Paramètres > Numérotation - on `develop`, next release).
   - [ ] **Reminder levels** - 1st, 2nd reminder and formal notice, each with its delay after the due date, its own text and optional fees; the dashboard lists the invoices to remind. Cash collection is a small company's real problem. *(Moved up from phase 2.)*
   - [ ] **Permissions by role** - what an employee (USER) may see and do per module, e.g. the calendar and job sites without prices or invoicing; until then a USER saw every amount, so an owner wouldn't give Docky to their workers.
     - [x] **Step A** - per module, hidden / read / edit, set by the company's admin (Paramètres > Droits des employés), enforced on every route and followed by the screens (on `develop`, next release).

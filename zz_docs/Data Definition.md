@@ -32,7 +32,7 @@ A construction company using Docky - the tenant everything else belongs to.
 
 - has several users, clients, resources, documents, projects
 - has one document template per document type at most
-- has one numbering per document type at most *(quotes, invoices)*
+- has one numbering per type at most *(quotes, invoices, clients, materials, services)*
 - has its employees' permissions *(one set for the whole company, at most)*
 
 ---
@@ -62,7 +62,7 @@ A company's own customer - a private individual or a business.
 
 ## Fields
 
-- client number *(generated: `C0001`, `C0002`...)*
+- client number *(generated in the company's numbering format: `C0001`, `C0002`... by default)*
 - type *(`INDIVIDUAL` | `PROFESSIONAL`)*
 - first name, last name *(an individual)* or company name *(a professional)*
 - title *(the greeting printed on documents, e.g. "Monsieur", "Dear Sir/Madam")*
@@ -184,13 +184,13 @@ A company's default introduction, conclusion and due-date delay for one document
 
 ---
 
-# 🔢 Document numbering
+# 🔢 Numbering
 
-How a company numbers its quotes or invoices (one row per type at most - none means the default format).
+How a company numbers its quotes, invoices, clients, materials or services (one row per type at most - none means the default format: `OFF-{YYYY}-{NNNN}`, `FAC-{YYYY}-{NNNN}`, `C{NNNN}`, `MAT{NNNN}`, `SER{NNNN}`).
 
 ## Fields
 
-- type *(`QUOTE` | `INVOICE`)*
+- type *(`QUOTE` | `INVOICE` | `CLIENT` | `MATERIAL` | `SERVICE`)*
 - number format *(literal text, `{YYYY}`/`{YY}` and one `{N...}` sequence - `FAC-{YYYY}-{NNNN}`, `F{YY}/{NNN}`...; with the year in it, the sequence restarts every year)*
 - start number *(optional - the number a company moving to Docky continues from, for the year it was set)*
 
