@@ -171,6 +171,25 @@ export const getLastClientSequenceFromDB = async (company_id: number, pattern: s
     return result.rows[0]?.last ?? null;
 };
 
+// The highest sequence already given out with a format (number-format.ts's
+// numberPattern - anchored, its one group the sequence), archived clients
+// included: a number is never given out twice. Null when there's none yet.
+export const getHighestClientSequenceFromDB = async (company_id: number, pattern: string): Promise<number | null> => {
+    const result = await db().query(
+        "SELECT MAX(substring(client_number from $2)::bigint) AS highest FROM clients WHERE company_id = $1 AND client_number ~ $2",
+        [company_id, pattern]
+    );
+    const highest = result.rows[0]?.highest;
+    return highest === null || highest === undefined ? null : Number(highest);
+};
+
+// A number the company already has - another format (an earlier one, or a
+// number typed by hand before generation) can happen to give out the same.
+export const isClientNumberTakenInDB = async (company_id: number, number: string): Promise<boolean> => {
+    const result = await db().query("SELECT 1 FROM clients WHERE company_id = $1 AND client_number = $2", [company_id, number]);
+    return (result.rowCount ?? 0) > 0;
+};
+
 // One import at a time per company (see client.service.ts's
 // importClientsServ): false when another is running - refused rather than
 // left waiting with a connection held.

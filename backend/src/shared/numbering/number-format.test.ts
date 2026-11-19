@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_NUMBER_FORMATS, formatDocumentNumber, nextSequence, numberPattern, parseNumberFormat, resetsEveryYear } from "./document-number-format";
+import { DEFAULT_NUMBER_FORMATS, formatNumber, nextSequence, numberPattern, parseNumberFormat, resetsEveryYear } from "./number-format";
 
 describe("parseNumberFormat", () => {
     it("accepts the default formats", () => {
@@ -29,15 +29,15 @@ describe("parseNumberFormat", () => {
     });
 });
 
-describe("formatDocumentNumber", () => {
+describe("formatNumber", () => {
     it("builds today's numbers from the default formats", () => {
-        expect(formatDocumentNumber(DEFAULT_NUMBER_FORMATS.INVOICE, 2026, 12)).toBe("FAC-2026-0012");
-        expect(formatDocumentNumber(DEFAULT_NUMBER_FORMATS.QUOTE, 2026, 1)).toBe("OFF-2026-0001");
+        expect(formatNumber(DEFAULT_NUMBER_FORMATS.INVOICE, 2026, 12)).toBe("FAC-2026-0012");
+        expect(formatNumber(DEFAULT_NUMBER_FORMATS.QUOTE, 2026, 1)).toBe("OFF-2026-0001");
     });
 
     it("pads the sequence, never cuts a longer one", () => {
-        expect(formatDocumentNumber("F{YY}/{NNN}", 2027, 7)).toBe("F27/007");
-        expect(formatDocumentNumber("{NNN}", 2026, 12345)).toBe("12345");
+        expect(formatNumber("F{YY}/{NNN}", 2027, 7)).toBe("F27/007");
+        expect(formatNumber("{NNN}", 2026, 12345)).toBe("12345");
     });
 });
 

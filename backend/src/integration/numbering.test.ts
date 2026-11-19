@@ -1,10 +1,10 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { api, auth, createClient, createCompanyWithAdmin, createDocument, createUser, login, postDocument } from "./helpers";
 
-// A company's own numbering (Paramètres > Numérotation): its format and the
-// number it continues from, an admin's to change, checked, never giving out
-// a number twice - concurrent creations included - and its own company's
-// only.
+// A company's own numbering (Paramètres > Numérotation) of its quotes,
+// invoices, clients and resources: its format and the number it continues
+// from, an admin's to change, checked, never giving out a number twice -
+// concurrent creations included - and its own company's only.
 describe("document numbering", () => {
   const year = new Date().getFullYear();
   const shortYear = String(year % 100).padStart(2, "0");
@@ -18,13 +18,17 @@ describe("document numbering", () => {
   });
 
   const setNumbering = (type: string, body: Record<string, unknown>, as = token) =>
-    api().put(`/document-numbering/${type}`).set(auth(as)).send(body);
+    api().put(`/numbering/${type}`).set(auth(as)).send(body);
 
   it("numbers with the default formats until a company sets its own", async () => {
-    const settings = (await api().get("/document-numbering").set(auth(token)).expect(200)).body;
+    const settings = (await api().get("/numbering").set(auth(token)).expect(200)).body;
     expect(settings).toEqual([
       { type: "QUOTE", number_format: "OFF-{YYYY}-{NNNN}", start_number: null, next_number: `OFF-${year}-0001` },
       { type: "INVOICE", number_format: "FAC-{YYYY}-{NNNN}", start_number: null, next_number: `FAC-${year}-0001` },
+      // createClient in beforeAll took C0001.
+      { type: "CLIENT", number_format: "C{NNNN}", start_number: null, next_number: "C0002" },
+      { type: "MATERIAL", number_format: "MAT{NNNN}", start_number: null, next_number: "MAT0001" },
+      { type: "SERVICE", number_format: "SER{NNNN}", start_number: null, next_number: "SER0001" },
     ]);
     expect((await createDocument(token, "QUOTE", clientId)).number).toBe(`OFF-${year}-0001`);
   });
@@ -51,9 +55,9 @@ describe("document numbering", () => {
   });
 
   it("previews the next number without saving anything", async () => {
-    const preview = (await api().post("/document-numbering/QUOTE/preview").set(auth(token)).send({ number_format: "D-{NNNNN}", start_number: 3000 }).expect(200)).body;
+    const preview = (await api().post("/numbering/QUOTE/preview").set(auth(token)).send({ number_format: "D-{NNNNN}", start_number: 3000 }).expect(200)).body;
     expect(preview.next_number).toBe("D-03000");
-    const settings = (await api().get("/document-numbering").set(auth(token)).expect(200)).body;
+    const settings = (await api().get("/numbering").set(auth(token)).expect(200)).body;
     expect(settings[0].number_format).toBe("OFF-{YYYY}-{NNNN}");
   });
 
@@ -69,7 +73,7 @@ describe("document numbering", () => {
   it("is an admin's to change, its own company's only", async () => {
     const userToken = await login(await createUser(companyId, "USER"));
     await setNumbering("QUOTE", { number_format: "D-{NNNN}" }, userToken).expect(403);
-    await api().get("/document-numbering").set(auth(userToken)).expect(200);
+    await api().get("/numbering").set(auth(userToken)).expect(200);
 
     const other = await createCompanyWithAdmin();
     const otherClient = (await createClient(other.token)).id;

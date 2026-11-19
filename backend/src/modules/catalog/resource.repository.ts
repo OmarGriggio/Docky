@@ -121,3 +121,21 @@ export const getLastResourceSequenceFromDB = async (company_id: number, pattern:
   );
   return result.rows[0]?.last ?? null;
 };
+
+// The highest sequence already given out with a format (number-format.ts's
+// numberPattern), any type, archived resources included - a code is never
+// given out twice. Null when there's none yet.
+export const getHighestResourceSequenceFromDB = async (company_id: number, pattern: string): Promise<number | null> => {
+  const result = await db().query(
+    "SELECT MAX(substring(code from $2)::bigint) AS highest FROM resources WHERE company_id = $1 AND code ~ $2",
+    [company_id, pattern]
+  );
+  const highest = result.rows[0]?.highest;
+  return highest === null || highest === undefined ? null : Number(highest);
+};
+
+// A code the company already has, archived resources included.
+export const isResourceCodeTakenInDB = async (company_id: number, code: string): Promise<boolean> => {
+  const result = await db().query("SELECT 1 FROM resources WHERE company_id = $1 AND code = $2", [company_id, code]);
+  return (result.rowCount ?? 0) > 0;
+};

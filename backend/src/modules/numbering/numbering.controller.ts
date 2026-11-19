@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { getNumberingServ, previewNumberingServ, updateNumberingServ } from "./document_numbering.service";
+import { getNumberingServ, previewNumberingServ, updateNumberingServ } from "./numbering.service";
 
 export const getNumbering = async (req: Request, res: Response) => {
     res.json(await getNumberingServ(req.user.company_id));

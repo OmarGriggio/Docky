@@ -68,9 +68,9 @@ export const lockDocumentNumberingInDB = async (company_id: number): Promise<voi
   await db().query("SELECT pg_advisory_xact_lock($1, hashtext('document-numbering'))", [company_id]);
 };
 
-// The highest sequence already given out with a format (document-number-
-// format.ts's numberPattern - anchored, its one group the sequence), any
-// type, archived documents included: a number is never given out twice.
+// The highest sequence already given out with a format (number-format.ts's
+// numberPattern - anchored, its one group the sequence), any type, archived
+// documents included: a number is never given out twice.
 export const getHighestSequenceFromDB = async (company_id: number, pattern: string): Promise<number | null> => {
   const result = await db().query(
     `SELECT max(substring(number from $2)::bigint) AS highest FROM documents

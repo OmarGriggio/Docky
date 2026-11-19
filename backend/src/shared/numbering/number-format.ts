@@ -1,18 +1,21 @@
-// A company's own document numbering (document_numbering, see
-// document_numbering.service.ts): a format such as "FAC-{YYYY}-{NNNN}" -
+// A company's own numbering (modules/numbering) - of its quotes and invoices,
+// its clients and its resources: a format such as "FAC-{YYYY}-{NNNN}" -
 // literal text, the year ({YYYY} 2026, {YY} 26) and the sequence ({N}, as
 // many N as the digits it's padded to - a longer number isn't cut). Pure:
 // building a number and the pattern finding the numbers already given out
-// are tested on their own (document-number-format.test.ts).
+// are tested on their own (number-format.test.ts).
 
 export const DEFAULT_NUMBER_FORMATS = {
     QUOTE: "OFF-{YYYY}-{NNNN}",
     INVOICE: "FAC-{YYYY}-{NNNN}",
     PROJECT: "CH-{YYYY}-{NNNN}",
+    CLIENT: "C{NNNN}",
+    MATERIAL: "MAT{NNNN}",
+    SERVICE: "SER{NNNN}",
 } as const;
 
-// documents.number is a VARCHAR(50): the format's text and a sequence of up
-// to 8 digits always fit.
+// documents.number, clients.client_number and resources.code are VARCHAR(50):
+// the format's text and a sequence of up to 8 digits always fit.
 export const MAX_FORMAT_LENGTH = 30;
 const MAX_SEQUENCE_DIGITS = 8;
 // Letters, digits and separators only - what a number reads well with, and
@@ -78,7 +81,7 @@ export const resetsEveryYear = (format: string): boolean =>
     partsOf(format).some(part => part.kind === "year" || part.kind === "shortYear");
 
 /** "FAC-{YYYY}-{NNNN}", 2026, 12 -> "FAC-2026-0012". */
-export const formatDocumentNumber = (format: string, year: number, sequence: number): string =>
+export const formatNumber = (format: string, year: number, sequence: number): string =>
     partsOf(format).map(part => {
         switch (part.kind) {
             case "text": return part.value;
@@ -94,7 +97,8 @@ const escapeRegex = (text: string) => text.replace(/[.*+?^${}()|[\]\\/-]/g, "\\$
  * The numbers this format gives out in `year`, as an anchored regular
  * expression whose one group is the sequence - the same syntax for
  * JavaScript and Postgres' `~`/`substring(... from ...)`. Any number of
- * digits matches, whatever the padding.
+ * digits matches, whatever the padding - up to 15, what a bigint and a
+ * JavaScript number read back exactly (a longer one typed by hand is left out).
  */
 export const numberPattern = (format: string, year: number): string =>
     "^" + partsOf(format).map(part => {
@@ -102,7 +106,7 @@ export const numberPattern = (format: string, year: number): string =>
             case "text": return escapeRegex(part.value);
             case "year": return String(year);
             case "shortYear": return String(year % 100).padStart(2, "0");
-            case "sequence": return "([0-9]+)";
+            case "sequence": return "([0-9]{1,15})";
         }
     }).join("") + "$";
 

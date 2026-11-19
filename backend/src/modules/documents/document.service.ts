@@ -1,4 +1,4 @@
-import { nextDocumentNumber } from "./document_numbering.service";
+import { nextNumberServ } from "../numbering/numbering.service";
 import { CreateDocumentData, UpdateDocumentData, DocumentType, DocumentStatus, Document, DocumentContentSection, DocumentRecipient, DepositDeduction } from "./document.types";
 import { paymentReferenceFor } from "../../pdf/templates/dto/swiss-qr-bill.dto";
 import { Client } from "../clients/client.types";
@@ -54,8 +54,8 @@ export const getDocumentByIdServ = async (id: number, company_id: number) => {
   return document;
 };
 
-// The company's own format (Paramètres > Numérotation - document_numbering.
-// service.ts), "OFF-2026-0001"/"FAC-2026-0001" by default ("FAC"/"OFF": the
+// The company's own format (Paramètres > Numérotation - numbering/
+// numbering.service.ts), "OFF-2026-0001"/"FAC-2026-0001" by default ("FAC"/"OFF": the
 // number is printed for a French-speaking Swiss client, content not code),
 // "CH-..." for a chantier's PROJECT document. Exported so project.service.
 // ts's addProjectServ can number a hand-created chantier's own PROJECT
@@ -66,7 +66,7 @@ export const getDocumentByIdServ = async (id: number, company_id: number) => {
 // (company_id, number) - a 500).
 export const generateDocumentNumber = async (company_id: number, type: DocumentType): Promise<string> => {
   await lockDocumentNumberingInDB(company_id);
-  return await nextDocumentNumber(company_id, type);
+  return await nextNumberServ(company_id, type);
 };
 
 const NO_RECIPIENT: DocumentRecipient = {
