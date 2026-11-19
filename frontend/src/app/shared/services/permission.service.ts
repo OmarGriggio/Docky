@@ -2,6 +2,7 @@ import { computed, effect, inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../features/auth/auth.service';
+import { NotificationService } from './notification.service';
 import { environment } from '../../../environments/environment';
 
 const API_BASE = environment.apiUrl;
@@ -22,36 +23,63 @@ const RANK: Record<AccessLevel, number> = { NONE: 0, READ: 1, WRITE: 2 };
 // what their company's admin set (Paramètres > Droits des employés). The
 // screens hide what isn't allowed; the backend refuses it anyway (403), this
 // is only so nobody runs into it. Read again whenever the user changes
-// (login, impersonation, logout).
+// (login, impersonation, logout) - not when the same user's token is only
+// refreshed: everything would vanish from the screen while it reloads.
 @Injectable({ providedIn: 'root' })
 export class PermissionService {
 
   private http = inject(HttpClient);
   private auth = inject(AuthService);
+  private notifications = inject(NotificationService);
 
   private employeePermissions = signal<Permissions | null>(null);
   private loading: Promise<void> | null = null;
+  // Whose permissions are loaded (or loading) - user, company and role.
+  private loadedFor: string | null = null;
 
   // An employee's own permissions - not loaded yet: nothing allowed, so a
   // hidden module never flashes on screen.
   private isEmployee = computed(() => this.auth.currentUser()?.role === 'USER');
 
+  // An effect alone isn't enough: it runs on a later change detection, after
+  // a login's own navigation has already asked the route guards - ready()
+  // starts the load itself too.
   private readonly reload = effect(() => {
-    const user = this.auth.currentUser();
-    this.employeePermissions.set(null);
-    this.loading = user?.role === 'USER' ? this.load() : null;
+    this.auth.currentUser();
+    this.ensureLoaded();
   });
 
-  private async load(): Promise<void> {
+  private ensureLoaded(): void {
+    const user = this.auth.currentUser();
+    const key = user ? `${user.userId}|${user.company_id}|${user.role}` : null;
+    if (key === this.loadedFor) {
+      return;
+    }
+    this.loadedFor = key;
+    this.employeePermissions.set(null);
+    this.loading = user?.role === 'USER' ? this.load(key) : null;
+  }
+
+  private async load(key: string | null): Promise<void> {
     try {
-      this.employeePermissions.set(await firstValueFrom(this.http.get<Permissions>(`${API_BASE}/permissions/me`)));
-    } catch {
-      // Left at "nothing allowed": the pages' own requests would be refused anyway.
+      const permissions = await firstValueFrom(this.http.get<Permissions>(`${API_BASE}/permissions/me`));
+      // Only if still that user's - a logout or another login meanwhile wins.
+      if (this.loadedFor === key) {
+        this.employeePermissions.set(permissions);
+      }
+    } catch (err) {
+      // Left at "nothing allowed" (the pages' own requests would be refused
+      // anyway) - tried again on the next navigation.
+      if (this.loadedFor === key) {
+        this.loadedFor = null;
+      }
+      this.notifications.error('permission-service', err);
     }
   }
 
   /** Resolves once an employee's permissions are known - the route guards wait for it. */
   async ready(): Promise<void> {
+    this.ensureLoaded();
     await this.loading;
   }
 
