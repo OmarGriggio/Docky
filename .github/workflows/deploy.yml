@@ -70,3 +70,6 @@ jobs:
             cd ~/docky
             git pull
             docker compose -f docker-compose.prod.yml up -d --build
+            # The gateway resolves the backend's address once: without a
+            # reload it keeps proxying to the container just replaced (a 502).
+            docker exec docky-nginx nginx -s reload
