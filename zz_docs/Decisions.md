@@ -211,6 +211,10 @@ To match a bank's payments to invoices automatically, the QR-bill carries a refe
 
 The calendar's and the document form's "?" start a tour over the page itself: everything dimmed but one element (a box-shadow around it), a card beside it. A small shared component (`guided-tour`) taking a list of steps - a CSS selector and two translation keys each. **Turned down**: driver.js / Shepherd (a dependency for a few positions to compute), a modal of text (the first version - nothing shows *where* things are).
 
+## Styled passages in a document's texts: tags and a toolbar, not a visual editor (2026-11-19)
+
+An introduction, conclusion or reminder text can put a passage in bold, in one of the company's two colors or on a band of it - written as tags around it (`[g]`, `[c1]`, `[f2]`...), like the `{{placeholders}}` next to them, put in by a toolbar over the text (select, click) rather than typed. The text stays plain text in the database, the PDF reads the tags (rich-text.ts), the form's preview shows the result. **Turned down**: a visual (WYSIWYG) editor - HTML stored, to sanitize, then translated into the PDF's own drawing - two to three times the work and more fragile, for a gain mostly of looks while typing; `{{...}}` for the tags (Transloco swallows double braces in the UI, see CLAUDE.md's i18n bullet). A band's text stays black unless also colored - picking a readable pair is the author's call for now.
+
 ## Document templates: a company setting, embedded free fonts (2026-11-18)
 
 A company picks a layout (classic or modern) and a font, read when a PDF is printed - like its colors, never frozen per document. Lato and PT Serif are embedded (SIL Open Font License, subset to the characters used); Helvetica stays the default, a PDF standard font. The QR-bill's payment part is always Helvetica, as the standard requires. **Turned down**: a choice per document (not asked for, and one more thing to get wrong while invoicing); a layout editor with movable blocks (far more work than two well-made layouts); standard fonts only (three, Latin-1 only).
