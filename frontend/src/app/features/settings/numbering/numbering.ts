@@ -27,6 +27,10 @@ interface NumberingDraft {
   // The live preview - the next number, or the reason the format isn't one.
   preview: string | null;
   errorKey: string | null;
+  // As stored - only a type changed since is saved again (a start number
+  // saved again would apply to the current year again, see the backend).
+  savedFormat: string;
+  savedStart: number | null;
 }
 
 const PREVIEW_DELAY = 300;
@@ -77,6 +81,8 @@ export class Numbering implements OnInit {
           start: item.start_number,
           preview: item.next_number,
           errorKey: null,
+          savedFormat: item.number_format,
+          savedStart: item.start_number,
         })));
         this.loading.set(false);
       },
@@ -143,10 +149,14 @@ export class Numbering implements OnInit {
     }
     this.saving.set(true);
     try {
-      for (const draft of this.drafts()) {
+      const changed = this.drafts().filter(draft => draft.format !== draft.savedFormat || draft.start !== draft.savedStart);
+      for (const draft of changed) {
         const saved = await firstValueFrom(this.numberingService.updateNumbering(draft.type, { number_format: draft.format, start_number: draft.start }));
         this.drafts.update(drafts => drafts.map(item => item.type === saved.type
-          ? { type: saved.type, format: saved.number_format, start: saved.start_number, preview: saved.next_number, errorKey: null }
+          ? {
+            type: saved.type, format: saved.number_format, start: saved.start_number, preview: saved.next_number, errorKey: null,
+            savedFormat: saved.number_format, savedStart: saved.start_number,
+          }
           : item));
       }
       this.notifications.success('settings.numbering.saved');
