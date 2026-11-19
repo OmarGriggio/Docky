@@ -33,8 +33,10 @@
                 <th class="font-semibold pb-1 w-[40%]">{{ 'resources.columnName' | transloco }}</th>
                 <th class="font-semibold pb-1 w-[15%]">{{ 'documentLedger.columnQuantity' | transloco }}</th>
                 <th class="font-semibold pb-1 w-[15%]">{{ 'resources.columnUnit' | transloco }}</th>
-                <th class="font-semibold pb-1 w-[15%]">{{ 'documentLedger.columnUnitPrice' | transloco }}</th>
-                <th class="font-semibold pb-1 w-[15%]">{{ 'documentLedger.columnTotal' | transloco }}</th>
+                @if (canSeePrices()) {
+                  <th class="font-semibold pb-1 w-[15%]">{{ 'documentLedger.columnUnitPrice' | transloco }}</th>
+                  <th class="font-semibold pb-1 w-[15%]">{{ 'documentLedger.columnTotal' | transloco }}</th>
+                }
               </tr>
             </thead>
             <tbody>
@@ -43,8 +45,10 @@
                   <td class="py-1 break-words">{{ line.label }}</td>
                   <td class="py-1">{{ line.quantity }}</td>
                   <td class="py-1">{{ line.unit }}</td>
-                  <td class="py-1">{{ line.unit_price | price }}</td>
-                  <td class="py-1">{{ line.quantity * line.unit_price | price }}</td>
+                  @if (canSeePrices()) {
+                    <td class="py-1">{{ line.unit_price | price }}</td>
+                    <td class="py-1">{{ line.quantity * line.unit_price | price }}</td>
+                  }
                 </tr>
               }
             </tbody>

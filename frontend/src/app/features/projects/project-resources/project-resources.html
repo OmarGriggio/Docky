@@ -73,8 +73,10 @@
                   <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">{{ 'clients.columnType' | transloco }}</th>
                   <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">{{ 'projects.resources.columnQuantity' | transloco }}</th>
                   <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">{{ 'resources.columnUnit' | transloco }}</th>
-                  <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">{{ 'projects.resources.columnPrice' | transloco }} *</th>
-                  <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">{{ 'projects.resources.columnTotal' | transloco }}</th>
+                  @if (canSeePrices()) {
+                    <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">{{ 'projects.resources.columnPrice' | transloco }} *</th>
+                    <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]">{{ 'projects.resources.columnTotal' | transloco }}</th>
+                  }
                   <th class="text-left text-[0.8rem] text-[#777] p-[0.4rem] border-b border-[#eee]"></th>
                 </tr>
               </thead>
@@ -119,16 +121,18 @@
                         [disabled]="readonly()"
                       />
                     </td>
-                    <td class="py-[0.3rem] px-[0.2rem] align-middle">
-                      <p-inputnumber
-                        size="small" [fluid]="true"
-                        [ngModel]="line.unit_price"
-                        (ngModelChange)="updateLine(section.id, line.id, { unit_price: $event })"
-                        [invalid]="showRequired() && line.unit_price === null"
-                        mode="decimal" [minFractionDigits]="2"
-                        [disabled]="readonly()" [useGrouping]="false" [maxFractionDigits]="2" />
-                    </td>
-                    <td class="py-[0.3rem] px-[0.2rem] align-middle">{{ lineTotal(line) | price }}</td>
+                    @if (canSeePrices()) {
+                      <td class="py-[0.3rem] px-[0.2rem] align-middle">
+                        <p-inputnumber
+                          size="small" [fluid]="true"
+                          [ngModel]="line.unit_price"
+                          (ngModelChange)="updateLine(section.id, line.id, { unit_price: $event })"
+                          [invalid]="showRequired() && line.unit_price === null"
+                          mode="decimal" [minFractionDigits]="2"
+                          [disabled]="readonly()" [useGrouping]="false" [maxFractionDigits]="2" />
+                      </td>
+                      <td class="py-[0.3rem] px-[0.2rem] align-middle">{{ lineTotal(line) | price }}</td>
+                    }
                     <td class="py-[0.3rem] px-[0.2rem] align-middle">
                       @if (!readonly()) {
                         <p-button size="small" type="button" icon="pi pi-trash" severity="danger" [text]="true" (onClick)="removeLine(section.id, line.id)" />

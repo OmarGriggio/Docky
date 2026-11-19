@@ -9,6 +9,7 @@ import { DocumentSection } from '../../models/document-section';
 import { DocumentLine } from '../../models/document-line';
 import { SectionDatePipe } from '../../pipes/section-date.pipe';
 import { NotificationService } from '../../services/notification.service';
+import { PermissionService } from '../../services/permission.service';
 
 // Stable shared reference for "no lines yet" - see document-list.ts's own
 // original EMPTY_LINES (this component replaces that file's and
@@ -48,6 +49,8 @@ export class DocumentLedger implements OnInit {
   columns = input<1 | 2>(1);
 
   private notifications = inject(NotificationService);
+  // No price columns for an employee without "Voir les prix".
+  canSeePrices = inject(PermissionService).canSeePrices;
   private documentSectionService = inject(DocumentSectionService);
   private documentLineService = inject(DocumentLineService);
 

@@ -23,6 +23,9 @@ import { NotificationService } from '../../../shared/services/notification.servi
 
 interface DraftLine {
   id: number;
+  // The stored line's id (null for one added since): sent back so the
+  // backend keeps its price when an employee who can't see prices saves.
+  sourceId: number | null;
   type: DocumentLineType;
   label: string;
   quantity: number | null;
@@ -81,6 +84,9 @@ export class ProjectResources implements OnInit {
   locked = computed(() => this.project().status === 'COMPLETED');
   // In read only (an employee's permissions): shown, never "Modifier".
   canWrite = computed(() => this.permissions.can('projects', 'WRITE'));
+  // Without "Voir les prix": no price or total column, none asked for - the
+  // backend prices the lines itself (the catalog's price, else 0).
+  canSeePrices = this.permissions.canSeePrices;
 
   // An open chantier is shown read-only too until "Modifier" is clicked -
   // the page is mostly looked at, a stray click or scroll on a number field
@@ -144,6 +150,7 @@ export class ProjectResources implements OnInit {
               .sort((a, b) => a.position - b.position)
               .map(line => ({
                 id: nextId++,
+                sourceId: line.id,
                 type: line.type,
                 label: line.label,
                 quantity: line.quantity,
@@ -227,6 +234,7 @@ export class ProjectResources implements OnInit {
 
     const line: DraftLine = {
       id: nextId++,
+      sourceId: null,
       type: resource.type,
       label: resource.name,
       quantity: 0,
@@ -244,6 +252,7 @@ export class ProjectResources implements OnInit {
   addFreeLine(sectionId: number): void {
     const line: DraftLine = {
       id: nextId++,
+      sourceId: null,
       type: 'MATERIAL',
       label: '',
       quantity: 1,
@@ -293,7 +302,7 @@ export class ProjectResources implements OnInit {
       return;
     }
 
-    if (this.sections().some(section => section.lines.some(line => !line.label.trim() || line.unit_price === null))) {
+    if (this.sections().some(section => section.lines.some(line => !line.label.trim() || (this.canSeePrices() && line.unit_price === null)))) {
       this.showRequired.set(true);
       this.errorMessage.set(this.transloco.translate('projects.resources.incompleteLine'));
       return;
@@ -315,6 +324,7 @@ export class ProjectResources implements OnInit {
         date_end: section.date_end ? section.date_end.toISOString() : null,
         note: section.note,
         lines: section.lines.map(line => ({
+          id: line.sourceId ?? undefined,
           type: line.type,
           label: line.label,
           quantity: line.quantity ?? 0,

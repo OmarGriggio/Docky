@@ -72,6 +72,9 @@ export type DocumentRecipient = Pick<
 // see DocumentService.replaceContent) - sections in order, each with its own
 // lines in order; positions come from that order.
 export interface DocumentContentLine {
+  // The stored line's id, for a line that was already there - the backend
+  // keeps its price when an employee who can't see prices saves.
+  id?: number;
   type: DocumentLineType;
   label: string;
   quantity: number;
