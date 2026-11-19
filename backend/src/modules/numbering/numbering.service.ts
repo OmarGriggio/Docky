@@ -1,5 +1,5 @@
 import { AppError } from "../../shared/types/errors";
-import { DEFAULT_NUMBER_FORMATS, formatNumber, nextSequence, numberPattern, parseNumberFormat, resetsEveryYear } from "../../shared/numbering/number-format";
+import { DEFAULT_NUMBER_FORMATS, formatNumber, formatsOverlap, nextSequence, numberPattern, parseNumberFormat, resetsEveryYear } from "../../shared/numbering/number-format";
 import { getHighestSequenceFromDB, isDocumentNumberTakenInDB } from "../documents/document.repository";
 import { getHighestClientSequenceFromDB, isClientNumberTakenInDB } from "../clients/client.repository";
 import { getHighestResourceSequenceFromDB, isResourceCodeTakenInDB } from "../catalog/resource.repository";
@@ -70,8 +70,11 @@ const isNumberedType = (value: unknown): value is NumberedType =>
     (NUMBERED_TYPES as unknown[]).includes(value);
 
 // A format as typed, checked: a 400 whose code says what's wrong with it
-// (NUMBER_FORMAT_NO_SEQUENCE...), translated by the frontend - and not the
-// format of another type sharing its table (NUMBER_FORMAT_TAKEN).
+// (NUMBER_FORMAT_NO_SEQUENCE...), translated by the frontend - and not one
+// reading the numbers of another type sharing its table, nor read by it
+// (NUMBER_FORMAT_TAKEN - formatsOverlap). A start number kept as it was keeps
+// the year it was set for: saved again the next year, it would otherwise
+// apply again and make the new year's sequence jump to it.
 const checkedSettings = async (
     company_id: number,
     type: NumberedType,
@@ -82,8 +85,9 @@ const checkedSettings = async (
     if ("error" in parsed) {
         throw new AppError(`Invalid number format: ${parsed.error}`, 400, `NUMBER_FORMAT_${parsed.error}`);
     }
+    const year = new Date().getFullYear();
     const others = await Promise.all(SERIES[type].siblings.map(async sibling => (await getNumberingSettingsServ(company_id, sibling)).number_format));
-    if (others.includes(format)) {
+    if (others.some(other => formatsOverlap(format, other, year))) {
         throw new AppError("This format is already another type's", 400, "NUMBER_FORMAT_TAKEN");
     }
 
@@ -92,7 +96,9 @@ const checkedSettings = async (
         throw new AppError("start_number must be a whole number between 1 and 99999999", 400, "NUMBER_START_INVALID");
     }
     const startNumber = start === null || start === undefined || start === "" ? null : start as number;
-    return { number_format: format, start_number: startNumber, start_year: startNumber === null ? null : new Date().getFullYear() };
+    const current = await getNumberingSettingsServ(company_id, type);
+    const startYear = startNumber === null ? null : startNumber === current.start_number ? current.start_year ?? year : year;
+    return { number_format: format, start_number: startNumber, start_year: startYear };
 };
 
 const assertNumberedType: (type: unknown) => asserts type is NumberedType = type => {

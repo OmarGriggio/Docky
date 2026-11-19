@@ -1,4 +1,5 @@
 import { beforeAll, describe, expect, it } from "vitest";
+import { db } from "../shared/config/database";
 import { api, auth, createClient, createCompanyWithAdmin, createDocument, createResource, createUser, login, postDocument } from "./helpers";
 
 // A company's own numbering (Paramètres > Numérotation) of its quotes,
@@ -98,6 +99,27 @@ describe("client and resource numbering", () => {
     // Created at once: one number each.
     const clients = await Promise.all(Array.from({ length: 5 }, () => createClient(token)));
     expect(new Set(clients.map(client => client.client_number)).size).toBe(5);
+  });
+
+  it("doesn't apply last year's start number again when the settings are saved this year", async () => {
+    const { companyId, token } = await createCompanyWithAdmin();
+    await setNumbering(token, "INVOICE", { number_format: "R-{YYYY}-{NNNN}", start_number: 500 }).expect(200);
+    // Set last year: this year's invoices start again at 1.
+    await db().query("UPDATE numbering SET start_year = start_year - 1 WHERE company_id = $1 AND type = 'INVOICE'", [companyId]);
+    const year = new Date().getFullYear();
+    // Saved again unchanged (the page sends every type) - still 1.
+    const saved = (await setNumbering(token, "INVOICE", { number_format: "R-{YYYY}-{NNNN}", start_number: 500 }).expect(200)).body;
+    expect(saved.next_number).toBe(`R-${year}-0001`);
+    // A new start applies to this year.
+    expect((await setNumbering(token, "INVOICE", { number_format: "R-{YYYY}-{NNNN}", start_number: 600 }).expect(200)).body.next_number).toBe(`R-${year}-0600`);
+  });
+
+  it("refuses formats reading each other's numbers", async () => {
+    const { token } = await createCompanyWithAdmin();
+    await setNumbering(token, "QUOTE", { number_format: "D{NNNN}" }).expect(200);
+    expect((await setNumbering(token, "INVOICE", { number_format: "D{YY}{NNNN}" }).expect(400)).body.code).toBe("NUMBER_FORMAT_TAKEN");
+    expect((await setNumbering(token, "INVOICE", { number_format: "D{NNNNN}" }).expect(400)).body.code).toBe("NUMBER_FORMAT_TAKEN");
+    await setNumbering(token, "INVOICE", { number_format: "F{NNNNN}" }).expect(200);
   });
 
   it("codes materials and services each in their own format, never the same one", async () => {

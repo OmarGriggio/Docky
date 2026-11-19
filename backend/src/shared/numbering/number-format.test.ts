@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_NUMBER_FORMATS, formatNumber, nextSequence, numberPattern, parseNumberFormat, resetsEveryYear } from "./number-format";
+import { DEFAULT_NUMBER_FORMATS, formatNumber, formatsOverlap, nextSequence, numberPattern, parseNumberFormat, resetsEveryYear } from "./number-format";
 
 describe("parseNumberFormat", () => {
     it("accepts the default formats", () => {
@@ -82,5 +82,20 @@ describe("nextSequence", () => {
     it("starts again at 1 the next year, unless the format has no year", () => {
         expect(nextSequence(null, { ...options, start: 1234, startYear: 2025 })).toBe(1);
         expect(nextSequence(null, { ...options, start: 1234, startYear: 2025, yearly: false })).toBe(1234);
+    });
+});
+
+describe("formatsOverlap", () => {
+    it("catches formats reading each other's numbers", () => {
+        expect(formatsOverlap("F{NNNN}", "F{NNNNN}", 2026)).toBe(true);
+        expect(formatsOverlap("D{NNNN}", "D{YY}{NNNN}", 2026)).toBe(true);
+        expect(formatsOverlap("{NNNN}", "{YYYY}{NNNN}", 2026)).toBe(true);
+        expect(formatsOverlap("OFF-{YYYY}-{NNNN}", "OFF-{YYYY}-{NNNN}", 2026)).toBe(true);
+    });
+
+    it("lets distinct formats be", () => {
+        expect(formatsOverlap("OFF-{YYYY}-{NNNN}", "FAC-{YYYY}-{NNNN}", 2026)).toBe(false);
+        expect(formatsOverlap("MAT{NNNN}", "SER{NNNN}", 2026)).toBe(false);
+        expect(formatsOverlap("CH-{NNNN}", "CH-{YYYY}-{NNNN}", 2026)).toBe(false);
     });
 });

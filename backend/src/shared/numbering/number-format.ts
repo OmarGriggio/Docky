@@ -124,3 +124,13 @@ export const nextSequence = (
     const startApplies = start !== null && (!yearly || startYear === year);
     return Math.max((highest ?? 0) + 1, startApplies ? start : 1);
 };
+
+/**
+ * Whether two formats read each other's numbers - "F{NNNN}" and "F{NNNNN}",
+ * "D{NNNN}" and "D{YY}{NNNN}" (D260001 reads as sequence 260001): two types
+ * numbered that way would share one sequence, or jump. Tried on a number of
+ * each, this year's.
+ */
+export const formatsOverlap = (a: string, b: string, year: number): boolean =>
+    new RegExp(numberPattern(a, year)).test(formatNumber(b, year, 1))
+    || new RegExp(numberPattern(b, year)).test(formatNumber(a, year, 1));
