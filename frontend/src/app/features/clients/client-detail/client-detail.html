@@ -81,8 +81,10 @@
           <th>{{ 'clients.form.postalCodeCity' | transloco }}</th>
           <th>{{ 'clients.detail.addressCountry' | transloco }}</th>
           <th></th>
-          <th></th>
-          <th></th>
+          @if (canWrite()) {
+            <th></th>
+            <th></th>
+          }
         </tr>
       </ng-template>
       <ng-template #body let-address let-editing="editing">
@@ -138,21 +140,22 @@
             }
           </td>
 
-          <td>
-            <div class="flex gap-1">
-              @if (!editing && canWrite()) {
-                <p-button type="button" pInitEditableRow icon="pi pi-pencil" [text]="true" severity="secondary" (click)="onRowEditInit(address)" />
-              } @else {
-                <p-button type="button" pSaveEditableRow icon="pi pi-check" [text]="true" severity="success" (click)="onRowEditSave(address)" />
-                <p-button type="button" pCancelEditableRow icon="pi pi-times" [text]="true" severity="danger" (click)="onRowEditCancel(address)" />
-              }
-            </div>
-          </td>
-          <td>
-            @if (canWrite()) {
+          <!-- Read only: no editing or delete column at all. -->
+          @if (canWrite()) {
+            <td>
+              <div class="flex gap-1">
+                @if (!editing) {
+                  <p-button type="button" pInitEditableRow icon="pi pi-pencil" [text]="true" severity="secondary" (click)="onRowEditInit(address)" />
+                } @else {
+                  <p-button type="button" pSaveEditableRow icon="pi pi-check" [text]="true" severity="success" (click)="onRowEditSave(address)" />
+                  <p-button type="button" pCancelEditableRow icon="pi pi-times" [text]="true" severity="danger" (click)="onRowEditCancel(address)" />
+                }
+              </div>
+            </td>
+            <td>
               <p-button icon="pi pi-trash" severity="danger" [text]="true" (onClick)="deleteAddress(address)" />
-            }
-          </td>
+            </td>
+          }
         </tr>
       </ng-template>
     </p-table>

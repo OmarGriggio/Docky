@@ -64,6 +64,8 @@ export class ClientListComponent implements OnInit {
   // In read only (an employee's permissions): no adding, editing, archiving
   // or importing - the backend refuses them anyway.
   canWrite = computed(() => this.permissions.can('clients', 'WRITE'));
+  // The row's arrow lists the client's quotes/invoices - only either readable.
+  canSeeDocuments = computed(() => this.permissions.can('quotes') || this.permissions.can('invoices'));
 
   clients = signal<ClientListItem[]>([]);
 

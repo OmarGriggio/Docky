@@ -62,7 +62,9 @@
   <p-table [value]="filteredClients()" dataKey="id" showGridlines editMode="row" size="small" [expandedRowKeys]="expandedRowKeys" (onRowExpand)="onRowExpand($event)">
     <ng-template #header>
       <tr>
-        <th style="width: 3rem"></th>
+        @if (canSeeDocuments()) {
+          <th style="width: 3rem"></th>
+        }
         <th>{{ 'clients.columnNumber' | transloco }}</th>
         <!-- Professionnels: the company over two columns; Particuliers:
              first + last name - the same column count either way. -->
@@ -79,7 +81,9 @@
         <th>{{ 'clients.columnEmail' | transloco }}</th>
         <th>{{ 'clients.columnPhone' | transloco }}</th>
         <th>{{ 'clients.columnLanguage' | transloco }}</th>
-        <th></th>
+        @if (canWrite()) {
+          <th></th>
+        }
         <th></th>
       </tr>
     </ng-template>
@@ -92,13 +96,16 @@
 
     <ng-template #body let-client let-editing="editing" let-rowIndex="rowIndex">
       <tr [pEditableRow]="client">
-        <td>
-          <p-button
-            type="button" [text]="true" size="small"
-            [icon]="expandedRowKeys[client.id] ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
-            [pRowToggler]="client"
-          />
-        </td>
+        <!-- The client's quotes/invoices: only for whoever may read them. -->
+        @if (canSeeDocuments()) {
+          <td>
+            <p-button
+              type="button" [text]="true" size="small"
+              [icon]="expandedRowKeys[client.id] ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+              [pRowToggler]="client"
+            />
+          </td>
+        }
         <!-- Not editable - the client's stable business key. -->
         <td>{{ client.client_number }}</td>
 
@@ -192,16 +199,19 @@
           </p-cellEditor>
         </td>
 
-        <td class="w-14">
-          <div class="flex gap-1">
-            @if (!editing && canWrite()) {
-              <p-button type="button" pInitEditableRow icon="pi pi-pencil" [text]="true" severity="secondary" (click)="onRowEditInit(client)" />
-            } @else {
-              <p-button type="button" pSaveEditableRow icon="pi pi-check" [text]="true" severity="success" (click)="onRowEditSave(client)" />
-              <p-button type="button" pCancelEditableRow icon="pi pi-times" [text]="true" severity="danger" (click)="onRowEditCancel(client)" />
-            }
-          </div>
-        </td>
+        <!-- Read only: no editing column at all. -->
+        @if (canWrite()) {
+          <td class="w-14">
+            <div class="flex gap-1">
+              @if (!editing) {
+                <p-button type="button" pInitEditableRow icon="pi pi-pencil" [text]="true" severity="secondary" (click)="onRowEditInit(client)" />
+              } @else {
+                <p-button type="button" pSaveEditableRow icon="pi pi-check" [text]="true" severity="success" (click)="onRowEditSave(client)" />
+                <p-button type="button" pCancelEditableRow icon="pi pi-times" [text]="true" severity="danger" (click)="onRowEditCancel(client)" />
+              }
+            </div>
+          </td>
+        }
 
         <td class="w-12">
           <p-menu #menu [popup]="true" [model]="menuItems" appendTo="body"></p-menu>
