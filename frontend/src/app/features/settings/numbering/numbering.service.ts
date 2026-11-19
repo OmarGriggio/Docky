@@ -4,13 +4,14 @@ import { environment } from '../../../../environments/environment';
 
 const API_BASE = environment.apiUrl;
 
-export type NumberedDocumentType = 'QUOTE' | 'INVOICE';
+export type NumberedType = 'QUOTE' | 'INVOICE' | 'CLIENT' | 'MATERIAL' | 'SERVICE';
 
-// A company's numbering of one document type (the backend's
-// document_numbering.service.ts): its format ("FAC-{YYYY}-{NNNN}"), the
-// number it starts from, and the number the next document gets.
-export interface DocumentNumbering {
-  type: NumberedDocumentType;
+// A company's numbering of its quotes, invoices, clients, materials or
+// services (the backend's numbering.service.ts): its format
+// ("FAC-{YYYY}-{NNNN}"), the number it starts from, and the number the next
+// one gets.
+export interface Numbering {
+  type: NumberedType;
   number_format: string;
   start_number: number | null;
   next_number: string;
@@ -27,17 +28,17 @@ export class NumberingService {
   private http = inject(HttpClient);
 
   getNumbering() {
-    return this.http.get<DocumentNumbering[]>(`${API_BASE}/document-numbering`);
+    return this.http.get<Numbering[]>(`${API_BASE}/numbering`);
   }
 
   // A 400 with a code (NUMBER_FORMAT_...) for a format that isn't one.
-  updateNumbering(type: NumberedDocumentType, settings: NumberingSettings) {
-    return this.http.put<DocumentNumbering>(`${API_BASE}/document-numbering/${type}`, settings);
+  updateNumbering(type: NumberedType, settings: NumberingSettings) {
+    return this.http.put<Numbering>(`${API_BASE}/numbering/${type}`, settings);
   }
 
   // The next number with settings not saved yet - nothing is written.
-  preview(type: NumberedDocumentType, settings: NumberingSettings) {
-    return this.http.post<{ next_number: string }>(`${API_BASE}/document-numbering/${type}/preview`, settings);
+  preview(type: NumberedType, settings: NumberingSettings) {
+    return this.http.post<{ next_number: string }>(`${API_BASE}/numbering/${type}/preview`, settings);
   }
 
 }

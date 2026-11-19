@@ -36,7 +36,7 @@ export class ClientForm implements OnInit {
 
   // When set (see "Dupliquer" in client-list.ts), pre-fills the form with an
   // existing client's data - its number aside: the backend generates every
-  // new client's (C0001, C0002...).
+  // new client's (C0001, C0002... or the company's own format).
   duplicateFrom = input<Client | null>(null);
   // The type a fresh form starts on - the client list's active tab.
   type = input<ClientType>('INDIVIDUAL');

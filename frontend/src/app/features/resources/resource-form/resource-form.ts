@@ -27,7 +27,7 @@ export class ResourceForm implements OnInit {
 
   // When set (see "Dupliquer" in resource-list.ts), pre-fills the form with
   // an existing resource's data - its code aside: the backend generates every
-  // new resource's (MAT0001, SER0001...).
+  // new resource's (MAT0001, SER0001... or the company's own format).
   duplicateFrom = input<Resource | null>(null);
 
   saved = output<Resource>();

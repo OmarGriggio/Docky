@@ -36,8 +36,8 @@
     "english": "English",
     "numberingMenu": "Numérotation",
     "numbering": {
-      "title": "Numérotation des documents",
-      "description": "Le format des numéros de tes offres et factures, et le numéro à partir duquel continuer - pratique pour poursuivre la série de ton ancien logiciel. Un numéro n'est jamais donné deux fois.",
+      "title": "Numérotation",
+      "description": "Le format des numéros de tes offres, factures, clients et ressources, et le numéro à partir duquel continuer - pratique pour poursuivre la série de ton ancien logiciel. Un numéro n'est jamais donné deux fois.",
       "quotes": "Offres",
       "invoices": "Factures",
       "format": "Format",
@@ -58,10 +58,13 @@
         "NUMBER_FORMAT_SEVERAL_SEQUENCES": "Un seul numéro par format.",
         "NUMBER_FORMAT_SEQUENCE_TOO_LONG": "Le numéro a 8 chiffres au plus.",
         "NUMBER_FORMAT_INVALID_CHARACTERS": "Seulement des lettres sans accent, des chiffres, - _ . / et les éléments {YYYY}, {YY}, {NNNN}.",
-        "NUMBER_FORMAT_TAKEN": "Ce format est déjà celui d'un autre type de document.",
+        "NUMBER_FORMAT_TAKEN": "Ce format est déjà celui d'un autre type (offres, factures et chantiers entre eux, matériel et services entre eux).",
         "NUMBER_START_INVALID": "Le numéro de départ va de 1 à 99999999.",
         "generic": "Impossible de calculer le prochain numéro."
-      }
+      },
+      "clients": "Clients",
+      "materials": "Matériel",
+      "services": "Services"
     },
     "permissionsMenu": "Droits des employés",
     "permissions": {

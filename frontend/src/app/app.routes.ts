@@ -151,7 +151,7 @@ export const routes: Routes = [
       },
       {
         // Readable by every role - only an admin can save (the backend's
-        // document_numbering.routes.ts), the page says so.
+        // numbering.routes.ts), the page says so.
         path: 'numbering',
         loadComponent: () => import('./features/settings/numbering/numbering').then(m => m.Numbering),
         data: { breadcrumb: 'settings.numberingMenu' }

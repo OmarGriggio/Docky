@@ -9,10 +9,19 @@ import { InputNumber } from 'primeng/inputnumber';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { AuthService } from '../../auth/auth.service';
 import { NotificationService } from '../../../shared/services/notification.service';
-import { NumberedDocumentType, NumberingService } from './numbering.service';
+import { NumberedType, NumberingService } from './numbering.service';
+
+// Each type's section title.
+const TYPE_LABELS: Record<NumberedType, string> = {
+  QUOTE: 'settings.numbering.quotes',
+  INVOICE: 'settings.numbering.invoices',
+  CLIENT: 'settings.numbering.clients',
+  MATERIAL: 'settings.numbering.materials',
+  SERVICE: 'settings.numbering.services',
+};
 
 interface NumberingDraft {
-  type: NumberedDocumentType;
+  type: NumberedType;
   format: string;
   start: number | null;
   // The live preview - the next number, or the reason the format isn't one.
@@ -22,8 +31,8 @@ interface NumberingDraft {
 
 const PREVIEW_DELAY = 300;
 
-// Paramètres > Numérotation: how the company's quotes and invoices are
-// numbered (the backend's document_numbering.service.ts) - a format with
+// Paramètres > Numérotation: how the company's quotes, invoices, clients and
+// resources are numbered (the backend's numbering.service.ts) - a format with
 // the year and the sequence as tokens, and the number it starts from, for a
 // company moving to Docky that continues its own series. The next number is
 // previewed as it's typed. An admin's to change, like the profile.
@@ -53,7 +62,7 @@ export class Numbering implements OnInit {
     { token: '{NNNN}', label: 'settings.numbering.tokenSequence' },
   ];
 
-  private previewTimers = new Map<NumberedDocumentType, ReturnType<typeof setTimeout>>();
+  private previewTimers = new Map<NumberedType, ReturnType<typeof setTimeout>>();
 
   constructor() {
     inject(DestroyRef).onDestroy(() => this.previewTimers.forEach(timer => clearTimeout(timer)));
@@ -82,13 +91,13 @@ export class Numbering implements OnInit {
     return /\{YY(YY)?\}/.test(draft.format);
   }
 
-  update(type: NumberedDocumentType, patch: Partial<Pick<NumberingDraft, 'format' | 'start'>>): void {
+  update(type: NumberedType, patch: Partial<Pick<NumberingDraft, 'format' | 'start'>>): void {
     this.drafts.update(drafts => drafts.map(draft => draft.type === type ? { ...draft, ...patch } : draft));
     this.schedulePreview(type);
   }
 
   // A token at the cursor of that type's format field, or at its end.
-  insertToken(type: NumberedDocumentType, token: string, input: HTMLInputElement): void {
+  insertToken(type: NumberedType, token: string, input: HTMLInputElement): void {
     const at = input.selectionStart ?? input.value.length;
     const end = input.selectionEnd ?? at;
     const format = input.value.slice(0, at) + token + input.value.slice(end);
@@ -99,12 +108,12 @@ export class Numbering implements OnInit {
     });
   }
 
-  private schedulePreview(type: NumberedDocumentType): void {
+  private schedulePreview(type: NumberedType): void {
     clearTimeout(this.previewTimers.get(type));
     this.previewTimers.set(type, setTimeout(() => this.refreshPreview(type), PREVIEW_DELAY));
   }
 
-  private refreshPreview(type: NumberedDocumentType): void {
+  private refreshPreview(type: NumberedType): void {
     const draft = this.drafts().find(item => item.type === type);
     if (!draft) {
       return;
@@ -117,7 +126,7 @@ export class Numbering implements OnInit {
 
   // Only if the draft hasn't changed since - an older answer arriving late
   // doesn't overwrite a newer one.
-  private setPreview(type: NumberedDocumentType, sent: NumberingDraft, preview: string | null, errorKey: string | null): void {
+  private setPreview(type: NumberedType, sent: NumberingDraft, preview: string | null, errorKey: string | null): void {
     this.drafts.update(drafts => drafts.map(draft =>
       draft.type === type && draft.format === sent.format && draft.start === sent.start ? { ...draft, preview, errorKey } : draft
     ));
@@ -153,8 +162,8 @@ export class Numbering implements OnInit {
     }
   }
 
-  typeLabel(type: NumberedDocumentType): string {
-    return this.transloco.translate(type === 'QUOTE' ? 'settings.numbering.quotes' : 'settings.numbering.invoices');
+  typeLabel(type: NumberedType): string {
+    return this.transloco.translate(TYPE_LABELS[type]);
   }
 
 }
