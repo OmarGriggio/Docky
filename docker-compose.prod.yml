@@ -46,6 +46,13 @@ services:
   backend:
     container_name: ${BACKEND_CONTAINER_NAME}
 
+    # Built and pushed by CI (.github/workflows/deploy.yml), pulled here.
+    # DOCKY_IMAGE_TAG: the commit the deploy pulls, or a version to roll back
+    # to (see zz_docs/Deployment.md) - latest when unset.
+    image: ghcr.io/omargriggio/docky-backend:${DOCKY_IMAGE_TAG:-latest}
+
+    # Only a fallback if GHCR is ever unreachable: `up -d --build` builds it
+    # here, as before (needs the swap - see zz_docs/Deployment.md).
     build:
       context: ./backend
       target: prod
@@ -106,6 +113,9 @@ services:
 
   frontend:
     container_name: docky-frontend
+
+    # Pulled from GHCR like the backend's, same tag.
+    image: ghcr.io/omargriggio/docky-frontend:${DOCKY_IMAGE_TAG:-latest}
 
     build:
       context: ./frontend
