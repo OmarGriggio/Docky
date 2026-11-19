@@ -83,11 +83,13 @@ jobs:
           # never moved), the version (moved by a later push without a version
           # bump) and latest. The build stages are cached in the registry
           # (buildcache), so an unchanged npm install isn't redone. The label
-          # linking the package to this repo is in the Dockerfiles.
+          # linking the package to this repo is in the Dockerfiles. A cache that
+          # can't be saved (it failed once, the images already pushed) only
+          # makes the next build slower - never fails this one.
           docker buildx build ./${{ matrix.app }} --target prod --push \
             --tag "$image:${{ github.sha }}" --tag "$image:$version" --tag "$image:latest" \
             --cache-from "type=registry,ref=$image:buildcache" \
-            --cache-to "type=registry,ref=$image:buildcache,mode=max"
+            --cache-to "type=registry,ref=$image:buildcache,mode=max,ignore-error=true"
 
   deploy:
     needs: [build-images]
