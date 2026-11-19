@@ -27,6 +27,7 @@ import { Client } from '../../../shared/models/client';
 import { Address } from '../../../shared/models/address';
 import { Project } from '../../../shared/models/project';
 import { Company } from '../../../shared/models/company';
+import { DocumentColors } from '../../../shared/components/rich-text-view/rich-text-view';
 import { DocumentContentSection, DocumentRecipient, DocumentStatus, DocumentType, BilledAddress } from '../../../shared/models/document';
 import { DocumentComplete } from '../../../shared/models/document-complete';
 import { addDays, fromDateOnly, toDateOnly, fillPlaceholders, formatLongDate, DEFAULT_CLIENT_TITLE } from '../../../shared/utils/display';
@@ -171,6 +172,8 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
     });
   }
   companyLogoUrl = computed(() => this.companyService.getFileUrl(this.company()?.logo ?? null));
+  // What the introduction's and conclusion's [c1]/[f2]... passages print in.
+  documentColors = computed<DocumentColors>(() => ({ 1: this.company()?.accent_color ?? null, 2: this.company()?.secondary_color ?? null }));
 
   clients = signal<Client[]>([]);
 

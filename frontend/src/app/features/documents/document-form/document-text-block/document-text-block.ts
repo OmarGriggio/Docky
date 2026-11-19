@@ -8,6 +8,8 @@ import { DocumentType } from '../../../../shared/models/document';
 import { TabIndentDirective } from '../../../../shared/directives/tab-indent.directive';
 import { placeholderToken } from '../../../../shared/utils/display';
 import { DocumentTemplateService } from '../../document-template.service';
+import { TextStyleToolbar } from '../../../../shared/components/text-style-toolbar/text-style-toolbar';
+import { DocumentColors, RichTextView } from '../../../../shared/components/rich-text-view/rich-text-view';
 
 // The document's introduction or conclusion (one component, used for both):
 // a read-only preview + "Modifier le texte" by default - clicking it swaps
@@ -20,7 +22,7 @@ import { DocumentTemplateService } from '../../document-template.service';
 @Component({
   selector: 'app-document-text-block',
   standalone: true,
-  imports: [FormsModule, Button, Textarea, ConfirmDialogComponent, TabIndentDirective, TranslocoPipe],
+  imports: [FormsModule, Button, Textarea, ConfirmDialogComponent, TabIndentDirective, TranslocoPipe, TextStyleToolbar, RichTextView],
   templateUrl: './document-text-block.html',
   host: { class: 'block' },
 })
@@ -40,6 +42,9 @@ export class DocumentTextBlock {
   // How the PDF will print a text ({{placeholders}} filled in) - shown in the
   // read-only preview. Passed in since it depends on the form's own values.
   resolve = input.required<(text: string) => string>();
+  // The company's two document colors - the toolbar's swatches and the
+  // preview's styled passages ([c1], [f2]... see shared/utils/rich-text.ts).
+  colors = input<DocumentColors>({ 1: null, 2: null });
 
   // Shown under the textarea - built here since a literal double brace in a
   // template is read as an interpolation. The {{tokens}} themselves are

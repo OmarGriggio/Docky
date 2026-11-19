@@ -176,6 +176,7 @@
         [placeholder]="'documents.form.introPlaceholder' | transloco"
         [type]="type()"
         [resolve]="resolvePlaceholders"
+        [colors]="documentColors()"
         [locked]="locked()"
         [(text)]="introduction"
       />
@@ -223,6 +224,7 @@
           [placeholder]="'documents.form.conclusionPlaceholder' | transloco"
           [type]="type()"
           [resolve]="resolvePlaceholders"
+          [colors]="documentColors()"
           [locked]="locked()"
           [(text)]="conclusion"
         />

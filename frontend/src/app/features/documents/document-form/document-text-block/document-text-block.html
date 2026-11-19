@@ -1,9 +1,11 @@
 @if (locked()) {
   @if (text()) {
-    <p class="text-sm text-[#333] m-0 whitespace-pre-wrap">{{ resolve()(text()) }}</p>
+    <p class="text-sm text-[#333] m-0 whitespace-pre-wrap"><app-rich-text-view [text]="text()" [colors]="colors()" [resolve]="resolve()" /></p>
   }
 } @else if (editing() || !text()) {
+  <app-text-style-toolbar [target]="textarea" [colors]="colors()" />
   <textarea
+    #textarea
     pTextarea
     pSize="small"
     [ngModel]="draft()"
@@ -22,7 +24,7 @@
     <p class="m-0 mt-2 text-sm text-[#d32f2f]">{{ saveError() }}</p>
   }
 } @else {
-  <p class="text-sm text-[#333] m-0 whitespace-pre-wrap">{{ resolve()(text()) }} ... <a class="text-sm hover:underline cursor-pointer text-green-700" (click)="startEdit()">{{ 'documents.textBlock.editText' | transloco }}</a></p>
+  <p class="text-sm text-[#333] m-0 whitespace-pre-wrap"><app-rich-text-view [text]="text()" [colors]="colors()" [resolve]="resolve()" /> ... <a class="text-sm hover:underline cursor-pointer text-green-700" (click)="startEdit()">{{ 'documents.textBlock.editText' | transloco }}</a></p>
 }
 
 <app-confirm-dialog
