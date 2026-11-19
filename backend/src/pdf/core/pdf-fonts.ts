@@ -1,7 +1,7 @@
 import { readFile } from "fs/promises";
 import path from "path";
 
-// The fonts a company can print its documents in (companies.document_font).
+// The fonts a template can print its documents in (templates.font).
 // HELVETICA is one of the PDF standard fonts - nothing to embed, Latin-1
 // only. The others are free fonts (SIL Open Font License, its text next to
 // each one) embedded in the PDF, subset to the characters it uses - they

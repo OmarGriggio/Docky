@@ -1,7 +1,7 @@
 import { formatLongDate, PdfLanguage } from "./pdf-labels";
 
-// The {{placeholders}} a company can use in its payment reminder text (a
-// document_templates row of type REMINDER): numero_facture, date_facture,
+// The {{placeholders}} a company can use in its payment reminder text (its
+// template's reminder_text): numero_facture, date_facture,
 // date_echeance, montant, jours_retard, client, signature_entreprise - see fillPlaceholders
 // (placeholders.ts) for how they're replaced.
 

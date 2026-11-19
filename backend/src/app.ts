@@ -11,7 +11,7 @@ import documentRoutes from "./modules/documents/document.routes";
 import documentCompleteRoutes from "./modules/documents/document_complete.routes";
 import documentLineRoutes from "./modules/documents/document_line.routes";
 import documentSectionRoutes from "./modules/documents/document_section.routes";
-import documentTemplateRoutes from "./modules/documents/document_template.routes";
+import templateRoutes from "./modules/templates/template.routes";
 import numberingRoutes from "./modules/numbering/numbering.routes";
 import permissionRoutes from "./modules/permissions/permission.routes";
 import { hidePricesFromEmployees } from "./modules/permissions/permission.middleware";
@@ -49,11 +49,12 @@ app.use((req, res, next) => (req.path === "/client/import" ? next() : jsonParser
 // uploads there too now. Express 5 needs a named wildcard (*splat, not a
 // bare *); req.params.splat comes back as an array of path segments.
 // Public (no auth) on purpose, since <img> tags can't send a bearer token - so
-// it only ever serves the company logo/header keys company.controller.ts
-// builds, never anything else in the bucket (project attachments live there
+// it only ever serves the company logo and the templates' header images
+// (the keys company.controller.ts and template.controller.ts build, the
+// migrated companies/{id}/header.* included), never anything else in the bucket (project attachments live there
 // too, under companies/{id}/projects/..., and go through their own
 // authenticated route instead).
-const PUBLIC_UPLOAD_KEY = /^companies\/\d+\/(logo|header)\.(jpg|png)$/;
+const PUBLIC_UPLOAD_KEY = /^companies\/\d+\/(logo|header|templates\/\d+\/header-[0-9a-f]{12})\.(jpg|png)$/;
 
 app.get("/uploads/*splat", async (req, res) => {
   const segments = req.params.splat;
@@ -99,7 +100,7 @@ app.use("/document-line", documentLineRoutes);
 
 app.use("/document-section", documentSectionRoutes);
 
-app.use("/document-template", documentTemplateRoutes);
+app.use("/template", templateRoutes);
 
 app.use("/numbering", numberingRoutes);
 

@@ -30,7 +30,8 @@ import { keptLinePrice, LinePrice } from "./hidden-prices";
 import { clientDisplayName } from "../clients/client.display";
 import { getProjectByDocumentIdFromDB, createProjectInDB, getProjectByIdFromDB } from "../projects/project.repository";
 import { amountDue, BillingSummary, ChantierInvoice, depositAmounts, DepositRequest, depositsToDeduct, summarizeBilling } from "./deposit";
-import { getTemplateServ } from "./document_template.service";
+import { assertTemplateForDocumentServ, templateOfDocumentServ } from "../templates/template.service";
+import { Template } from "../templates/template.types";
 import { PDF_LABELS, toPdfLanguage } from "../../pdf/templates/pdf-labels";
 import { getResourceByIdFromDB } from "../catalog/resource.repository";
 import { getCompanyByIdFromDB } from "../companies/company.repository";
@@ -142,6 +143,13 @@ const assertValidRates = (discount: number, vat_rate: number) => {
   }
 };
 
+// The early payment discount a document gets from its template: an
+// invoice's (STANDARD - a deposit never has one, it's only ever on the final
+// invoice), none for a quote - there's nothing to pay yet.
+const earlyPaymentOf = (template: Template, type: string, kind: string = "STANDARD") => type === "INVOICE" && kind === "STANDARD"
+  ? { early_payment_discount: template.early_payment_discount, early_payment_days: template.early_payment_days, early_payment_min_amount: template.early_payment_min_amount }
+  : { early_payment_discount: 0, early_payment_days: null, early_payment_min_amount: 0 };
+
 export const addDocumentServ = async (documentData: CreateDocumentData, company_id: number) => {
   // A PROJECT document is always created together with its projects row, in
   // one go - see project.service.ts's addProjectServ (a chantier created by
@@ -197,15 +205,11 @@ export const addDocumentServ = async (documentData: CreateDocumentData, company_
       }
     }
 
-    // An invoice offers the company's current early payment discount, copied
-    // here and frozen on it (see document.types.ts) - never taken from the
-    // request body. A quote doesn't offer one: there's nothing to pay yet.
-    const company = documentData.type === "INVOICE" ? await getCompanyByIdFromDB(company_id) : null;
-    const earlyPayment = {
-      early_payment_discount: company?.early_payment_discount ?? 0,
-      early_payment_days: company?.early_payment_days ?? null,
-      early_payment_min_amount: company?.early_payment_min_amount ?? 0,
-    };
+    // Its template (the company's own, active - its default without one), and
+    // the early payment discount an invoice offers, copied from it and frozen
+    // here (see document.types.ts) - never taken from the request body.
+    const template = await assertTemplateForDocumentServ(documentData.template_id, company_id);
+    const earlyPayment = earlyPaymentOf(template, documentData.type);
 
     // amount_excl_vat/amount_incl_vat are always computed from the document's
     // lines (see recomputeDocumentTotalsServ) — a freshly created document has
@@ -217,6 +221,7 @@ export const addDocumentServ = async (documentData: CreateDocumentData, company_
       ...documentData,
       ...recipient,
       ...earlyPayment,
+      template_id: template.id,
       parent_document_id,
       company_id,
       number,
@@ -276,7 +281,22 @@ export const updateDocumentServ = async (id: number, company_id: number, documen
   await assertClientAddress(documentData.address_id, client.id, company_id);
   const recipient = resolveRecipient(client, documentData);
 
-  const updated = await updateDocumentInDB(id, company_id, { ...documentData, ...recipient });
+  // Its template: kept when the request leaves it out, else the company's
+  // own and active (a 404 otherwise). Changing it gives a draft invoice that
+  // template's early payment discount - it's only frozen once sent; any other
+  // edit keeps the one it has.
+  const templateChanged = documentData.template_id !== undefined && documentData.template_id !== document.template_id;
+  const template = templateChanged ? await assertTemplateForDocumentServ(documentData.template_id, company_id) : null;
+  const earlyPayment = template
+    ? earlyPaymentOf(template, document.type, document.invoice_kind)
+    : { early_payment_discount: document.early_payment_discount, early_payment_days: document.early_payment_days, early_payment_min_amount: document.early_payment_min_amount };
+
+  const updated = await updateDocumentInDB(id, company_id, {
+    ...documentData,
+    ...recipient,
+    ...earlyPayment,
+    template_id: template?.id ?? document.template_id,
+  });
   if (!updated) {
     throw new ConflictError("This document can no longer be edited");
   }
@@ -710,9 +730,10 @@ export const getChantierBillingServ = async (project_id: number, company_id: num
 // total incl. VAT, or an amount. A draft like any invoice, numbered with the
 // others (FAC-...), to the chantier's client (or typed-in recipient) and
 // address, with one line "Acompte n° 2 - 30 % selon offre OFF-..." in the
-// client's language, at the company's current VAT rate, the invoice
-// template's texts, payment terms and due date -
-// and no early payment discount: that's only ever on the final invoice.
+// client's language, at the company's current VAT rate, with the template
+// of the quote it comes from (the company's default for a chantier made by
+// hand) - its invoice texts, payment terms and due date - and no early
+// payment discount: that's only ever on the final invoice.
 export const addDepositInvoiceServ = async (project_id: number, company_id: number, request: DepositRequest) => {
   const { project, projectDocument, quote } = await chantierDocuments(project_id, company_id);
   if (!project.is_active) {
@@ -733,9 +754,9 @@ export const addDepositInvoiceServ = async (project_id: number, company_id: numb
   }
   const language = toPdfLanguage(client.language);
   const labels = PDF_LABELS[language];
-  const template = await getTemplateServ("INVOICE", company_id, language);
+  const template = await templateOfDocumentServ(quote?.template_id ?? null, company_id);
   const today = new Date();
-  const dueDate = template.due_days ? new Date(today.getFullYear(), today.getMonth(), today.getDate() + template.due_days) : null;
+  const dueDate = template.invoice_due_days ? new Date(today.getFullYear(), today.getMonth(), today.getDate() + template.invoice_due_days) : null;
 
   return await withTransaction(async () => {
     const number = await generateDocumentNumber(company_id, "INVOICE");
@@ -763,9 +784,9 @@ export const addDepositInvoiceServ = async (project_id: number, company_id: numb
       discount: 0,
       vat_rate: vatRate,
       status: "DRAFT",
-      introduction: template.introduction,
-      conclusion: template.conclusion,
-      payment_terms: company.payment_terms,
+      introduction: template.invoice_introduction,
+      conclusion: template.invoice_conclusion,
+      payment_terms: template.payment_terms,
       due_date: dueDate,
       recipient_name: projectDocument.recipient_name,
       recipient_complement: projectDocument.recipient_complement,
@@ -776,6 +797,7 @@ export const addDepositInvoiceServ = async (project_id: number, company_id: numb
       early_payment_days: null,
       early_payment_min_amount: 0,
       is_active: true,
+      template_id: template.id,
     });
 
     // The section's title is what page 1 lists ("Pos 1"), its one line the

@@ -11,6 +11,9 @@ import { getFileServ } from "../../shared/storage/storage.service";
 import { DepositDeduction } from "../../modules/documents/document.types";
 import { getDepositDeductionsServ } from "../../modules/documents/document.service";
 import { amountDue } from "../../modules/documents/deposit";
+import { Template, TemplateStyle } from "../../modules/templates/template.types";
+import { templateOfDocumentServ } from "../../modules/templates/template.service";
+import { documentStyleOf } from "../../modules/templates/template.rules";
 
 // Everything a PDF of one document is built from - loaded once by the
 // skeleton below, handed to each step.
@@ -18,6 +21,10 @@ export interface PdfSource {
     document: DocumentComplete;
     client: ClientWithAddresses;
     company: Company;
+    // The document's template (its reminder text, a quote's payment terms),
+    // and its look: the template's, or what it was frozen with once sent.
+    template: Template;
+    style: TemplateStyle;
     // A chantier's final invoice: the deposits it deducts (none otherwise),
     // and what's left to pay - the QR-bill's amount (see deposit.ts).
     deductions: DepositDeduction[];
@@ -38,8 +45,8 @@ export abstract class DocumentPdfGenerator<TPrepared> {
         const source = await this.load(documentId, company_id);
         const prepared = await this.prepare(source);
 
-        // In the company's own font (pdf-fonts.ts) - Helvetica when unknown.
-        const pdf = await PdfWriter.create({ font: isFontFamily(source.company.document_font) ? source.company.document_font : "HELVETICA" });
+        // In its template's font (pdf-fonts.ts) - Helvetica when unknown.
+        const pdf = await PdfWriter.create({ font: isFontFamily(source.style.font) ? source.style.font : "HELVETICA" });
         await this.render(pdf, prepared);
 
         // Only once everything is drawn: the total isn't known before then.
@@ -54,7 +61,9 @@ export abstract class DocumentPdfGenerator<TPrepared> {
         const client = await getClientByIdServ(document.client_id, company_id);
         const company = await getCompanyByIdServ(client.company_id);
         const deductions = await getDepositDeductionsServ(document, company_id);
-        return { document, client, company, deductions, amountDue: amountDue(document.amount_incl_vat, deductions) };
+        const template = await templateOfDocumentServ(document.template_id, company.id);
+        const style = documentStyleOf(document.template_style, template);
+        return { document, client, company, template, style, deductions, amountDue: amountDue(document.amount_incl_vat, deductions) };
     }
 
     /** Hook: reject a document this kind of PDF makes no sense for (throw). Nothing by default. */
@@ -66,16 +75,25 @@ export abstract class DocumentPdfGenerator<TPrepared> {
     /** Draws the pages. Numbering and saving are the skeleton's job, not this one's. */
     protected abstract render(pdf: PdfWriter, prepared: TPrepared): Promise<void>;
 
-    // Logos (and the invoice header image, same storage) live in MinIO/S3
+    // Logos (and the templates' header images, same storage) live in MinIO/S3
     // (see shared/storage/storage.service.ts), not on local disk. No file,
     // not just none set, comes back the same way (null) - a PDF should still
     // render without one either way. Only ever this company's own
     // logo/header key, the one its upload route builds - anything else
-    // stored in companies.logo/header_image (another company's private
-    // attachment, say) is ignored rather than embedded in this PDF.
-    protected async readCompanyImage(company: Company, kind: "logo" | "header"): Promise<Buffer | null> {
-        const path = kind === "logo" ? company.logo : company.header_image;
-        if (!path || !new RegExp(`^companies/${company.id}/${kind}\\.(jpg|png)$`).test(path)) return null;
+    // stored in companies.logo or a template's header_image (another
+    // company's private attachment, say) is ignored rather than embedded in
+    // this PDF.
+    protected async readCompanyImage(company: Company, kind: "logo"): Promise<Buffer | null> {
+        return this.readImage(company.logo, new RegExp(`^companies/${company.id}/${kind}\\.(jpg|png)$`));
+    }
+
+    /** The document's header image (its style's) - the company's own templates' keys only, the one migrated from the profile included. */
+    protected async readHeaderImage(company: Company, style: TemplateStyle): Promise<Buffer | null> {
+        return this.readImage(style.header_image, new RegExp(`^companies/${company.id}/(header|templates/\\d+/header-[0-9a-f]{12})\\.(jpg|png)$`));
+    }
+
+    private async readImage(path: string | null, allowed: RegExp): Promise<Buffer | null> {
+        if (!path || !allowed.test(path)) return null;
 
         const file = await getFileServ(path);
         if (!file) return null;

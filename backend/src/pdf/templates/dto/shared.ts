@@ -1,6 +1,7 @@
 import { ClientWithAddresses } from "../../../modules/clients/client.types";
 import { clientDisplayName } from "../../../modules/clients/client.display";
 import { Company } from "../../../modules/companies/company.types";
+import { TemplateStyle } from "../../../modules/templates/template.types";
 import { DocumentComplete } from "../../../modules/documents/document_complete.types";
 import { lineTotal, round2 } from "../../../modules/documents/document.calculations";
 import { ClientDto, CompanyDto, DocumentSectionDto } from "../document.types";
@@ -60,12 +61,15 @@ export const hasTypedRecipient = (client: ClientWithAddresses, document: Documen
 // What an invoice and a quote print alike (see business-letter.ts) - each
 // DTO adds its own fields on top. The introduction/conclusion have their
 // {{...}} placeholders filled in already.
+// `style`: the document's look - its template's, or frozen with it once
+// sent (template.rules.ts's documentStyleOf).
 // `amountDue`: what {{montant}} says - a final invoice's balance, not its
 // whole total (see deposit.ts).
 export const buildLetterDto = (
     document: DocumentComplete,
     client: ClientWithAddresses,
     company: Company,
+    style: TemplateStyle,
     language: PdfLanguage,
     amountDue: number = document.amount_incl_vat
 ): LetterDto => {
@@ -84,9 +88,9 @@ export const buildLetterDto = (
             website: company.website,
             bankName: company.bank_name,
             bankAccount: company.bank_account,
-            accentColor: parseHexColor(company.accent_color),
-            secondaryColor: parseHexColor(company.secondary_color),
-            layout: company.document_layout === "MODERN" ? "MODERN" : "CLASSIC",
+            accentColor: parseHexColor(style.accent_color),
+            secondaryColor: parseHexColor(style.secondary_color),
+            layout: style.layout === "MODERN" ? "MODERN" : "CLASSIC",
         },
         client: {
             ...buildClientDto(client, document),

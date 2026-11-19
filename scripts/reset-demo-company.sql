@@ -45,7 +45,10 @@ DELETE FROM addresses WHERE company_id = 2;
 DELETE FROM clients WHERE company_id = 2 AND is_placeholder = FALSE; -- "Non défini" stays (see 007_add_placeholder_client.sql)
 DELETE FROM resources WHERE company_id = 2;
 DELETE FROM resource_units WHERE company_id = 2;
-DELETE FROM document_templates WHERE company_id = 2;
+-- Its templates (025_add_templates.sql) - a visitor's colors, header image
+-- or texts would otherwise print on every later visitor's documents. Their
+-- header images went with the company's files (purge-company-files.ts).
+DELETE FROM templates WHERE company_id = 2;
 DELETE FROM calendar_notes WHERE company_id = 2;
 
 -- ==========================================
@@ -63,27 +66,16 @@ UPDATE companies SET
     city = 'Sion',
     country = 'Switzerland',
     logo = NULL,
-    header_image = NULL,
     vat_rate = 8.1,
     vat_number = 'CHE-321.654.987 VAT',
-    payment_terms = 'Payment due within 30 days net, no discount.
-A late payment interest of 5% per annum will be charged on overdue payments.',
-    -- 009/010/013/014/020/021's columns, back to their defaults - a visitor
-    -- can set a website, bank, early payment discount, color, QR-IBAN,
-    -- payment reference or document template that every later visitor's
-    -- invoices would otherwise keep printing.
+    -- 009/020's columns, back to their defaults - a visitor can set a
+    -- website, bank, QR-IBAN or payment reference that every later
+    -- visitor's invoices would otherwise keep printing.
     website = NULL,
     bank_name = NULL,
     bank_account = NULL,
-    early_payment_discount = 0,
-    early_payment_days = NULL,
-    early_payment_min_amount = 0,
-    accent_color = NULL,
-    secondary_color = NULL,
     qr_iban = NULL,
-    payment_reference_type = 'SCOR',
-    document_layout = 'CLASSIC',
-    document_font = 'HELVETICA'
+    payment_reference_type = 'SCOR'
 WHERE id = 2;
 
 -- Back to the default numbering (022_add_document_numbering.sql, 024) - the
@@ -168,24 +160,27 @@ VALUES
 (20, 2, 'kg');
 
 -- ==========================================
--- DOCUMENT TEMPLATES
+-- TEMPLATE
 -- ==========================================
 
-INSERT INTO document_templates
-(id, company_id, type, introduction, conclusion, due_days)
+-- Its one "Standard" template, the default (what 025_add_templates.sql made
+-- of company 2's settings): no colors, no header image, the classic layout.
+INSERT INTO templates
+(company_id, name, is_default, layout, font, quote_introduction, quote_conclusion, quote_due_days,
+ invoice_introduction, invoice_conclusion, invoice_due_days, payment_terms)
 VALUES
-(3, 2, 'INVOICE', '{{titre_client}},
-
-We are pleased to send you the invoice below, issued in accordance with our agreement. Please do not hesitate to contact us with any questions.', 'Thank you for your trust. Kind regards,
-
-{{signature_entreprise}}', 30),
-(4, 2, 'QUOTE', '{{titre_client}},
+(2, 'Standard', TRUE, 'CLASSIC', 'HELVETICA', '{{titre_client}},
 
 We are pleased to submit our quote for the work described below.', 'This quote is valid for 30 days from its issue date. Please do not hesitate to contact us with any questions.
 
 Kind regards,
 
-{{signature_entreprise}}', 30);
+{{signature_entreprise}}', 30, '{{titre_client}},
+
+We are pleased to send you the invoice below, issued in accordance with our agreement. Please do not hesitate to contact us with any questions.', 'Thank you for your trust. Kind regards,
+
+{{signature_entreprise}}', 30, 'Payment due within 30 days net, no discount.
+A late payment interest of 5% per annum will be charged on overdue payments.');
 
 -- ==========================================
 -- DOCUMENTS
@@ -468,7 +463,9 @@ WHERE d.company_id = 2
 
 -- The demo's deposit invoices and a final invoice deducting one - the same
 -- block as zz_migrations/019_add_demo_deposit_invoices.sql (see its header),
--- run again on the freshly re-seeded company 2. Keep both in sync.
+-- run again on the freshly re-seeded company 2 - but its texts and payment
+-- terms read from its template (025_add_templates.sql), not from the
+-- document_templates and companies columns 019 had. Keep both in sync otherwise.
 DO $$
 DECLARE
     yr TEXT := EXTRACT(YEAR FROM CURRENT_DATE)::TEXT;
@@ -500,9 +497,8 @@ BEGIN
         FROM documents WHERE company_id = 2 AND number LIKE 'FAC-' || yr || '-%';
     SELECT COALESCE(MAX(substring(number FROM '^CH-' || yr || '-([0-9]+)$')::INT), 0) INTO ch_seq
         FROM documents WHERE company_id = 2 AND number LIKE 'CH-' || yr || '-%';
-    SELECT introduction, conclusion INTO template_intro, template_conclusion
-        FROM document_templates WHERE company_id = 2 AND type = 'INVOICE';
-    SELECT payment_terms INTO terms FROM companies WHERE id = 2;
+    SELECT invoice_introduction, invoice_conclusion, payment_terms INTO template_intro, template_conclusion, terms
+        FROM templates WHERE company_id = 2 AND is_default;
 
     -- ==========================================
     -- "Attic insulation": two deposits of 30 % of its quote
@@ -605,3 +601,19 @@ BEGIN
     VALUES (2, doc_id, facade_section, 'MATERIAL', 1, 'Facade paint', 120, 'm²', 18, 0, TRUE),
            (2, doc_id, facade_section, 'SERVICE', 2, 'Painter', 40, 'Hour', 45, 0, TRUE);
 END $$;
+
+-- ==========================================
+-- TEMPLATE OF EVERY DOCUMENT
+-- ==========================================
+
+-- Every quote and invoice printed with the Standard template, those already
+-- sent frozen with its look - like 026_add_document_template.sql did for
+-- every company's documents.
+UPDATE documents SET template_id = (SELECT id FROM templates WHERE company_id = 2 AND is_default)
+WHERE company_id = 2 AND type IN ('QUOTE', 'INVOICE');
+
+UPDATE documents d SET template_style = jsonb_build_object(
+    'layout', t.layout, 'font', t.font, 'accent_color', t.accent_color,
+    'secondary_color', t.secondary_color, 'header_image', t.header_image)
+FROM templates t
+WHERE t.id = d.template_id AND d.company_id = 2 AND d.status IS NOT NULL AND d.status <> 'DRAFT';

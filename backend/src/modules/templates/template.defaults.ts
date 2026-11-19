@@ -1,5 +1,5 @@
 // The payment reminder's body when the company hasn't written its own (see
-// document_template.service.ts's getTemplateServ) - {{placeholders}} are
+// reminderTextOf in template.service.ts) - {{placeholders}} are
 // filled in when the PDF is generated, see pdf/templates/reminder.placeholders.ts
 // for the full list.
 export const DEFAULT_REMINDER_TEXT =
@@ -21,9 +21,8 @@ export const DEFAULT_REMINDER_TEXT_EN =
     "If your payment has been made in the meantime, please disregard this reminder.\n\n" +
     "Thank you for your understanding. Kind regards.";
 
-// A QUOTE/INVOICE introduction when the company has no template saved for
-// that type yet (see getTemplateServ): just the greeting, with the client's
-// title filled in at PDF time - see pdf/templates/document.placeholders.ts.
+// A new template's quote/invoice introduction: just the greeting, with the
+// client's title filled in at PDF time - see pdf/templates/document.placeholders.ts.
 export const DEFAULT_DOCUMENT_INTRODUCTION = "{{titre_client}},\n\n";
 
 // Same, for the conclusion: just the company's signature (see

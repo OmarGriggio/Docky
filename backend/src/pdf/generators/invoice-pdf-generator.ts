@@ -34,10 +34,10 @@ export class InvoicePdfGenerator extends DocumentPdfGenerator<PreparedInvoice> {
     protected async prepare(source: PdfSource): Promise<PreparedInvoice> {
         const { document, client, company } = source;
         return {
-            invoice: createInvoiceDto(document, client, company, source.deductions, source.amountDue),
+            invoice: createInvoiceDto(document, client, company, source.style, source.deductions, source.amountDue),
             qrBill: await prepareQrBill(source),
             logoBytes: await this.readCompanyImage(company, "logo"),
-            headerImageBytes: await this.readCompanyImage(company, "header"),
+            headerImageBytes: await this.readHeaderImage(company, source.style),
         };
     }
 

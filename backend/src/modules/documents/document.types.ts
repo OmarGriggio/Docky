@@ -1,3 +1,4 @@
+import { TemplateStyle } from "../templates/template.types";
 import { DocumentLineType } from "./document_line.types";
 
 // PROJECT is a chantier itself - see projects/project.types.ts. Its own
@@ -58,8 +59,8 @@ export interface Document {
   conclusion: string | null;
   payment_terms: string | null;
   due_date: Date | null;
-  // The early payment discount this invoice offers - copied from the
-  // company's own defaults when it's created (see addDocumentServ) and
+  // The early payment discount this invoice offers - copied from its
+  // template when it's created (see addDocumentServ) and
   // frozen here, never re-read from the company afterwards. A percentage,
   // 0 = none; it applies from min_amount (total incl. VAT) up.
   early_payment_discount: number;
@@ -90,6 +91,14 @@ export interface Document {
   // DRAFT (018_add_deposit_deductions.sql) - null before that, and for any
   // other document. Never written from a request.
   deposit_deductions: DepositDeduction[] | null;
+  // The template it's printed with (modules/templates) - null only for a
+  // chantier's PROJECT document, never printed. Checked to be the company's
+  // own, active one when set from a request.
+  template_id: number | null;
+  // Its look frozen once it leaves DRAFT, like billed_address
+  // (026_add_document_template.sql) - null while it follows its template.
+  // Never written from a request.
+  template_style: TemplateStyle | null;
 }
 
 export type DocumentRecipient = Pick<
@@ -104,7 +113,7 @@ export type DocumentRecipient = Pick<
 export type CreateDocumentData = Omit<
   Document,
   "id" | "company_id" | "number" | "amount_excl_vat" | "amount_incl_vat" | "invoice_kind" | "deposit_deductions" | "billed_address" | "payment_reference"
-  | "early_payment_discount" | "early_payment_days" | "early_payment_min_amount"
+  | "early_payment_discount" | "early_payment_days" | "early_payment_min_amount" | "template_style"
 >;
 
 // A document's whole content, sent in one go by PUT /document/:id/content
@@ -141,4 +150,7 @@ export interface DocumentContentSection {
 export type UpdateDocumentData = Pick<
   Document,
   "client_id" | "address_id" | "reference_client" | "date" | "discount" | "vat_rate" | "introduction" | "conclusion" | "payment_terms" | "due_date"
+  // Its template, and the early payment discount it gives a draft invoice -
+  // set by updateDocumentServ, never taken from the request as such.
+  | "template_id" | "early_payment_discount" | "early_payment_days" | "early_payment_min_amount"
 > & DocumentRecipient;

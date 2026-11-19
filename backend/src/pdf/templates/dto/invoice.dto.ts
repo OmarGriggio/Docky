@@ -6,6 +6,7 @@ import { InvoiceDto } from "../invoice.types";
 import { PDF_LABELS, toPdfLanguage } from "../pdf-labels";
 import { buildPaymentScale, daysUntilDue } from "../payment-scale";
 import { buildLetterDto } from "./shared";
+import { TemplateStyle } from "../../../modules/templates/template.types";
 import { billedAddressOf, formatLocation } from "../../../modules/documents/billed-address";
 import { DepositDeduction } from "../../../modules/documents/document.types";
 import { formatPlainDate, formatShortDate } from "../format";
@@ -16,6 +17,7 @@ export const createInvoiceDto = (
     document: DocumentComplete,
     client: ClientWithAddresses,
     company: Company,
+    style: TemplateStyle,
     deductions: DepositDeduction[] = [],
     due: number = document.amount_incl_vat
 ): InvoiceDto => {
@@ -34,7 +36,7 @@ export const createInvoiceDto = (
     );
 
     return {
-        ...buildLetterDto(document, client, company, language, due),
+        ...buildLetterDto(document, client, company, style, language, due),
         // Frozen with the rest of the address once sent (billed-address.ts) -
         // formatLocation for a typed-in recipient or an unfrozen client
         // without any address, which have no billed address.

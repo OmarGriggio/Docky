@@ -7,8 +7,8 @@ import { formatAmount, formatPercent, formatShortDate } from "./format";
 import { textColorOn, tint } from "./accent-color";
 import { DocumentLineDto, DocumentSectionDto } from "./document.types";
 
-// The MODERN layout of invoices, quotes and reminders (companies.
-// document_layout - business-letter.ts is the CLASSIC one): the logo top
+// The MODERN layout of invoices, quotes and reminders (a template's
+// layout - business-letter.ts is the CLASSIC one): the logo top
 // left and the company's details top right, the client's address on the
 // left (a window envelope's left window) with the document's date, number
 // and references in a column on the right, then every line of every section

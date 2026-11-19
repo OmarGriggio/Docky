@@ -82,22 +82,13 @@ export const createUserService = async (userData: CreateUserData, actor: TokenPa
       city: null,
       country: null,
       logo: null,
-      header_image: null,
       vat_rate: 8.1,
       vat_number: null,
-      payment_terms: null,
       website: null,
       bank_name: null,
       bank_account: null,
-      early_payment_discount: 0,
-      early_payment_days: null,
-      early_payment_min_amount: 0,
-      accent_color: null,
-      secondary_color: null,
       qr_iban: null,
       payment_reference_type: "SCOR",
-        document_layout: "CLASSIC",
-        document_font: "HELVETICA",
     });
     return await createUserDB({ ...userData, role: "ADMIN", company_id: company.id, passwordHash });
   });

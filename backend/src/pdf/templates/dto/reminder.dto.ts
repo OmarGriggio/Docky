@@ -6,12 +6,13 @@ import { buildReminderValues } from "../reminder.placeholders";
 import { richTextOf } from "../rich-text";
 import { PDF_LABELS, toPdfLanguage } from "../pdf-labels";
 import { buildLetterDto } from "./shared";
+import { TemplateStyle } from "../../../modules/templates/template.types";
 
-// templateText is the raw REMINDER template (with its {{placeholders}}).
-export const createReminderDto = (document: DocumentComplete, client: ClientWithAddresses, company: Company, templateText: string): ReminderDto => {
+// templateText is the template's reminder text, raw (with its {{placeholders}}).
+export const createReminderDto = (document: DocumentComplete, client: ClientWithAddresses, company: Company, style: TemplateStyle, templateText: string): ReminderDto => {
     const language = toPdfLanguage(client.language);
     const today = new Date();
-    const letter = buildLetterDto(document, client, company, language);
+    const letter = buildLetterDto(document, client, company, style, language);
 
     return {
         // Its own date, and none of the invoice's introduction/conclusion -

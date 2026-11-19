@@ -7,7 +7,7 @@ import { drawLogoTopRight, drawSectionDetails, placeHeaderImage } from "./letter
 import { formatAmount, formatIban, formatPercent, formatShortDate } from "./format";
 import { tint } from "./accent-color";
 import { PaymentScaleRow } from "./payment-scale";
-import { DocumentLayout } from "../../modules/companies/company.types";
+import { DocumentLayout } from "../../modules/templates/template.types";
 import { DocumentColor, TextRun } from "./rich-text";
 
 // The layout invoices and quotes share, modelled on the company's own Excel

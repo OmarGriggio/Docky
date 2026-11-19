@@ -1,6 +1,19 @@
 import { db } from "../../shared/config/database";
 import { Document, UpdateDocumentData, DocumentStatus, BilledAddress, InvoiceKind, DepositDeduction } from "./document.types";
 
+// The look a document is frozen with once sent (documents.template_style,
+// 026_add_document_template.sql): its template's as it is right now - the
+// company's default one for a document without any. Read inside the UPDATE
+// freezing it, so it's the template as committed then. `templateId`: an SQL
+// expression for the template's id.
+const frozenStyleOf = (templateId: string) => `(
+  SELECT jsonb_build_object('layout', t.layout, 'font', t.font, 'accent_color', t.accent_color,
+    'secondary_color', t.secondary_color, 'header_image', t.header_image)
+  FROM templates t
+  WHERE t.company_id = documents.company_id
+    AND (t.id = ${templateId} OR (${templateId} IS NULL AND t.is_default AND t.is_active))
+  LIMIT 1)`;
+
 // client_id is an optional extra narrowing on top of company_id - used by
 // client-detail.ts's own expandable rows (a client's own documents), kept
 // as a plain appended condition rather than duplicating this whole function
@@ -135,7 +148,8 @@ export const unarchiveDocumentInDB = async (id: number, company_id: number): Pro
 // an address it already has is kept.
 export const acceptDocumentInDB = async (id: number, company_id: number, billed_address: BilledAddress | null): Promise<Document | null> => {
   const query = `
-    UPDATE documents SET status = 'ACCEPTED', billed_address = COALESCE(billed_address, $3::jsonb)
+    UPDATE documents SET status = 'ACCEPTED', billed_address = COALESCE(billed_address, $3::jsonb),
+      template_style = COALESCE(template_style, ${frozenStyleOf("documents.template_id")})
       WHERE id = $1 AND company_id = $2 AND status IN ('DRAFT', 'SENT') AND is_active = true
     RETURNING *;
   `;
@@ -192,7 +206,8 @@ export const updateDocumentStatusInDB = async (
   const query = `
     UPDATE documents SET status = $1,
       billed_address = CASE WHEN $5 THEN NULL ELSE COALESCE(billed_address, $4::jsonb) END,
-      payment_reference = COALESCE(payment_reference, $6)
+      payment_reference = COALESCE(payment_reference, $6),
+      template_style = CASE WHEN $5 THEN NULL ELSE COALESCE(template_style, ${frozenStyleOf("documents.template_id")}) END
       WHERE id = $2 AND company_id = $3 AND status IN ('DRAFT', 'SENT') AND is_active = true
     RETURNING *;
   `;
@@ -226,7 +241,14 @@ export const updateDocumentInDB = async (
       recipient_complement = $14,
       recipient_street = $15,
       recipient_postal_code = $16,
-      recipient_city = $17
+      recipient_city = $17,
+      template_id = $18,
+      early_payment_discount = $19,
+      early_payment_days = $20,
+      early_payment_min_amount = $21,
+      -- A sent quote (still editable) is frozen with its template afresh -
+      -- it may just have been changed. A draft stays unfrozen.
+      template_style = CASE WHEN status = 'SENT' THEN ${frozenStyleOf("$18::integer")} ELSE template_style END
       WHERE id = $11 AND company_id = $12
         AND (status = 'DRAFT' OR (type = 'QUOTE' AND status = 'SENT'))
     RETURNING *;
@@ -249,7 +271,11 @@ export const updateDocumentInDB = async (
     data.recipient_complement,
     data.recipient_street,
     data.recipient_postal_code,
-    data.recipient_city
+    data.recipient_city,
+    data.template_id,
+    data.early_payment_discount,
+    data.early_payment_days,
+    data.early_payment_min_amount
   ];
 
   const result = await db().query(query, values);
@@ -258,8 +284,11 @@ export const updateDocumentInDB = async (
 
 // A new document is never frozen yet (billed_address, see billed-address.ts),
 // and an ordinary one unless said otherwise (invoice_kind, see deposit.ts).
+// Its look isn't frozen either (template_style) - a chantier's PROJECT
+// document has no template at all.
 export const createDocumentInDB = async (
-  document: Omit<Document, "id" | "billed_address" | "invoice_kind" | "deposit_deductions" | "payment_reference"> & { invoice_kind?: InvoiceKind }
+  document: Omit<Document, "id" | "billed_address" | "invoice_kind" | "deposit_deductions" | "payment_reference" | "template_style" | "template_id">
+    & { invoice_kind?: InvoiceKind; template_id?: number | null }
 ): Promise<Document> => {
   const query = `
     INSERT INTO documents (
@@ -288,9 +317,10 @@ export const createDocumentInDB = async (
       early_payment_discount,
       early_payment_days,
       early_payment_min_amount,
-      invoice_kind
+      invoice_kind,
+      template_id
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27)
     RETURNING *;
   `;
 
@@ -320,7 +350,8 @@ export const createDocumentInDB = async (
     document.early_payment_discount,
     document.early_payment_days,
     document.early_payment_min_amount,
-    document.invoice_kind ?? "STANDARD"
+    document.invoice_kind ?? "STANDARD",
+    document.template_id ?? null
   ];
 
   const result = await db().query(query, values);

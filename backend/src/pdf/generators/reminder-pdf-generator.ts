@@ -3,7 +3,7 @@ import { ReminderTemplate } from "../templates/reminder.template";
 import { createReminderDto } from "../templates/dto/reminder.dto";
 import { ReminderDto } from "../templates/reminder.types";
 import { DocumentComplete } from "../../modules/documents/document_complete.types";
-import { getTemplateServ } from "../../modules/documents/document_template.service";
+import { reminderTextOf } from "../../modules/templates/template.service";
 import { AppError } from "../../shared/types/errors";
 import { DocumentPdfGenerator, PdfSource } from "./document-pdf-generator";
 import { PreparedQrBill, prepareQrBill, renderQrBillPage } from "./qr-bill-page";
@@ -40,16 +40,16 @@ export class ReminderPdfGenerator extends DocumentPdfGenerator<PreparedReminder>
         const source = { ...sentSource, document: withCurrentAddress(sentSource.document) };
         const { document, client, company } = source;
 
-        // Falls back to the default text (in the client's own language) when
-        // the company has none.
-        const template = await getTemplateServ("REMINDER", company.id, toPdfLanguage(client.language));
+        // The invoice's template's text - the default one, in the client's own
+        // language, when it has none.
+        const text = reminderTextOf(source.template, toPdfLanguage(client.language));
 
         return {
             // What's left to pay: a final invoice's deposits are invoices of their own.
-            reminder: createReminderDto({ ...document, amount_incl_vat: source.amountDue }, client, company, template?.introduction ?? ""),
+            reminder: createReminderDto({ ...document, amount_incl_vat: source.amountDue }, client, company, source.style, text),
             qrBill: await prepareQrBill(source),
             logoBytes: await this.readCompanyImage(company, "logo"),
-            headerImageBytes: await this.readCompanyImage(company, "header"),
+            headerImageBytes: await this.readHeaderImage(company, source.style),
         };
     }
 

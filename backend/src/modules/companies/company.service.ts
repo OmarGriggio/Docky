@@ -1,10 +1,10 @@
-import { Company, DOCUMENT_LAYOUTS } from "./company.types";
-import { isFontFamily } from "../../pdf/core/pdf-fonts";
+import { Company } from "./company.types";
 import { isQrIban, isValidIban } from "../../pdf/swiss-qr-bill/payment-reference";
-import { createCompanyInDB, getCompanyByIdFromDB, getCompaniesFromDB, updateCompanyInDB, updateCompanyLogoInDB, updateCompanyHeaderImageInDB, updateCompanyPaymentTermsInDB } from "./company.repository";
+import { createCompanyInDB, getCompanyByIdFromDB, getCompaniesFromDB, updateCompanyInDB, updateCompanyLogoInDB } from "./company.repository";
 import { AppError, NotFoundError } from "../../shared/types/errors";
 import { createPlaceholderClientInDB } from "../clients/client.repository";
 import { withTransaction } from "../../shared/config/database";
+import { createStarterTemplateServ } from "../templates/template.service";
 
 export const getAllCompaniesServ = async () => {
   return await getCompaniesFromDB();
@@ -19,11 +19,13 @@ export const getCompanyByIdServ = async (id: number): Promise<Company> => {
 };
 
 // Every company starts with its "Non défini" placeholder client (see
-// client.types.ts) - created together, so none ever exists without one.
+// client.types.ts) and its "Standard" template (modules/templates) - created
+// together, so none ever exists without them.
 export const addCompanyServ = async (companyData: Omit<Company, "id">) => {
   return await withTransaction(async () => {
     const company = await createCompanyInDB(normalizeCompanyData(companyData));
     await createPlaceholderClientInDB(company.id);
+    await createStarterTemplateServ(company.id);
     return company;
   });
 };
@@ -47,22 +49,6 @@ const MAX_LENGTHS: Partial<Record<keyof Company, number>> = {
   bank_account: 50,
 };
 
-// NUMERIC(12,2)'s own ceiling.
-const MAX_AMOUNT = 9999999999.99;
-
-// "#rrggbb" or nothing - stored lowercase, an empty one as null. Anything
-// else, a number included, is the caller's own mistake: a 400, not a 500.
-const normalizeColor = (value: unknown, field: string): string | null => {
-  if (value !== null && value !== undefined && typeof value !== "string") {
-    throw new AppError(`${field} must be a color like #b8860b`, 400);
-  }
-  const color = value?.trim() || null;
-  if (color !== null && !/^#[0-9a-f]{6}$/i.test(color)) {
-    throw new AppError(`${field} must be a color like #b8860b`, 400);
-  }
-  return color?.toLowerCase() ?? null;
-};
-
 // A QR-IBAN or nothing - stored without spaces, uppercase. An ordinary IBAN
 // typed there would make every invoice's QR-bill invalid (a QR reference
 // needs a QR-IBAN): a 400.
@@ -76,12 +62,6 @@ const normalizeQrIban = (value: unknown): string | null => {
   }
   return iban;
 };
-
-// Checked on creation and on every edit. The early payment discount is
-// printed and computed on every invoice created afterwards - a rate over
-// 100 or a negative minimum would print a nonsensical amount. Without a
-// rate there's nothing to offer, so the days are cleared rather than kept
-// around unused.
 
 const normalizeCompanyData = (companyData: Omit<Company, "id">): Omit<Company, "id"> => {
   // A QR-IBAN goes in its own field. In the ordinary one, every invoice sent
@@ -98,33 +78,11 @@ const normalizeCompanyData = (companyData: Omit<Company, "id">): Omit<Company, "
     }
   }
 
-  const discount = Number(companyData.early_payment_discount ?? 0);
-  const days = companyData.early_payment_days ?? null;
-  const minAmount = Number(companyData.early_payment_min_amount ?? 0);
-
-  if (!(discount >= 0 && discount <= 100)) {
-    throw new AppError("early_payment_discount must be between 0 and 100", 400);
-  }
-  if (!(minAmount >= 0 && minAmount <= MAX_AMOUNT)) {
-    throw new AppError("early_payment_min_amount must be between 0 and 9999999999.99", 400);
-  }
-  if (discount > 0 && !(Number.isInteger(days) && days! >= 1 && days! <= 365)) {
-    throw new AppError("early_payment_days must be a whole number of days between 1 and 365", 400);
-  }
-
   return {
     ...companyData,
-    accent_color: normalizeColor(companyData.accent_color, "accent_color"),
-    secondary_color: normalizeColor(companyData.secondary_color, "secondary_color"),
     qr_iban: normalizeQrIban(companyData.qr_iban),
     // Anything but "NONE" is the default, a creditor reference.
     payment_reference_type: companyData.payment_reference_type === "NONE" ? "NONE" : "SCOR",
-    // Anything unknown is the default, the layout and font every document had before.
-    document_layout: (DOCUMENT_LAYOUTS as readonly unknown[]).includes(companyData.document_layout) ? companyData.document_layout : "CLASSIC",
-    document_font: isFontFamily(companyData.document_font) ? companyData.document_font : "HELVETICA",
-    early_payment_discount: discount,
-    early_payment_days: discount > 0 ? days : null,
-    early_payment_min_amount: minAmount,
   };
 };
 
@@ -147,22 +105,6 @@ export const updateCompanyServ = async (id: number, companyData: Omit<Company, "
 
 export const updateCompanyLogoServ = async (id: number, logo: string | null): Promise<Company> => {
   const company = await updateCompanyLogoInDB(id, logo);
-  if (!company) {
-    throw new NotFoundError("Company not found");
-  }
-  return company;
-};
-
-export const updateCompanyHeaderImageServ = async (id: number, headerImage: string | null): Promise<Company> => {
-  const company = await updateCompanyHeaderImageInDB(id, headerImage);
-  if (!company) {
-    throw new NotFoundError("Company not found");
-  }
-  return company;
-};
-
-export const updateCompanyPaymentTermsServ = async (id: number, paymentTerms: string | null): Promise<Company> => {
-  const company = await updateCompanyPaymentTermsInDB(id, paymentTerms);
   if (!company) {
     throw new NotFoundError("Company not found");
   }

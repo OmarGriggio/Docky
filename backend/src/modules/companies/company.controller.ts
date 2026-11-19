@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import path from "path";
-import { addCompanyServ, getAllCompaniesServ, getCompanyByIdServ, updateCompanyServ, updateCompanyLogoServ, updateCompanyHeaderImageServ, updateCompanyPaymentTermsServ } from "./company.service";
+import { addCompanyServ, getAllCompaniesServ, getCompanyByIdServ, updateCompanyServ, updateCompanyLogoServ } from "./company.service";
 import { Company } from "./company.types";
 import { EXTENSION_BY_MIME } from "./company.upload";
 import { uploadFileServ, deleteFileServ } from "../../shared/storage/storage.service";
@@ -54,32 +54,10 @@ export const uploadCompanyLogo = async (req: Request, res: Response) => {
     res.json(company);
 };
 
-export const uploadCompanyHeaderImage = async (req: Request, res: Response) => {
-    if (!req.file) {
-        res.status(400).json({ message: "Aucun fichier reçu" });
-        return;
-    }
-
-    const companyId = Number(req.params.id);
-    const extension = EXTENSION_BY_MIME[req.file.mimetype];
-    const headerImage = path.posix.join("companies", String(companyId), `header${extension}`);
-
-    for (const otherExtension of Object.values(EXTENSION_BY_MIME)) {
-        if (otherExtension !== extension) {
-            await deleteFileServ(path.posix.join("companies", String(companyId), `header${otherExtension}`));
-        }
-    }
-
-    await uploadFileServ(headerImage, req.file.buffer, req.file.mimetype);
-
-    const company = await updateCompanyHeaderImageServ(companyId, headerImage);
-    res.json(company);
-};
-
 // Removing an image: its file under every extension it could have (S3
 // deletes are idempotent), then the column - the PDFs print without it from
 // then on (readCompanyImage reads nothing for a null column).
-const removeCompanyImage = async (companyId: number, kind: "logo" | "header") => {
+const removeCompanyImage = async (companyId: number, kind: "logo") => {
     for (const extension of Object.values(EXTENSION_BY_MIME)) {
         await deleteFileServ(path.posix.join("companies", String(companyId), `${kind}${extension}`));
     }
@@ -89,17 +67,4 @@ export const removeCompanyLogo = async (req: Request, res: Response) => {
     const companyId = Number(req.params.id);
     await removeCompanyImage(companyId, "logo");
     res.json(await updateCompanyLogoServ(companyId, null));
-};
-
-export const removeCompanyHeaderImage = async (req: Request, res: Response) => {
-    const companyId = Number(req.params.id);
-    await removeCompanyImage(companyId, "header");
-    res.json(await updateCompanyHeaderImageServ(companyId, null));
-};
-
-export const updateCompanyPaymentTerms = async (req: Request, res: Response) => {
-    const { payment_terms }: { payment_terms: string | null } = req.body;
-
-    const company = await updateCompanyPaymentTermsServ(Number(req.params.id), payment_terms);
-    res.json(company);
 };
