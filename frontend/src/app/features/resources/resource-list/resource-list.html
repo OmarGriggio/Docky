@@ -38,7 +38,9 @@
             }
           </div>
         </div>
-        <p-button size="small" icon="pi pi-ellipsis-v" [outlined]="true" (click)="openActionsMenu(mobileMenu, $event, item)" />
+        @if (canWrite()) {
+          <p-button size="small" icon="pi pi-ellipsis-v" [outlined]="true" (click)="openActionsMenu(mobileMenu, $event, item)" />
+        }
       </div>
     } @empty {
       <p class="text-center text-gray-500">{{ (search().trim() ? 'resources.noSearchResults' : 'resources.noResources') | transloco }}</p>
@@ -56,8 +58,10 @@
         <th>{{ 'resources.columnUnit' | transloco }}</th>
         <th>{{ 'resources.columnSellingPrice' | transloco }}</th>
         <th>{{ 'resources.columnPurchasePrice' | transloco }}</th>
-        <th></th>
-        <th></th>
+        @if (canWrite()) {
+          <th></th>
+          <th></th>
+        }
       </tr>
     </ng-template>
 
@@ -132,21 +136,27 @@
           </p-cellEditor>
         </td>
 
-        <td class="w-14">
-          <div class="flex gap-1">
-            @if (!editing && canWrite()) {
-              <p-button type="button" pInitEditableRow icon="pi pi-pencil" [text]="true" severity="secondary" (click)="onRowEditInit(item)" />
-            } @else {
-              <p-button type="button" pSaveEditableRow icon="pi pi-check" [text]="true" severity="success" (click)="onRowEditSave(item)" />
-              <p-button type="button" pCancelEditableRow icon="pi pi-times" [text]="true" severity="danger" (click)="onRowEditCancel(item)" />
-            }
-          </div>
-        </td>
+        <!-- Read only: no editing column at all. -->
+        @if (canWrite()) {
+          <td class="w-14">
+            <div class="flex gap-1">
+              @if (!editing) {
+                <p-button type="button" pInitEditableRow icon="pi pi-pencil" [text]="true" severity="secondary" (click)="onRowEditInit(item)" />
+              } @else {
+                <p-button type="button" pSaveEditableRow icon="pi pi-check" [text]="true" severity="success" (click)="onRowEditSave(item)" />
+                <p-button type="button" pCancelEditableRow icon="pi pi-times" [text]="true" severity="danger" (click)="onRowEditCancel(item)" />
+              }
+            </div>
+          </td>
+        }
 
-        <td class="w-12">
-          <p-menu #menu [popup]="true" [model]="menuItems" appendTo="body"></p-menu>
-          <p-button size="small" icon="pi pi-ellipsis-v" [outlined]="true" (click)="openActionsMenu(menu, $event, item)"></p-button>
-        </td>
+        <!-- Every action (archive, duplicate) writes: no ⋮ for a reader. -->
+        @if (canWrite()) {
+          <td class="w-12">
+            <p-menu #menu [popup]="true" [model]="menuItems" appendTo="body"></p-menu>
+            <p-button size="small" icon="pi pi-ellipsis-v" [outlined]="true" (click)="openActionsMenu(menu, $event, item)"></p-button>
+          </td>
+        }
       </tr>
     </ng-template>
   </p-table>
