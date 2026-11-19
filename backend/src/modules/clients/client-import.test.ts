@@ -7,6 +7,8 @@ const context = (fields: Partial<ImportContext> = {}): ImportContext => ({
   existingNameKeys: new Set(),
   defaultCountry: "Suisse",
   language: "FR",
+  numberFormat: "C{NNNN}",
+  year: 2026,
   ...fields,
 });
 
@@ -14,6 +16,15 @@ const check = (row: ClientImportRow, fields: Partial<ImportContext> = {}) => che
 const codes = (issues: { code: string }[]) => issues.map(issue => issue.code);
 
 describe("resolveNumber", () => {
+  it("puts a number in the company's own format", () => {
+    expect(resolveNumber("867", false, "CLI-{YY}-{NNNNN}", 2026).number).toBe("CLI-26-00867");
+    expect(resolveNumber("cli-26-42", false, "CLI-{YY}-{NNNNN}", 2026).number).toBe("CLI-26-00042");
+    expect(resolveNumber("K42", false, "K{NNN}", 2026).number).toBe("K042");
+    // Another format's number (the default C) goes to the note.
+    expect(resolveNumber("C0042", false, "K{NNN}", 2026)).toEqual({ number: null, formerNumber: "C0042", invalid: false });
+  });
+
+
   it("turns digits into C and four digits - an Excel number cell's lost zeros included", () => {
     expect(resolveNumber("867", false).number).toBe("C0867");
     expect(resolveNumber("0001", false).number).toBe("C0001");

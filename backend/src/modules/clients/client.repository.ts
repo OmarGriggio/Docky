@@ -161,16 +161,6 @@ export const lockClientNumberingInDB = async (company_id: number): Promise<void>
     await db().query("SELECT pg_advisory_xact_lock($1, hashtext('client-number'))", [company_id]);
 };
 
-// The highest number among the company's "C####" client numbers, archived
-// ones included - null when there's none yet.
-export const getLastClientSequenceFromDB = async (company_id: number, pattern: string): Promise<number | null> => {
-    const result = await db().query(
-        "SELECT MAX(substring(client_number from $2)::int) AS last FROM clients WHERE company_id = $1 AND client_number ~ $2",
-        [company_id, pattern]
-    );
-    return result.rows[0]?.last ?? null;
-};
-
 // The highest sequence already given out with a format (number-format.ts's
 // numberPattern - anchored, its one group the sequence), archived clients
 // included: a number is never given out twice. Null when there's none yet.

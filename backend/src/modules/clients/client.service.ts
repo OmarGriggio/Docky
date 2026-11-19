@@ -1,6 +1,7 @@
 import {Client, ClientWithAddresses, NewClientAddress, UpdateClientData} from "./client.types"
-import { createClientInDB, updateClientInDB, archiveClientInDB, unarchiveClientInDB, getClientByIdFromDB, getClientByEmail, getClientsFromDB, lockClientNumberingInDB, getLastClientSequenceFromDB, tryLockClientImportInDB, createClientsInDB } from "./client.repository";
-import { nextSequenceCode, sequencePattern } from "../../shared/numbering/sequence-code";
+import { createClientInDB, updateClientInDB, archiveClientInDB, unarchiveClientInDB, getClientByIdFromDB, getClientByEmail, getClientsFromDB, lockClientNumberingInDB, getHighestClientSequenceFromDB, tryLockClientImportInDB, createClientsInDB } from "./client.repository";
+import { formatNumber, nextSequence, numberPattern, resetsEveryYear } from "../../shared/numbering/number-format";
+import { getNumberingSettingsServ, nextNumberServ } from "../numbering/numbering.service";
 import { createAddressInDB, createPrimaryAddressesInDB, getAddressesByClientIdFromDB } from "./address.repository";
 import { NotFoundError, ConflictError, AppError } from "../../shared/types/errors";
 import { withTransaction } from "../../shared/config/database";
@@ -39,12 +40,10 @@ const resolveNewClientAddress = (address: NewClientAddress): NewClientAddress =>
   return resolved as NewClientAddress;
 };
 
-const CLIENT_NUMBER_PREFIX = "C";
-
-// The client's number is generated - C0001, C0002... per company, whatever
-// the request says (see shared/numbering/sequence-code.ts). An address given
-// with the client becomes its primary one, created in the same transaction -
-// never a client left half-created without it.
+// The client's number is generated, in the company's format (Paramètres >
+// Numérotation - C0001, C0002... by default), whatever the request says. An
+// address given with the client becomes its primary one, created in the same
+// transaction - never a client left half-created without it.
 export const addClientServ = async (clientData: Omit<Client, "id" | "company_id" | "language" | "client_number">, company_id: number, address?: NewClientAddress | null) => {
   // Email is optional - an empty one is stored as NULL, not ''.
   clientData = { ...clientData, email: clientData.email || null };
@@ -55,8 +54,7 @@ export const addClientServ = async (clientData: Omit<Client, "id" | "company_id"
 
   return await withTransaction(async () => {
     await lockClientNumberingInDB(company_id);
-    const pattern = sequencePattern(CLIENT_NUMBER_PREFIX);
-    const client_number = nextSequenceCode(CLIENT_NUMBER_PREFIX, await getLastClientSequenceFromDB(company_id, pattern));
+    const client_number = await nextNumberServ(company_id, "CLIENT");
     const client = await createClientInDB({ ...clientData, client_number, company_id });
     if (newAddress) {
       await createAddressInDB({ ...newAddress, client_id: client.id, is_primary: true, company_id });
@@ -129,6 +127,7 @@ export interface ClientImportReport {
 // clients included, their numbers are never handed out again.
 const importContext = async (company_id: number, request: ClientImportRequest): Promise<ImportContext> => {
   const clients = await getClientsFromDB(company_id, true);
+  const numbering = await getNumberingSettingsServ(company_id, "CLIENT");
   const country = typeof request.defaultCountry === "string" && request.defaultCountry.trim()
     ? request.defaultCountry.trim().slice(0, 100)
     : "Suisse";
@@ -142,6 +141,8 @@ const importContext = async (company_id: number, request: ClientImportRequest): 
     ),
     defaultCountry: country,
     language: request.language === "EN" ? "EN" : "FR",
+    numberFormat: numbering.number_format,
+    year: new Date().getFullYear(),
   };
 };
 
@@ -171,18 +172,33 @@ export const importClientsServ = async (company_id: number, request: ClientImpor
       throw new ConflictError("Another import is already running for this company");
     }
     await lockClientNumberingInDB(company_id);
-    const results = checkImportRows(rows, await importContext(company_id, request));
+    const context = await importContext(company_id, request);
+    const results = checkImportRows(rows, context);
     if (results.some(result => result.errors.length > 0)) {
       return { rows: results, created: 0 };
     }
 
-    const pattern = sequencePattern(CLIENT_NUMBER_PREFIX);
+    // The rows without a number get the next ones in the company's format,
+    // after the highest there is - the imported ones included - and never
+    // one the company or the file already has.
+    const { numberFormat: format, year } = context;
+    const pattern = numberPattern(format, year);
     const importedSequences = results
-      .map(result => Number(result.client.client_number?.match(/^C(\d+)$/)?.[1] ?? 0));
-    let last = Math.max(await getLastClientSequenceFromDB(company_id, pattern) ?? 0, ...importedSequences);
+      .map(result => Number(result.client.client_number?.match(new RegExp(pattern))?.[1] ?? 0));
+    const highest = Math.max(await getHighestClientSequenceFromDB(company_id, pattern) ?? 0, ...importedSequences);
+    const numbering = await getNumberingSettingsServ(company_id, "CLIENT");
+    let sequence = nextSequence(highest || null, { start: numbering.start_number, startYear: numbering.start_year, year, yearly: resetsEveryYear(format) });
+    const taken = new Set([...context.existingNumbers, ...results.map(result => result.client.client_number).filter(number => number !== null)]);
+    const nextFree = (): string => {
+      let number = formatNumber(format, year, sequence++);
+      while (taken.has(number)) {
+        number = formatNumber(format, year, sequence++);
+      }
+      return number;
+    };
 
     const numbered = results.map(({ client, address }) => ({
-      client: { ...client, client_number: client.client_number ?? nextSequenceCode(CLIENT_NUMBER_PREFIX, last++) },
+      client: { ...client, client_number: client.client_number ?? nextFree() },
       address,
     }));
     const ids = await createClientsInDB(company_id, numbered.map(({ client }) => client));

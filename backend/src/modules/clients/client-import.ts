@@ -1,6 +1,6 @@
 import { ClientLanguage, ClientType, NewClientAddress } from "./client.types";
 import { splitPostalCodeCity } from "../../shared/address/postal-code-city";
-import { SEQUENCE_DIGITS } from "../../shared/numbering/sequence-code";
+import { DEFAULT_NUMBER_FORMATS, formatNumber, numberPattern } from "../../shared/numbering/number-format";
 import { toIsoCountryCode } from "../../pdf/templates/dto/swiss-qr-bill.dto";
 
 // Importing clients from a spreadsheet (POST /client/import): the frontend
@@ -91,6 +91,10 @@ export interface ImportContext {
   // The user's language: a client's when the file doesn't say, the title
   // written in it, and the "former number" line added to a note.
   language: "FR" | "EN";
+  // The company's client number format (Paramètres > Numérotation) and the
+  // year it's read in - a number from the file is put in that format.
+  numberFormat: string;
+  year: number;
 }
 
 // The clients table's own column widths (000_base.sql) and the addresses'.
@@ -133,22 +137,28 @@ const fold = (value: string): string =>
   value.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
 
 // The client number, by the rule the user chose: digits (an Excel number cell
-// drops leading zeros, "1" = "0001") or C + digits become C and at least four
-// digits ("867" → "C0867"); anything else from the file goes to the note and a
-// number is generated, but typed by hand in the preview it's an error. Six
-// digits at most: a bigger number (a date, a phone number in the wrong
-// column) would push every number generated afterwards that far, or past what
-// the numbering reads back (sequence-code.ts).
+// drops leading zeros, "1" = "0001") or a number already in the company's
+// format (whatever its case or padding) become that sequence in the format
+// ("867" → "C0867" with the default C{NNNN}); anything else from the file
+// goes to the note and a number is generated, but typed by hand in the
+// preview it's an error. Six digits at most: a bigger number (a date, a phone
+// number in the wrong column) would push every number generated afterwards
+// that far.
 const MAX_NUMBER_DIGITS = 6;
 
-export const resolveNumber = (raw: unknown, edited: boolean): { number: string | null; formerNumber: string | null; invalid: boolean } => {
+export const resolveNumber = (
+  raw: unknown,
+  edited: boolean,
+  format: string = DEFAULT_NUMBER_FORMATS.CLIENT,
+  year = new Date().getFullYear(),
+): { number: string | null; formerNumber: string | null; invalid: boolean } => {
   const value = text(raw);
   if (!value) {
     return { number: null, formerNumber: null, invalid: false };
   }
-  const digits = value.match(/^[Cc]?(\d+)$/)?.[1];
+  const digits = /^\d+$/.test(value) ? value : value.match(new RegExp(numberPattern(format, year), "i"))?.[1];
   if (digits && String(Number(digits)).length <= MAX_NUMBER_DIGITS) {
-    return { number: `C${String(Number(digits)).padStart(SEQUENCE_DIGITS, "0")}`, formerNumber: null, invalid: false };
+    return { number: formatNumber(format, year, Number(digits)), formerNumber: null, invalid: false };
   }
   return edited ? { number: null, formerNumber: null, invalid: true } : { number: null, formerNumber: value, invalid: false };
 };
@@ -271,7 +281,7 @@ const checkRow = (row: ClientImportRow, context: ImportContext): ImportRowResult
   }
 
   // Number.
-  const { number, formerNumber, invalid } = resolveNumber(value("client_number"), row.client_number_edited === true);
+  const { number, formerNumber, invalid } = resolveNumber(value("client_number"), row.client_number_edited === true, context.numberFormat, context.year);
   if (invalid) {
     errors.push({ field: "client_number", code: "NUMBER_INVALID", params: { value: value("client_number") } });
   } else if (number && context.existingNumbers.has(number)) {
