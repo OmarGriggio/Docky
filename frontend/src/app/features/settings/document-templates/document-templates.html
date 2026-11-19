@@ -15,15 +15,21 @@
         <p-tabpanels>
           <p-tabpanel value="invoice">
             <div class="ui-form pt-2">
-              <p-floatlabel variant="on" class="ui-form__full">
-                <textarea pTextarea id="invoice_introduction" formControlName="invoice_introduction" rows="3"></textarea>
-                <label for="invoice_introduction">{{ 'documentTemplates.introduction' | transloco }}</label>
-              </p-floatlabel>
+              <div class="ui-form__full">
+                <app-text-style-toolbar [target]="invoice_introduction" [colors]="colors()" />
+                <p-floatlabel variant="on">
+                  <textarea #invoice_introduction pTextarea id="invoice_introduction" formControlName="invoice_introduction" rows="3"></textarea>
+                  <label for="invoice_introduction">{{ 'documentTemplates.introduction' | transloco }}</label>
+                </p-floatlabel>
+              </div>
 
-              <p-floatlabel variant="on" class="ui-form__full">
-                <textarea pTextarea id="invoice_conclusion" formControlName="invoice_conclusion" rows="3"></textarea>
-                <label for="invoice_conclusion">{{ 'documentTemplates.conclusion' | transloco }}</label>
-              </p-floatlabel>
+              <div class="ui-form__full">
+                <app-text-style-toolbar [target]="invoice_conclusion" [colors]="colors()" />
+                <p-floatlabel variant="on">
+                  <textarea #invoice_conclusion pTextarea id="invoice_conclusion" formControlName="invoice_conclusion" rows="3"></textarea>
+                  <label for="invoice_conclusion">{{ 'documentTemplates.conclusion' | transloco }}</label>
+                </p-floatlabel>
+              </div>
 
               <div class="ui-form__full text-sm text-gray-600 -mt-2">
                 <p class="m-0 mb-1">{{ 'documentTemplates.variablesHelp' | transloco }}</p>
@@ -43,15 +49,21 @@
 
           <p-tabpanel value="quote">
             <div class="ui-form pt-2">
-              <p-floatlabel variant="on" class="ui-form__full">
-                <textarea pTextarea id="quote_introduction" formControlName="quote_introduction" rows="3"></textarea>
-                <label for="quote_introduction">{{ 'documentTemplates.introduction' | transloco }}</label>
-              </p-floatlabel>
+              <div class="ui-form__full">
+                <app-text-style-toolbar [target]="quote_introduction" [colors]="colors()" />
+                <p-floatlabel variant="on">
+                  <textarea #quote_introduction pTextarea id="quote_introduction" formControlName="quote_introduction" rows="3"></textarea>
+                  <label for="quote_introduction">{{ 'documentTemplates.introduction' | transloco }}</label>
+                </p-floatlabel>
+              </div>
 
-              <p-floatlabel variant="on" class="ui-form__full">
-                <textarea pTextarea id="quote_conclusion" formControlName="quote_conclusion" rows="3"></textarea>
-                <label for="quote_conclusion">{{ 'documentTemplates.conclusion' | transloco }}</label>
-              </p-floatlabel>
+              <div class="ui-form__full">
+                <app-text-style-toolbar [target]="quote_conclusion" [colors]="colors()" />
+                <p-floatlabel variant="on">
+                  <textarea #quote_conclusion pTextarea id="quote_conclusion" formControlName="quote_conclusion" rows="3"></textarea>
+                  <label for="quote_conclusion">{{ 'documentTemplates.conclusion' | transloco }}</label>
+                </p-floatlabel>
+              </div>
 
               <div class="ui-form__full text-sm text-gray-600 -mt-2">
                 <p class="m-0 mb-1">{{ 'documentTemplates.variablesHelp' | transloco }}</p>
@@ -71,10 +83,13 @@
 
           <p-tabpanel value="reminder">
             <div class="ui-form pt-2">
-              <p-floatlabel variant="on" class="ui-form__full">
-                <textarea pTextarea id="reminder_text" formControlName="reminder_text" rows="8"></textarea>
-                <label for="reminder_text">{{ 'documentTemplates.reminderText' | transloco }}</label>
-              </p-floatlabel>
+              <div class="ui-form__full">
+                <app-text-style-toolbar [target]="reminder_text" [colors]="colors()" />
+                <p-floatlabel variant="on">
+                  <textarea #reminder_text pTextarea id="reminder_text" formControlName="reminder_text" rows="8"></textarea>
+                  <label for="reminder_text">{{ 'documentTemplates.reminderText' | transloco }}</label>
+                </p-floatlabel>
+              </div>
 
               <div class="ui-form__full text-sm text-gray-600 -mt-2">
                 <p class="m-0 mb-1">{{ 'documentTemplates.reminderVariablesHelp' | transloco }}</p>

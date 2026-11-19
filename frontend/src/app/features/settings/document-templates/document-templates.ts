@@ -14,11 +14,13 @@ import { DocumentTemplateService } from '../../documents/document-template.servi
 import { TabIndentDirective } from '../../../shared/directives/tab-indent.directive';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { placeholderToken } from '../../../shared/utils/display';
+import { TextStyleToolbar } from '../../../shared/components/text-style-toolbar/text-style-toolbar';
+import { DocumentColors } from '../../../shared/components/rich-text-view/rich-text-view';
 
 @Component({
   selector: 'app-document-templates',
   standalone: true,
-  imports: [ReactiveFormsModule, InputNumber, Textarea, FloatLabel, Button, Card, Tabs, TabList, Tab, TabPanels, TabPanel, TabIndentDirective, TranslocoPipe],
+  imports: [ReactiveFormsModule, InputNumber, Textarea, FloatLabel, Button, Card, Tabs, TabList, Tab, TabPanels, TabPanel, TabIndentDirective, TranslocoPipe, TextStyleToolbar],
   templateUrl: './document-templates.html',
 })
 export class DocumentTemplates implements OnInit {
@@ -78,6 +80,9 @@ export class DocumentTemplates implements OnInit {
     ['signature_entreprise', 'signature'],
   ]));
 
+  // The company's two document colors - the texts' formatting toolbar.
+  colors = signal<DocumentColors>({ 1: null, 2: null });
+
   templatesLoading = signal(true);
   templatesSuccessMessage = signal<string | null>(null);
   templatesErrorMessage = signal<string | null>(null);
@@ -108,7 +113,10 @@ export class DocumentTemplates implements OnInit {
     }
 
     this.companyService.getCompany(this.companyId).subscribe({
-      next: company => this.templatesForm.patchValue({ payment_terms: company.payment_terms ?? '' }),
+      next: company => {
+        this.templatesForm.patchValue({ payment_terms: company.payment_terms ?? '' });
+        this.colors.set({ 1: company.accent_color, 2: company.secondary_color });
+      },
       error: err => this.notifications.error('settings', err)
     });
   }
