@@ -7,19 +7,14 @@ import {
   updateResourceInDB,
   archiveResourceInDB,
   unarchiveResourceInDB,
-  lockResourceCodingInDB,
-  getLastResourceSequenceFromDB
+  lockResourceCodingInDB
 } from "./resource.repository";
 import { Resource, ResourceType, UpdateResourceData } from "./resource.types";
 import { NotFoundError, ConflictError, AppError } from "../../shared/types/errors";
 import { withTransaction } from "../../shared/config/database";
-import { nextSequenceCode, sequencePattern } from "../../shared/numbering/sequence-code";
+import { nextNumberServ } from "../numbering/numbering.service";
 
-// A generated code's prefix, by the resource's type: MAT0001, SER0001.
-const CODE_PREFIXES: Record<ResourceType, string> = {
-  MATERIAL: "MAT",
-  SERVICE: "SER",
-};
+const RESOURCE_TYPES: ResourceType[] = ["MATERIAL", "SERVICE"];
 
 const REFERENCE_MAX_LENGTH = 50;
 
@@ -43,16 +38,14 @@ export const getResourcesByTypeServ = async (type: string, company_id: number, i
   return await getResourcesByTypeFromDB(type, company_id, includeArchived);
 };
 
-// The code is generated - MAT0001 for a material, SER0001 for a service,
-// per company, whatever the request says. Never reused, archived resources
+// The code is generated, in the company's format for the resource's type
+// (Paramètres > Numérotation - MAT0001 for a material, SER0001 for a service
+// by default), whatever the request says. Never reused, archived resources
 // included, so it never collides with an active one either.
 export const addResourceServ = async (resourceData: Omit<Resource, "id" | "company_id" | "is_active" | "code">, company_id: number) => {
-  // Object.hasOwn: "constructor" or "__proto__" would otherwise find
-  // something on CODE_PREFIXES' own prototype.
-  if (!Object.hasOwn(CODE_PREFIXES, resourceData.type)) {
+  if (!RESOURCE_TYPES.includes(resourceData.type)) {
     throw new AppError("type must be MATERIAL or SERVICE", 400);
   }
-  const prefix = CODE_PREFIXES[resourceData.type];
   if (resourceData.parent_resource_id != null && !(await getResourceByIdFromDB(resourceData.parent_resource_id, company_id))) {
     throw new NotFoundError("Parent resource not found");
   }
@@ -60,8 +53,8 @@ export const addResourceServ = async (resourceData: Omit<Resource, "id" | "compa
   const reference = resourceData.type === "MATERIAL" ? normalizeReference(resourceData.reference) : null;
 
   return await withTransaction(async () => {
-    await lockResourceCodingInDB(company_id, prefix);
-    const code = nextSequenceCode(prefix, await getLastResourceSequenceFromDB(company_id, sequencePattern(prefix)));
+    await lockResourceCodingInDB(company_id);
+    const code = await nextNumberServ(company_id, resourceData.type);
     return await createResourceInDB({ ...resourceData, code, reference, company_id, is_active: true });
   });
 };

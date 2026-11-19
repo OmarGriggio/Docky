@@ -107,19 +107,11 @@ export const unarchiveResourceInDB = async (id: number, company_id: number): Pro
 };
 
 // Resource codes are generated (see resource.service.ts's addResourceServ),
-// one company and prefix at a time - same lock as client numbers.
-export const lockResourceCodingInDB = async (company_id: number, prefix: string): Promise<void> => {
-  await db().query("SELECT pg_advisory_xact_lock($1, hashtext($2))", [company_id, `resource-code-${prefix}`]);
-};
-
-// The highest number among the company's codes with that prefix, archived
-// resources included - null when there's none yet.
-export const getLastResourceSequenceFromDB = async (company_id: number, pattern: string): Promise<number | null> => {
-  const result = await db().query(
-    "SELECT MAX(substring(code from $2)::int) AS last FROM resources WHERE company_id = $1 AND code ~ $2",
-    [company_id, pattern]
-  );
-  return result.rows[0]?.last ?? null;
+// one company at a time - materials and services together, their formats
+// being the company's own, two could produce the same code. Same kind of
+// lock as client numbers.
+export const lockResourceCodingInDB = async (company_id: number): Promise<void> => {
+  await db().query("SELECT pg_advisory_xact_lock($1, hashtext('resource-code'))", [company_id]);
 };
 
 // The highest sequence already given out with a format (number-format.ts's
