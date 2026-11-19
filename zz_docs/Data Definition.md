@@ -205,7 +205,7 @@ What a company's employees (role USER) may do, set by its admin - one set for ev
 ## Fields
 
 - per module *(clients, catalog, quotes, invoices, job sites, calendar, dashboard)*: `NONE` *(hidden)*, `READ` or `WRITE`
-- prices shown *(yes/no - not enforced yet)*
+- prices shown *(yes/no - without them: quotes, invoices and the dashboard hidden, no price anywhere else)*
 
 Without any: every module but the dashboard and the calendar.
 

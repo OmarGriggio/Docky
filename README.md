@@ -114,11 +114,11 @@ The parts I'd point a developer to - each one has its story in [Difficulties.md]
 - JWT access tokens + a revocable refresh token in an `httpOnly` cookie, roles, rate limiting, login history
 - Platform admin can step into any company ("impersonation") to support it
 - Archive instead of delete for business records; incremental SQL migrations applied on startup
-- Vitest on the pure business logic (170 backend + 98 frontend tests), plus 99 backend integration tests: real HTTP requests against the whole API and a throwaway Postgres started in Docker (Testcontainers) - login and roles, cross-company isolation, accepting a quote, saving a document, an invoice's lifecycle, deposit invoices, the client import, document numbering, employee permissions, every PDF layout and font, concurrent requests included
+- Vitest on the pure business logic (175 backend + 98 frontend tests), plus 102 backend integration tests: real HTTP requests against the whole API and a throwaway Postgres started in Docker (Testcontainers) - login and roles, cross-company isolation, accepting a quote, saving a document, an invoice's lifecycle, deposit invoices, the client import, document numbering, employee permissions, every PDF layout and font, concurrent requests included
 
 **Operations**
 - Docker Compose, multi-stage production images (compiled, non-root) behind Nginx, HTTPS with Let's Encrypt
-- GitHub Actions: unit and integration tests and builds on every push to `main`, then an automatic deploy over SSH
+- GitHub Actions: unit and integration tests on every push to `main`, then the Docker images built and pushed to GitHub's registry (GHCR), then an automatic deploy over SSH that only pulls them - the server never compiles, and any earlier version is back in seconds
 - Health check watched by an external uptime monitor, self-hosted error tracking with Discord alerts
 - Nightly database backups, restored and checked automatically, 14 days kept
 - Versioned releases (one `MAJOR.MINOR.PATCH` for the whole app, tagged on `main`, see [CHANGELOG.md](CHANGELOG.md))
