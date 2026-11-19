@@ -4,7 +4,7 @@ import { getDocumentByIdFromDB } from "../documents/document.repository";
 import { getSectionByIdFromDB } from "../documents/document_section.repository";
 import { getLineByIdFromDB } from "../documents/document_line.repository";
 import { getPermissionsOfServ } from "./permission.service";
-import { AccessLevel, allows, moduleOfDocumentType, PERMISSION_MODULES, PermissionModule, Permissions } from "./permissions";
+import { AccessLevel, allows, moduleOfDocumentType, PERMISSION_MODULES, PermissionModule, Permissions, withoutPrices } from "./permissions";
 
 // Route guards for the employee permissions (permissions.ts) - after
 // authenticate. A refusal is a 403, like a role refusal. The permissions are
@@ -98,4 +98,25 @@ export const requireDocumentTypePermission = (level: AccessLevel) =>
 export const readableDocumentTypes = async (req: Request): Promise<string[]> => {
     const permissions = await permissionsOf(req);
     return ["QUOTE", "INVOICE", "PROJECT"].filter(type => allows(permissions, moduleOfDocumentType(type), "READ"));
+};
+
+/**
+ * Every JSON response to an employee who may not see prices goes out
+ * without them (withoutPrices) - whatever route answers it, so a new one
+ * can't forget. Mounted once in app.ts, before the routes: req.user is set
+ * by then. Their permissions unreadable: hidden too.
+ */
+export const hidePricesFromEmployees = (req: Request, res: Response, next: NextFunction) => {
+    const json = res.json.bind(res);
+    res.json = (body: unknown) => {
+        if (req.user?.role !== "USER") {
+            return json(body);
+        }
+        permissionsOf(req).then(
+            permissions => json(permissions.prices ? body : withoutPrices(body)),
+            () => json(withoutPrices(body)),
+        );
+        return res;
+    };
+    next();
 };

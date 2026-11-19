@@ -12,9 +12,15 @@ export type AccessLevel = typeof ACCESS_LEVELS[number];
 
 export interface Permissions {
     modules: Record<PermissionModule, AccessLevel>;
-    // Prices and amounts shown in the modules allowed.
+    // Prices and amounts shown in the modules allowed. Without them, the
+    // modules made of amounts are hidden (PRICED_MODULES) and every price is
+    // taken out of what the others answer (withoutPrices).
     prices: boolean;
 }
+
+// Quotes, invoices and the dashboard are amounts through and through (their
+// PDFs too): hidden whenever prices are.
+export const PRICED_MODULES: PermissionModule[] = ["quotes", "invoices", "dashboard"];
 
 // An admin's: everything.
 export const FULL_PERMISSIONS: Permissions = {
@@ -44,13 +50,37 @@ export const normalizePermissions = (input: unknown): Permissions | null => {
     }
     const { modules, prices } = input as { modules?: unknown; prices?: unknown };
     const given = typeof modules === "object" && modules !== null && !Array.isArray(modules) ? modules as Record<string, unknown> : {};
+    const showPrices = prices !== false;
     return {
         modules: Object.fromEntries(PERMISSION_MODULES.map(module => {
+            if (!showPrices && PRICED_MODULES.includes(module)) {
+                return [module, "NONE"];
+            }
             const level = Object.prototype.hasOwnProperty.call(given, module) ? given[module] : undefined;
             return [module, isAccessLevel(level) ? level : DEFAULT_EMPLOYEE_PERMISSIONS.modules[module]];
         })) as Record<PermissionModule, AccessLevel>,
-        prices: prices !== false,
+        prices: showPrices,
     };
+};
+
+// Every field holding a price or an amount, wherever it's answered: a
+// resource's prices, a line's price and discount, a document's totals and
+// discount, the company's early payment discount.
+const PRICE_FIELDS = new Set([
+    "unit_price", "selling_price", "purchase_price", "discount",
+    "amount_excl_vat", "amount_incl_vat", "early_payment_discount", "early_payment_min_amount",
+]);
+
+/** A response body with every price and amount set to null, however deep - for an employee who may not see them. A date is kept as is. */
+export const withoutPrices = (value: unknown): unknown => {
+    if (Array.isArray(value)) {
+        return value.map(withoutPrices);
+    }
+    if (value === null || typeof value !== "object" || value instanceof Date || Buffer.isBuffer(value)) {
+        return value;
+    }
+    return Object.fromEntries(Object.entries(value).map(([key, field]) =>
+        [key, PRICE_FIELDS.has(key) ? null : withoutPrices(field)]));
 };
 
 // The module a document belongs to - a chantier's PROJECT document is its

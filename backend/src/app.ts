@@ -14,6 +14,7 @@ import documentSectionRoutes from "./modules/documents/document_section.routes";
 import documentTemplateRoutes from "./modules/documents/document_template.routes";
 import numberingRoutes from "./modules/numbering/numbering.routes";
 import permissionRoutes from "./modules/permissions/permission.routes";
+import { hidePricesFromEmployees } from "./modules/permissions/permission.middleware";
 import companyRoutes from "./modules/companies/company.routes";
 import projectRoutes from "./modules/projects/project.routes";
 import projectTypeRoutes from "./modules/projects/project_type.routes";
@@ -74,6 +75,9 @@ app.get("/uploads/*splat", async (req, res) => {
   }
   file.body.pipe(res);
 });
+
+// An employee who may not see prices gets every response without them.
+app.use(hidePricesFromEmployees);
 
 app.use("/auth", authRoutes);
 

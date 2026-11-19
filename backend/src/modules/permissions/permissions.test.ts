@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { allows, DEFAULT_EMPLOYEE_PERMISSIONS, FULL_PERMISSIONS, moduleOfDocumentType, normalizePermissions } from "./permissions";
+import { allows, DEFAULT_EMPLOYEE_PERMISSIONS, FULL_PERMISSIONS, moduleOfDocumentType, normalizePermissions, withoutPrices } from "./permissions";
 
 describe("allows", () => {
     const permissions = normalizePermissions({ modules: { invoices: "NONE", calendar: "READ" } })!;
@@ -25,11 +25,11 @@ describe("allows", () => {
 
 describe("normalizePermissions", () => {
     it("keeps the levels given and completes the rest with the defaults", () => {
-        const permissions = normalizePermissions({ modules: { quotes: "READ" }, prices: false })!;
+        const permissions = normalizePermissions({ modules: { quotes: "READ" }, prices: true })!;
         expect(permissions.modules.quotes).toBe("READ");
         expect(permissions.modules.projects).toBe("WRITE");
         expect(permissions.modules.dashboard).toBe("NONE");
-        expect(permissions.prices).toBe(false);
+        expect(permissions.prices).toBe(true);
     });
 
     it("ignores unknown levels and modules, and anything inherited", () => {
@@ -43,6 +43,23 @@ describe("normalizePermissions", () => {
         expect(normalizePermissions(null)).toBeNull();
         expect(normalizePermissions("WRITE")).toBeNull();
         expect(normalizePermissions([])).toBeNull();
+    });
+});
+
+describe("prices hidden", () => {
+    it("hide the modules made of amounts, whatever they were set to", () => {
+        const permissions = normalizePermissions({ modules: { quotes: "WRITE", invoices: "READ", dashboard: "READ", projects: "WRITE" }, prices: false })!;
+        expect(permissions.modules).toMatchObject({ quotes: "NONE", invoices: "NONE", dashboard: "NONE", projects: "WRITE", catalog: "WRITE" });
+        expect(permissions.prices).toBe(false);
+    });
+
+    it("take every price and amount out of a response, however deep, dates kept", () => {
+        const date = new Date("2026-11-19T00:00:00Z");
+        expect(withoutPrices([{ id: 1, name: "Tuile", selling_price: "3.20", purchase_price: null, created_at: date }]))
+            .toEqual([{ id: 1, name: "Tuile", selling_price: null, purchase_price: null, created_at: date }]);
+        expect(withoutPrices({ document: { amount_excl_vat: 10, amount_incl_vat: 10.81, discount: 5 }, sections: [{ title: "A", lines: [{ quantity: 2, unit_price: 5 }] }] }))
+            .toEqual({ document: { amount_excl_vat: null, amount_incl_vat: null, discount: null }, sections: [{ title: "A", lines: [{ quantity: 2, unit_price: null }] }] });
+        expect(withoutPrices({ modules: { quotes: "NONE" }, prices: false })).toEqual({ modules: { quotes: "NONE" }, prices: false });
     });
 });
 
