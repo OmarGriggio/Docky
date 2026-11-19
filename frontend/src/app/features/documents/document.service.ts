@@ -42,7 +42,7 @@ export class DocumentService {
   // document-form.ts has no UI for them yet - the backend requires them on
   // every PUT body, so they always have to be sent explicitly (preserving
   // whatever was loaded) rather than omitted.
-  updateDocument(id: number, document: Pick<Document, 'client_id' | 'address_id' | 'reference_client' | 'date' | 'discount' | 'vat_rate' | 'introduction' | 'conclusion' | 'payment_terms' | 'due_date'> & DocumentRecipient) {
+  updateDocument(id: number, document: Pick<Document, 'client_id' | 'address_id' | 'reference_client' | 'date' | 'discount' | 'vat_rate' | 'introduction' | 'conclusion' | 'payment_terms' | 'due_date' | 'template_id'> & DocumentRecipient) {
     return this.http.put<Document>(`${API_BASE}/document/${id}`, document);
   }
 

@@ -1,7 +1,7 @@
 import { Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
 import { PricePipe } from '../../../shared/pipes/price.pipe';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { firstValueFrom, of } from 'rxjs';
 import { PermissionService } from '../../../shared/services/permission.service';
 import { HasUnsavedChanges, LeaveConfirmation } from '../../../shared/guards/unsaved-changes.guard';
@@ -13,11 +13,11 @@ import { Button } from 'primeng/button';
 import { Card } from 'primeng/card';
 import { Dialog } from 'primeng/dialog';
 import { Popover } from 'primeng/popover';
-import { DocumentStylePicker } from '../../../shared/components/document-style-picker/document-style-picker';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { DocumentService } from '../document.service';
 import { DocumentCompleteService } from '../document-complete.service';
-import { DocumentTemplateService } from '../document-template.service';
+import { TemplateService } from '../../settings/templates/template.service';
+import { Template } from '../../../shared/models/template';
 import { DocumentScannerService, ExtractedDocumentData } from '../../document-scanner/document-scanner.service';
 import { ClientService } from '../../clients/client.service';
 import { ProjectService } from '../../projects/project.service';
@@ -79,7 +79,7 @@ const isOpenForEditing = (type: DocumentType, status: DocumentStatus | null): bo
 @Component({
   selector: 'app-document-form',
   standalone: true,
-  imports: [FormsModule, PricePipe, InputNumber, FloatLabel, Button, Card, Dialog, DocumentHeader, DocumentTextBlock, DocumentSections, ConfirmDialogComponent, GuidedTour, Popover, DocumentStylePicker, TranslocoPipe],
+  imports: [FormsModule, RouterLink, PricePipe, InputNumber, FloatLabel, Button, Card, Dialog, DocumentHeader, DocumentTextBlock, DocumentSections, ConfirmDialogComponent, GuidedTour, Popover, TranslocoPipe],
   templateUrl: './document-form.html',
   styleUrl: './document-form.css',
 })
@@ -104,8 +104,8 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
       guideStep(`totals${kind}`, 'pi-calculator', '[data-tour="totals"]'),
       guideStep('conclusion', 'pi-align-right', '[data-tour="conclusion"]'),
       guideStep(`actions${kind}`, 'pi-save', '[data-tour="actions"]'),
-      // The "Modèle" button is an admin's only - no step without it.
-      ...(this.canChangeStyle() ? [guideStep('style', 'pi-palette', '[data-tour="style"] button')] : []),
+      // The "Modèle" button - not on a document that can't change any more.
+      ...(!this.locked() ? [guideStep('style', 'pi-palette', '[data-tour="style"] button')] : []),
       guideStep(`status${kind}`, 'pi-flag', '[data-tour="status"]'),
       guideStep('help', 'pi-question-circle', '[data-tour="help"] button'),
     ];
@@ -138,7 +138,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
   private route = inject(ActivatedRoute);
   private documentService = inject(DocumentService);
   private documentCompleteService = inject(DocumentCompleteService);
-  private documentTemplateService = inject(DocumentTemplateService);
+  private templateService = inject(TemplateService);
   private clientService = inject(ClientService);
   private projectService = inject(ProjectService);
   private companyService = inject(CompanyService);
@@ -148,32 +148,51 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
 
   company = signal<Company | null>(null);
 
-  // The "Modèle" panel: the company's document template, changed right from
-  // here (it applies to every document, like on the profile) - an admin's
-  // to change, like the profile. Shown at once, put back if the save fails.
-  canChangeStyle = computed(() => this.authService.isAdmin() || this.authService.isPlatformAdmin());
+  // The document's template ("Modèle" - Paramètres > Modèles): its look, and
+  // the texts, due date and payment terms a new document starts from. The
+  // company's templates, archived ones too - a document keeps the one it was
+  // given; only active ones are offered.
+  templates = signal<Template[]>([]);
+  templateId = signal<number | null>(null);
+  selectedTemplate = computed(() =>
+    this.templates().find(template => template.id === this.templateId()) ?? this.templates().find(template => template.is_default) ?? null);
+  pickableTemplates = computed(() => this.templates().filter(template => template.is_active || template.id === this.templateId()));
+  // Templates are made and changed by the company's admin (Paramètres > Modèles).
+  canManageTemplates = computed(() => this.authService.isAdmin() || this.authService.isPlatformAdmin());
 
-  changeDocumentStyle(style: Partial<Pick<Company, 'document_layout' | 'document_font'>>): void {
-    const company = this.company();
-    if (!company) {
+  // A text block saved its draft into the template - the copy here follows.
+  onTemplateSaved(saved: Template): void {
+    this.templates.update(templates => templates.map(template => template.id === saved.id ? saved : template));
+  }
+
+  // Another template picked: the introduction, conclusion and payment terms
+  // still as the previous template wrote them follow the new one - one
+  // changed by hand stays - and so does the due date while it's the default
+  // one. Its look and an invoice's early payment discount come with it on save.
+  pickTemplate(id: number): void {
+    const previous = this.selectedTemplate();
+    const next = this.templates().find(template => template.id === id);
+    if (!next || this.locked() || next.id === previous?.id) {
       return;
     }
-    const next = { document_layout: company.document_layout, document_font: company.document_font, ...style };
-    this.company.set({ ...company, ...next });
-    this.companyService.updateDocumentStyle(company.id, next).subscribe({
-      next: saved => {
-        this.company.set(saved);
-        this.notifications.success('documents.form.styleSaved');
-      },
-      error: err => {
-        this.company.set(company);
-        this.notifications.error('document-form', err);
-      }
+    const quote = this.type() === 'QUOTE';
+    const texts = (template: Template) => ({
+      introduction: (quote ? template.quote_introduction : template.invoice_introduction) ?? '',
+      conclusion: (quote ? template.quote_conclusion : template.invoice_conclusion) ?? '',
+      paymentTerms: template.payment_terms ?? '',
     });
+    const before = previous ? texts(previous) : null;
+    const after = texts(next);
+    if (!before || this.introduction() === before.introduction) this.introduction.set(after.introduction);
+    if (!before || this.conclusion() === before.conclusion) this.conclusion.set(after.conclusion);
+    if (!before || this.paymentTerms === before.paymentTerms) this.paymentTerms = after.paymentTerms;
+    this.dueDays = quote ? next.quote_due_days : next.invoice_due_days;
+    this.applyDefaultDueDate();
+    this.templateId.set(next.id);
   }
   companyLogoUrl = computed(() => this.companyService.getFileUrl(this.company()?.logo ?? null));
-  // What the introduction's and conclusion's [c1]/[f2]... passages print in.
-  documentColors = computed<DocumentColors>(() => ({ 1: this.company()?.accent_color ?? null, 2: this.company()?.secondary_color ?? null }));
+  // What the introduction's and conclusion's [c1]/[f2]... passages print in - its template's colors.
+  documentColors = computed<DocumentColors>(() => ({ 1: this.selectedTemplate()?.accent_color ?? null, 2: this.selectedTemplate()?.secondary_color ?? null }));
 
   clients = signal<Client[]>([]);
 
@@ -435,7 +454,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
   // work from the start, until it's created.
   private formState = computed(() => JSON.stringify([
     this.selectedClientId(), this.addressId(), this.referenceClient(), this.date(), this.dueDate(),
-    this.discount(), this.vatRate(), this.introduction(), this.conclusion(),
+    this.discount(), this.vatRate(), this.introduction(), this.conclusion(), this.templateId(),
     this.recipientName(), this.recipientComplement(), this.recipientStreet(), this.recipientPostalCodeCity(),
     this.sections(),
   ]));
@@ -591,10 +610,17 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
         const company = await firstValueFrom(this.companyService.getCompany(companyId));
         this.company.set(company);
         this.vatRate.set(company.vat_rate);
-        this.paymentTerms = company.payment_terms ?? '';
       } catch (err) {
         console.error('document-form : ' + err);
       }
+    }
+    // Before the create/edit branch below too: a new document starts from
+    // the default one (loadTemplate).
+    try {
+      this.templates.set(await firstValueFrom(this.templateService.getTemplates(true)));
+      this.templateId.set(this.templates().find(template => template.is_default)?.id ?? null);
+    } catch (err) {
+      this.notifications.error('document-form', err);
     }
 
     // Loaded before deciding create-vs-edit below (not in parallel with it):
@@ -660,32 +686,29 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
     });
   }
 
-  // Fills introduction/conclusion from this type's saved template, if any -
-  // fine to always apply outright since a fresh document starts with both
-  // empty either way, no "only if already blank" check needed. Called from
-  // the queryParamMap subscription above, both on first load and on a
-  // reused-component navigation to the other type.
+  // Fills the introduction, conclusion and payment terms from the document's
+  // template (the default one for a new document) - for this type - fine to
+  // always apply outright since a fresh document starts with them empty
+  // either way. And its due date's default. Called from the queryParamMap
+  // subscription above, both on first load and on a reused-component
+  // navigation to the other type. `applyText` false: a duplicate keeps its
+  // source's own texts, only the due date's default is taken.
   private loadTemplate(type: DocumentType, applyText = true): void {
-    this.documentTemplateService.getTemplate(type).subscribe({
-      next: template => {
-        if (applyText) {
-          this.introduction.set(template?.introduction ?? '');
-          this.conclusion.set(template?.conclusion ?? '');
-        }
-        this.dueDays = template?.due_days ?? null;
-        this.applyDefaultDueDate();
-        // A fresh document starts from here - see formState.
-        if (this.editingDocumentId() === null) {
-          this.markClean();
-        }
-      },
-      error: err => {
-        this.notifications.error('document-form', err);
-        if (this.editingDocumentId() === null) {
-          this.markClean();
-        }
+    const template = this.selectedTemplate();
+    if (template) {
+      const quote = type === 'QUOTE';
+      if (applyText) {
+        this.introduction.set((quote ? template.quote_introduction : template.invoice_introduction) ?? '');
+        this.conclusion.set((quote ? template.quote_conclusion : template.invoice_conclusion) ?? '');
+        this.paymentTerms = template.payment_terms ?? '';
       }
-    });
+      this.dueDays = quote ? template.quote_due_days : template.invoice_due_days;
+      this.applyDefaultDueDate();
+    }
+    // A fresh document starts from here - see formState.
+    if (this.editingDocumentId() === null) {
+      this.markClean();
+    }
   }
 
   // "Facturer" (project-list.ts) - picks this chantier's own client and
@@ -739,6 +762,11 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
         this.onClientChange(source.client_id, source.address_id);
         this.applyRecipient(source);
 
+        // Its source's template while it's still offered - the default one otherwise.
+        const sourceTemplate = this.templates().find(template => template.id === source.template_id && template.is_active);
+        if (sourceTemplate) {
+          this.templateId.set(sourceTemplate.id);
+        }
         this.introduction.set(source.introduction ?? '');
         this.conclusion.set(source.conclusion ?? '');
         this.paymentTerms = source.payment_terms ?? '';
@@ -872,6 +900,11 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
         this.onClientChange(source.client_id, source.address_id);
         this.applyRecipient(source);
         this.billedAddress.set(source.billed_address ?? null);
+        // The one it was given (archived since or not) - the default one for a
+        // document from before templates had none.
+        if (source.template_id != null) {
+          this.templateId.set(source.template_id);
+        }
 
         this.introduction.set(source.introduction ?? '');
         this.conclusion.set(source.conclusion ?? '');
@@ -1135,6 +1168,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
           due_date: this.dueDateForApi(),
           introduction: this.introduction(),
           conclusion: this.conclusion(),
+          template_id: this.templateId(),
           ...this.recipientForApi(),
         }));
 
@@ -1160,6 +1194,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
         due_date: this.dueDateForApi(),
         introduction: this.introduction(),
         conclusion: this.conclusion(),
+        template_id: this.templateId(),
         // Every document starts as a draft - status changes happen
         // afterwards, not at creation.
         status: 'DRAFT',

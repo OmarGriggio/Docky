@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, model, signal } from '@angular/core';
+import { Component, computed, inject, input, model, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Button } from 'primeng/button';
 import { Textarea } from 'primeng/textarea';
@@ -7,7 +7,8 @@ import { ConfirmDialogComponent } from '../../../../shared/components/confirm-di
 import { DocumentType } from '../../../../shared/models/document';
 import { TabIndentDirective } from '../../../../shared/directives/tab-indent.directive';
 import { placeholderToken } from '../../../../shared/utils/display';
-import { DocumentTemplateService } from '../../document-template.service';
+import { TemplateService } from '../../../settings/templates/template.service';
+import { Template } from '../../../../shared/models/template';
 import { TextStyleToolbar } from '../../../../shared/components/text-style-toolbar/text-style-toolbar';
 import { DocumentColors, RichTextView } from '../../../../shared/components/rich-text-view/rich-text-view';
 
@@ -15,10 +16,11 @@ import { DocumentColors, RichTextView } from '../../../../shared/components/rich
 // a read-only preview + "Modifier le texte" by default - clicking it swaps
 // to an editable textarea, pre-filled with the *current* text (`draft`),
 // independent of `text` until applied or saved. "Appliquer" only changes
-// this document. "Sauvegarder" also overwrites the company's own default
-// template of this field for every future document of this type - behind a
-// confirm dialog, nothing is applied to this document either until it's
-// confirmed. Cancelling (or never clicking either) discards the draft.
+// this document. "Sauvegarder" (an admin's) also writes it into the
+// document's template, this type's text there - every future document
+// started from that template - behind a confirm dialog, nothing is applied
+// to this document either until it's confirmed. Cancelling (or never
+// clicking either) discards the draft.
 @Component({
   selector: 'app-document-text-block',
   standalone: true,
@@ -28,7 +30,7 @@ import { DocumentColors, RichTextView } from '../../../../shared/components/rich
 })
 export class DocumentTextBlock {
 
-  private documentTemplateService = inject(DocumentTemplateService);
+  private templateService = inject(TemplateService);
   private transloco = inject(TranslocoService);
 
   // The document's own text - two-way, the form saves it with the document.
@@ -45,6 +47,10 @@ export class DocumentTextBlock {
   // The company's two document colors - the toolbar's swatches and the
   // preview's styled passages ([c1], [f2]... see shared/utils/rich-text.ts).
   colors = input<DocumentColors>({ 1: null, 2: null });
+  // The document's template - "Sauvegarder" writes into it (null: no button).
+  template = input<Template | null>(null);
+  // The template as saved - the form's own copy follows.
+  templateSaved = output<Template>();
 
   // Shown under the textarea - built here since a literal double brace in a
   // template is read as an interpolation. The {{tokens}} themselves are
@@ -88,31 +94,38 @@ export class DocumentTextBlock {
   }
 
   confirmSave(): void {
+    const template = this.template();
+    if (!template) {
+      return;
+    }
     // nav.invoices/nav.quotes are capitalized (nav-bar labels) - lowercased
     // here, this is mid-sentence.
     const noun = this.transloco.translate(this.type() === 'INVOICE' ? 'nav.invoices' : 'nav.quotes').toLowerCase();
-    this.confirmMessage.set(this.transloco.translate('documents.textBlock.saveDefaultMessage', { noun }));
+    this.confirmMessage.set(this.transloco.translate('documents.textBlock.saveDefaultMessage', { noun, template: template.name }));
     this.confirmVisible.set(true);
   }
 
-  // Promotes the draft to be the new saved default of this field for this
-  // document's type (QUOTE/INVOICE) - same PUT the settings page's "Modèles
-  // de documents" uses, but only this field: the backend keeps whatever is
-  // left out. Both this document's own text and the company-wide default
-  // are only actually updated once this resolves - confirming the dialog is
+  // Writes the draft into the document's template - this type's text there,
+  // the backend keeping the rest of it. This document's own text and the
+  // template are only updated once this resolves - confirming the dialog is
   // what commits both together, never before.
   onConfirmed(): void {
+    const template = this.template();
+    if (!template) {
+      return;
+    }
     const draft = this.draft();
-    const patch = this.field() === 'introduction' ? { introduction: draft } : { conclusion: draft };
+    const field = `${this.type() === 'QUOTE' ? 'quote' : 'invoice'}_${this.field()}` as const;
 
     this.saving.set(true);
     this.saveError.set(null);
 
-    this.documentTemplateService.upsertTemplate(this.type(), patch).subscribe({
-      next: () => {
+    this.templateService.updateTemplate(template.id, { [field]: draft }).subscribe({
+      next: saved => {
         this.text.set(draft);
         this.saving.set(false);
         this.editing.set(false);
+        this.templateSaved.emit(saved);
       },
       error: err => {
         console.error('document-text-block : ' + err);

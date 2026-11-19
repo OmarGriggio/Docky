@@ -1,4 +1,5 @@
 import { DocumentLineType } from './document-line';
+import { TemplateStyle } from './template';
 import { DepositDeduction } from './billing';
 
 // PROJECT is a chantier itself - see shared/models/project.ts. Its own
@@ -52,6 +53,11 @@ export interface Document {
   invoice_kind?: 'STANDARD' | 'DEPOSIT';
   // A chantier's final invoice, once sent: the deposits it deducts.
   deposit_deductions?: DepositDeduction[] | null;
+  // The template it's printed with (Paramètres > Modèles) - the company's
+  // default for a new one when left out. Null for a chantier's ledger.
+  template_id?: number | null;
+  // Its look frozen once it's sent - null while it follows its template.
+  template_style?: TemplateStyle | null;
 }
 
 export interface BilledAddress {
