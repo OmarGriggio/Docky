@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { getAllResourcesServ, getResourcesByTypeServ, addResourceServ, updateResourceServ, archiveResourceServ, unarchiveResourceServ } from "./resource.service";
 import { Resource, UpdateResourceData } from "./resource.types";
+import { permissionsOf } from "../permissions/permission.middleware";
 
 export const getResources = async (req: Request, res: Response) => {
   const type = req.query.type as string | undefined;
@@ -15,14 +16,16 @@ export const getResources = async (req: Request, res: Response) => {
 export const createResource = async (req: Request, res: Response) => {
   const { code: _ignored, ...resourceData }: Omit<Resource, "id" | "company_id" | "is_active"> = req.body;
 
-  const resourceCreated = await addResourceServ(resourceData, req.user.company_id);
+  const keepPrices = !(await permissionsOf(req)).prices;
+  const resourceCreated = await addResourceServ(resourceData, req.user.company_id, { keepPrices });
   res.json(resourceCreated);
 };
 
 export const updateResource = async (req: Request, res: Response) => {
   const resourceData: UpdateResourceData = req.body;
 
-  const resourceUpdated = await updateResourceServ(Number(req.params.id), req.user.company_id, resourceData);
+  const keepPrices = !(await permissionsOf(req)).prices;
+  const resourceUpdated = await updateResourceServ(Number(req.params.id), req.user.company_id, resourceData, { keepPrices });
   res.json(resourceUpdated);
 };
 

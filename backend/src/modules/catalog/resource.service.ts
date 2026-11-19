@@ -42,7 +42,12 @@ export const getResourcesByTypeServ = async (type: string, company_id: number, i
 // (Paramètres > Numérotation - MAT0001 for a material, SER0001 for a service
 // by default), whatever the request says. Never reused, archived resources
 // included, so it never collides with an active one either.
-export const addResourceServ = async (resourceData: Omit<Resource, "id" | "company_id" | "is_active" | "code">, company_id: number) => {
+// `keepPrices` (an employee who may not see prices): created unpriced - 0,
+// no purchase price - for an admin to price; an edit keeps the stored ones.
+export const addResourceServ = async (resourceData: Omit<Resource, "id" | "company_id" | "is_active" | "code">, company_id: number, { keepPrices = false } = {}) => {
+  if (keepPrices) {
+    resourceData = { ...resourceData, selling_price: 0, purchase_price: null };
+  }
   if (!RESOURCE_TYPES.includes(resourceData.type)) {
     throw new AppError("type must be MATERIAL or SERVICE", 400);
   }
@@ -59,10 +64,13 @@ export const addResourceServ = async (resourceData: Omit<Resource, "id" | "compa
   });
 };
 
-export const updateResourceServ = async (id: number, company_id: number, data: UpdateResourceData) => {
+export const updateResourceServ = async (id: number, company_id: number, data: UpdateResourceData, { keepPrices = false } = {}) => {
   const resource = await getResourceByIdFromDB(id, company_id);
   if (!resource) {
     throw new NotFoundError("Resource not found");
+  }
+  if (keepPrices) {
+    data = { ...data, selling_price: resource.selling_price, purchase_price: resource.purchase_price };
   }
 
   const reference = resource.type === "MATERIAL" ? normalizeReference(data.reference) : null;
