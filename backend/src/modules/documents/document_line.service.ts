@@ -1,4 +1,5 @@
 import { DocumentLine } from "./document_line.types";
+import { keptLinePrice } from "./hidden-prices";
 import {
   getLinesByDocumentIdFromDB,
   getLineByIdFromDB,
@@ -24,7 +25,10 @@ export const getLinesForDocumentServ = async (document_id: number, company_id: n
 export const addLineServ = async (
   lineData: Omit<DocumentLine, "id" | "company_id" | "document_id" | "position" | "is_active">,
   document_id: number,
-  company_id: number
+  company_id: number,
+  // Added by an employee who may not see prices: priced from the catalog,
+  // else 0 (hidden-prices.ts), never from the request.
+  { keepPrices = false } = {}
 ) => {
   const document = await getDocumentByIdFromDB(document_id, company_id);
   if (!document) {
@@ -39,8 +43,13 @@ export const addLineServ = async (
     throw new NotFoundError("Section not found");
   }
 
-  if (lineData.resource_id != null && !(await getResourceByIdFromDB(lineData.resource_id, company_id))) {
+  const resource = lineData.resource_id != null ? await getResourceByIdFromDB(lineData.resource_id, company_id) : null;
+  if (lineData.resource_id != null && !resource) {
     throw new NotFoundError("Resource not found");
+  }
+  if (keepPrices) {
+    const catalogPrices = new Map(resource ? [[resource.id, Number(resource.selling_price)]] : []);
+    lineData = { ...lineData, ...keptLinePrice(lineData, new Map(), catalogPrices) };
   }
 
   const position = await getNextPositionForSectionFromDB(lineData.section_id);

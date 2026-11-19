@@ -26,6 +26,7 @@ import { getSectionsByDocumentIdFromDB, createSectionInDB } from "./document_sec
 import { getClientByIdFromDB } from "../clients/client.repository";
 import { getAddressByIdFromDB, getAddressesByClientIdFromDB } from "../clients/address.repository";
 import { buildBilledAddress } from "./billed-address";
+import { keptLinePrice, LinePrice } from "./hidden-prices";
 import { clientDisplayName } from "../clients/client.display";
 import { getProjectByDocumentIdFromDB, createProjectInDB, getProjectByIdFromDB } from "../projects/project.repository";
 import { amountDue, BillingSummary, ChantierInvoice, depositAmounts, DepositRequest, depositsToDeduct, summarizeBilling } from "./deposit";
@@ -343,8 +344,10 @@ const isPercentage = (value: unknown) => typeof value === "number" && value >= 0
 // transaction: the current ones are archived, the given ones created fresh,
 // totals recomputed once. Either all of it lands or none of it - a dropped
 // connection halfway can't leave a document half-emptied, as the previous
-// one-request-per-line save from the frontend could.
-export const replaceDocumentContentServ = async (id: number, company_id: number, sections: DocumentContentSection[]) => {
+// one-request-per-line save from the frontend could. `keepPrices`: saved by
+// an employee who may not see prices - the lines' prices never come from the
+// request, see hidden-prices.ts.
+export const replaceDocumentContentServ = async (id: number, company_id: number, sections: DocumentContentSection[], { keepPrices = false } = {}) => {
   if (!Array.isArray(sections) || sections.some(section => !Array.isArray(section?.lines))) {
     throw new AppError("sections must be an array of sections, each with its own lines array", 400);
   }
@@ -361,8 +364,8 @@ export const replaceDocumentContentServ = async (id: number, company_id: number,
     !LINE_TYPES.includes(line.type) ||
     typeof line.label !== "string" || !line.label.trim() ||
     !Number.isFinite(line.quantity) ||
-    !Number.isFinite(line.unit_price) ||
-    (line.discount != null && !isPercentage(line.discount))
+    (!keepPrices && !Number.isFinite(line.unit_price)) ||
+    (!keepPrices && line.discount != null && !isPercentage(line.discount))
   );
   if (invalidLine) {
     throw new AppError("Each line needs a type (MATERIAL or SERVICE), a label, a quantity, a unit price, and a discount between 0 and 100", 400);
@@ -380,11 +383,18 @@ export const replaceDocumentContentServ = async (id: number, company_id: number,
 
     // A line may only point at one of this company's own catalog resources.
     const resourceIds = new Set(lines.map(line => line.resource_id).filter((id): id is number => id != null));
+    const catalogPrices = new Map<number, number>();
     for (const resource_id of resourceIds) {
-      if (!(await getResourceByIdFromDB(resource_id, company_id))) {
+      const resource = await getResourceByIdFromDB(resource_id, company_id);
+      if (!resource) {
         throw new NotFoundError("Resource not found");
       }
+      catalogPrices.set(resource_id, Number(resource.selling_price));
     }
+    // The prices the lines had, by their id - before they're archived.
+    const previousPrices = new Map<number, LinePrice>(keepPrices
+      ? (await getLinesByDocumentIdFromDB(id)).map(line => [line.id, { unit_price: Number(line.unit_price), discount: Number(line.discount ?? 0) }])
+      : []);
 
     await archiveDocumentContentInDB(id, company_id);
 
@@ -402,6 +412,9 @@ export const replaceDocumentContentServ = async (id: number, company_id: number,
       });
 
       for (const [lineIndex, line] of section.lines.entries()) {
+        const price = keepPrices
+          ? keptLinePrice(line, previousPrices, catalogPrices)
+          : { unit_price: line.unit_price, discount: line.discount ?? 0 };
         await createLineInDB({
           company_id,
           document_id: id,
@@ -411,8 +424,8 @@ export const replaceDocumentContentServ = async (id: number, company_id: number,
           label: line.label,
           quantity: line.quantity,
           unit: line.unit ?? null,
-          unit_price: line.unit_price,
-          discount: line.discount ?? 0,
+          unit_price: price.unit_price,
+          discount: price.discount,
           resource_id: line.resource_id ?? null,
           is_active: true,
         });

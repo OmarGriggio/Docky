@@ -111,6 +111,9 @@ export type CreateDocumentData = Omit<
 // (see replaceDocumentContentServ) - its sections in order, each with its
 // own lines in order. Positions come from that order, ids are all new.
 export interface DocumentContentLine {
+  // The line's id before this save - only read to keep its price when an
+  // employee who may not see prices saves (hidden-prices.ts).
+  id?: number;
   type: DocumentLineType;
   label: string;
   quantity: number;

@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { getLinesForDocumentServ, addLineServ, archiveLineServ, unarchiveLineServ } from "./document_line.service";
 import { DocumentLine } from "./document_line.types";
+import { permissionsOf } from "../permissions/permission.middleware";
 
 export const getLines = async (req: Request, res: Response) => {
   const document_id = Number(req.query.document_id);
@@ -13,7 +14,8 @@ export const getLines = async (req: Request, res: Response) => {
 export const createLine = async (req: Request, res: Response) => {
   const { document_id, ...lineData }: Omit<DocumentLine, "id" | "company_id" | "position" | "is_active"> & { document_id: number } = req.body;
 
-  const lineCreated = await addLineServ(lineData, document_id, req.user.company_id);
+  const keepPrices = !(await permissionsOf(req)).prices;
+  const lineCreated = await addLineServ(lineData, document_id, req.user.company_id, { keepPrices });
   res.json(lineCreated);
 };
 

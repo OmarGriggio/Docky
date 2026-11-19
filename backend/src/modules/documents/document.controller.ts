@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { addDocumentServ, updateDocumentServ, archiveDocumentServ, unarchiveDocumentServ, getAllDocumentsServ, getDocumentsByTypeServ, getDocumentByIdServ, acceptQuoteServ, updateDocumentStatusServ, replaceDocumentContentServ, getDocumentDeductionsServ } from "./document.service";
 import { CreateDocumentData, UpdateDocumentData } from "./document.types";
-import { readableDocumentTypes } from "../permissions/permission.middleware";
+import { permissionsOf, readableDocumentTypes } from "../permissions/permission.middleware";
 import { ForbiddenError } from "../../shared/types/errors";
 
 export const getDocuments = async (req: Request, res: Response) => {
@@ -60,7 +60,8 @@ export const updateDocumentStatus = async (req: Request, res: Response) => {
 };
 
 export const replaceDocumentContent = async (req: Request, res: Response) => {
-  const document = await replaceDocumentContentServ(Number(req.params.id), req.user.company_id, req.body?.sections);
+  const keepPrices = !(await permissionsOf(req)).prices;
+  const document = await replaceDocumentContentServ(Number(req.params.id), req.user.company_id, req.body?.sections, { keepPrices });
   res.json(document);
 };
 
