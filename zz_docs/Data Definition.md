@@ -21,17 +21,15 @@ A construction company using Docky - the tenant everything else belongs to.
 - QR-IBAN *(optional)* - invoices' QR-bills are then paid to it with a QR reference
 - payment reference *(`SCOR` - a creditor reference "RF...", the default - or `NONE`)* - what invoices' QR-bills carry without a QR-IBAN
 - VAT number *(optional)*, default VAT rate *(8.1% by default, copied onto each new document)*
-- default payment terms *(free text, printed on invoices and quotes)*
-- logo, invoice header image *(optional, stored in MinIO/S3)*
-- document colors *(accent and secondary, optional - the PDFs stay black and white without)*
-- document layout *(`CLASSIC` - positions then details - or `MODERN` - every line in one table on page 1)* and font *(`HELVETICA`, `LATO` or `PT_SERIF`)* - read when a PDF is printed, like the colors
-- early payment discount *(rate, days, minimum total - copied onto each new invoice)*
+- logo *(optional, stored in MinIO/S3 - the same on every template)*
 - footer details *(website, bank name and account)*
+
+How its documents look, their default texts and conditions are its templates'.
 
 ## Relations
 
 - has several users, clients, resources, documents, projects
-- has one document template per document type at most
+- has several templates, exactly one of them its default
 - has one numbering per type at most *(quotes, invoices, clients, materials, services)*
 - has its employees' permissions *(one set for the whole company, at most)*
 
@@ -178,9 +176,22 @@ One priced line of a section.
 
 ---
 
-# 📝 Document template
+# 📝 Template ("Modèle")
 
-A company's default introduction, conclusion and due-date delay for one document type (`QUOTE`, `INVOICE`, or `REMINDER` - the payment reminder's text). Copied into each new document; nothing reads it afterwards except the reminder PDF.
+A company's way of presenting its quotes, invoices and reminders, and what a new one starts from. Several per company, one its default; archived ones stay on the documents that use them.
+
+## Fields
+
+- name, default flag, active flag
+- look: layout *(`CLASSIC` - positions then details - or `MODERN` - every line in one table on page 1)*, font *(`HELVETICA`, `LATO` or `PT_SERIF`)*, main and secondary colors *(optional - black and white without)*, header image *(optional, stored in MinIO/S3)*
+- a quote's and an invoice's starting introduction, conclusion and due days - copied onto each new document
+- payment terms *(free text)* and early payment discount *(rate, days, minimum total)* - copied onto each new invoice
+- the payment reminder's text *(empty: the standard one in the client's language)* - read every time a reminder is printed
+
+## Relations
+
+- belongs to a company
+- used by quotes and invoices - each has one *(the company's default when created without)*; a document sent keeps the look it was sent with
 
 ---
 
