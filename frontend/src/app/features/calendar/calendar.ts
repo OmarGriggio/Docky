@@ -54,6 +54,8 @@ export class CalendarPage implements OnInit, AfterViewInit {
   canWrite = this.permissions.can('calendar', 'WRITE');
   // A section's link to its chantier, only with the chantiers module.
   canSeeProjects = this.permissions.can('projects');
+  // A section's lines without their price for an employee without "Voir les prix".
+  canSeePrices = this.permissions.canSeePrices;
   private documentSectionService = inject(DocumentSectionService);
   private documentLineService = inject(DocumentLineService);
   private calendarNoteService = inject(CalendarNoteService);

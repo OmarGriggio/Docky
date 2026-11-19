@@ -80,7 +80,7 @@
           <div class="flex justify-between gap-2 text-sm border-b border-gray-100 py-1">
             <span>{{ line.label }}</span>
             <span class="text-gray-500 whitespace-nowrap"
-              >{{ line.quantity }} {{ line.unit }} × {{ line.unit_price | price }} CHF</span
+              >{{ line.quantity }} {{ line.unit }}@if (canSeePrices()) { × {{ line.unit_price | price }} CHF}</span
             >
           </div>
         }
