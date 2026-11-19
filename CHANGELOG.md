@@ -2,6 +2,17 @@
 
 Every release of Docky, newest first. One version for the whole app (backend and frontend ship together from `main`), numbered `MAJOR.MINOR.PATCH` - see CLAUDE.md's Workflow for when each part goes up and how a release is made. Each release is tagged `vX.Y.Z` on `main`.
 
+## [1.5.0] - 2026-11-19
+
+### Added
+- Paramètres > Droits des employés: a "Voir les prix" switch. Without it, employees see no price, total or amount anywhere (resources, a chantier's resources, the calendar), quotes, invoices and the dashboard are hidden, and what they save keeps the prices already set - a line they add takes the catalog's price, or 0 for the admin to set. The "Profil ouvrier" preset turns it off.
+
+### Changed
+- Deploying no longer builds the app on the server: the images are built by GitHub Actions and pulled from GitHub's registry - quicker deploys, and an earlier version back in seconds.
+
+### Fixed
+- A deploy could freeze the whole server (out of memory while building), and the site answered with an error for a few minutes after a deploy.
+
 ## [1.4.0] - 2026-11-19
 
 ### Added
