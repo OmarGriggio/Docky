@@ -39,6 +39,9 @@ export class ResourceListComponent implements OnInit {
   private permissions = inject(PermissionService);
   // In read only (an employee's permissions): no adding, editing or archiving.
   canWrite = computed(() => this.permissions.can('catalog', 'WRITE'));
+  // Prices hidden from an employee without "Voir les prix" - the backend
+  // answers none and keeps the stored ones whatever is sent.
+  canSeePrices = this.permissions.canSeePrices;
 
   resources = signal<Resource[]>([]);
   currentType = signal<ResourceType | null>(null);
@@ -207,7 +210,7 @@ export class ResourceListComponent implements OnInit {
   onRowEditSave(resource: Resource): void {
     // Same required fields as the new resource form - otherwise the edit is
     // undone.
-    if (!resource.name?.trim() || !resource.unit?.trim() || resource.selling_price === null) {
+    if (!resource.name?.trim() || !resource.unit?.trim() || (this.canSeePrices() && resource.selling_price === null)) {
       this.notifications.warn('notifications.editUndone');
       this.onRowEditCancel(resource);
       return;

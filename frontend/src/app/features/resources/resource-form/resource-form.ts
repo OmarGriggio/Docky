@@ -11,6 +11,7 @@ import { ResourceService } from '../resource.service';
 import { Resource, ResourceType } from '../../../shared/models/resource';
 import { UnitSelect } from '../unit-select/unit-select';
 import { UnitListStore } from '../unit-list.store';
+import { PermissionService } from '../../../shared/services/permission.service';
 
 @Component({
   selector: 'app-resource-form',
@@ -24,6 +25,9 @@ export class ResourceForm implements OnInit {
   private fb = inject(FormBuilder);
   private resourceService = inject(ResourceService);
   private transloco = inject(TranslocoService);
+  // No price fields for an employee without "Voir les prix" - the backend
+  // creates the resource unpriced anyway.
+  canSeePrices = inject(PermissionService).canSeePrices;
 
   // When set (see "Dupliquer" in resource-list.ts), pre-fills the form with
   // an existing resource's data - its code aside: the backend generates every
@@ -60,7 +64,7 @@ export class ResourceForm implements OnInit {
         reference: source.reference ?? '',
         name: source.name,
         unit: source.unit,
-        selling_price: source.selling_price,
+        selling_price: source.selling_price ?? 0,
         purchase_price: source.purchase_price,
       });
     }
