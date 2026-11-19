@@ -171,4 +171,33 @@ describe("employee permissions without prices", () => {
     const stored = (await api().get("/resource").set(auth(adminToken)).expect(200)).body.find((item: { id: number }) => item.id === created.id);
     expect([Number(stored.selling_price), stored.purchase_price]).toEqual([0, null]);
   });
+
+  it("refuses a save sending back lines saved meanwhile, the admin's prices kept", async () => {
+    const loaded = (await getDocumentComplete(userToken, projectDocumentId)).lines;
+    // The admin reprices meanwhile: every line is recreated under a new id.
+    await saveContent(adminToken, projectDocumentId, [sectionOf("Toit", [{ label: "Pose", quantity: 3, unit_price: 65 }])]).expect(200);
+
+    await saveContent(userToken, projectDocumentId, [sectionOf("Toit", [{ id: loaded[0].id, label: "Pose", quantity: 4, unit_price: null }])]).expect(409);
+    const [line] = (await getDocumentComplete(adminToken, projectDocumentId)).lines;
+    expect([Number(line.quantity), Number(line.unit_price)]).toEqual([3, 65]);
+  });
+
+  it("prices a line added on its own from the catalog or at 0", async () => {
+    const [line] = (await getDocumentComplete(adminToken, projectDocumentId)).lines;
+    const base = { document_id: projectDocumentId, section_id: line.section_id, type: "MATERIAL", quantity: 2, unit: "pce", unit_price: 999, discount: 50 };
+    const typed = (await api().post("/document-line").set(auth(userToken)).send({ ...base, label: "Typed", resource_id: null }).expect(200)).body;
+    const fromCatalog = (await api().post("/document-line").set(auth(userToken)).send({ ...base, label: "Tuile", resource_id: resourceId }).expect(200)).body;
+
+    const lines = (await getDocumentComplete(adminToken, projectDocumentId)).lines;
+    const priceOf = (id: number) => {
+      const stored = lines.find((item: { id: number }) => item.id === id);
+      return [Number(stored.unit_price), Number(stored.discount)];
+    };
+    expect([priceOf(typed.id), priceOf(fromCatalog.id)]).toEqual([[0, 0], [18.5, 0]]);
+  });
+
+  it("answers a chantier's balance without its amount", async () => {
+    const deductions = (await api().get(`/document/${projectDocumentId}/deductions`).set(auth(userToken)).expect(200)).body;
+    expect(deductions.amount_due).toBeNull();
+  });
 });

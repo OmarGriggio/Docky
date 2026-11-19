@@ -391,10 +391,17 @@ export const replaceDocumentContentServ = async (id: number, company_id: number,
       }
       catalogPrices.set(resource_id, Number(resource.selling_price));
     }
-    // The prices the lines had, by their id - before they're archived.
+    // The prices the lines have, by their id - before they're archived.
     const previousPrices = new Map<number, LinePrice>(keepPrices
       ? (await getLinesByDocumentIdFromDB(id)).map(line => [line.id, { unit_price: Number(line.unit_price), discount: Number(line.discount ?? 0) }])
       : []);
+    // A line it sends back that isn't there any more: the content was saved
+    // meanwhile (every save recreates the lines) - refused rather than
+    // repriced from the catalog or at 0, which would silently undo the prices
+    // an admin just set. Reloading gives the current lines.
+    if (keepPrices && lines.some(line => line.id != null && !previousPrices.has(line.id))) {
+      throw new ConflictError("The content was saved meanwhile - reload it");
+    }
 
     await archiveDocumentContentInDB(id, company_id);
 
