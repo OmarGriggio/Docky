@@ -18,6 +18,9 @@ RUN npm run build
 
 # ---- prod : lean runtime image, no devDependencies, no source, non-root ----
 FROM node:22-slim AS prod
+# Links the image to the repo (GHCR) and is what the deploy's prune matches -
+# an image built on the server by the fallback carries it too.
+LABEL org.opencontainers.image.source=https://github.com/OmarGriggio/Docky
 WORKDIR /app
 COPY package*.json ./
 RUN npm install --omit=dev

@@ -15,6 +15,12 @@ on:
 permissions:
   contents: read
 
+# Two pushes close together deploy one after the other, never at once - the
+# older one can't finish last and end up live.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
 jobs:
   test-backend:
     runs-on: ubuntu-latest
@@ -22,8 +28,8 @@ jobs:
       run:
         working-directory: backend
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
           cache: npm
@@ -41,8 +47,8 @@ jobs:
       run:
         working-directory: frontend
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
           cache: npm
@@ -63,21 +69,23 @@ jobs:
       matrix:
         app: [backend, frontend]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
       - name: Build and push ghcr.io/omargriggio/docky-${{ matrix.app }}
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           image=ghcr.io/omargriggio/docky-${{ matrix.app }}
           version=$(node -p "require('./backend/package.json').version")
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          echo "$GHCR_TOKEN" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
           # The registry cache needs buildx's own builder, not the default one.
           docker buildx create --use --driver docker-container
-          # Tagged with the commit (what the deploy below pulls), the version
-          # (to roll back to by its name) and latest. The build stages are
-          # cached in the registry (buildcache), so an unchanged npm install
-          # isn't redone. The label links the package to this repo.
+          # Tagged with the commit (what the deploy below pulls - the one tag
+          # never moved), the version (moved by a later push without a version
+          # bump) and latest. The build stages are cached in the registry
+          # (buildcache), so an unchanged npm install isn't redone. The label
+          # linking the package to this repo is in the Dockerfiles.
           docker buildx build ./${{ matrix.app }} --target prod --push \
             --tag "$image:${{ github.sha }}" --tag "$image:$version" --tag "$image:latest" \
-            --label "org.opencontainers.image.source=https://github.com/${{ github.repository }}" \
             --cache-from "type=registry,ref=$image:buildcache" \
             --cache-to "type=registry,ref=$image:buildcache,mode=max"
 
@@ -99,15 +107,17 @@ jobs:
             # Still pulled: the compose file, the migrations (bind-mounted
             # into the backend) and nginx's config come from the repo.
             git pull
-            # The images this very run built - an image that can't be pulled
-            # stops here, the running containers untouched.
+            # The images this very run built. --no-build: an image that couldn't
+            # be pulled stops the deploy here, the running containers untouched -
+            # never a build on the server instead (a failed pull is only a
+            # warning for a service that also has a build: section).
             export DOCKY_IMAGE_TAG=${{ github.sha }}
             docker compose -f docker-compose.prod.yml pull backend frontend
-            docker compose -f docker-compose.prod.yml up -d
+            docker compose -f docker-compose.prod.yml up -d --no-build
             # The gateway resolves the backend's address once: without a
             # reload it keeps proxying to the container just replaced (a 502).
             docker exec docky-nginx nginx -s reload
-            # Docky's own images no container uses any more (the label above)
+            # Docky's own images no container uses any more (the Dockerfiles' label)
             # - never another app's on this server. Any version can be pulled
             # back from GHCR.
             docker image prune -af --filter "label=org.opencontainers.image.source=https://github.com/${{ github.repository }}"
