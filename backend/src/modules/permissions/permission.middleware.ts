@@ -112,10 +112,22 @@ export const hidePricesFromEmployees = (req: Request, res: Response, next: NextF
         if (req.user?.role !== "USER") {
             return json(body);
         }
-        permissionsOf(req).then(
-            permissions => json(permissions.prices ? body : withoutPrices(body)),
-            () => json(withoutPrices(body)),
-        );
+        // Sent once the permissions are read, so never let a failure here
+        // escape as an unhandled rejection (it would stop the server): a
+        // second answer to the same request (the error middleware after a
+        // controller already answered) is dropped, anything else is a bare 500.
+        permissionsOf(req)
+            .then(permissions => permissions.prices ? body : withoutPrices(body), () => withoutPrices(body))
+            .then(stripped => {
+                if (!res.headersSent) {
+                    json(stripped);
+                }
+            })
+            .catch(() => {
+                if (!res.headersSent) {
+                    res.status(500).end();
+                }
+            });
         return res;
     };
     next();

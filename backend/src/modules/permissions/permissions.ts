@@ -69,6 +69,9 @@ export const normalizePermissions = (input: unknown): Permissions | null => {
 const PRICE_FIELDS = new Set([
     "unit_price", "selling_price", "purchase_price", "discount",
     "amount_excl_vat", "amount_incl_vat", "early_payment_discount", "early_payment_min_amount",
+    // Amounts computed from those - a final invoice's balance, a client's
+    // payments, a scanned document's estimate.
+    "amount_due", "total_paid", "estimated_amount",
 ]);
 
 /** A response body with every price and amount set to null, however deep - for an employee who may not see them. A date is kept as is. */
