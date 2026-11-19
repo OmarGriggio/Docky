@@ -1,3 +1,5 @@
+// A company's identity - how its documents look, their default texts and
+// conditions are its templates' (shared/models/template.ts).
 export interface Company {
   id: number;
   name: string | null;
@@ -9,33 +11,14 @@ export interface Company {
   city: string | null;
   country: string | null;
   logo: string | null;
-  header_image: string | null;
   vat_rate: number;
   vat_number: string | null;
-  payment_terms: string | null;
   // Printed in an invoice's footer - free text, optional.
   website: string | null;
   bank_name: string | null;
   bank_account: string | null;
-  // Default early payment discount ("escompte") copied onto each new
-  // invoice: rate% off the total incl. VAT when paid within `days`, from
-  // `min_amount` incl. VAT up. 0% = none.
-  early_payment_discount: number;
-  early_payment_days: number | null;
-  early_payment_min_amount: number;
-  // "#rrggbb" the invoices and quotes are printed with - null for none.
-  accent_color: string | null;
-  // The second one, for the titles - null for none.
-  secondary_color: string | null;
   // An optional QR-IBAN: invoices' QR-bills are then paid to it with a QR
   // reference. Without one, a creditor reference ("RF...") or none.
   qr_iban: string | null;
   payment_reference_type: 'SCOR' | 'NONE';
-  // How its invoices, quotes and reminders are laid out and in which font
-  // (the backend's pdf/templates/modern-letter.ts and pdf-fonts.ts).
-  document_layout: DocumentLayout;
-  document_font: DocumentFont;
 }
-
-export type DocumentLayout = 'CLASSIC' | 'MODERN';
-export type DocumentFont = 'HELVETICA' | 'LATO' | 'PT_SERIF';

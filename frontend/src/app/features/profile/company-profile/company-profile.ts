@@ -1,6 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { InputText } from 'primeng/inputtext';
 import { InputNumber } from 'primeng/inputnumber';
 import { FloatLabel } from 'primeng/floatlabel';
@@ -15,22 +16,13 @@ import { AuthService } from '../../auth/auth.service';
 import { PostalCodeCity } from '../../../shared/components/postal-code-city/postal-code-city';
 import { splitPostalCodeCity } from '../../../shared/utils/postal-code-search';
 import { InvoicingReadinessBanner } from '../../../shared/components/invoicing-readiness-banner/invoicing-readiness-banner';
-import { Company, DocumentFont, DocumentLayout } from '../../../shared/models/company';
+import { Company } from '../../../shared/models/company';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
-import { DocumentStylePicker } from '../../../shared/components/document-style-picker/document-style-picker';
-
-// An early payment discount with no number of days to pay within means
-// nothing - the days are required as soon as there's a rate.
-const earlyPaymentDaysRequired: ValidatorFn = (group: AbstractControl): ValidationErrors | null => {
-  const discount = group.get('early_payment_discount')?.value ?? 0;
-  const days = group.get('early_payment_days')?.value;
-  return discount > 0 && (days === null || days === undefined) ? { earlyPaymentDaysRequired: true } : null;
-};
 
 @Component({
   selector: 'app-company-profile',
   standalone: true,
-  imports: [ReactiveFormsModule, InputText, InputNumber, FloatLabel, Button, Card, SelectButton, FileUpload, PostalCodeCity, InvoicingReadinessBanner, ConfirmDialogComponent, DocumentStylePicker, TranslocoPipe],
+  imports: [ReactiveFormsModule, InputText, InputNumber, FloatLabel, Button, Card, SelectButton, FileUpload, PostalCodeCity, InvoicingReadinessBanner, ConfirmDialogComponent, RouterLink, TranslocoPipe],
   templateUrl: './company-profile.html',
   styleUrl: './company-profile.css',
 })
@@ -40,12 +32,6 @@ export class CompanyProfile implements OnInit {
   private companyService = inject(CompanyService);
   private authService = inject(AuthService);
   private transloco = inject(TranslocoService);
-
-  // The two document colors, each with its own label and hint.
-  readonly colorFields = [
-    { control: 'accent_color', label: 'profile.accentColor', hint: 'profile.accentColorHint' },
-    { control: 'secondary_color', label: 'profile.secondaryColor', hint: 'profile.secondaryColorHint' },
-  ] as const;
 
   form = this.fb.nonNullable.group({
     name: ['', Validators.required],
@@ -64,42 +50,11 @@ export class CompanyProfile implements OnInit {
     website: ['', Validators.maxLength(255)],
     bank_name: ['', Validators.maxLength(100)],
     bank_account: ['', Validators.maxLength(50)],
-    // Same bounds the backend enforces - days only matter once there's a
-    // rate, and are required then (earlyPaymentDaysRequired below).
-    early_payment_discount: [0, [Validators.min(0), Validators.max(100)]],
-    early_payment_days: [null as number | null, [Validators.min(1), Validators.max(365)]],
-    early_payment_min_amount: [0, [Validators.min(0), Validators.max(9999999999.99)]],
-    // "#rrggbb", or '' for none (stored as null).
-    accent_color: [''],
-    secondary_color: [''],
     // The QR-bill's reference (see the backend's payment-reference.ts): a
     // QR reference with a QR-IBAN, otherwise a creditor reference or none.
     qr_iban: [''],
     payment_reference_type: ['SCOR' as 'SCOR' | 'NONE'],
-    document_layout: ['CLASSIC' as DocumentLayout],
-    document_font: ['HELVETICA' as DocumentFont],
-  }, { validators: earlyPaymentDaysRequired });
-
-  // The document style (document-style-picker), saved with the rest of the form.
-  private layoutValue = toSignal(this.form.controls.document_layout.valueChanges, { initialValue: 'CLASSIC' as DocumentLayout });
-  private fontValue = toSignal(this.form.controls.document_font.valueChanges, { initialValue: 'HELVETICA' as DocumentFont });
-  accentValue = toSignal(this.form.controls.accent_color.valueChanges, { initialValue: '' });
-  selectedLayout = computed(() => this.layoutValue());
-  selectedFont = computed(() => this.fontValue());
-
-  pickLayout(layout: DocumentLayout): void {
-    if (this.canManageCompany()) {
-      this.form.controls.document_layout.setValue(layout);
-      this.form.controls.document_layout.markAsDirty();
-    }
-  }
-
-  pickFont(font: DocumentFont): void {
-    if (this.canManageCompany()) {
-      this.form.controls.document_font.setValue(font);
-      this.form.controls.document_font.markAsDirty();
-    }
-  }
+  });
 
   private referenceCreditorLabel = translateSignal('profile.paymentReference.creditor');
   private referenceNoneLabel = translateSignal('profile.paymentReference.none');
@@ -108,19 +63,10 @@ export class CompanyProfile implements OnInit {
     { label: this.referenceNoneLabel(), value: 'NONE' },
   ]);
 
-  // Shown under the days field - the backend would refuse the save anyway,
-  // with nothing but the generic error to tell which field is wrong. Reads
-  // the form's status first so it re-evaluates on every change.
-  private formStatus = toSignal(this.form.statusChanges, { initialValue: this.form.status });
-
   // With a QR-IBAN, the reference is always a QR reference - the choice
   // below only applies without one.
   private qrIbanValue = toSignal(this.form.controls.qr_iban.valueChanges, { initialValue: '' });
   hasQrIban = computed(() => !!this.qrIbanValue()?.trim());
-  missingEarlyPaymentDays = computed(() => {
-    this.formStatus();
-    return this.form.hasError('earlyPaymentDaysRequired');
-  });
 
   loading = signal(true);
   successMessage = signal<string | null>(null);
@@ -129,19 +75,6 @@ export class CompanyProfile implements OnInit {
   logoPath = signal<string | null>(null);
   logoUrl = computed(() => this.companyService.getFileUrl(this.logoPath()));
   logoErrorMessage = signal<string | null>(null);
-
-  // Same for the image shown at the very top of a generated invoice (see
-  // backend/src/pdf's InvoiceTemplate).
-  headerImagePath = signal<string | null>(null);
-  headerImageUrl = computed(() => this.companyService.getFileUrl(this.headerImagePath()));
-  headerImageErrorMessage = signal<string | null>(null);
-
-  // Not editable on this page - edited on the settings page's "Modèles de
-  // documents" (see DocumentTemplates, its own PATCH endpoint). Kept here
-  // only so submit() below can still send the *current* value on this form's
-  // own full-row PUT instead of wiping it, same reasoning as logoPath/
-  // headerImagePath above for a field with its own independent save path.
-  paymentTerms = signal<string | null>(null);
 
   private companyId: number | null = null;
   // The profile as saved - what the "complete your profile" banner reads.
@@ -189,19 +122,10 @@ export class CompanyProfile implements OnInit {
           website: company.website ?? '',
           bank_name: company.bank_name ?? '',
           bank_account: company.bank_account ?? '',
-          early_payment_discount: company.early_payment_discount ?? 0,
-          early_payment_days: company.early_payment_days,
-          early_payment_min_amount: company.early_payment_min_amount ?? 0,
-          accent_color: company.accent_color ?? '',
-          secondary_color: company.secondary_color ?? '',
           qr_iban: company.qr_iban ?? '',
           payment_reference_type: company.payment_reference_type ?? 'SCOR',
-          document_layout: company.document_layout ?? 'CLASSIC',
-          document_font: company.document_font ?? 'HELVETICA',
         });
         this.logoPath.set(company.logo);
-        this.headerImagePath.set(company.header_image);
-        this.paymentTerms.set(company.payment_terms);
         this.loading.set(false);
 
         if (!this.canManageCompany()) {
@@ -233,12 +157,7 @@ export class CompanyProfile implements OnInit {
       ...value,
       postal_code: postalCode,
       city,
-      // An emptied number field comes back null - stored as "none" (0).
-      early_payment_discount: value.early_payment_discount ?? 0,
-      early_payment_min_amount: value.early_payment_min_amount ?? 0,
       logo: this.logoPath(),
-      header_image: this.headerImagePath(),
-      payment_terms: this.paymentTerms(),
     }).subscribe({
       next: company => {
         this.savedCompany.set(company);
@@ -280,60 +199,23 @@ export class CompanyProfile implements OnInit {
     });
   }
 
-  // Which image the confirm dialog is about to remove, null while it's closed.
-  imageToRemove = signal<'logo' | 'header' | null>(null);
+  // Whether the confirm dialog removing the logo is open.
   removeConfirmVisible = signal(false);
 
-  askRemoveImage(kind: 'logo' | 'header'): void {
-    this.imageToRemove.set(kind);
-    this.removeConfirmVisible.set(true);
-  }
-
   // The PDFs print without it from then on.
-  onRemoveImageConfirmed(): void {
-    const kind = this.imageToRemove();
-    if (!kind || this.companyId === null) {
+  onRemoveLogoConfirmed(): void {
+    if (this.companyId === null) {
       return;
     }
-    const isLogo = kind === 'logo';
-    const errorMessage = isLogo ? this.logoErrorMessage : this.headerImageErrorMessage;
-    errorMessage.set(null);
-
-    const request = isLogo ? this.companyService.removeLogo(this.companyId) : this.companyService.removeHeaderImage(this.companyId);
-    request.subscribe({
+    this.logoErrorMessage.set(null);
+    this.companyService.removeLogo(this.companyId).subscribe({
       next: company => {
-        if (isLogo) {
-          this.logoPath.set(company.logo);
-        } else {
-          this.headerImagePath.set(company.header_image);
-        }
-        this.successMessage.set(this.transloco.translate(isLogo ? 'profile.logoRemoved' : 'profile.headerImageRemoved'));
+        this.logoPath.set(company.logo);
+        this.successMessage.set(this.transloco.translate('profile.logoRemoved'));
       },
       error: err => {
         console.error('profile : ' + err);
-        errorMessage.set(this.transloco.translate('profile.imageRemoveError'));
-      }
-    });
-  }
-
-  uploadHeaderImage(event: FileUploadHandlerEvent, upload: FileUpload): void {
-    const file = event.files[0];
-    if (!file || this.companyId === null) {
-      return;
-    }
-
-    this.headerImageErrorMessage.set(null);
-
-    this.companyService.uploadHeaderImage(this.companyId, file).subscribe({
-      next: company => {
-        this.headerImagePath.set(company.header_image);
-        upload.clear();
-        this.successMessage.set(this.transloco.translate('profile.headerImageUpdated'));
-      },
-      error: err => {
-        console.error('profile : ' + err);
-        upload.clear();
-        this.headerImageErrorMessage.set(this.transloco.translate('profile.headerImageUpdateError'));
+        this.logoErrorMessage.set(this.transloco.translate('profile.imageRemoveError'));
       }
     });
   }
