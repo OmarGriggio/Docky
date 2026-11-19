@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { ForbiddenError } from "../../shared/types/errors";
+import { AppError, ForbiddenError } from "../../shared/types/errors";
 import { getDocumentByIdFromDB } from "../documents/document.repository";
 import { getSectionByIdFromDB } from "../documents/document_section.repository";
 import { getLineByIdFromDB } from "../documents/document_line.repository";
@@ -63,27 +63,32 @@ export const documentOfLine: DocumentLocator = async req => {
 export const requireDocumentPermission = (level: AccessLevel, locate: DocumentLocator, alsoAllowedBy?: PermissionModule) =>
     async (req: Request, _res: Response, next: NextFunction) => {
         const permissions = await permissionsOf(req);
-        // A section's dates and note: the calendar plans them too.
-        if (alsoAllowedBy && allows(permissions, alsoAllowedBy, level)) {
-            return next();
-        }
         // Everything allowed (an admin, a company without settings): nothing to look up.
         if (PERMISSION_MODULES.every(module => allows(permissions, module, level))) {
             return next();
         }
         const documentId = await locate(req);
         const document = documentId === null ? null : await getDocumentByIdFromDB(documentId, req.user.company_id);
-        if (document && !allows(permissions, moduleOfDocumentType(document.type), level)) {
-            throw new ForbiddenError();
+        // None (or another company's): the route answers its own 404.
+        if (!document || allows(permissions, moduleOfDocumentType(document.type), level)) {
+            return next();
         }
-        next();
+        // A chantier's section dates and note: the calendar plans them too -
+        // a chantier's only, never a quote's or an invoice's.
+        if (alsoAllowedBy && document.type === "PROJECT" && allows(permissions, alsoAllowedBy, level)) {
+            return next();
+        }
+        throw new ForbiddenError();
     };
 
-/** A new document of the type in the body (POST /document). */
+/** A new quote or invoice, of the type in the body (POST /document) - any other type a 400. */
 export const requireDocumentTypePermission = (level: AccessLevel) =>
     async (req: Request, _res: Response, next: NextFunction) => {
         const type = req.body?.type;
-        if (typeof type === "string" && !allows(await permissionsOf(req), moduleOfDocumentType(type), level)) {
+        if (type !== "QUOTE" && type !== "INVOICE") {
+            throw new AppError("type must be QUOTE or INVOICE", 400);
+        }
+        if (!allows(await permissionsOf(req), moduleOfDocumentType(type), level)) {
             throw new ForbiddenError();
         }
         next();

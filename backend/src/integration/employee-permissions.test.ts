@@ -55,6 +55,29 @@ describe("employee permissions", () => {
     expect(all.some(document => document.type === "QUOTE")).toBe(true);
   });
 
+  it("prints a PDF only of a document the employee may read, whatever the URL says", async () => {
+    // invoices NONE, quotes READ (previous test): an invoice asked for as a quote.
+    await api().get(`/pdf/quote/${invoiceId}`).set(auth(userToken)).expect(403);
+    await api().get(`/pdf/reminder/${quoteId}`).set(auth(userToken)).expect(403);
+    // Even the admin can't print a document as another type.
+    await api().get(`/pdf/quote/${invoiceId}`).set(auth(adminToken)).expect(404);
+    await api().get(`/pdf/invoice/${quoteId}`).set(auth(adminToken)).expect(404);
+  });
+
+  it("lets the calendar plan a chantier's sections only, never a quote's", async () => {
+    await setPermissions({ modules: { invoices: "NONE", quotes: "READ", calendar: "WRITE" } }).expect(200);
+    const [section] = (await api().get(`/document-section?document_id=${quoteId}`).set(auth(adminToken)).expect(200)).body;
+    await api().patch(`/document-section/${section.id}/note`).set(auth(userToken)).send({ note: "x" }).expect(403);
+    await api().put(`/document-section/${section.id}`).set(auth(userToken)).send({ date_start: null, date_end: null }).expect(403);
+    await setPermissions({ modules: { invoices: "NONE", quotes: "READ", calendar: "READ" } }).expect(200);
+  });
+
+  it("refuses to create a document of any other type than a quote or an invoice", async () => {
+    for (const type of ["PROJECT", "constructor", undefined]) {
+      await api().post("/document").set(auth(adminToken)).send({ type, client_id: clientId, date: "2026-10-30", discount: 0, vat_rate: 8.1 }).expect(400);
+    }
+  });
+
   it("keeps a module in read only: shown, nothing changed", async () => {
     await api().get(`/document/${quoteId}`).set(auth(userToken)).expect(200);
     await api().get(`/document-section?document_id=${quoteId}`).set(auth(userToken)).expect(200);
