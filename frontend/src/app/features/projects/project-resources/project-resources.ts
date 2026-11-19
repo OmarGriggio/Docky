@@ -304,7 +304,7 @@ export class ProjectResources implements OnInit {
 
     if (this.sections().some(section => section.lines.some(line => !line.label.trim() || (this.canSeePrices() && line.unit_price === null)))) {
       this.showRequired.set(true);
-      this.errorMessage.set(this.transloco.translate('projects.resources.incompleteLine'));
+      this.errorMessage.set(this.transloco.translate(this.canSeePrices() ? 'projects.resources.incompleteLine' : 'projects.resources.missingLabel'));
       return;
     }
 
@@ -329,7 +329,10 @@ export class ProjectResources implements OnInit {
           label: line.label,
           quantity: line.quantity ?? 0,
           unit: line.unit,
-          unit_price: line.unit_price ?? 0,
+          // Not seen, never sent: on a page whose permissions are stale (prices
+          // turned back on meanwhile) the backend refuses the save instead of
+          // storing 0 on every line.
+          unit_price: this.canSeePrices() ? line.unit_price ?? 0 : null,
           discount: 0,
           resource_id: line.resource_id,
         })),
@@ -339,7 +342,10 @@ export class ProjectResources implements OnInit {
       this.load();
     } catch (err) {
       console.error('project-resources : ' + err);
-      this.errorMessage.set(this.transloco.translate('projects.resources.saveError'));
+      // A 409: saved meanwhile by someone else (refused for an employee who
+      // can't see prices, rather than losing them) - reloading fixes it.
+      const conflict = (err as { status?: number } | null)?.status === 409;
+      this.errorMessage.set(this.transloco.translate(conflict ? 'notifications.errors.conflict' : 'projects.resources.saveError'));
     } finally {
       this.saving.set(false);
     }

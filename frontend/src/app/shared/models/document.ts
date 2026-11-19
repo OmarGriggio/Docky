@@ -79,7 +79,8 @@ export interface DocumentContentLine {
   label: string;
   quantity: number;
   unit: string | null;
-  unit_price: number;
+  // null from an employee who can't see prices - the backend prices it.
+  unit_price: number | null;
   discount: number;
   resource_id: number | null;
 }

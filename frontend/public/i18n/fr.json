@@ -385,7 +385,8 @@
       "loadError": "Impossible de charger les ressources du chantier.",
       "saveError": "Impossible d'enregistrer les ressources.",
       "incompleteLine": "Chaque ligne a besoin d'un libellé et d'un prix.",
-      "addFreeLine": "Ajouter une ligne"
+      "addFreeLine": "Ajouter une ligne",
+      "missingLabel": "Chaque ligne a besoin d'un libellé."
     },
     "billing": {
       "title": "Facturation",
