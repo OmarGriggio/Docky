@@ -20,7 +20,7 @@
     "returnToPlatformView": "Retour vue plateforme"
   },
   "settings": {
-    "documentTemplates": "Modèles de documents",
+    "documentTemplates": "Modèles",
     "language": "Langue",
     "uiKit": "UI Kit",
     "companies": "Entreprises",
@@ -502,8 +502,8 @@
       "apply": "Appliquer",
       "save": "Sauvegarder",
       "editText": "Modifier le texte",
-      "saveDefaultTitle": "Enregistrer comme valeur par défaut",
-      "saveDefaultMessage": "Ce texte deviendra le nouveau texte par défaut pour toutes les prochaines {{noun}}. Continuer ?",
+      "saveDefaultTitle": "Enregistrer dans le modèle",
+      "saveDefaultMessage": "Ce texte deviendra le texte de départ des prochaines {{noun}} du modèle « {{template}} ». Continuer ?",
       "saveError": "Impossible d'enregistrer le modèle par défaut."
     },
     "sections": {
@@ -555,8 +555,9 @@
       "rejectQuote": "Refuser l'offre",
       "moveTo": "Passer à « {{status}} »",
       "style": "Modèle",
-      "styleHint": "S'applique à toutes tes factures, offres et rappels, comme sur le profil. « Aperçu » montre le résultat.",
-      "styleSaved": "Modèle des documents enregistré."
+      "styleHint": "La présentation, les textes et les conditions de ce document. Les textes encore tels que le modèle les avait écrits suivent le nouveau modèle.",
+      "styleSaved": "Modèle des documents enregistré.",
+      "manageTemplates": "Gérer les modèles"
     },
     "pdfError": "Impossible de générer le PDF.",
     "kind": {
@@ -603,7 +604,7 @@
       "helpTitle": "Retrouve ce guide ici",
       "help": "Ce bouton relance le guide quand tu veux.",
       "styleTitle": "Le modèle des documents",
-      "style": "Change ici la mise en page (Classique ou Moderne) et la police de tous tes documents, puis vérifie le résultat avec « Aperçu ». Les couleurs, le logo et l'image d'en-tête se règlent sur le profil."
+      "style": "Choisis ici le modèle de ce document : sa mise en page, sa police, ses couleurs, ses textes et conditions de départ. Les modèles se créent dans Paramètres › Modèles. « Aperçu » montre le résultat."
     }
   },
   "dashboard": {
@@ -737,7 +738,9 @@
       "helveticaHint": "Sobre et classique",
       "latoHint": "Moderne et arrondie",
       "ptSerifHint": "À empattements, élégante"
-    }
+    },
+    "templatesMoved": "La présentation des documents (couleurs, mise en page, image d'en-tête), leurs textes et conditions de paiement se règlent dans les modèles :",
+    "templatesLink": "Paramètres › Modèles"
   },
   "qrBill": {
     "title": "Bulletin QR",
@@ -808,5 +811,30 @@
     "colorMissing2": "Couleur secondaire à définir dans le profil",
     "clear": "Retirer la mise en forme",
     "hint": "Sélectionne un passage, puis choisis un style."
+  },
+  "templates": {
+    "title": "Modèles",
+    "description": "Un modèle regroupe la présentation d'un document (mise en page, police, couleurs, image d'en-tête), les textes de départ d'une offre, d'une facture et d'un rappel, et les conditions (échéances, conditions de paiement, escompte). Chaque offre et facture choisit le sien avec le bouton « Modèle » ; le modèle par défaut est celui des nouveaux documents.",
+    "create": "Nouveau modèle",
+    "newName": "Nouveau modèle",
+    "copyName": "Copie de {{name}}",
+    "default": "Par défaut",
+    "archived": "Archivé",
+    "edit": "Modifier",
+    "makeDefault": "Définir par défaut",
+    "duplicate": "Dupliquer",
+    "defaultSet": "Modèle par défaut changé.",
+    "archiveTitle": "Archiver le modèle",
+    "archiveMessage": "« {{name}} » ne sera plus proposé pour les nouveaux documents. Ceux qui l'utilisent déjà restent imprimés avec lui.",
+    "back": "Retour aux modèles",
+    "name": "Nom du modèle",
+    "lookSection": "Apparence",
+    "textsSection": "Textes",
+    "conditionsSection": "Conditions",
+    "headerImageHint": "En haut de chaque page des offres, factures et rappels de ce modèle. Enregistrée tout de suite.",
+    "removeHeaderMessage": "Les documents déjà envoyés avec cette image la gardent.",
+    "reminderDefaultHint": "Laissé vide : le texte standard, dans la langue du client.",
+    "adminOnly": "Seul l'administrateur de l'entreprise peut modifier les modèles.",
+    "saved": "Modèle enregistré."
   }
 }

@@ -20,7 +20,7 @@
     "returnToPlatformView": "Back to platform view"
   },
   "settings": {
-    "documentTemplates": "Document templates",
+    "documentTemplates": "Templates",
     "language": "Language",
     "uiKit": "UI Kit",
     "companies": "Companies",
@@ -502,8 +502,8 @@
       "apply": "Apply",
       "save": "Save",
       "editText": "Edit text",
-      "saveDefaultTitle": "Save as default",
-      "saveDefaultMessage": "This text will become the new default for every future {{noun}}. Continue?",
+      "saveDefaultTitle": "Save in the template",
+      "saveDefaultMessage": "This text will become the starting text of the next {{noun}} using the \"{{template}}\" template. Continue?",
       "saveError": "Could not save the default template."
     },
     "sections": {
@@ -555,8 +555,9 @@
       "rejectQuote": "Reject quote",
       "moveTo": "Move to “{{status}}”",
       "style": "Template",
-      "styleHint": "Applies to all your invoices, quotes and reminders, as on the profile. \"Preview\" shows the result.",
-      "styleSaved": "Document template saved."
+      "styleHint": "This document's look, texts and conditions. Texts still as the template wrote them follow the new template.",
+      "styleSaved": "Document template saved.",
+      "manageTemplates": "Manage templates"
     },
     "pdfError": "Couldn't generate the PDF.",
     "kind": {
@@ -603,7 +604,7 @@
       "helpTitle": "Find this guide here",
       "help": "This button starts the guide again whenever you like.",
       "styleTitle": "The document template",
-      "style": "Change the layout (Classic or Modern) and the font of all your documents here, then check the result with \"Preview\". The colors, logo and header image are set on the profile."
+      "style": "Pick this document's template here: its layout, font, colors, starting texts and conditions. Templates are made in Settings › Templates. \"Preview\" shows the result."
     }
   },
   "dashboard": {
@@ -737,7 +738,9 @@
       "helveticaHint": "Plain and classic",
       "latoHint": "Modern and rounded",
       "ptSerifHint": "Serif, elegant"
-    }
+    },
+    "templatesMoved": "How documents look (colors, layout, header image), their texts and payment terms are set in the templates:",
+    "templatesLink": "Settings › Templates"
   },
   "qrBill": {
     "title": "QR-bill payment slip",
@@ -808,5 +811,30 @@
     "colorMissing2": "Set the secondary color in the profile first",
     "clear": "Remove formatting",
     "hint": "Select a passage, then pick a style."
+  },
+  "templates": {
+    "title": "Templates",
+    "description": "A template holds a document's look (layout, font, colors, header image), the texts a quote, an invoice and a reminder start from, and the conditions (due days, payment terms, early payment discount). Each quote and invoice picks its own with the \"Template\" button; the default one is used for new documents.",
+    "create": "New template",
+    "newName": "New template",
+    "copyName": "Copy of {{name}}",
+    "default": "Default",
+    "archived": "Archived",
+    "edit": "Edit",
+    "makeDefault": "Make default",
+    "duplicate": "Duplicate",
+    "defaultSet": "Default template changed.",
+    "archiveTitle": "Archive the template",
+    "archiveMessage": "\"{{name}}\" will no longer be offered for new documents. Those already using it keep printing with it.",
+    "back": "Back to the templates",
+    "name": "Template name",
+    "lookSection": "Look",
+    "textsSection": "Texts",
+    "conditionsSection": "Conditions",
+    "headerImageHint": "At the top of every page of this template's quotes, invoices and reminders. Saved right away.",
+    "removeHeaderMessage": "Documents already sent with this image keep it.",
+    "reminderDefaultHint": "Left empty: the standard text, in the client's language.",
+    "adminOnly": "Only the company's administrator can change the templates.",
+    "saved": "Template saved."
   }
 }
