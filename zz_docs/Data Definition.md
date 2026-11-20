@@ -183,10 +183,12 @@ A company's way of presenting its quotes, invoices and reminders, and what a new
 ## Fields
 
 - name, default flag, active flag
-- look: layout *(`CLASSIC` - positions then details - or `MODERN` - every line in one table on page 1)*, font *(`HELVETICA`, `LATO` or `PT_SERIF`)*, main and secondary colors *(optional - black and white without)*, header image *(optional, stored in MinIO/S3)*
+- look: layout *(`CLASSIC` - positions then details - or `MODERN` - every line in one table on page 1)*, font *(`HELVETICA`, `LATO` or `PT_SERIF`)*, a palette of up to 5 named colors and each PDF element's color in it *(body text, title, section titles, table header, total, early payment line, conditions, payment scale, "Bon pour accord", footer - black and white without)*, header image *(optional, stored in MinIO/S3)*
 - a quote's and an invoice's starting introduction, conclusion and due days - copied onto each new document
 - payment terms *(free text)* and early payment discount *(rate, days, minimum total)* - copied onto each new invoice
 - the payment reminder's text *(empty: the standard one in the client's language)* - read every time a reminder is printed
+
+Its texts can use 21 variables (the document's number, dates, reference and amounts; the client's title, name, number and location; the company's name, address, phone, email, website, bank details and VAT number) - a reminder 3 more - and color passages with the palette.
 
 ## Relations
 
