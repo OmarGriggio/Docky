@@ -126,9 +126,24 @@
       "signature": "Signature : le nom de l'entreprise pour l'instant",
       "invoiceNumber": "Numéro de la facture",
       "invoiceDate": "Date de la facture",
-      "dueDate": "Date d'échéance",
+      "dueDate": "Échéance (ou validité d'une offre)",
       "daysLate": "Jours de retard",
-      "clientName": "Nom du client"
+      "clientName": "Nom du client",
+      "clientNumber": "Numéro du client",
+      "location": "Lieu / bâtiment",
+      "documentNumber": "Numéro du document",
+      "clientReference": "Référence du client",
+      "amountExclVat": "Montant HT, avec CHF",
+      "vatAmount": "Montant de la TVA, avec CHF",
+      "paymentTerms": "Conditions de paiement",
+      "companyAddress": "Adresse de l'entreprise",
+      "companyPhone": "Téléphone de l'entreprise",
+      "companyEmail": "Email de l'entreprise",
+      "website": "Site web",
+      "iban": "IBAN",
+      "bankName": "Banque",
+      "bankAccount": "N° de compte bancaire",
+      "vatNumber": "N° TVA"
     }
   },
   "common": {
@@ -504,7 +519,8 @@
       "editText": "Modifier le texte",
       "saveDefaultTitle": "Enregistrer dans le modèle",
       "saveDefaultMessage": "Ce texte deviendra le texte de départ des prochaines {{noun}} du modèle « {{template}} ». Continuer ?",
-      "saveError": "Impossible d'enregistrer le modèle par défaut."
+      "saveError": "Impossible d'enregistrer le modèle par défaut.",
+      "allPlaceholders": "Toutes les variables"
     },
     "sections": {
       "details": "Détails",
@@ -803,14 +819,11 @@
     "toolbar": "Mise en forme du texte",
     "bold": "Gras",
     "boldLetter": "G",
-    "textColor1": "Texte en couleur principale",
-    "textColor2": "Texte en couleur secondaire",
-    "background1": "Trame de fond en couleur principale",
-    "background2": "Trame de fond en couleur secondaire",
-    "colorMissing1": "Couleur principale à définir dans le profil",
-    "colorMissing2": "Couleur secondaire à définir dans le profil",
     "clear": "Retirer la mise en forme",
-    "hint": "Sélectionne un passage, puis choisis un style."
+    "hint": "Sélectionne un passage, puis choisis un style.",
+    "textColor": "Texte en « {{name}} »",
+    "background": "Trame « {{name}} »",
+    "noPalette": "Ajoute des couleurs au modèle pour colorer un passage."
   },
   "templates": {
     "title": "Modèles",
@@ -835,6 +848,31 @@
     "removeHeaderMessage": "Les documents déjà envoyés avec cette image la gardent.",
     "reminderDefaultHint": "Laissé vide : le texte standard, dans la langue du client.",
     "adminOnly": "Seul l'administrateur de l'entreprise peut modifier les modèles.",
-    "saved": "Modèle enregistré."
+    "saved": "Modèle enregistré.",
+    "palette": "Palette de couleurs",
+    "paletteHint": "Jusqu'à 5 couleurs. Chaque élément du PDF en choisit une ci-dessous, et les balises [c1]…[c5] / [f1]…[f5] des textes les reprennent dans l'ordre. Retirer une couleur décale les suivantes.",
+    "colorName": "Couleur {{n}}",
+    "colorNameLabel": "Nom de la couleur",
+    "addColor": "Ajouter une couleur",
+    "removeColor": "Retirer la couleur",
+    "elementColors": "Couleur de chaque élément",
+    "elementColorsHint": "Les trames (total, escompte, barème) sont imprimées dans une version éclaircie de la couleur, pour que le texte reste lisible.",
+    "black": "Noir",
+    "noColor": "Aucune",
+    "qrBillNote": "Le bulletin de versement QR n'est jamais coloré : la norme suisse impose le noir sur blanc.",
+    "elements": {
+      "text": "Texte courant (adresse, lignes, montants, textes)",
+      "title": "Titre du document et son soulignement",
+      "companyName": "Nom de l'entreprise en en-tête (Moderne)",
+      "sectionTitles": "Titres des positions et des sections",
+      "tableHeader": "En-tête du tableau des lignes (Moderne)",
+      "total": "Total (trame et filets)",
+      "earlyPayment": "Ligne d'escompte",
+      "conditionsHeading": "Titre « Conditions de paiement »",
+      "scaleEarly": "Barème : ligne d'escompte",
+      "scaleNet": "Barème : ligne net",
+      "approval": "« Bon pour accord » (offre)",
+      "footer": "Pied de page (filet, nom, site web, email)"
+    }
   }
 }

@@ -126,9 +126,24 @@
       "signature": "Signature: the company's name for now",
       "invoiceNumber": "Invoice number",
       "invoiceDate": "Invoice date",
-      "dueDate": "Due date",
+      "dueDate": "Due date (or a quote's validity)",
       "daysLate": "Days overdue",
-      "clientName": "Client's name"
+      "clientName": "Client's name",
+      "clientNumber": "Client number",
+      "location": "Location / building",
+      "documentNumber": "Document number",
+      "clientReference": "Client's reference",
+      "amountExclVat": "Amount excl. VAT, with CHF",
+      "vatAmount": "VAT amount, with CHF",
+      "paymentTerms": "Payment terms",
+      "companyAddress": "Company address",
+      "companyPhone": "Company phone",
+      "companyEmail": "Company email",
+      "website": "Website",
+      "iban": "IBAN",
+      "bankName": "Bank",
+      "bankAccount": "Bank account number",
+      "vatNumber": "VAT number"
     }
   },
   "common": {
@@ -504,7 +519,8 @@
       "editText": "Edit text",
       "saveDefaultTitle": "Save in the template",
       "saveDefaultMessage": "This text will become the starting text of the next {{noun}} using the \"{{template}}\" template. Continue?",
-      "saveError": "Could not save the default template."
+      "saveError": "Could not save the default template.",
+      "allPlaceholders": "All variables"
     },
     "sections": {
       "details": "Details",
@@ -803,14 +819,11 @@
     "toolbar": "Text formatting",
     "bold": "Bold",
     "boldLetter": "B",
-    "textColor1": "Text in the main color",
-    "textColor2": "Text in the secondary color",
-    "background1": "Main color background",
-    "background2": "Secondary color background",
-    "colorMissing1": "Set the main color in the profile first",
-    "colorMissing2": "Set the secondary color in the profile first",
     "clear": "Remove formatting",
-    "hint": "Select a passage, then pick a style."
+    "hint": "Select a passage, then pick a style.",
+    "textColor": "Text in \"{{name}}\"",
+    "background": "\"{{name}}\" background",
+    "noPalette": "Add colors to the template to color a passage."
   },
   "templates": {
     "title": "Templates",
@@ -835,6 +848,31 @@
     "removeHeaderMessage": "Documents already sent with this image keep it.",
     "reminderDefaultHint": "Left empty: the standard text, in the client's language.",
     "adminOnly": "Only the company's administrator can change the templates.",
-    "saved": "Template saved."
+    "saved": "Template saved.",
+    "palette": "Color palette",
+    "paletteHint": "Up to 5 colors. Each element of the PDF picks one below, and the texts' [c1]…[c5] / [f1]…[f5] tags use them in order. Removing a color shifts the next ones.",
+    "colorName": "Color {{n}}",
+    "colorNameLabel": "Color name",
+    "addColor": "Add a color",
+    "removeColor": "Remove the color",
+    "elementColors": "Each element's color",
+    "elementColorsHint": "Bands (total, early payment, payment scale) print a lightened version of the color, so the text stays readable.",
+    "black": "Black",
+    "noColor": "None",
+    "qrBillNote": "The QR-bill payment slip is never colored: the Swiss standard requires black on white.",
+    "elements": {
+      "text": "Body text (address, lines, amounts, texts)",
+      "title": "Document title and its underline",
+      "companyName": "Company name in the header (Modern)",
+      "sectionTitles": "Position and section titles",
+      "tableHeader": "Lines table header (Modern)",
+      "total": "Total (band and rules)",
+      "earlyPayment": "Early payment line",
+      "conditionsHeading": "\"Payment conditions\" heading",
+      "scaleEarly": "Payment scale: early payment row",
+      "scaleNet": "Payment scale: net row",
+      "approval": "\"Approved\" lines (quote)",
+      "footer": "Footer (rule, name, website, email)"
+    }
   }
 }
