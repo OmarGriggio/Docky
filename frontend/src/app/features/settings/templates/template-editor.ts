@@ -13,7 +13,7 @@ import { FileUpload, FileUploadHandlerEvent } from 'primeng/fileupload';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from 'primeng/tabs';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { TemplateService } from './template.service';
-import { DocumentFont, DocumentLayout, Template, TemplateData } from '../../../shared/models/template';
+import { COLOR_ELEMENTS, ColorElement, DocumentFont, DocumentLayout, ElementColors, MAX_PALETTE, PaletteColor, Template, TemplateData } from '../../../shared/models/template';
 import { AuthService } from '../../auth/auth.service';
 import { CompanyService } from '../../profile/company.service';
 import { NotificationService } from '../../../shared/services/notification.service';
@@ -64,19 +64,57 @@ export class TemplateEditor implements OnInit {
   saving = signal(false);
   errorMessage = signal<string | null>(null);
 
-  // The two document colors, each with its own label and hint.
-  readonly colorFields = [
-    { control: 'accent_color', label: 'profile.accentColor', hint: 'profile.accentColorHint' },
-    { control: 'secondary_color', label: 'profile.secondaryColor', hint: 'profile.secondaryColorHint' },
-  ] as const;
+  // The template's palette (up to 5 named colors) and the one each element
+  // of the PDF is printed in - kept apart from the reactive form (a list and
+  // a map), saved with it, marking it dirty when changed.
+  readonly maxPalette = MAX_PALETTE;
+  readonly elements = COLOR_ELEMENTS;
+  palette = signal<PaletteColor[]>([]);
+  elementColors = signal<ElementColors>({});
+
+  addColor(): void {
+    if (this.palette().length >= MAX_PALETTE) {
+      return;
+    }
+    const colors = ['#037a3f', '#1d4ed8', '#b45309', '#6b7280', '#be123c'];
+    const name = this.transloco.translate('templates.colorName', { n: this.palette().length + 1 });
+    this.palette.update(palette => [...palette, { name, color: colors[palette.length] }]);
+    this.form.markAsDirty();
+  }
+
+  updateColor(position: number, change: Partial<PaletteColor>): void {
+    this.palette.update(palette => palette.map((entry, index) => index === position ? { ...entry, ...change } : entry));
+    this.form.markAsDirty();
+  }
+
+  // The elements in that color lose it, those in a later one follow it down a
+  // position - a text's [cN] tags aren't renumbered (the hint says so).
+  removeColor(position: number): void {
+    this.palette.update(palette => palette.filter((_, index) => index !== position));
+    this.elementColors.update(colors => Object.fromEntries(Object.entries(colors)
+      .filter(([, value]) => value !== position + 1)
+      .map(([element, value]) => [element, value! > position + 1 ? value! - 1 : value])) as ElementColors);
+    this.form.markAsDirty();
+  }
+
+  setElementColor(element: ColorElement, position: number | null): void {
+    this.elementColors.update(colors => {
+      const next = { ...colors };
+      if (position) next[element] = position; else delete next[element];
+      return next;
+    });
+    this.form.markAsDirty();
+  }
+
+  colorOfElement(element: ColorElement): string | null {
+    const position = this.elementColors()[element];
+    return position ? this.palette()[position - 1]?.color ?? null : null;
+  }
 
   form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(100)]],
     layout: ['CLASSIC' as DocumentLayout],
     font: ['HELVETICA' as DocumentFont],
-    // "#rrggbb", or '' for none (stored as null).
-    accent_color: [''],
-    secondary_color: [''],
     quote_introduction: [''],
     quote_conclusion: [''],
     quote_due_days: [null as number | null, Validators.min(0)],
@@ -91,9 +129,8 @@ export class TemplateEditor implements OnInit {
     reminder_text: [''],
   }, { validators: earlyPaymentDaysRequired });
 
-  // What the style picker and the text toolbars show, as they're being picked.
-  private formValue = toSignal(this.form.valueChanges, { initialValue: this.form.getRawValue() });
-  colors = computed<DocumentColors>(() => ({ 1: this.formValue().accent_color || null, 2: this.formValue().secondary_color || null }));
+  // What the text toolbars show, as the palette is being edited.
+  colors = computed<DocumentColors>(() => this.palette());
   private formStatus = toSignal(this.form.statusChanges, { initialValue: this.form.status });
   missingEarlyPaymentDays = computed(() => {
     this.formStatus();
@@ -130,12 +167,12 @@ export class TemplateEditor implements OnInit {
 
   private fill(template: Template): void {
     this.template.set(template);
+    this.palette.set(template.palette ?? []);
+    this.elementColors.set(template.element_colors ?? {});
     this.form.reset({
       name: template.name,
       layout: template.layout,
       font: template.font,
-      accent_color: template.accent_color ?? '',
-      secondary_color: template.secondary_color ?? '',
       quote_introduction: template.quote_introduction ?? '',
       quote_conclusion: template.quote_conclusion ?? '',
       quote_due_days: template.quote_due_days,
@@ -178,8 +215,8 @@ export class TemplateEditor implements OnInit {
     const data: TemplateData = {
       ...value,
       name: value.name.trim(),
-      accent_color: value.accent_color || null,
-      secondary_color: value.secondary_color || null,
+      palette: this.palette(),
+      element_colors: this.elementColors(),
       payment_terms: value.payment_terms.trim() ? value.payment_terms : null,
       reminder_text: value.reminder_text.trim() ? value.reminder_text : null,
       // An emptied number field comes back null - stored as "none" (0).

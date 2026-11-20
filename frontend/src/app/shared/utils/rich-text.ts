@@ -1,12 +1,13 @@
 // Styled passages in a document's introduction, conclusion or reminder text
 // - the same tags the backend prints (backend/src/pdf/templates/rich-text.ts,
-// keep both in sync): [g] bold, [c1]/[c2] the text in the company's main or
-// secondary color, [f1]/[f2] a band of that color behind it. Here: reading
+// keep both in sync): [g] bold, [c1]...[c5] the text in one of the
+// template's palette colors, [f1]...[f5] a band of that color behind it. Here: reading
 // them for the on-screen preview, and the toolbar's edits (wrapping a
 // selection in a tag, taking the tags off it).
 
-export type DocumentColor = 1 | 2;
-export type StyleTag = 'g' | 'c1' | 'c2' | 'f1' | 'f2';
+// A palette position, from 1.
+export type DocumentColor = number;
+export type StyleTag = 'g' | `c${number}` | `f${number}`;
 
 export interface TextStyle {
   bold: boolean;
@@ -20,7 +21,7 @@ export interface TextRun {
 }
 
 const PLAIN: TextStyle = { bold: false, color: null, background: null };
-const TAG = /\[(\/?)(g|c1|c2|f1|f2)\]/gi;
+const TAG = /\[(\/?)(g|c[1-5]|f[1-5])\]/gi;
 
 const sameStyle = (a: TextStyle, b: TextStyle) =>
   a.bold === b.bold && a.color === b.color && a.background === b.background;
@@ -29,8 +30,8 @@ const styleOf = (open: string[]): TextStyle => {
   let style: TextStyle = { ...PLAIN };
   for (const tag of open) {
     if (tag === 'g') style = { ...style, bold: true };
-    if (tag === 'c1' || tag === 'c2') style = { ...style, color: tag === 'c1' ? 1 : 2 };
-    if (tag === 'f1' || tag === 'f2') style = { ...style, background: tag === 'f1' ? 1 : 2 };
+    if (tag[0] === 'c') style = { ...style, color: Number(tag[1]) };
+    if (tag[0] === 'f') style = { ...style, background: Number(tag[1]) };
   }
   return style;
 };
@@ -80,8 +81,8 @@ export const wrapSelection = (text: string, start: number, end: number, tag: Sty
   return { text: wrapped, start: start + open.length, end: end + open.length };
 };
 
-const TAG_BEFORE = /\[\/?(?:g|c1|c2|f1|f2)\]$/i;
-const TAG_AFTER = /^\[\/?(?:g|c1|c2|f1|f2)\]/i;
+const TAG_BEFORE = /\[\/?(?:g|c[1-5]|f[1-5])\]$/i;
+const TAG_AFTER = /^\[\/?(?:g|c[1-5]|f[1-5])\]/i;
 
 /**
  * Every tag in the selection taken out - and the ones right around it, so

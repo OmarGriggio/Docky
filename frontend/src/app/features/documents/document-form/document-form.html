@@ -56,8 +56,11 @@
                     (click)="pickTemplate(template.id)"
                   >
                     <span class="flex gap-0.5 shrink-0" aria-hidden="true">
-                      <span class="w-3 h-6 rounded-sm bg-gray-300" [style.background-color]="template.accent_color"></span>
-                      <span class="w-3 h-6 rounded-sm bg-gray-200" [style.background-color]="template.secondary_color"></span>
+                      @for (entry of template.palette; track $index) {
+                        <span class="w-3 h-6 rounded-sm" [style.background-color]="entry.color"></span>
+                      } @empty {
+                        <span class="w-3 h-6 rounded-sm bg-gray-200"></span>
+                      }
                     </span>
                     <span class="flex flex-col min-w-0 flex-1">
                       <span class="text-sm font-medium text-gray-900 truncate">{{ template.name }}</span>

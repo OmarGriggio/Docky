@@ -19,8 +19,11 @@
         @for (template of visibleTemplates(); track template.id) {
           <li class="flex items-center gap-3 rounded-lg border border-gray-200 px-4 py-3 bg-white" [class.opacity-60]="!template.is_active">
             <span class="flex gap-0.5 shrink-0" aria-hidden="true">
-              <span class="w-3 h-8 rounded-sm bg-gray-300" [style.background-color]="template.accent_color"></span>
-              <span class="w-3 h-8 rounded-sm bg-gray-200" [style.background-color]="template.secondary_color"></span>
+              @for (entry of template.palette; track $index) {
+                <span class="w-3 h-8 rounded-sm" [style.background-color]="entry.color"></span>
+              } @empty {
+                <span class="w-3 h-8 rounded-sm bg-gray-200"></span>
+              }
             </span>
             <button type="button" class="flex flex-col min-w-0 flex-1 text-left bg-transparent border-0 p-0 cursor-pointer" (click)="open(template)">
               <span class="font-medium text-gray-900 truncate">

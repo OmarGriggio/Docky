@@ -23,29 +23,54 @@
 
       <app-document-style-picker
         class="ui-form__full"
-        [layout]="form.controls.layout.value" [font]="form.controls.font.value" [accentColor]="colors()[1]" [disabled]="!canManage()"
+        [layout]="form.controls.layout.value" [font]="form.controls.font.value" [accentColor]="colorOfElement('tableHeader')" [disabled]="!canManage()"
         (layoutChange)="pickLayout($event)" (fontChange)="pickFont($event)"
       />
 
-      <!-- A native color input: the browser's own picker, on a phone too. It
-           can't be empty, so "none" is the form's '' with a hint. -->
-      @for (field of colorFields; track field.control) {
-        <div class="min-w-0 flex flex-col gap-2">
-          <label [for]="field.control" class="text-sm font-medium">{{ field.label | transloco }}</label>
-          <div class="flex items-center gap-3 flex-wrap">
-            <input type="color" [id]="field.control" [formControlName]="field.control" class="w-12 h-9 p-0.5 border border-gray-300 rounded cursor-pointer bg-white" />
-            @if (form.controls[field.control].value; as color) {
-              <span class="text-sm text-gray-600 font-mono">{{ color }}</span>
-              @if (canManage()) {
-                <p-button type="button" size="small" [text]="true" severity="secondary" icon="pi pi-times" [label]="'profile.accentColorRemove' | transloco" (onClick)="form.controls[field.control].setValue(''); form.markAsDirty()" />
-              }
-            } @else {
-              <span class="text-sm text-gray-500">{{ 'profile.accentColorNone' | transloco }}</span>
+      <!-- The palette: up to 5 named colors (a native color input - the
+           browser's own picker, on a phone too). -->
+      <div class="ui-form__full flex flex-col gap-2">
+        <span class="text-sm font-medium">{{ 'templates.palette' | transloco }}</span>
+        <p class="m-0 text-sm text-gray-500">{{ 'templates.paletteHint' | transloco }}</p>
+        @for (entry of palette(); track $index; let position = $index) {
+          <div class="flex items-center gap-2">
+            <span class="w-6 text-sm text-gray-500 font-mono">c{{ position + 1 }}</span>
+            <input type="color" [value]="entry.color" (input)="updateColor(position, { color: $any($event.target).value })" [disabled]="!canManage()"
+              class="w-12 h-9 p-0.5 border border-gray-300 rounded cursor-pointer bg-white shrink-0" [attr.aria-label]="entry.name" />
+            <input pInputText [value]="entry.name" (input)="updateColor(position, { name: $any($event.target).value })" maxlength="30" [disabled]="!canManage()"
+              class="min-w-0 flex-1 max-w-64" [attr.aria-label]="'templates.colorNameLabel' | transloco" />
+            <span class="text-xs text-gray-500 font-mono hidden sm:inline">{{ entry.color }}</span>
+            @if (canManage()) {
+              <p-button type="button" size="small" [text]="true" severity="secondary" icon="pi pi-trash" [ariaLabel]="'templates.removeColor' | transloco" (onClick)="removeColor(position)" />
             }
           </div>
-          <p class="m-0 text-sm text-gray-500">{{ field.hint | transloco }}</p>
+        }
+        @if (canManage() && palette().length < maxPalette) {
+          <p-button type="button" size="small" [text]="true" icon="pi pi-plus" class="self-start" [label]="'templates.addColor' | transloco" (onClick)="addColor()" />
+        }
+      </div>
+
+      <!-- Each element's color: one of the palette's, or none (black - gray for a band). -->
+      <div class="ui-form__full flex flex-col gap-1">
+        <span class="text-sm font-medium">{{ 'templates.elementColors' | transloco }}</span>
+        <p class="m-0 mb-1 text-sm text-gray-500">{{ 'templates.elementColorsHint' | transloco }}</p>
+        <div class="grid sm:grid-cols-2 gap-x-6 gap-y-1">
+          @for (element of elements; track element) {
+            <label class="flex items-center gap-2 py-1 min-w-0">
+              <span class="w-4 h-4 rounded-sm border border-gray-300 shrink-0" [style.background-color]="colorOfElement(element) ?? (element === 'text' ? '#000000' : '#ffffff')"></span>
+              <span class="flex-1 min-w-0 text-sm text-gray-700">{{ 'templates.elements.' + element | transloco }}</span>
+              <select class="text-sm border border-gray-300 rounded px-2 py-1 bg-white w-44 max-w-full" [disabled]="!canManage()"
+                [value]="elementColors()[element] ?? ''" (change)="setElementColor(element, $any($event.target).value ? +$any($event.target).value : null)">
+                <option value="">{{ (element === 'text' ? 'templates.black' : 'templates.noColor') | transloco }}</option>
+                @for (entry of palette(); track $index; let position = $index) {
+                  <option [value]="position + 1" [selected]="elementColors()[element] === position + 1">{{ entry.name }}</option>
+                }
+              </select>
+            </label>
+          }
         </div>
-      }
+        <p class="m-0 mt-1 text-xs text-gray-500">{{ 'templates.qrBillNote' | transloco }}</p>
+      </div>
 
       <div class="ui-form__full min-w-0 flex flex-col gap-2">
         <span class="text-sm font-medium">{{ 'profile.headerImage' | transloco }}</span>

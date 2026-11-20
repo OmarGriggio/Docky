@@ -1,6 +1,25 @@
 export type DocumentLayout = 'CLASSIC' | 'MODERN';
 export type DocumentFont = 'HELVETICA' | 'LATO' | 'PT_SERIF';
 
+// The elements of a PDF a template colors (the backend's template.types.ts)
+// - the Swiss QR-bill never is, its guidelines fix it black on white.
+export const COLOR_ELEMENTS = [
+  'text', 'title', 'companyName', 'sectionTitles', 'tableHeader', 'total', 'earlyPayment',
+  'conditionsHeading', 'scaleEarly', 'scaleNet', 'approval', 'footer',
+] as const;
+export type ColorElement = typeof COLOR_ELEMENTS[number];
+
+export const MAX_PALETTE = 5;
+
+/** One of a template's colors - named, "#rrggbb". */
+export interface PaletteColor {
+  name: string;
+  color: string;
+}
+
+/** Each element's palette color, by its position from 1 - left out: none (black, or gray for a band). */
+export type ElementColors = Partial<Record<ColorElement, number>>;
+
 // A document template ("Modèle", Paramètres > Modèles - the backend's
 // modules/templates): a quote's, an invoice's and a reminder's look and
 // default texts and conditions. Several per company, one its default; each
@@ -16,11 +35,10 @@ export interface Template {
   // keeps the look it was sent with (Document.template_style).
   layout: DocumentLayout;
   font: DocumentFont;
-  // "#rrggbb" or null: the main color (the total's band, the footer...) and
-  // the secondary one (the titles) - also what a text's [c1]/[f1] and
-  // [c2]/[f2] print in.
-  accent_color: string | null;
-  secondary_color: string | null;
+  // Up to 5 colors, and the one each element of the PDF is printed in - a
+  // text's [c1]...[c5] / [f1]...[f5] print in the palette's too.
+  palette: PaletteColor[];
+  element_colors: ElementColors;
   // A storage key, set by its own upload route only.
   header_image: string | null;
 
@@ -46,4 +64,4 @@ export interface Template {
 export type TemplateData = Omit<Template, 'id' | 'company_id' | 'is_default' | 'is_active' | 'header_image'>;
 
 /** A document's look: what it was frozen with once sent. */
-export type TemplateStyle = Pick<Template, 'layout' | 'font' | 'accent_color' | 'secondary_color' | 'header_image'>;
+export type TemplateStyle = Pick<Template, 'layout' | 'font' | 'palette' | 'element_colors' | 'header_image'>;

@@ -192,7 +192,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
   }
   companyLogoUrl = computed(() => this.companyService.getFileUrl(this.company()?.logo ?? null));
   // What the introduction's and conclusion's [c1]/[f2]... passages print in - its template's colors.
-  documentColors = computed<DocumentColors>(() => ({ 1: this.selectedTemplate()?.accent_color ?? null, 2: this.selectedTemplate()?.secondary_color ?? null }));
+  documentColors = computed<DocumentColors>(() => this.selectedTemplate()?.palette ?? []);
 
   clients = signal<Client[]>([]);
 

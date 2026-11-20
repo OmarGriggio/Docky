@@ -3,25 +3,23 @@
   <button type="button" class="w-8 h-8 rounded border border-gray-300 bg-white hover:bg-gray-50 font-bold text-gray-800 cursor-pointer"
     [title]="'textStyle.bold' | transloco" [attr.aria-label]="'textStyle.bold' | transloco" (click)="style('g')">{{ 'textStyle.boldLetter' | transloco }}</button>
 
-  @for (swatch of swatches; track swatch.color) {
-    <button type="button" class="w-8 h-8 rounded border border-gray-300 bg-white hover:bg-gray-50 flex flex-col items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-      [disabled]="!colorOf(swatch.color)"
-      [title]="(colorOf(swatch.color) ? 'textStyle.textColor' + swatch.color : 'textStyle.colorMissing' + swatch.color) | transloco"
-      [attr.aria-label]="'textStyle.textColor' + swatch.color | transloco"
-      (click)="style(swatch.text)">
-      <span class="font-semibold text-gray-800 leading-none text-sm">A</span>
-      <span class="block w-5 h-1 mt-0.5 rounded-sm bg-gray-300" [style.background-color]="colorOf(swatch.color)"></span>
-    </button>
-    <button type="button" class="w-8 h-8 rounded border border-gray-300 bg-white hover:bg-gray-50 flex items-center justify-center cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
-      [disabled]="!colorOf(swatch.color)"
-      [title]="(colorOf(swatch.color) ? 'textStyle.background' + swatch.color : 'textStyle.colorMissing' + swatch.color) | transloco"
-      [attr.aria-label]="'textStyle.background' + swatch.color | transloco"
-      (click)="style(swatch.band)">
-      <span class="block w-5 h-5 rounded-sm bg-gray-300" [style.background-color]="colorOf(swatch.color)"></span>
-    </button>
+  @for (swatch of colors(); track $index; let position = $index) {
+    <span class="inline-flex gap-1 pl-1 ml-0.5 border-l border-gray-200">
+      <button type="button" class="w-8 h-8 rounded border border-gray-300 bg-white hover:bg-gray-50 flex flex-col items-center justify-center cursor-pointer"
+        [title]="'textStyle.textColor' | transloco: { name: swatch.name }" [attr.aria-label]="'textStyle.textColor' | transloco: { name: swatch.name }"
+        (click)="style('c' + (position + 1))">
+        <span class="font-semibold text-gray-800 leading-none text-sm">A</span>
+        <span class="block w-5 h-1 mt-0.5 rounded-sm" [style.background-color]="swatch.color"></span>
+      </button>
+      <button type="button" class="w-8 h-8 rounded border border-gray-300 bg-white hover:bg-gray-50 flex items-center justify-center cursor-pointer"
+        [title]="'textStyle.background' | transloco: { name: swatch.name }" [attr.aria-label]="'textStyle.background' | transloco: { name: swatch.name }"
+        (click)="style('f' + (position + 1))">
+        <span class="block w-5 h-5 rounded-sm" [style.background-color]="swatch.color"></span>
+      </button>
+    </span>
   }
 
   <button type="button" class="w-8 h-8 rounded border border-gray-300 bg-white hover:bg-gray-50 text-gray-600 cursor-pointer"
     [title]="'textStyle.clear' | transloco" [attr.aria-label]="'textStyle.clear' | transloco" (click)="clear()"><i class="pi pi-eraser"></i></button>
-  <span class="text-xs text-gray-500 ml-1">{{ 'textStyle.hint' | transloco }}</span>
+  <span class="text-xs text-gray-500 ml-1">{{ (colors().length ? 'textStyle.hint' : 'textStyle.noPalette') | transloco }}</span>
 </div>

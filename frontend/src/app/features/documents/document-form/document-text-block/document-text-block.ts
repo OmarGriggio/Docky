@@ -47,7 +47,7 @@ export class DocumentTextBlock {
   resolve = input.required<(text: string) => string>();
   // The company's two document colors - the toolbar's swatches and the
   // preview's styled passages ([c1], [f2]... see shared/utils/rich-text.ts).
-  colors = input<DocumentColors>({ 1: null, 2: null });
+  colors = input<DocumentColors>([]);
   // The document's template - "Sauvegarder" writes into it (null: no button).
   template = input<Template | null>(null);
   // The template as saved - the form's own copy follows.

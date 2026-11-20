@@ -12,6 +12,10 @@ describe('parseRichText', () => {
     ]);
   });
 
+  it('reads the five palette colors', () => {
+    expect(parseRichText('[c4]a[/c4][f5]b[/f5]')).toEqual([{ text: 'a', style: { ...plain, color: 4 } }, { text: 'b', style: { ...plain, background: 5 } }]);
+  });
+
   it('keeps a closing tag nothing opened as typed, runs an unclosed one to the end', () => {
     expect(parseRichText('a[/c1]b')).toEqual([{ text: 'a[/c1]b', style: plain }]);
     expect(parseRichText('a[G]b')).toEqual([{ text: 'a', style: plain }, { text: 'b', style: { ...plain, bold: true } }]);
