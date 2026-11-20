@@ -48,10 +48,7 @@ export class InvoiceTemplate {
         if (invoice.paymentTerms) {
             conditions.push(invoice.paymentTerms);
         }
-        drawConditionsBlock(pdf, labels.paymentConditions, conditions, {
-            accent: invoice.company.accentColor,
-            secondary: invoice.company.secondaryColor,
-        }, invoice.paymentScale);
+        drawConditionsBlock(pdf, labels.paymentConditions, conditions, invoice.company.colors, invoice.paymentScale);
     }
 
     static renderDetails(pdf: PdfWriter, invoice: InvoiceDto) {

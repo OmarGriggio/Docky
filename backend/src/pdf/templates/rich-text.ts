@@ -1,8 +1,8 @@
 // Styled text in a document's introduction, conclusion or reminder text -
 // typed around a passage like a placeholder, with the profile's two colors:
 //   [g]...[/g]    bold
-//   [c1]...[/c1]  in the main color   ([c2] the secondary one)
-//   [f1]...[/f1]  on a band of the main color ([f2] the secondary one)
+//   [c1]...[/c1]  in the template's first palette color ([c2]...[c5] the others)
+//   [f1]...[/f1]  on a band of that color ([f2]...[f5])
 // Tags nest ([f1][g]...[/g][/f1]), are case-insensitive and never fail a
 // PDF: a closing tag nothing opened is printed as typed, a tag left open
 // applies to the end of the text. A color the company hasn't set leaves its
@@ -14,7 +14,8 @@
 
 import { fillPlaceholders } from "./placeholders";
 
-export type DocumentColor = 1 | 2;
+// A palette position, from 1 (template.types.ts's MAX_PALETTE: 5).
+export type DocumentColor = number;
 
 export interface TextStyle {
     bold: boolean;
@@ -29,7 +30,7 @@ export interface TextRun {
 
 export const PLAIN: TextStyle = { bold: false, color: null, background: null };
 
-const TAG = /\[(\/?)(g|c1|c2|f1|f2)\]/gi;
+const TAG = /\[(\/?)(g|c[1-5]|f[1-5])\]/gi;
 
 const sameStyle = (a: TextStyle, b: TextStyle) =>
     a.bold === b.bold && a.color === b.color && a.background === b.background;
@@ -39,8 +40,8 @@ const styleOf = (open: string[]): TextStyle => {
     let style: TextStyle = { ...PLAIN };
     for (const tag of open) {
         if (tag === "g") style = { ...style, bold: true };
-        if (tag === "c1" || tag === "c2") style = { ...style, color: tag === "c1" ? 1 : 2 };
-        if (tag === "f1" || tag === "f2") style = { ...style, background: tag === "f1" ? 1 : 2 };
+        if (tag[0] === "c") style = { ...style, color: Number(tag[1]) };
+        if (tag[0] === "f") style = { ...style, background: Number(tag[1]) };
     }
     return style;
 };

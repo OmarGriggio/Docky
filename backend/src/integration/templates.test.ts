@@ -30,11 +30,11 @@ describe("document templates", () => {
   });
 
   it("stores colors lowercase, unknown layouts and fonts as the defaults, and refuses what can't be printed", async () => {
-    const saved = (await update(standardId, { accent_color: "#B8860B", secondary_color: "", layout: "FANCY", font: "Comic Sans" }).expect(200)).body;
-    expect(saved).toMatchObject({ accent_color: "#b8860b", secondary_color: null, layout: "CLASSIC", font: "HELVETICA" });
+    const saved = (await update(standardId, { palette: [{ name: "Or", color: "#B8860B" }], element_colors: { title: 1, total: 2, oops: 1 }, layout: "FANCY", font: "Comic Sans" }).expect(200)).body;
+    expect(saved).toMatchObject({ palette: [{ name: "Or", color: "#b8860b" }], element_colors: { title: 1 }, layout: "CLASSIC", font: "HELVETICA" });
 
-    await update(standardId, { accent_color: "#fff" }).expect(400);
-    await update(standardId, { secondary_color: 5 }).expect(400);
+    await update(standardId, { palette: [{ color: "#fff" }] }).expect(400);
+    await update(standardId, { palette: [{ color: 5 }] }).expect(400);
     await update(standardId, { name: "" }).expect(400);
     await update(standardId, { early_payment_discount: 2 }).expect(400); // no days
     await update(standardId, { quote_due_days: -1 }).expect(400);
@@ -43,7 +43,7 @@ describe("document templates", () => {
   it("keeps what a save leaves out", async () => {
     await update(standardId, { layout: "MODERN", payment_terms: "30 jours net" }).expect(200);
     const saved = (await update(standardId, { name: "Standard" }).expect(200)).body;
-    expect(saved).toMatchObject({ layout: "MODERN", payment_terms: "30 jours net", accent_color: "#b8860b" });
+    expect(saved).toMatchObject({ layout: "MODERN", payment_terms: "30 jours net", palette: [{ name: "Or", color: "#b8860b" }] });
   });
 
   it("has exactly one default, which can't be archived", async () => {
@@ -61,7 +61,7 @@ describe("document templates", () => {
 
   it("duplicates a template under a new name, never as the default", async () => {
     const copy = (await api().post(`/template/${standardId}/duplicate`).set(auth(token)).send({ name: "Copie" }).expect(200)).body;
-    expect(copy).toMatchObject({ name: "Copie", is_default: false, layout: "MODERN", accent_color: "#b8860b", payment_terms: "30 jours net" });
+    expect(copy).toMatchObject({ name: "Copie", is_default: false, layout: "MODERN", palette: [{ name: "Or", color: "#b8860b" }], payment_terms: "30 jours net" });
   });
 
   it("gives a new document the default template, or the one asked for, with its early payment discount", async () => {
@@ -104,7 +104,7 @@ describe("document templates", () => {
     const draft = await createDocument(token, "QUOTE", clientId);
     const sent = await createDocument(token, "QUOTE", clientId);
     await setStatus(sent.id, "SENT").expect(200);
-    expect((await getDocument(sent.id)).template_style).toMatchObject({ layout: "MODERN", accent_color: "#b8860b" });
+    expect((await getDocument(sent.id)).template_style).toMatchObject({ layout: "MODERN", palette: [{ name: "Or", color: "#b8860b" }], element_colors: { title: 1 } });
     expect((await getDocument(draft.id)).template_style).toBeNull();
 
     // Back to DRAFT: it follows its template again.

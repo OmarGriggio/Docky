@@ -1,14 +1,15 @@
 import { db } from "../../shared/config/database";
 import { Document, UpdateDocumentData, DocumentStatus, BilledAddress, InvoiceKind, DepositDeduction } from "./document.types";
 
-// The look a document is frozen with once sent (documents.template_style,
+// The look a document is frozen with once sent - layout, font, palette,
+// element colors and header image (documents.template_style,
 // 026_add_document_template.sql): its template's as it is right now - the
 // company's default one for a document without any. Read inside the UPDATE
 // freezing it, so it's the template as committed then. `templateId`: an SQL
 // expression for the template's id.
 const frozenStyleOf = (templateId: string) => `(
-  SELECT jsonb_build_object('layout', t.layout, 'font', t.font, 'accent_color', t.accent_color,
-    'secondary_color', t.secondary_color, 'header_image', t.header_image)
+  SELECT jsonb_build_object('layout', t.layout, 'font', t.font, 'palette', t.palette,
+    'element_colors', t.element_colors, 'header_image', t.header_image)
   FROM templates t
   WHERE t.company_id = documents.company_id
     AND (t.id = ${templateId} OR (${templateId} IS NULL AND t.is_default AND t.is_active))

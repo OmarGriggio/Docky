@@ -22,7 +22,7 @@ describe("a template's layout and font", () => {
   it("prints a quote in every layout and font", async () => {
     for (const layout of ["CLASSIC", "MODERN"]) {
       for (const font of ["HELVETICA", "LATO", "PT_SERIF"]) {
-        await api().put(`/template/${templateId}`).set(auth(token)).send({ layout, font, accent_color: "#037a3f" }).expect(200);
+        await api().put(`/template/${templateId}`).set(auth(token)).send({ layout, font, palette: [{ name: "Vert", color: "#037a3f" }], element_colors: { text: 1, title: 1, total: 1, tableHeader: 1, footer: 1 } }).expect(200);
         const pdf = await api().get(`/pdf/quote/${quoteId}`).set(auth(token)).buffer(true).parse((res, done) => {
           const chunks: Buffer[] = [];
           res.on("data", (chunk: Buffer) => chunks.push(chunk));

@@ -14,10 +14,22 @@ describe("normalizeTemplateData", () => {
     expect(normalizeTemplateData({ name: "a", layout: "FANCY", font: 3 })).toMatchObject({ layout: "CLASSIC", font: "HELVETICA" });
   });
 
-  it("stores colors lowercase, an empty one as null, refuses anything else", () => {
-    expect(normalizeTemplateData({ name: "a", accent_color: "#B8860B", secondary_color: "" })).toMatchObject({ accent_color: "#b8860b", secondary_color: null });
-    expect(() => normalizeTemplateData({ name: "a", accent_color: "#fff" })).toThrow();
-    expect(() => normalizeTemplateData({ name: "a", secondary_color: 5 })).toThrow();
+  it("keeps a palette of up to 5 colors, lowercase, named", () => {
+    expect(normalizeTemplateData({ name: "a", palette: [{ name: " Vert ", color: "#037A3F" }, { color: "#1d4ed8" }] }).palette)
+      .toEqual([{ name: "Vert", color: "#037a3f" }, { name: "Couleur 2", color: "#1d4ed8" }]);
+    expect(normalizeTemplateData({ name: "a" }).palette).toEqual([]);
+    expect(() => normalizeTemplateData({ name: "a", palette: [{ color: "#fff" }] })).toThrow();
+    expect(() => normalizeTemplateData({ name: "a", palette: Array(6).fill({ color: "#000000" }) })).toThrow();
+    expect(() => normalizeTemplateData({ name: "a", palette: "red" })).toThrow();
+    expect(() => normalizeTemplateData({ name: "a", palette: [{ color: "#000000", name: "x".repeat(31) }] })).toThrow();
+  });
+
+  it("keeps each known element's palette position, drops anything else", () => {
+    const palette = [{ color: "#037a3f" }, { color: "#1d4ed8" }];
+    expect(normalizeTemplateData({ name: "a", palette, element_colors: { title: 2, total: 1, footer: 3, text: 0, unknown: 1, approval: "1" } }).element_colors)
+      .toEqual({ title: 2, total: 1 });
+    expect(normalizeTemplateData({ name: "a", element_colors: { title: 1 } }).element_colors).toEqual({});
+    expect(normalizeTemplateData({ name: "a", palette, element_colors: [1, 2] }).element_colors).toEqual({});
   });
 
   it("checks the due days and texts", () => {
@@ -39,19 +51,20 @@ describe("normalizeTemplateData", () => {
 });
 
 describe("documentStyleOf", () => {
-  const template = { layout: "MODERN" as const, font: "LATO" as const, accent_color: "#037a3f", secondary_color: null, header_image: "companies/1/header.jpg" };
+  const template = { layout: "MODERN" as const, font: "LATO" as const, palette: [{ name: "Vert", color: "#037a3f" }], element_colors: { total: 1 }, header_image: "companies/1/header.jpg" };
 
   it("is the template's look while the document isn't frozen", () => {
     expect(documentStyleOf(null, template)).toEqual(styleOf(template));
   });
 
   it("is what the document was frozen with once sent, whatever its template is now", () => {
-    expect(documentStyleOf({ layout: "CLASSIC", font: "PT_SERIF", accent_color: null, secondary_color: "#1d4ed8", header_image: null }, template))
-      .toEqual({ layout: "CLASSIC", font: "PT_SERIF", accent_color: null, secondary_color: "#1d4ed8", header_image: null });
+    const frozen = { layout: "CLASSIC" as const, font: "PT_SERIF" as const, palette: [{ name: "Bleu", color: "#1d4ed8" }], element_colors: { title: 1 }, header_image: null };
+    expect(documentStyleOf(frozen, template)).toEqual(frozen);
   });
 
-  it("reads anything unknown in a frozen look as the default", () => {
+  it("reads anything unknown in a frozen look as the default, a broken palette as none", () => {
+    expect(documentStyleOf({ palette: "red" as never, element_colors: { title: 1 } }, template)).toMatchObject({ palette: [], element_colors: {} });
     expect(documentStyleOf({ layout: "FANCY" as never, font: "Comic" as never }, template))
-      .toEqual({ layout: "CLASSIC", font: "HELVETICA", accent_color: null, secondary_color: null, header_image: null });
+      .toEqual({ layout: "CLASSIC", font: "HELVETICA", palette: [], element_colors: {}, header_image: null });
   });
 });

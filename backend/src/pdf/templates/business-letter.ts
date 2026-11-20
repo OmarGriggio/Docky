@@ -8,7 +8,8 @@ import { formatAmount, formatIban, formatPercent, formatShortDate } from "./form
 import { tint } from "./accent-color";
 import { PaymentScaleRow } from "./payment-scale";
 import { DocumentLayout } from "../../modules/templates/template.types";
-import { DocumentColor, TextRun } from "./rich-text";
+import { TextRun } from "./rich-text";
+import { PrintColors } from "./element-colors";
 
 // The layout invoices and quotes share, modelled on the company's own Excel
 // invoices. Page 1: the client's number and the place/date on the left, the
@@ -35,11 +36,11 @@ export interface LetterDto {
         website: string | null;
         bankName: string | null;
         bankAccount: string | null;
-        // The company's own color (see accent-color.ts) - null for a
-        // black and white PDF.
-        accentColor: PdfColor | null;
-        // The second one - the titles (see drawLetterHead, drawLetterDetails).
-        secondaryColor: PdfColor | null;
+        // What each element is printed in (element-colors.ts - its
+        // template's palette color, null for none), and the palette itself
+        // (a text's [c1]...[c5]).
+        colors: PrintColors;
+        palette: (PdfColor | null)[];
         // Which layout draws it: this file's (CLASSIC) or modern-letter.ts's.
         layout: DocumentLayout;
     };
@@ -167,10 +168,10 @@ export const drawLetterHead = async (
         pdf.richText(letter.introduction, documentColorsOf(letter), { size: 11, marginBottom: 14 });
     }
 
-    // The title, bold and underlined - in the secondary color if there's
+    // The title, bold and underlined - in its color if the template gives it one
     // one - drawn by hand, so its room is reserved first (a long
     // introduction could otherwise push it onto the footer).
-    const secondary = letter.company.secondaryColor;
+    const secondary = letter.company.colors.title;
     const titleOptions: PdfTextOptions = { size: 14, bold: true, ...(secondary ? { color: secondary } : {}) };
     pdf.reserve(44);
     const titleY = pdf.remainingHeight() - 14;
@@ -220,9 +221,10 @@ export const drawTotalsTable = (
         row(pdf, vatLabelOf(letter), { rate: formatPercent(letter.vatRate), total: letter.amountInclVat - letter.amountExclVat });
     }
 
-    // The total owed, between two rules - in the accent color, on a band of
-    // it, when the company has one.
-    const accent = letter.company.accentColor;
+    // The total owed, between two rules - in its color, on a band of it, when
+    // the template gives it one.
+    const accent = letter.company.colors.total;
+    const earlyColor = letter.company.colors.earlyPayment;
     const totalHeight = ROW + 6;
     pdf.reserve(ROW * 2);
     pdf.moveDown(4);
@@ -253,18 +255,18 @@ export const drawTotalsTable = (
     if (earlyPayment) {
         pdf.moveDown(6);
         pdf.reserve(ROW);
-        if (accent) {
-            band(pdf, pdf.remainingHeight() + 2, ROW, tint(accent, EARLY_PAYMENT_BAND_TINT));
+        if (earlyColor) {
+            band(pdf, pdf.remainingHeight() + 2, ROW, tint(earlyColor, EARLY_PAYMENT_BAND_TINT));
         }
         row(pdf, labels.earlyPayment(earlyPayment.days), {
             rate: formatPercent(-earlyPayment.rate),
             deduction: -earlyPayment.amount,
             total: earlyPayment.net,
         }, { size: 11, bold: true });
-        // Underlined in the accent color, at the band's bottom edge.
-        if (accent) {
+        // Underlined in its color, at the band's bottom edge.
+        if (earlyColor) {
             pdf.moveDown(2);
-            rule(pdf, accent);
+            rule(pdf, earlyColor);
         }
     }
     pdf.moveDown(10);
@@ -277,11 +279,8 @@ export const vatLabelOf = (letter: LetterDto): string => {
     return vatNumber ? labels.vatWithNumber(vatNumber) : labels.vat;
 };
 
-/** The colors a styled text's [c1]/[f1] and [c2]/[f2] stand for (rich-text.ts) - the company's main and secondary ones. */
-export const documentColorsOf = (letter: LetterDto): Record<DocumentColor, PdfColor | null> => ({
-    1: letter.company.accentColor,
-    2: letter.company.secondaryColor,
-});
+/** The colors a styled text's [c1]...[c5] and [f1]...[f5] stand for (rich-text.ts) - its template's palette. */
+export const documentColorsOf = (letter: LetterDto): (PdfColor | null)[] => letter.company.palette;
 
 /** The signature/closing text under the totals. */
 export const drawConclusion = (pdf: PdfWriter, letter: LetterDto) => {
@@ -292,18 +291,17 @@ export const drawConclusion = (pdf: PdfWriter, letter: LetterDto) => {
 
 /**
  * A heading and its lines right after the content above them, in the
- * right-hand column (payment conditions, a quote's validity) - the heading in the accent color
- * if there's one - then an invoice's payment scale (payment-scale.ts): a
- * small two-column table, the discount's row on a band of the accent color
- * and the net one on a band of the secondary color (light gray without
- * them). Kept in one piece - on the next page if it doesn't fit, never with
+ * right-hand column (payment conditions, a quote's validity) - the heading in
+ * its color if the template gives it one - then an invoice's payment scale
+ * (payment-scale.ts): a small two-column table, the discount's row and the
+ * net one each on a band of its own color (light gray without one). Kept in one piece - on the next page if it doesn't fit, never with
  * its heading left alone at the bottom of this one.
  */
 export const drawConditionsBlock = (
     pdf: PdfWriter,
     heading: string,
     lines: string[],
-    colors: { accent: PdfColor | null; secondary: PdfColor | null },
+    colors: PrintColors,
     scale: PaymentScaleRow[] = [],
 ) => {
     if (lines.length === 0 && scale.length === 0) {
@@ -311,7 +309,7 @@ export const drawConditionsBlock = (
     }
     const indent = ADDRESS_X - pdf.marginValue();
     const blocks: { text: string; options: PdfTextOptions }[] = [
-        { text: `${heading} :`, options: { size: 10, bold: true, marginBottom: 4, indent, ...(colors.accent ? { color: colors.accent } : {}) } },
+        { text: `${heading} :`, options: { size: 10, bold: true, marginBottom: 4, indent, ...(colors.conditionsHeading ? { color: colors.conditionsHeading } : {}) } },
         ...lines.map(text => ({ text, options: { size: 10, indent } })),
     ];
     const scaleHeight = scale.length > 0 ? SCALE_GAP + scale.length * SCALE_ROW : 0;
@@ -328,11 +326,11 @@ export const drawConditionsBlock = (
 
 // Each row's text sits on the flowing cursor (text()'s own baseline), its
 // band reaching a little above and below it.
-const drawPaymentScale = (pdf: PdfWriter, scale: PaymentScaleRow[], colors: { accent: PdfColor | null; secondary: PdfColor | null }) => {
+const drawPaymentScale = (pdf: PdfWriter, scale: PaymentScaleRow[], colors: PrintColors) => {
     const left = ADDRESS_X;
     const bands = {
-        early: colors.accent ? tint(colors.accent, SCALE_TINT) : SCALE_GRAY,
-        net: colors.secondary ? tint(colors.secondary, SCALE_TINT) : SCALE_GRAY,
+        early: colors.scaleEarly ? tint(colors.scaleEarly, SCALE_TINT) : SCALE_GRAY,
+        net: colors.scaleNet ? tint(colors.scaleNet, SCALE_TINT) : SCALE_GRAY,
     };
     pdf.moveDown(SCALE_GAP);
     for (const row of scale) {
@@ -350,7 +348,7 @@ const drawPaymentScale = (pdf: PdfWriter, scale: PaymentScaleRow[], colors: { ac
 
 /** Page 2+: every section's own lines ("Pos 1 – ..." titles, a little space between sections), then the same totals as page 1. */
 export const drawLetterDetails = (pdf: PdfWriter, letter: LetterDto, heading: string) => {
-    drawSectionDetails(pdf, heading, letter.sections, letter.language, { numbered: true, sectionGap: 12, color: letter.company.secondaryColor });
+    drawSectionDetails(pdf, heading, letter.sections, letter.language, { numbered: true, sectionGap: 12, color: letter.company.colors.sectionTitles });
     pdf.moveDown(16);
     drawTotalsTable(pdf, letter);
 };
@@ -416,9 +414,9 @@ const drawFooter = (pdf: PdfWriter, letter: LetterDto) => {
     const company = letter.company;
     const left = pdf.marginValue();
     const options: PdfTextOptions = { size: 7, color: GRAY };
-    // With an accent color: the rule, the company's name (bold) and its
+    // With a footer color: the rule, the company's name (bold) and its
     // website and email in it.
-    const accent = company.accentColor;
+    const accent = company.colors.footer;
     const accentOptions: PdfTextOptions = accent ? { ...options, color: accent } : options;
     const leftOptions = [accent ? { ...accentOptions, bold: true } : options, options, options];
     const rightOptions = [accentOptions, accentOptions, options];

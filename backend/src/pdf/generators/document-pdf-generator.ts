@@ -14,6 +14,7 @@ import { amountDue } from "../../modules/documents/deposit";
 import { Template, TemplateStyle } from "../../modules/templates/template.types";
 import { templateOfDocumentServ } from "../../modules/templates/template.service";
 import { documentStyleOf } from "../../modules/templates/template.rules";
+import { printColorsOf } from "../templates/element-colors";
 
 // Everything a PDF of one document is built from - loaded once by the
 // skeleton below, handed to each step.
@@ -47,6 +48,8 @@ export abstract class DocumentPdfGenerator<TPrepared> {
 
         // In its template's font (pdf-fonts.ts) - Helvetica when unknown.
         const pdf = await PdfWriter.create({ font: isFontFamily(source.style.font) ? source.style.font : "HELVETICA" });
+        // Its text in the template's text color (black without one) - never the QR-bill's (useStandardFont).
+        pdf.setTextColor(printColorsOf(source.style).text);
         await this.render(pdf, prepared);
 
         // Only once everything is drawn: the total isn't known before then.

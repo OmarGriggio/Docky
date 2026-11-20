@@ -35,10 +35,7 @@ export class QuoteTemplate {
         if (quote.paymentTerms) {
             conditions.push(quote.paymentTerms);
         }
-        drawConditionsBlock(pdf, labels.paymentConditions, conditions, {
-            accent: quote.company.accentColor,
-            secondary: quote.company.secondaryColor,
-        });
+        drawConditionsBlock(pdf, labels.paymentConditions, conditions, quote.company.colors);
     }
 
     // The client's own acceptance, distinct from the company's signature in
@@ -48,7 +45,7 @@ export class QuoteTemplate {
     private static drawApproval(pdf: PdfWriter, quote: QuoteDto) {
         const labels = PDF_LABELS[quote.language];
         pdf.reserve(70);
-        const secondary = quote.company.secondaryColor;
+        const secondary = quote.company.colors.approval;
         pdf.text(labels.approval, { bold: true, size: 10, marginTop: 10, marginBottom: 22, ...(secondary ? { color: secondary } : {}) });
 
         const rowY = pdf.remainingHeight();

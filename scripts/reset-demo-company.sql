@@ -613,7 +613,7 @@ UPDATE documents SET template_id = (SELECT id FROM templates WHERE company_id = 
 WHERE company_id = 2 AND type IN ('QUOTE', 'INVOICE');
 
 UPDATE documents d SET template_style = jsonb_build_object(
-    'layout', t.layout, 'font', t.font, 'accent_color', t.accent_color,
-    'secondary_color', t.secondary_color, 'header_image', t.header_image)
+    'layout', t.layout, 'font', t.font, 'palette', t.palette,
+    'element_colors', t.element_colors, 'header_image', t.header_image)
 FROM templates t
 WHERE t.id = d.template_id AND d.company_id = 2 AND d.status IS NOT NULL AND d.status <> 'DRAFT';

@@ -73,7 +73,7 @@ export const drawModernHead = async (
     // The header image usually carries the company's name and address
     // already - its details only without one.
     if (!hasHeaderImage) {
-        const nameOptions: PdfTextOptions = { size: 13, bold: true, ...(company.secondaryColor ? { color: company.secondaryColor } : {}) };
+        const nameOptions: PdfTextOptions = { size: 13, bold: true, ...(company.colors.companyName ? { color: company.colors.companyName } : {}) };
         pdf.drawTextRightAt(company.name, RIGHT, top - 13, nameOptions);
         const details = [company.street, company.postalCodeCity.trim(), company.phone, company.email].filter((line): line is string => !!line);
         details.forEach((line, index) => pdf.drawTextRightAt(line, RIGHT, top - 28 - index * 12, { size: 9, color: GRAY }));
@@ -104,8 +104,8 @@ export const drawModernHead = async (
     });
     pdf.lowerCursorTo(blockTop - Math.max(addressLines.length, rows.length) * 15 - 30);
 
-    // The title, large, in the secondary color if there's one.
-    const titleOptions: PdfTextOptions = { size: 18, bold: true, ...(company.secondaryColor ? { color: company.secondaryColor } : {}) };
+    // The title, large, in its color if the template gives it one.
+    const titleOptions: PdfTextOptions = { size: 18, bold: true, ...(company.colors.title ? { color: company.colors.title } : {}) };
     pdf.reserve(40);
     pdf.drawTextAt(title, left, pdf.remainingHeight() - 18, titleOptions);
     pdf.moveDown(44);
@@ -119,7 +119,7 @@ export const drawModernHead = async (
 export const drawModernItems = (pdf: PdfWriter, letter: LetterDto) => {
     const labels = PDF_LABELS[letter.language];
     const left = pdf.marginValue();
-    const headerColor = letter.company.accentColor ?? DARK;
+    const headerColor = letter.company.colors.tableHeader ?? DARK;
 
     const drawHeader = () => {
         pdf.reserve(TABLE_HEADER_HEIGHT + 40);
@@ -146,7 +146,7 @@ export const drawModernItems = (pdf: PdfWriter, letter: LetterDto) => {
 
     drawHeader();
     letter.sections.forEach((section, index) => {
-        drawSectionTitle(pdf, section, labels.position(index + 1), letter.company.secondaryColor, reserveRow);
+        drawSectionTitle(pdf, section, labels.position(index + 1), letter.company.colors.sectionTitles, reserveRow);
         section.lines.forEach((line, lineIndex) => drawLine(pdf, line, lineIndex % 2 === 1, reserveRow));
         drawSectionTotal(pdf, `${labels.total} ${labels.position(index + 1)}`, section.total, reserveRow);
     });
@@ -239,10 +239,11 @@ export const drawModernTotals = (
         rows.push({ label: `${labels.earlyPayment(earlyPayment.days)} ${formatPercent(earlyPayment.rate)}`, value: earlyPayment.net, band: "early" });
     }
 
-    const accent = letter.company.accentColor;
+    const accent = letter.company.colors.total;
+    const earlyColor = letter.company.colors.earlyPayment;
     const bands = {
         total: accent ? tint(accent, 0.22) : TOTAL_GRAY,
-        early: accent ? tint(accent, 0.1) : ZEBRA,
+        early: earlyColor ? tint(earlyColor, 0.1) : ZEBRA,
     };
     const labelX = BOX_LEFT + 10;
     const valueRight = RIGHT - 10;

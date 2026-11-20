@@ -39,7 +39,11 @@ describe("parseRichText", () => {
     });
 
     it("leaves unknown or broken tags as typed", () => {
-        expect(plainTextOf(parseRichText("[c3]a[/c3] [g b] [b]"))).toBe("[c3]a[/c3] [g b] [b]");
+        expect(plainTextOf(parseRichText("[c6]a[/c6] [f0] [g b] [b]"))).toBe("[c6]a[/c6] [f0] [g b] [b]");
+    });
+
+    it("reads the palette's five colors", () => {
+        expect(parseRichText("[c3]a[/c3][f5]b[/f5]")).toEqual([{ text: "a", style: style({ color: 3 }) }, { text: "b", style: style({ background: 5 }) }]);
     });
 
     it("drops the empty passages between tags", () => {

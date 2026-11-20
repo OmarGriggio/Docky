@@ -8,8 +8,12 @@ const toTemplate = (row: Record<string, unknown> | undefined): Template | null =
   early_payment_min_amount: Number(row.early_payment_min_amount),
 } : null;
 
+// The JSONB columns go as JSON text - pg would send a JS array as a Postgres array.
+const JSON_COLUMNS = new Set<keyof TemplateData>(["palette", "element_colors"]);
+const valueOf = (data: TemplateData, column: keyof TemplateData) => JSON_COLUMNS.has(column) ? JSON.stringify(data[column]) : data[column];
+
 const DATA_COLUMNS: (keyof TemplateData)[] = [
-  "name", "layout", "font", "accent_color", "secondary_color",
+  "name", "layout", "font", "palette", "element_colors",
   "quote_introduction", "quote_conclusion", "quote_due_days",
   "invoice_introduction", "invoice_conclusion", "invoice_due_days",
   "payment_terms", "early_payment_discount", "early_payment_days", "early_payment_min_amount", "reminder_text",
@@ -40,7 +44,7 @@ export const getDefaultTemplateFromDB = async (company_id: number): Promise<Temp
 
 export const createTemplateInDB = async (company_id: number, data: TemplateData, options: { is_default: boolean; header_image: string | null }): Promise<Template> => {
   const columns = [...DATA_COLUMNS, "company_id", "is_default", "header_image"];
-  const values = [...DATA_COLUMNS.map(column => data[column]), company_id, options.is_default, options.header_image];
+  const values = [...DATA_COLUMNS.map(column => valueOf(data, column)), company_id, options.is_default, options.header_image];
   const result = await db().query(
     `INSERT INTO templates (${columns.join(", ")}) VALUES (${columns.map((_, i) => `$${i + 1}`).join(", ")}) RETURNING *`,
     values
@@ -52,7 +56,7 @@ export const updateTemplateInDB = async (id: number, company_id: number, data: T
   const result = await db().query(
     `UPDATE templates SET ${DATA_COLUMNS.map((column, i) => `${column} = $${i + 3}`).join(", ")}
      WHERE id = $1 AND company_id = $2 RETURNING *`,
-    [id, company_id, ...DATA_COLUMNS.map(column => data[column])]
+    [id, company_id, ...DATA_COLUMNS.map(column => valueOf(data, column))]
   );
   return toTemplate(result.rows[0]);
 };

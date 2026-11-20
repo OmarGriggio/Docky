@@ -8,7 +8,7 @@ import { ClientDto, CompanyDto, DocumentSectionDto } from "../document.types";
 import { Document, DocumentRecipient } from "../../../modules/documents/document.types";
 import { billedAddressOf, formatLocation } from "../../../modules/documents/billed-address";
 import { LetterDto } from "../business-letter";
-import { parseHexColor } from "../accent-color";
+import { paletteOf, printColorsOf } from "../element-colors";
 import { PdfLanguage } from "../pdf-labels";
 import { richTextOf } from "../rich-text";
 import { buildDocumentValues, PlaceholderSource } from "../document.placeholders";
@@ -88,8 +88,8 @@ export const buildLetterDto = (
             website: company.website,
             bankName: company.bank_name,
             bankAccount: company.bank_account,
-            accentColor: parseHexColor(style.accent_color),
-            secondaryColor: parseHexColor(style.secondary_color),
+            colors: printColorsOf(style),
+            palette: paletteOf(style),
             layout: style.layout === "MODERN" ? "MODERN" : "CLASSIC",
         },
         client: {

@@ -2,7 +2,8 @@ import { PDFDocument, PDFFont, PDFImage, PDFPage, StandardFonts, rgb } from "pdf
 import fontkit from "@pdf-lib/fontkit";
 import { PdfColor, PdfDocumentOptions, PdfTable, PdfTextOptions } from "./pdf-writer.types";
 import { PdfFontFamily, readFontFiles } from "./pdf-fonts";
-import { DocumentColor, TextRun, TextStyle, layoutRichLines, paragraphsOf } from "../templates/rich-text";
+import { TextRun, TextStyle, layoutRichLines, paragraphsOf } from "../templates/rich-text";
+import { tint } from "../templates/accent-color";
 
 interface FontPair {
     regular: PDFFont;
@@ -16,6 +17,11 @@ const DEFAULT_OPTIONS: Required<PdfDocumentOptions> = {
 };
 
 const LINE_SPACING = 16;
+
+const BLACK: PdfColor = { r: 0, g: 0, b: 0 };
+
+// How much of its color a text's [f1]...[f5] band keeps (accent-color.ts's tint).
+const TEXT_BAND_TINT = 0.3;
 
 /** Converts a length in millimeters to PDF points, for templates laid out against a physical spec (e.g. Swiss QR-bill). */
 export const mm = (value: number) => value * (72 / 25.4);
@@ -48,6 +54,11 @@ export class PdfWriter {
     // Helvetica while useStandardFont() is on - the Swiss QR-bill's payment
     // part must be printed in Helvetica/Arial/Frutiger/Liberation Sans.
     private fonts: FontPair;
+
+    // The text color when a call names none: the template's (setTextColor),
+    // black on the QR-bill's page (useStandardFont).
+    private documentTextColor: PdfColor = BLACK;
+    private textColor: PdfColor = BLACK;
 
     private constructor(
         private readonly doc: PDFDocument,
@@ -91,14 +102,22 @@ export class PdfWriter {
         };
     }
 
-    /** Draws in Helvetica from now on, whatever the document's font - the Swiss QR-bill's page. */
+    /** Draws in Helvetica and black from now on, whatever the document's font and text color - the Swiss QR-bill's page. */
     useStandardFont() {
         this.fonts = this.standardFonts;
+        this.textColor = BLACK;
     }
 
-    /** Back to the document's own font. */
+    /** Back to the document's own font and text color. */
     useDocumentFont() {
         this.fonts = this.documentFonts;
+        this.textColor = this.documentTextColor;
+    }
+
+    /** What text is printed in unless told otherwise - its template's text color (black by default). */
+    setTextColor(color: PdfColor | null) {
+        this.documentTextColor = color ?? BLACK;
+        this.textColor = this.documentTextColor;
     }
 
     title(text: string) {
@@ -112,7 +131,7 @@ export class PdfWriter {
         const marginBottom = options.marginBottom ?? 0;
         const marginTop = options.marginTop ?? 0;
         const font = options.bold ? this.fonts.bold : this.fonts.regular;
-        const color = options.color ?? { r: 0, g: 0, b: 0 };
+        const color = options.color ?? this.textColor;
         const maxWidth = this.page.getWidth() - this.options.margin * 2 - indent;
 
         this.cursorY -= marginTop;
@@ -139,13 +158,14 @@ export class PdfWriter {
     /**
      * Flowing text with styled passages (rich-text.ts: bold, the company's
      * two colors on the characters or as a band behind them) - like text(),
-     * line by line. `colors`: the company's main (1) and secondary (2) color;
-     * one it hasn't set leaves its passages in black, without a band.
+     * line by line. `palette`: the template's colors, [c1] being the first;
+     * one it doesn't have leaves its passages in the text color, without a band.
      */
-    richText(runs: TextRun[], colors: Record<DocumentColor, PdfColor | null>, options: PdfTextOptions = {}) {
+    richText(runs: TextRun[], palette: readonly (PdfColor | null)[], options: PdfTextOptions = {}) {
         const size = options.size ?? 11;
         const indent = options.indent ?? 0;
-        const black = options.color ?? { r: 0, g: 0, b: 0 };
+        const black = options.color ?? this.textColor;
+        const colorAt = (position: number | null) => position ? palette[position - 1] ?? null : null;
         const maxWidth = this.page.getWidth() - this.options.margin * 2 - indent;
         const fontOf = (style: TextStyle) => style.bold || options.bold ? this.fonts.bold : this.fonts.regular;
         const measure = (text: string, style: TextStyle) => fontOf(style).widthOfTextAtSize(this.printable(text, fontOf(style)), size);
@@ -159,13 +179,15 @@ export class PdfWriter {
                     const font = fontOf(run.style);
                     const text = this.printable(run.text, font);
                     const width = font.widthOfTextAtSize(text, size);
-                    const band = run.style.background ? colors[run.style.background] : null;
+                    const bandColor = colorAt(run.style.background);
+                    // Lightened, like the total's band - the text on it stays readable.
+                    const band = bandColor ? tint(bandColor, TEXT_BAND_TINT) : null;
                     if (band) {
                         // From below the descenders to above the capitals -
                         // the bands of two lines in a row just touch.
                         this.drawRect(x, this.cursorY - size * 0.28, width, size * 1.25, band);
                     }
-                    const color = (run.style.color ? colors[run.style.color] : null) ?? black;
+                    const color = colorAt(run.style.color) ?? black;
                     this.page.drawText(text, { x, y: this.cursorY, size, font, color: rgb(color.r, color.g, color.b) });
                     x += width;
                 }
@@ -251,7 +273,7 @@ export class PdfWriter {
                 y: this.cursorY,
                 size: 11,
                 font: this.fonts.bold,
-                color: rgb(0, 0, 0),
+                color: rgb(this.textColor.r, this.textColor.g, this.textColor.b),
             });
             x += column.width;
         }
@@ -270,7 +292,7 @@ export class PdfWriter {
                     y: this.cursorY,
                     size: 11,
                     font: this.fonts.regular,
-                    color: rgb(0, 0, 0),
+                    color: rgb(this.textColor.r, this.textColor.g, this.textColor.b),
                 });
                 x += column.width;
             }
@@ -337,7 +359,7 @@ export class PdfWriter {
 
     /** Draws text at an explicit position, bypassing the flowing text cursor. */
     drawTextAt(text: string, x: number, y: number, options: PdfTextOptions = {}) {
-        const color = options.color ?? { r: 0, g: 0, b: 0 };
+        const color = options.color ?? this.textColor;
         const font = options.bold ? this.fonts.bold : this.fonts.regular;
         this.page.drawText(this.printable(text, font), {
             x,

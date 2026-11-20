@@ -3,6 +3,31 @@ import { PdfFontFamily } from "../../pdf/core/pdf-fonts";
 export const DOCUMENT_LAYOUTS = ["CLASSIC", "MODERN"] as const;
 export type DocumentLayout = typeof DOCUMENT_LAYOUTS[number];
 
+// The elements of a PDF a template colors (028_add_template_palette.sql):
+// the body text, the document's title (and its underline), the company's
+// name in the modern layout's header, the sections' titles, the modern
+// layout's table header, the total's band and rules, the early payment
+// line, the payment conditions' heading, the payment scale's two rows, a
+// quote's "Bon pour accord", the footer (its rule, the company's name, its
+// website and email). The Swiss QR-bill is never colored - its guidelines
+// fix it black on white.
+export const COLOR_ELEMENTS = [
+  "text", "title", "companyName", "sectionTitles", "tableHeader", "total", "earlyPayment",
+  "conditionsHeading", "scaleEarly", "scaleNet", "approval", "footer",
+] as const;
+export type ColorElement = typeof COLOR_ELEMENTS[number];
+
+export const MAX_PALETTE = 5;
+
+/** One of a template's colors - named, "#rrggbb". */
+export interface PaletteColor {
+  name: string;
+  color: string;
+}
+
+/** Each element's palette color, by its position from 1 - an element left out has none (black, or gray for a band). */
+export type ElementColors = Partial<Record<ColorElement, number>>;
+
 // A document template ("Modèle", Paramètres > Modèles - 025_add_templates.sql):
 // a quote's, an invoice's and a reminder's look and default texts, several
 // per company, one its default. Each quote/invoice picks one
@@ -18,11 +43,11 @@ export interface Template {
   // (documents.template_style, see TemplateStyle).
   layout: DocumentLayout;
   font: PdfFontFamily;
-  // "#rrggbb" or null: the main color (the total's band, the footer...) and
-  // the secondary one (the titles) - also what a text's [c1]/[f1] and
-  // [c2]/[f2] print in (pdf/templates/rich-text.ts).
-  accent_color: string | null;
-  secondary_color: string | null;
+  // Up to 5 colors, and the one each element of the PDF is printed in - a
+  // text's [c1]...[c5] / [f1]...[f5] (pdf/templates/rich-text.ts) are the
+  // palette's too.
+  palette: PaletteColor[];
+  element_colors: ElementColors;
   // Only ever set by its own upload route (template.controller.ts).
   header_image: string | null;
 
@@ -54,7 +79,7 @@ export type TemplateData = Omit<Template, "id" | "company_id" | "is_default" | "
 export interface TemplateStyle {
   layout: DocumentLayout;
   font: PdfFontFamily;
-  accent_color: string | null;
-  secondary_color: string | null;
+  palette: PaletteColor[];
+  element_colors: ElementColors;
   header_image: string | null;
 }
