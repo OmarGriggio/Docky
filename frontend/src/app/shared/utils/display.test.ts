@@ -180,11 +180,13 @@ describe('placeholderToken', () => {
   it('names a placeholder in the UI language, French by default', () => {
     expect(placeholderToken('montant', 'en')).toBe('{{amount}}');
     expect(placeholderToken('montant', 'fr')).toBe('{{montant}}');
+    expect(placeholderToken('numero_document', 'en')).toBe('{{document_number}}');
+    expect(placeholderToken('iban', 'en')).toBe('{{iban}}');
   });
 
   it('keeps a name that is the same in both languages', () => {
     expect(placeholderToken('date', 'en')).toBe('{{date}}');
-    expect(placeholderToken('client', 'en')).toBe('{{client}}');
+    expect(placeholderToken('client', 'en')).toBe('{{client_name}}');
   });
 
 });

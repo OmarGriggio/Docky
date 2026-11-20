@@ -22,7 +22,7 @@ import { TextStyleToolbar } from '../../../shared/components/text-style-toolbar/
 import { DocumentStylePicker } from '../../../shared/components/document-style-picker/document-style-picker';
 import { DocumentColors } from '../../../shared/components/rich-text-view/rich-text-view';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
-import { placeholderToken } from '../../../shared/utils/display';
+import { DOCUMENT_PLACEHOLDERS, placeholderToken, REMINDER_PLACEHOLDERS } from '../../../shared/utils/display';
 
 // An early payment discount with no number of days to pay within means
 // nothing - the days are required as soon as there's a rate (the backend
@@ -109,13 +109,8 @@ export class TemplateEditor implements OnInit {
   private placeholders(names: [string, string][]) {
     return names.map(([name, label]) => ({ token: placeholderToken(name, this.transloco.activeLang()), label: `documentTemplates.placeholders.${label}` }));
   }
-  documentPlaceholders = computed(() => this.placeholders([
-    ['titre_client', 'clientTitle'], ['date', 'documentDate'], ['montant', 'amount'], ['signature_entreprise', 'signature'],
-  ]));
-  reminderPlaceholders = computed(() => this.placeholders([
-    ['numero_facture', 'invoiceNumber'], ['date_facture', 'invoiceDate'], ['date_echeance', 'dueDate'], ['montant', 'amount'],
-    ['jours_retard', 'daysLate'], ['client', 'clientName'], ['signature_entreprise', 'signature'],
-  ]));
+  documentPlaceholders = computed(() => this.placeholders(DOCUMENT_PLACEHOLDERS));
+  reminderPlaceholders = computed(() => this.placeholders(REMINDER_PLACEHOLDERS));
 
   ngOnInit(): void {
     this.templateService.getTemplate(Number(this.route.snapshot.paramMap.get('id'))).subscribe({

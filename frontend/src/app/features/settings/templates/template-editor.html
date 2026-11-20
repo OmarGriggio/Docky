@@ -114,14 +114,14 @@
                   </p-floatlabel>
                 </div>
 
-                <div class="ui-form__full text-sm text-gray-600 -mt-2">
-                  <p class="m-0 mb-1">{{ 'documentTemplates.variablesHelp' | transloco }}</p>
-                  <ul class="m-0 pl-5">
+                <details class="ui-form__full text-sm text-gray-600 -mt-2">
+                  <summary class="cursor-pointer">{{ 'documentTemplates.variablesHelp' | transloco }} ({{ documentPlaceholders().length }})</summary>
+                  <ul class="m-0 mt-1 pl-5 grid sm:grid-cols-2 gap-x-6">
                     @for (placeholder of documentPlaceholders(); track placeholder.token) {
                       <li><code>{{ placeholder.token }}</code> — {{ placeholder.label | transloco }}</li>
                     }
                   </ul>
-                </div>
+                </details>
 
                 <p-floatlabel variant="on">
                   <p-inputnumber [inputId]="kind + '_due_days'" [formControlName]="kind + '_due_days'" [min]="0" [useGrouping]="false" [suffix]="'documentTemplates.daysSuffix' | transloco" />
@@ -144,14 +144,14 @@
                 <p class="m-0 mt-1 text-xs text-gray-500">{{ 'templates.reminderDefaultHint' | transloco }}</p>
               </div>
 
-              <div class="ui-form__full text-sm text-gray-600 -mt-2">
-                <p class="m-0 mb-1">{{ 'documentTemplates.reminderVariablesHelp' | transloco }}</p>
-                <ul class="m-0 pl-5">
-                  @for (placeholder of reminderPlaceholders(); track placeholder.token) {
-                    <li><code>{{ placeholder.token }}</code> — {{ placeholder.label | transloco }}</li>
-                  }
-                </ul>
-              </div>
+              <details class="ui-form__full text-sm text-gray-600 -mt-2">
+                  <summary class="cursor-pointer">{{ 'documentTemplates.reminderVariablesHelp' | transloco }} ({{ reminderPlaceholders().length }})</summary>
+                  <ul class="m-0 mt-1 pl-5 grid sm:grid-cols-2 gap-x-6">
+                    @for (placeholder of reminderPlaceholders(); track placeholder.token) {
+                      <li><code>{{ placeholder.token }}</code> — {{ placeholder.label | transloco }}</li>
+                    }
+                  </ul>
+                </details>
             </div>
           </p-tabpanel>
         </p-tabpanels>

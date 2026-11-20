@@ -6,7 +6,8 @@ import { TranslocoPipe, TranslocoService, translateSignal } from '@jsverse/trans
 import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 import { DocumentType } from '../../../../shared/models/document';
 import { TabIndentDirective } from '../../../../shared/directives/tab-indent.directive';
-import { placeholderToken } from '../../../../shared/utils/display';
+import { DOCUMENT_PLACEHOLDERS, placeholderToken } from '../../../../shared/utils/display';
+import { HelpButton } from '../../../../shared/components/help-button/help-button';
 import { TemplateService } from '../../../settings/templates/template.service';
 import { Template } from '../../../../shared/models/template';
 import { TextStyleToolbar } from '../../../../shared/components/text-style-toolbar/text-style-toolbar';
@@ -24,7 +25,7 @@ import { DocumentColors, RichTextView } from '../../../../shared/components/rich
 @Component({
   selector: 'app-document-text-block',
   standalone: true,
-  imports: [FormsModule, Button, Textarea, ConfirmDialogComponent, TabIndentDirective, TranslocoPipe, TextStyleToolbar, RichTextView],
+  imports: [FormsModule, Button, Textarea, ConfirmDialogComponent, TabIndentDirective, TranslocoPipe, TextStyleToolbar, RichTextView, HelpButton],
   templateUrl: './document-text-block.html',
   host: { class: 'block' },
 })
@@ -65,6 +66,11 @@ export class DocumentTextBlock {
   placeholdersHint = computed(() =>
     `${this.placeholdersHintPrefix()} ${['titre_client', 'date', 'montant', 'signature_entreprise'].map(name => placeholderToken(name, this.transloco.activeLang())).join(', ')}`
   );
+
+  // Every variable, behind the hint's "?" - the hint itself names the usual four.
+  allPlaceholders = computed(() => DOCUMENT_PLACEHOLDERS.map(([name, label]) => ({
+    token: placeholderToken(name, this.transloco.activeLang()), label: `documentTemplates.placeholders.${label}`,
+  })));
 
   editing = signal(false);
   draft = signal('');

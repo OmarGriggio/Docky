@@ -14,7 +14,17 @@
     class="w-full"
     [placeholder]="placeholder()"
   ></textarea>
-  <p class="m-0 mt-1 text-xs text-gray-500">{{ placeholdersHint() }}</p>
+  <div class="flex items-center gap-1 mt-1">
+    <p class="m-0 text-xs text-gray-500">{{ placeholdersHint() }}</p>
+    <app-help-button>
+      <p class="m-0 mb-2 text-sm font-medium">{{ 'documents.textBlock.allPlaceholders' | transloco }}</p>
+      <ul class="m-0 pl-4 text-xs text-gray-600 max-h-72 overflow-auto">
+        @for (placeholder of allPlaceholders(); track placeholder.token) {
+          <li><code>{{ placeholder.token }}</code> — {{ placeholder.label | transloco }}</li>
+        }
+      </ul>
+    </app-help-button>
+  </div>
   <div class="flex justify-end items-center gap-3 mt-2">
     <a class="text-sm text-[#666] hover:underline cursor-pointer" (click)="cancelEdit()">{{ 'common.cancel' | transloco }}</a>
     <p-button [label]="'documents.textBlock.apply' | transloco" size="small" severity="secondary" [text]="true" (onClick)="apply()" />

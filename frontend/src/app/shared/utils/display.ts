@@ -195,7 +195,39 @@ export const PLACEHOLDER_ALIASES: Record<string, string> = {
   invoice_date: 'date_facture',
   due_date: 'date_echeance',
   days_overdue: 'jours_retard',
+  document_number: 'numero_document',
+  client_reference: 'reference_client',
+  amount_excl_vat: 'montant_ht',
+  vat_amount: 'montant_tva',
+  payment_terms: 'conditions_paiement',
+  client_name: 'client',
+  client_number: 'numero_client',
+  location: 'lieu',
+  company_address: 'adresse_entreprise',
+  company_phone: 'telephone_entreprise',
+  company_email: 'email_entreprise',
+  website: 'site_web',
+  bank_name: 'banque',
+  bank_account: 'compte_bancaire',
+  vat_number: 'numero_tva',
 };
+
+// Every variable a document text can use, in the order the UI lists them,
+// each with its label key (documentTemplates.placeholders.*) - the backend's
+// document.placeholders.ts. The reminder's text has three more
+// (REMINDER_PLACEHOLDERS).
+export const DOCUMENT_PLACEHOLDERS: [string, string][] = [
+  ['titre_client', 'clientTitle'], ['client', 'clientName'], ['numero_client', 'clientNumber'], ['lieu', 'location'],
+  ['numero_document', 'documentNumber'], ['date', 'documentDate'], ['date_echeance', 'dueDate'], ['reference_client', 'clientReference'],
+  ['montant', 'amount'], ['montant_ht', 'amountExclVat'], ['montant_tva', 'vatAmount'], ['conditions_paiement', 'paymentTerms'],
+  ['signature_entreprise', 'signature'], ['adresse_entreprise', 'companyAddress'], ['telephone_entreprise', 'companyPhone'],
+  ['email_entreprise', 'companyEmail'], ['site_web', 'website'], ['iban', 'iban'], ['banque', 'bankName'],
+  ['compte_bancaire', 'bankAccount'], ['numero_tva', 'vatNumber'],
+];
+export const REMINDER_PLACEHOLDERS: [string, string][] = [
+  ['numero_facture', 'invoiceNumber'], ['date_facture', 'invoiceDate'], ['jours_retard', 'daysLate'],
+  ...DOCUMENT_PLACEHOLDERS,
+];
 
 const hasOwn = (object: object, key: string) => Object.prototype.hasOwnProperty.call(object, key);
 

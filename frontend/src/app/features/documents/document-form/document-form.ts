@@ -30,7 +30,7 @@ import { Company } from '../../../shared/models/company';
 import { DocumentColors } from '../../../shared/components/rich-text-view/rich-text-view';
 import { DocumentContentSection, DocumentRecipient, DocumentStatus, DocumentType, BilledAddress } from '../../../shared/models/document';
 import { DocumentComplete } from '../../../shared/models/document-complete';
-import { addDays, fromDateOnly, toDateOnly, fillPlaceholders, formatLongDate, DEFAULT_CLIENT_TITLE } from '../../../shared/utils/display';
+import { addDays, clientDisplayName, fromDateOnly, toDateOnly, fillPlaceholders, formatLongDate, DEFAULT_CLIENT_TITLE } from '../../../shared/utils/display';
 import { DocumentHeader } from './document-header/document-header';
 import { DocumentTextBlock } from './document-text-block/document-text-block';
 import { DocumentSections } from './document-sections/document-sections';
@@ -280,13 +280,37 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
   // (Total TTC - a final invoice's balance, see amountDue) and {{signature_entreprise}} (the company's name). An arrow
   // property, not a method: the text blocks receive it as an input and
   // call it without this form as `this`.
-  resolvePlaceholders = (text: string): string =>
-    fillPlaceholders(text, {
+  // The other variables (DOCUMENT_PLACEHOLDERS) the same way: the document's,
+  // the client's (the typed-in recipient's), the company's - empty when not
+  // known yet ({{numero_document}} before the first save).
+  resolvePlaceholders = (text: string): string => {
+    const company = this.company();
+    const client = this.manualRecipient() ? null : this.clients().find(item => item.id === this.selectedClientId()) ?? null;
+    const chf = (value: number) => `${value.toFixed(2)} CHF`;
+    return fillPlaceholders(text, {
       titre_client: this.selectedClientTitle()?.trim() || DEFAULT_CLIENT_TITLE,
+      client: client ? clientDisplayName(client) : this.recipientName().trim(),
+      numero_client: client?.client_number ?? '',
+      lieu: '',
+      numero_document: this.documentNumber() ?? '',
       date: formatLongDate(this.date()),
-      montant: `${this.amountDue().toFixed(2)} CHF`,
-      signature_entreprise: this.company()?.name ?? '',
+      date_echeance: this.dueDate() ? formatLongDate(this.dueDate()!) : '',
+      reference_client: this.referenceClient().trim(),
+      montant: chf(this.amountDue()),
+      montant_ht: chf(this.documentTotalAfterDiscount()),
+      montant_tva: chf(this.documentTotalInclVat() - this.documentTotalAfterDiscount()),
+      conditions_paiement: this.paymentTerms.trim(),
+      signature_entreprise: company?.name ?? '',
+      adresse_entreprise: [company?.street, `${company?.postal_code ?? ''} ${company?.city ?? ''}`.trim()].filter(Boolean).join(', '),
+      telephone_entreprise: company?.phone ?? '',
+      email_entreprise: company?.email ?? '',
+      site_web: company?.website ?? '',
+      iban: company?.iban ?? '',
+      banque: company?.bank_name ?? '',
+      compte_bancaire: company?.bank_account ?? '',
+      numero_tva: company?.vat_number ?? '',
     });
+  };
 
   // No manual "Chantier" picker in the UI (an invoice is always linked to
   // its chantier the other way around - project-list.ts's own "Facturer",
