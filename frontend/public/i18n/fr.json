@@ -873,6 +873,12 @@
       "scaleNet": "Barème : ligne net",
       "approval": "« Bon pour accord » (offre)",
       "footer": "Pied de page (filet, nom, site web, email)"
+    },
+    "preview": {
+      "title": "Aperçu",
+      "open": "Ouvrir le PDF",
+      "hint": "Un document d'exemple, avec les coordonnées de votre entreprise et le modèle tel que vous le modifiez - rien n'est enregistré tant que vous ne cliquez pas sur Enregistrer.",
+      "failed": "Aperçu pas à jour : un champ ne peut pas être enregistré tel quel."
     }
   }
 }

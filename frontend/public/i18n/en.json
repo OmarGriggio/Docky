@@ -873,6 +873,12 @@
       "scaleNet": "Payment scale: net row",
       "approval": "\"Approved\" lines (quote)",
       "footer": "Footer (rule, name, website, email)"
+    },
+    "preview": {
+      "title": "Preview",
+      "open": "Open the PDF",
+      "hint": "A sample document, with your company's details and the template as you're editing it - nothing is saved until you click Save.",
+      "failed": "Preview not up to date: a field can't be saved as it is."
     }
   }
 }
