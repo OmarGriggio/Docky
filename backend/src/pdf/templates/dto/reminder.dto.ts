@@ -5,7 +5,7 @@ import { ReminderDto } from "../reminder.types";
 import { buildReminderValues } from "../reminder.placeholders";
 import { richTextOf } from "../rich-text";
 import { PDF_LABELS, toPdfLanguage } from "../pdf-labels";
-import { buildLetterDto } from "./shared";
+import { buildLetterDto, placeholderSourceOf } from "./shared";
 import { TemplateStyle } from "../../../modules/templates/template.types";
 
 // templateText is the template's reminder text, raw (with its {{placeholders}}).
@@ -19,6 +19,6 @@ export const createReminderDto = (document: DocumentComplete, client: ClientWith
         // the reminder's text stands in for them.
         letter: { ...letter, date: today, introduction: [], conclusion: [] },
         greeting: client.title?.trim() || PDF_LABELS[language].defaultClientTitle,
-        text: richTextOf(templateText, buildReminderValues(document, letter.client.name, company.name ?? "", today, language)),
+        text: richTextOf(templateText, buildReminderValues(placeholderSourceOf(document, client, company, language), today)),
     };
 };

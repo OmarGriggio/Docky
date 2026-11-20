@@ -1,9 +1,11 @@
-import { formatLongDate, PdfLanguage } from "./pdf-labels";
+import { formatLongDate } from "./pdf-labels";
+import { buildDocumentValues, PlaceholderSource } from "./document.placeholders";
 
 // The {{placeholders}} a company can use in its payment reminder text (its
-// template's reminder_text): numero_facture, date_facture,
-// date_echeance, montant, jours_retard, client, signature_entreprise - see fillPlaceholders
-// (placeholders.ts) for how they're replaced.
+// template's reminder_text): every document one (document.placeholders.ts),
+// plus numero_facture (the invoice's number, like numero_document),
+// date_facture and jours_retard - see fillPlaceholders (placeholders.ts) for
+// how they're replaced.
 
 // Whole days past the due date, never negative (0 = not overdue yet) - both
 // sides reduced to their calendar day first, the time of day plays no part.
@@ -13,22 +15,14 @@ export const daysOverdue = (dueDate: Date, today: Date): number => {
     return Math.max(0, Math.round((startOfToday - startOfDue) / 86400000));
 };
 
-export const buildReminderValues = (
-    invoice: { number: string; date: Date; due_date: Date | null; amount_incl_vat: number },
-    clientName: string,
-    companyName: string,
-    today: Date,
-    language: PdfLanguage = "FR"
-): Record<string, string> => {
+export const buildReminderValues = (source: PlaceholderSource, today: Date): Record<string, string> => {
+    const { document, language } = source;
     return {
-        numero_facture: invoice.number,
-        date_facture: formatLongDate(invoice.date, language),
+        ...buildDocumentValues(source),
+        numero_facture: document.number,
+        date_facture: formatLongDate(document.date, language),
         // Empty (not "—"/"0") without a due date - the invoice has none to
         // be late against.
-        date_echeance: invoice.due_date ? formatLongDate(invoice.due_date, language) : "",
-        montant: `${invoice.amount_incl_vat.toFixed(2)} CHF`,
-        jours_retard: invoice.due_date ? String(daysOverdue(invoice.due_date, today)) : "",
-        client: clientName,
-        signature_entreprise: companyName,
+        jours_retard: document.due_date ? String(daysOverdue(document.due_date, today)) : "",
     };
 };

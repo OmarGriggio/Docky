@@ -6,12 +6,12 @@ import { DocumentComplete } from "../../../modules/documents/document_complete.t
 import { lineTotal, round2 } from "../../../modules/documents/document.calculations";
 import { ClientDto, CompanyDto, DocumentSectionDto } from "../document.types";
 import { Document, DocumentRecipient } from "../../../modules/documents/document.types";
-import { billedAddressOf } from "../../../modules/documents/billed-address";
+import { billedAddressOf, formatLocation } from "../../../modules/documents/billed-address";
 import { LetterDto } from "../business-letter";
 import { parseHexColor } from "../accent-color";
 import { PdfLanguage } from "../pdf-labels";
 import { richTextOf } from "../rich-text";
-import { buildDocumentValues } from "../document.placeholders";
+import { buildDocumentValues, PlaceholderSource } from "../document.placeholders";
 
 // document.sections/lines are already scoped to this document and active-only
 // (the repository queries default to is_active = true) - but neither comes
@@ -73,7 +73,7 @@ export const buildLetterDto = (
     language: PdfLanguage,
     amountDue: number = document.amount_incl_vat
 ): LetterDto => {
-    const placeholders = buildDocumentValues({ ...document, amount_incl_vat: amountDue }, client.title, company.name, language);
+    const placeholders = buildDocumentValues(placeholderSourceOf(document, client, company, language, amountDue));
     const typedRecipient = hasTypedRecipient(client, document);
     return {
         language,
@@ -108,6 +108,31 @@ export const buildLetterDto = (
         discount: document.discount,
         introduction: richTextOf(document.introduction ?? "", placeholders),
         conclusion: richTextOf(document.conclusion ?? "", placeholders),
+    };
+};
+
+// What a document's texts can quote ({{numero_document}}, {{client}},
+// {{iban}}... - document.placeholders.ts): the document, the client as it's
+// addressed (its frozen name once sent, a typed-in recipient's), the company.
+export const placeholderSourceOf = (
+    document: DocumentComplete,
+    client: ClientWithAddresses,
+    company: Company,
+    language: PdfLanguage,
+    amountDue: number = document.amount_incl_vat
+): PlaceholderSource => {
+    const typedRecipient = hasTypedRecipient(client, document);
+    return {
+        document,
+        amountDue,
+        client: {
+            title: client.title,
+            name: buildClientDto(client, document).name,
+            number: typedRecipient ? null : client.client_number,
+            location: billedAddressOf(document, client)?.location ?? formatLocation(document, client),
+        },
+        company,
+        language,
     };
 };
 

@@ -21,6 +21,21 @@ export const PLACEHOLDER_ALIASES: Record<string, string> = {
     invoice_date: "date_facture",
     due_date: "date_echeance",
     days_overdue: "jours_retard",
+    document_number: "numero_document",
+    client_reference: "reference_client",
+    amount_excl_vat: "montant_ht",
+    vat_amount: "montant_tva",
+    payment_terms: "conditions_paiement",
+    client_name: "client",
+    client_number: "numero_client",
+    location: "lieu",
+    company_address: "adresse_entreprise",
+    company_phone: "telephone_entreprise",
+    company_email: "email_entreprise",
+    website: "site_web",
+    bank_name: "banque",
+    bank_account: "compte_bancaire",
+    vat_number: "numero_tva",
 };
 
 const hasOwn = (object: object, key: string) => Object.prototype.hasOwnProperty.call(object, key);
