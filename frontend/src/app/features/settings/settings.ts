@@ -1,5 +1,5 @@
-import { Component, computed, inject } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Component, computed, inject, signal } from '@angular/core';
+import { ActivatedRoute, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Menu } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
 import { translateSignal } from '@jsverse/transloco';
@@ -20,6 +20,14 @@ import { AuthService } from '../auth/auth.service';
 export class Settings {
 
   private authService = inject(AuthService);
+  private route = inject(ActivatedRoute);
+
+  // A page whose route data says `wide` (the template editor and its
+  // preview) takes the whole width instead of the usual 900px column.
+  wide = signal(false);
+  onActivate(): void {
+    this.wide.set(this.route.firstChild?.snapshot.data['wide'] === true);
+  }
 
   private isPlatformAdmin = this.authService.isPlatformAdmin;
 

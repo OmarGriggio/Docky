@@ -5,6 +5,8 @@ import { environment } from '../../../../environments/environment';
 
 const API_BASE = environment.apiUrl;
 
+export type PreviewKind = 'QUOTE' | 'INVOICE' | 'REMINDER';
+
 // The company's document templates (the backend's modules/templates). Read
 // by anyone writing quotes or invoices (a document's "Modèle"), changed by
 // its admin only (Paramètres > Modèles).
@@ -35,6 +37,11 @@ export class TemplateService {
   // The backend keeps whatever a save leaves out.
   updateTemplate(id: number, data: Partial<TemplateData>) {
     return this.http.put<Template>(`${API_BASE}/template/${id}`, data);
+  }
+
+  // A sample document's PDF printed with `data` over the stored template - nothing saved.
+  preview(id: number, type: PreviewKind, data: Partial<TemplateData>) {
+    return this.http.post(`${API_BASE}/template/${id}/preview`, { type, template: data }, { responseType: 'blob' });
   }
 
   setDefault(id: number) {

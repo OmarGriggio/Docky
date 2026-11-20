@@ -1,3 +1,6 @@
+<!-- The form, and beside it (below it under xl) the live preview. -->
+<div class="flex flex-col xl:flex-row xl:items-start gap-4">
+<div class="w-full max-w-225 mx-auto xl:mx-0 xl:flex-1 min-w-0">
 <p-card styleClass="ui-card--elevated profile-card">
   <ng-template #title>
     <div class="flex items-center gap-2">
@@ -54,7 +57,7 @@
       <div class="ui-form__full flex flex-col gap-1">
         <span class="text-sm font-medium">{{ 'templates.elementColors' | transloco }}</span>
         <p class="m-0 mb-1 text-sm text-gray-500">{{ 'templates.elementColorsHint' | transloco }}</p>
-        <div class="grid sm:grid-cols-2 gap-x-6 gap-y-1">
+        <div class="grid sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2 gap-x-6 gap-y-1">
           @for (element of elements; track element) {
             <label class="flex items-center gap-2 py-1 min-w-0">
               <span class="w-4 h-4 rounded-sm border border-gray-300 shrink-0" [style.background-color]="colorOfElement(element) ?? (element === 'text' ? '#000000' : '#ffffff')"></span>
@@ -108,7 +111,7 @@
       <!-- ===== The texts ===== -->
       <h3 class="ui-form__full m-0 mt-4 text-base font-semibold text-gray-900">{{ 'templates.textsSection' | transloco }}</h3>
 
-      <p-tabs value="quote" class="ui-form__full">
+      <p-tabs value="quote" class="ui-form__full" (valueChange)="onTextTab($event)">
         <p-tablist>
           <p-tab value="quote">{{ 'documentTemplates.quoteTab' | transloco }}</p-tab>
           <p-tab value="invoice">{{ 'documentTemplates.invoiceTab' | transloco }}</p-tab>
@@ -227,6 +230,40 @@
     </form>
   }
 </p-card>
+</div>
+
+@if (template()) {
+  <aside class="w-full max-w-225 mx-auto xl:mx-0 xl:w-[42%] xl:max-w-180 shrink-0 xl:sticky xl:top-4">
+    <p-card styleClass="ui-card--elevated">
+      <div class="flex items-center gap-3 flex-wrap mb-2">
+        <span class="text-base font-semibold text-gray-900">{{ 'templates.preview.title' | transloco }}</span>
+        @if (previewLoading()) {
+          <i class="pi pi-spin pi-spinner text-gray-400" aria-hidden="true"></i>
+        }
+        <p-selectbutton class="ml-auto" size="small" [options]="previewKinds()" optionLabel="label" optionValue="value" [allowEmpty]="false"
+          [ngModel]="previewKind()" (ngModelChange)="previewKind.set($event)" [ngModelOptions]="{ standalone: true }" />
+        @if (previewHref(); as href) {
+          <a [href]="href" target="_blank" rel="noopener" class="text-sm text-gray-600 hover:underline flex items-center gap-1">
+            <i class="pi pi-external-link" aria-hidden="true"></i>{{ 'templates.preview.open' | transloco }}
+          </a>
+        }
+      </div>
+      <p class="m-0 mb-2 text-xs text-gray-500">{{ 'templates.preview.hint' | transloco }}</p>
+      @if (previewFailed()) {
+        <p class="m-0 mb-2 text-sm text-orange-700">{{ 'templates.preview.failed' | transloco }}</p>
+      }
+      <!-- A phone's browser can't show a PDF inline: the link above opens it. -->
+      @if (!isMobile()) {
+        @if (previewUrl(); as url) {
+          <iframe [src]="url" class="w-full h-[calc(100vh-12rem)] min-h-120 border border-gray-200 rounded bg-gray-100" [title]="'templates.preview.title' | transloco"></iframe>
+        } @else {
+          <div class="w-full h-[calc(100vh-12rem)] min-h-120 border border-gray-200 rounded bg-gray-50"></div>
+        }
+      }
+    </p-card>
+  </aside>
+}
+</div>
 
 <app-confirm-dialog
   [(visible)]="removeHeaderVisible"

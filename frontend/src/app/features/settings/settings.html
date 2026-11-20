@@ -16,8 +16,8 @@
   </nav>
 
   <div class="flex-1 min-w-0 flex justify-center md:pt-16 pb-8 md:px-4">
-    <div class="w-full max-w-225">
-      <router-outlet />
+    <div class="w-full" [class.max-w-225]="!wide()">
+      <router-outlet (activate)="onActivate()" />
     </div>
   </div>
   <div class="hidden md:block w-56 shrink-0 sticky top-0 z-20 h-screen bg-white border-l border-gray-200">

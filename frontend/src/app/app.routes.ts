@@ -154,7 +154,8 @@ export const routes: Routes = [
       {
         path: 'templates/:id',
         loadComponent: () => import('./features/settings/templates/template-editor').then(m => m.TemplateEditor),
-        data: { breadcrumb: 'templates.edit' }
+        // wide: the whole width (settings.ts) - its live preview sits beside the form.
+        data: { breadcrumb: 'templates.edit', wide: true }
       },
       {
         // Readable by every role - only an admin can save (the backend's

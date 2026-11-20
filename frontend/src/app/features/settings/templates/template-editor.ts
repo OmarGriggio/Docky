@@ -1,5 +1,7 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { catchError, debounceTime, filter, map, merge, of, switchMap, tap } from 'rxjs';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -11,8 +13,10 @@ import { Textarea } from 'primeng/textarea';
 import { FloatLabel } from 'primeng/floatlabel';
 import { FileUpload, FileUploadHandlerEvent } from 'primeng/fileupload';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from 'primeng/tabs';
-import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { TemplateService } from './template.service';
+import { SelectButton } from 'primeng/selectbutton';
+import { FormsModule } from '@angular/forms';
+import { TranslocoPipe, TranslocoService, translateSignal } from '@jsverse/transloco';
+import { PreviewKind, TemplateService } from './template.service';
 import { COLOR_ELEMENTS, ColorElement, DocumentFont, DocumentLayout, ElementColors, MAX_PALETTE, PaletteColor, Template, TemplateData } from '../../../shared/models/template';
 import { AuthService } from '../../auth/auth.service';
 import { CompanyService } from '../../profile/company.service';
@@ -23,6 +27,7 @@ import { DocumentStylePicker } from '../../../shared/components/document-style-p
 import { DocumentColors } from '../../../shared/components/rich-text-view/rich-text-view';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { DOCUMENT_PLACEHOLDERS, placeholderToken, REMINDER_PLACEHOLDERS } from '../../../shared/utils/display';
+import { BreakpointService } from '../../../shared/services/breakpoint.service';
 
 // An early payment discount with no number of days to pay within means
 // nothing - the days are required as soon as there's a rate (the backend
@@ -42,7 +47,7 @@ const earlyPaymentDaysRequired: ValidatorFn = (group: AbstractControl): Validati
   selector: 'app-template-editor',
   standalone: true,
   imports: [
-    ReactiveFormsModule, RouterLink, Card, Button, InputText, InputNumber, Textarea, FloatLabel, FileUpload,
+    ReactiveFormsModule, FormsModule, SelectButton, RouterLink, Card, Button, InputText, InputNumber, Textarea, FloatLabel, FileUpload,
     Tabs, TabList, Tab, TabPanels, TabPanel, TabIndentDirective, TextStyleToolbar, DocumentStylePicker, ConfirmDialogComponent, TranslocoPipe,
   ],
   templateUrl: './template-editor.html',
@@ -56,6 +61,9 @@ export class TemplateEditor implements OnInit {
   private authService = inject(AuthService);
   private notifications = inject(NotificationService);
   private transloco = inject(TranslocoService);
+  private sanitizer = inject(DomSanitizer);
+  private destroyRef = inject(DestroyRef);
+  isMobile = inject(BreakpointService).isMobile;
 
   canManage = computed(() => this.authService.isAdmin() || this.authService.isPlatformAdmin());
 
@@ -149,6 +157,65 @@ export class TemplateEditor implements OnInit {
   documentPlaceholders = computed(() => this.placeholders(DOCUMENT_PLACEHOLDERS));
   reminderPlaceholders = computed(() => this.placeholders(REMINDER_PLACEHOLDERS));
 
+  // ===== The live preview =====
+  // A sample quote, invoice or reminder printed with the template as it's
+  // being edited (POST /template/:id/preview - nothing saved), refreshed
+  // 600 ms after the last change. Follows the texts' tab. A change the
+  // backend refuses (a field it can't save) keeps the last preview.
+  previewKind = signal<PreviewKind>('QUOTE');
+  private quoteLabel = translateSignal('documentTemplates.quoteTab');
+  private invoiceLabel = translateSignal('documentTemplates.invoiceTab');
+  private reminderLabel = translateSignal('documentTemplates.reminderTab');
+  previewKinds = computed(() => [
+    { label: this.quoteLabel(), value: 'QUOTE' }, { label: this.invoiceLabel(), value: 'INVOICE' }, { label: this.reminderLabel(), value: 'REMINDER' },
+  ]);
+  previewLoading = signal(false);
+  previewFailed = signal(false);
+  private previewObjectUrl = signal<string | null>(null);
+  previewUrl = computed<SafeResourceUrl | null>(() => {
+    const url = this.previewObjectUrl();
+    return url ? this.sanitizer.bypassSecurityTrustResourceUrl(`${url}#view=FitH&navpanes=0`) : null;
+  });
+  // The PDF itself, for "open in a new tab" (a phone can't show it inline).
+  previewHref = computed(() => this.previewObjectUrl());
+
+  constructor() {
+    merge(
+      this.form.valueChanges,
+      toObservable(this.palette),
+      toObservable(this.elementColors),
+      toObservable(this.previewKind),
+      toObservable(this.template),
+    ).pipe(
+      debounceTime(600),
+      map(() => this.template()),
+      filter((template): template is Template => template !== null),
+      tap(() => this.previewLoading.set(true)),
+      switchMap(template => this.templateService.preview(template.id, this.previewKind(), this.formData()).pipe(
+        catchError(() => of(null)),
+      )),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(pdf => {
+      this.previewLoading.set(false);
+      this.previewFailed.set(pdf === null);
+      if (pdf) {
+        this.setPreviewUrl(URL.createObjectURL(pdf));
+      }
+    });
+    this.destroyRef.onDestroy(() => this.setPreviewUrl(null));
+  }
+
+  private setPreviewUrl(url: string | null): void {
+    const previous = this.previewObjectUrl();
+    if (previous) URL.revokeObjectURL(previous);
+    this.previewObjectUrl.set(url);
+  }
+
+  // The texts' tab picks what the preview shows.
+  onTextTab(tab: string | number | undefined): void {
+    this.previewKind.set(tab === 'invoice' ? 'INVOICE' : tab === 'reminder' ? 'REMINDER' : 'QUOTE');
+  }
+
   ngOnInit(): void {
     this.templateService.getTemplate(Number(this.route.snapshot.paramMap.get('id'))).subscribe({
       next: template => {
@@ -197,6 +264,22 @@ export class TemplateEditor implements OnInit {
     this.form.markAsDirty();
   }
 
+  // What a save sends - the preview too.
+  private formData(): TemplateData {
+    const value = this.form.getRawValue();
+    return {
+      ...value,
+      name: value.name.trim(),
+      palette: this.palette(),
+      element_colors: this.elementColors(),
+      payment_terms: value.payment_terms.trim() ? value.payment_terms : null,
+      reminder_text: value.reminder_text.trim() ? value.reminder_text : null,
+      // An emptied number field comes back null - stored as "none" (0).
+      early_payment_discount: value.early_payment_discount ?? 0,
+      early_payment_min_amount: value.early_payment_min_amount ?? 0,
+    };
+  }
+
   save(): void {
     const template = this.template();
     if (!template || !this.canManage()) {
@@ -211,19 +294,7 @@ export class TemplateEditor implements OnInit {
     this.errorMessage.set(null);
     this.saving.set(true);
 
-    const value = this.form.getRawValue();
-    const data: TemplateData = {
-      ...value,
-      name: value.name.trim(),
-      palette: this.palette(),
-      element_colors: this.elementColors(),
-      payment_terms: value.payment_terms.trim() ? value.payment_terms : null,
-      reminder_text: value.reminder_text.trim() ? value.reminder_text : null,
-      // An emptied number field comes back null - stored as "none" (0).
-      early_payment_discount: value.early_payment_discount ?? 0,
-      early_payment_min_amount: value.early_payment_min_amount ?? 0,
-    };
-    this.templateService.updateTemplate(template.id, data).subscribe({
+    this.templateService.updateTemplate(template.id, this.formData()).subscribe({
       next: saved => {
         this.fill(saved);
         this.saving.set(false);
