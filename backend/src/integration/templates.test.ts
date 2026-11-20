@@ -112,6 +112,23 @@ describe("document templates", () => {
     expect((await getDocument(sent.id)).template_style).toBeNull();
   });
 
+  it("prints a sample of the template as it's being edited, without saving it", async () => {
+    for (const type of ["QUOTE", "INVOICE", "REMINDER"]) {
+      const response = await api().post(`/template/${standardId}/preview`).set(auth(token))
+        .send({ type, template: { name: "Aperçu", layout: "CLASSIC", palette: [{ name: "Vert", color: "#037a3f" }], element_colors: { title: 1 } } })
+        .buffer(true).parse((res, done) => { const chunks: Buffer[] = []; res.on("data", (chunk: Buffer) => chunks.push(chunk)); res.on("end", () => done(null, Buffer.concat(chunks))); })
+        .expect(200);
+      expect(response.headers["content-type"]).toBe("application/pdf");
+      expect((response.body as Buffer).subarray(0, 5).toString()).toBe("%PDF-");
+    }
+    expect((await api().get(`/template/${standardId}`).set(auth(token)).expect(200)).body).toMatchObject({ name: "Standard", layout: "MODERN" });
+
+    await api().post(`/template/${standardId}/preview`).set(auth(token)).send({ type: "PROJECT" }).expect(400);
+    await api().post(`/template/${standardId}/preview`).set(auth(token)).send({ type: "QUOTE", template: { name: "" } }).expect(400);
+    const other = await createCompanyWithAdmin();
+    await api().post(`/template/${standardId}/preview`).set(auth(other.token)).send({ type: "QUOTE" }).expect(404);
+  });
+
   it("is managed by the company's admin only", async () => {
     const employee = await login(await createUser(companyId, "USER"));
     expect((await api().get("/template").set(auth(employee)).expect(200)).body.length).toBeGreaterThan(0);

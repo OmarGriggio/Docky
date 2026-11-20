@@ -4,7 +4,7 @@ import { requireRole } from "../../shared/middlewares/role.middleware";
 import { requireAnyPermission } from "../permissions/permission.middleware";
 import { uploadHeaderImage } from "../companies/company.upload";
 import {
-  archiveTemplate, createTemplate, duplicateTemplate, getTemplate, getTemplates, removeTemplateHeaderImage,
+  archiveTemplate, createTemplate, duplicateTemplate, getTemplate, getTemplates, previewTemplate, removeTemplateHeaderImage,
   setDefaultTemplate, unarchiveTemplate, updateTemplate, uploadTemplateHeaderImage,
 } from "./template.controller";
 
@@ -19,6 +19,9 @@ const manageTemplates = requireRole("ADMIN", "PLATFORM_ADMIN");
 
 router.get("/", readTemplates, getTemplates);
 router.get("/:id", readTemplates, getTemplate);
+// A sample PDF of the template as it's being edited - nothing written. The
+// editor's (an admin's); anyone reading the templates may see theirs printed.
+router.post("/:id/preview", readTemplates, previewTemplate);
 
 router.post("/", manageTemplates, createTemplate);
 router.post("/:id/duplicate", manageTemplates, duplicateTemplate);

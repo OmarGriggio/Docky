@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { randomBytes } from "crypto";
 import { EXTENSION_BY_MIME } from "../companies/company.upload";
 import { uploadFileServ } from "../../shared/storage/storage.service";
+import { generateTemplatePreviewServ } from "../../pdf/pdf.service";
 import {
   archiveTemplateServ, createTemplateServ, duplicateTemplateServ, getTemplateServ, getTemplatesServ,
   setDefaultTemplateServ, setTemplateHeaderImageServ, unarchiveTemplateServ, updateTemplateServ,
@@ -57,4 +58,12 @@ export const uploadTemplateHeaderImage = async (req: Request, res: Response) => 
 
 export const removeTemplateHeaderImage = async (req: Request, res: Response) => {
   res.json(await setTemplateHeaderImageServ(Number(req.params.id), req.user.company_id, null));
+};
+
+// The editor's live preview: { type: QUOTE | INVOICE | REMINDER, template: the unsaved fields }.
+export const previewTemplate = async (req: Request, res: Response) => {
+  const bytes = await generateTemplatePreviewServ(Number(req.params.id), req.user.company_id, req.body?.type, req.body?.template ?? {}, req.user.language);
+  res.setHeader("Content-Type", "application/pdf");
+  res.setHeader("Content-Disposition", "inline; filename=preview.pdf");
+  res.send(Buffer.from(bytes));
 };

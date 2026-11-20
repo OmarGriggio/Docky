@@ -30,6 +30,10 @@ export interface PdfSource {
     // and what's left to pay - the QR-bill's amount (see deposit.ts).
     deductions: DepositDeduction[];
     amountDue: number;
+    // The template editor's preview (template.sample.ts): a made-up
+    // document - a QR-bill the company's profile can't make yet is left out
+    // instead of failing it.
+    sample?: boolean;
 }
 
 // The fixed order every document PDF (invoice, quote, payment reminder)
@@ -43,7 +47,11 @@ export interface PdfSource {
 export abstract class DocumentPdfGenerator<TPrepared> {
 
     async generate(documentId: number, company_id: number): Promise<Uint8Array> {
-        const source = await this.load(documentId, company_id);
+        return this.generateFrom(await this.load(documentId, company_id));
+    }
+
+    /** The PDF of an already loaded source - a stored document's, or the template preview's sample. */
+    async generateFrom(source: PdfSource): Promise<Uint8Array> {
         const prepared = await this.prepare(source);
 
         // In its template's font (pdf-fonts.ts) - Helvetica when unknown.

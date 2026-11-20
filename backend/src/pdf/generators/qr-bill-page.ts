@@ -22,12 +22,19 @@ export interface PreparedQrBill {
 // Shared by the invoice and the payment reminder - both end with the same
 // payment slip, for what's left to pay. Null when nothing is (a final invoice
 // whose deposits cover it all, or more): no slip then.
-export const prepareQrBill = async ({ document, client, company, amountDue }: PdfSource): Promise<PreparedQrBill | null> => {
+// A sample's (the template preview's) is left out when the company's
+// profile can't make one yet (no IBAN...) - the preview is about the look.
+export const prepareQrBill = async ({ document, client, company, amountDue, sample }: PdfSource): Promise<PreparedQrBill | null> => {
     if (!(amountDue > 0)) {
         return null;
     }
-    const dto = createSwissQrBillDto(document, client, company, amountDue);
-    return { dto, imageBytes: await generateSwissQrBillImage(dto), language: toPdfLanguage(client.language) };
+    try {
+        const dto = createSwissQrBillDto(document, client, company, amountDue);
+        return { dto, imageBytes: await generateSwissQrBillImage(dto), language: toPdfLanguage(client.language) };
+    } catch (error) {
+        if (sample) return null;
+        throw error;
+    }
 };
 
 // `shareCurrentPage`: draw it onto the page being written if there's still

@@ -91,6 +91,13 @@ export const updateTemplateServ = async (id: number, company_id: number, data: P
   return template;
 };
 
+/** The template as it would be saved with `data` - for the preview, nothing written (its header image the stored one's). */
+export const previewTemplateServ = async (id: number, company_id: number, data: Partial<Record<keyof TemplateData, unknown>>): Promise<Template> => {
+  const current = await getTemplateServ(id, company_id);
+  const sent = Object.fromEntries(Object.entries(data ?? {}).filter(([, value]) => value !== undefined));
+  return { ...current, ...normalizeTemplateData({ ...current, ...sent }) };
+};
+
 export const setDefaultTemplateServ = async (id: number, company_id: number): Promise<Template> => {
   const template = await getTemplateServ(id, company_id);
   if (!template.is_active) {
