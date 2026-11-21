@@ -7,9 +7,7 @@ export interface QuoteDto extends LetterDto {
     // no separate column for it) - null shows nothing rather than a bare
     // "-".
     validUntil: Date | null;
-    // Its template's payment terms (templates.payment_terms) - a quote has no payment_terms of its own
-    // (that's an invoice-only document field, set once accepted), shown
-    // here purely so the client knows them upfront. Null if the company
-    // hasn't set one.
+    // Its template's payment terms, frozen with its look once sent (dto/quote.dto.ts) -
+    // shown so the client knows them upfront. Null if the template has none.
     paymentTerms: string | null;
 }

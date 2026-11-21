@@ -1,4 +1,4 @@
-import { TemplateStyle } from "../templates/template.types";
+import { FrozenTemplateStyle } from "../templates/template.types";
 import { DocumentLineType } from "./document_line.types";
 
 // PROJECT is a chantier itself - see projects/project.types.ts. Its own
@@ -97,8 +97,9 @@ export interface Document {
   template_id: number | null;
   // Its look frozen once it leaves DRAFT, like billed_address
   // (026_add_document_template.sql) - null while it follows its template.
+  // A quote's payment terms are frozen with it (it has no text of its own).
   // Never written from a request.
-  template_style: TemplateStyle | null;
+  template_style: FrozenTemplateStyle | null;
 }
 
 export type DocumentRecipient = Pick<

@@ -77,6 +77,13 @@ export interface Template {
 /** What a request may set - the rest (id, company, default, archived, header image) has its own route. */
 export type TemplateData = Omit<Template, "id" | "company_id" | "is_default" | "is_active" | "header_image">;
 
+/**
+ * What documents.template_style holds once a document leaves DRAFT: its look,
+ * and its template's payment terms then - what a sent quote prints (a quote
+ * has none of its own). Missing from a look frozen before they were added.
+ */
+export type FrozenTemplateStyle = Partial<TemplateStyle> & { payment_terms?: string | null };
+
 /** A document's look - its template's, or what it was frozen with once sent (documents.template_style). */
 export interface TemplateStyle {
   layout: DocumentLayout;

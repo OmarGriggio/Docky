@@ -3,7 +3,7 @@
 
 import { isFontFamily } from "../../pdf/core/pdf-fonts";
 import { AppError } from "../../shared/types/errors";
-import { COLOR_ELEMENTS, DOCUMENT_LAYOUTS, ElementColors, MAX_PALETTE, PaletteColor, Template, TemplateData, TemplateStyle } from "./template.types";
+import { COLOR_ELEMENTS, DOCUMENT_LAYOUTS, ElementColors, FrozenTemplateStyle, MAX_PALETTE, PaletteColor, Template, TemplateData, TemplateStyle } from "./template.types";
 
 const MAX_AMOUNT = 9999999999.99;
 const MAX_TEXT = 10000;
@@ -113,6 +113,15 @@ export const normalizeTemplateData = (data: Partial<Record<keyof TemplateData, u
     early_payment_min_amount: minAmount,
   };
 };
+
+/**
+ * A quote's payment terms: frozen with its look once it left DRAFT - a
+ * template edited later never rewrites a quote the client already holds -
+ * its template's as they are now while it's a draft (or frozen before they
+ * were frozen with it).
+ */
+export const quotePaymentTermsOf = (frozen: FrozenTemplateStyle | null, template: Pick<Template, "payment_terms">): string | null =>
+  frozen && "payment_terms" in frozen ? frozen.payment_terms ?? null : template.payment_terms;
 
 /** The look a template gives a document - what's frozen on it once it's sent. */
 export const styleOf = (template: Pick<Template, keyof TemplateStyle>): TemplateStyle => ({

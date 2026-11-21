@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { documentStyleOf, normalizeTemplateData, styleOf } from "./template.rules";
+import { documentStyleOf, normalizeTemplateData, quotePaymentTermsOf, styleOf } from "./template.rules";
 
 describe("normalizeTemplateData", () => {
   it("trims the name and requires one", () => {
@@ -72,5 +72,19 @@ describe("documentStyleOf", () => {
     expect(documentStyleOf({ palette: "red" as never, element_colors: { title: 1 } }, template)).toMatchObject({ palette: [], element_colors: {} });
     expect(documentStyleOf({ layout: "FANCY" as never, font: "Comic" as never }, template))
       .toEqual({ layout: "CLASSIC", font: "HELVETICA", palette: [], element_colors: {}, show_currency: false, header_image: null });
+  });
+});
+
+describe("quotePaymentTermsOf", () => {
+  const template = { payment_terms: "10 jours net" };
+
+  it("is the template's while the quote is a draft, or was frozen before its terms were", () => {
+    expect(quotePaymentTermsOf(null, template)).toBe("10 jours net");
+    expect(quotePaymentTermsOf({ layout: "CLASSIC" }, template)).toBe("10 jours net");
+  });
+
+  it("is what the quote was sent with, whatever its template says now", () => {
+    expect(quotePaymentTermsOf({ layout: "CLASSIC", payment_terms: "30 jours net" }, template)).toBe("30 jours net");
+    expect(quotePaymentTermsOf({ layout: "CLASSIC", payment_terms: null }, template)).toBeNull();
   });
 });

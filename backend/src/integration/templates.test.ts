@@ -112,6 +112,14 @@ describe("document templates", () => {
     expect((await getDocument(sent.id)).template_style).toBeNull();
   });
 
+  it("freezes a quote's payment terms with its look - a template edited later never rewrites them", async () => {
+    const quote = await createDocument(token, "QUOTE", clientId);
+    await setStatus(quote.id, "SENT").expect(200);
+    await update(standardId, { payment_terms: "10 jours net" }).expect(200);
+    expect((await getDocument(quote.id)).template_style).toMatchObject({ payment_terms: "30 jours net", show_currency: false });
+    await update(standardId, { payment_terms: "30 jours net" }).expect(200);
+  });
+
   it("prints a sample of the template as it's being edited, without saving it", async () => {
     for (const type of ["QUOTE", "INVOICE", "REMINDER"]) {
       const response = await api().post(`/template/${standardId}/preview`).set(auth(token))
