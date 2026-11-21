@@ -32,6 +32,12 @@ describe("normalizeTemplateData", () => {
     expect(normalizeTemplateData({ name: "a", palette, element_colors: [1, 2] }).element_colors).toEqual({});
   });
 
+  it("shows the currency only when asked to", () => {
+    expect(normalizeTemplateData({ name: "a" }).show_currency).toBe(false);
+    expect(normalizeTemplateData({ name: "a", show_currency: "true" }).show_currency).toBe(false);
+    expect(normalizeTemplateData({ name: "a", show_currency: true }).show_currency).toBe(true);
+  });
+
   it("checks the due days and texts", () => {
     expect(normalizeTemplateData({ name: "a", quote_due_days: "30", invoice_due_days: "" })).toMatchObject({ quote_due_days: 30, invoice_due_days: null });
     expect(() => normalizeTemplateData({ name: "a", invoice_due_days: 1.5 })).toThrow();
@@ -51,20 +57,20 @@ describe("normalizeTemplateData", () => {
 });
 
 describe("documentStyleOf", () => {
-  const template = { layout: "MODERN" as const, font: "LATO" as const, palette: [{ name: "Vert", color: "#037a3f" }], element_colors: { total: 1 }, header_image: "companies/1/header.jpg" };
+  const template = { layout: "MODERN" as const, font: "LATO" as const, palette: [{ name: "Vert", color: "#037a3f" }], element_colors: { total: 1 }, show_currency: true, header_image: "companies/1/header.jpg" };
 
   it("is the template's look while the document isn't frozen", () => {
     expect(documentStyleOf(null, template)).toEqual(styleOf(template));
   });
 
   it("is what the document was frozen with once sent, whatever its template is now", () => {
-    const frozen = { layout: "CLASSIC" as const, font: "PT_SERIF" as const, palette: [{ name: "Bleu", color: "#1d4ed8" }], element_colors: { title: 1 }, header_image: null };
+    const frozen = { layout: "CLASSIC" as const, font: "PT_SERIF" as const, palette: [{ name: "Bleu", color: "#1d4ed8" }], element_colors: { title: 1 }, show_currency: false, header_image: null };
     expect(documentStyleOf(frozen, template)).toEqual(frozen);
   });
 
   it("reads anything unknown in a frozen look as the default, a broken palette as none", () => {
     expect(documentStyleOf({ palette: "red" as never, element_colors: { title: 1 } }, template)).toMatchObject({ palette: [], element_colors: {} });
     expect(documentStyleOf({ layout: "FANCY" as never, font: "Comic" as never }, template))
-      .toEqual({ layout: "CLASSIC", font: "HELVETICA", palette: [], element_colors: {}, header_image: null });
+      .toEqual({ layout: "CLASSIC", font: "HELVETICA", palette: [], element_colors: {}, show_currency: false, header_image: null });
   });
 });

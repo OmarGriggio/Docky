@@ -9,7 +9,7 @@ import { Document, UpdateDocumentData, DocumentStatus, BilledAddress, InvoiceKin
 // expression for the template's id.
 const frozenStyleOf = (templateId: string) => `(
   SELECT jsonb_build_object('layout', t.layout, 'font', t.font, 'palette', t.palette,
-    'element_colors', t.element_colors, 'header_image', t.header_image)
+    'element_colors', t.element_colors, 'show_currency', t.show_currency, 'header_image', t.header_image)
   FROM templates t
   WHERE t.company_id = documents.company_id
     AND (t.id = ${templateId} OR (${templateId} IS NULL AND t.is_default AND t.is_active))

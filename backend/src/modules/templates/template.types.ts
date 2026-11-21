@@ -48,6 +48,8 @@ export interface Template {
   // palette's too.
   palette: PaletteColor[];
   element_colors: ElementColors;
+  // "CHF" printed on the total's line - nowhere else (030_add_template_show_currency.sql).
+  show_currency: boolean;
   // Only ever set by its own upload route (template.controller.ts).
   header_image: string | null;
 
@@ -81,5 +83,6 @@ export interface TemplateStyle {
   font: PdfFontFamily;
   palette: PaletteColor[];
   element_colors: ElementColors;
+  show_currency: boolean;
   header_image: string | null;
 }

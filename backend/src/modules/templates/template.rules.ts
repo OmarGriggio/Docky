@@ -104,6 +104,7 @@ export const normalizeTemplateData = (data: Partial<Record<keyof TemplateData, u
     font: isFontFamily(data.font) ? data.font : "HELVETICA",
     palette,
     element_colors: normalizeElementColors(data.element_colors, palette.length),
+    show_currency: data.show_currency === true,
     ...texts,
     quote_due_days: days(data.quote_due_days, "quote_due_days"),
     invoice_due_days: days(data.invoice_due_days, "invoice_due_days"),
@@ -119,6 +120,7 @@ export const styleOf = (template: Pick<Template, keyof TemplateStyle>): Template
   font: template.font,
   palette: template.palette,
   element_colors: template.element_colors,
+  show_currency: template.show_currency === true,
   header_image: template.header_image,
 });
 
@@ -131,6 +133,7 @@ export const documentStyleOf = (frozen: Partial<TemplateStyle> | null, template:
     layout: frozen.layout === "MODERN" ? "MODERN" : "CLASSIC",
     font: isFontFamily(frozen.font) ? frozen.font : "HELVETICA",
     ...frozenColorsOf(frozen),
+    show_currency: frozen.show_currency === true,
     header_image: frozen.header_image ?? null,
   };
 };

@@ -13,7 +13,7 @@ const JSON_COLUMNS = new Set<keyof TemplateData>(["palette", "element_colors"]);
 const valueOf = (data: TemplateData, column: keyof TemplateData) => JSON_COLUMNS.has(column) ? JSON.stringify(data[column]) : data[column];
 
 const DATA_COLUMNS: (keyof TemplateData)[] = [
-  "name", "layout", "font", "palette", "element_colors",
+  "name", "layout", "font", "palette", "element_colors", "show_currency",
   "quote_introduction", "quote_conclusion", "quote_due_days",
   "invoice_introduction", "invoice_conclusion", "invoice_due_days",
   "payment_terms", "early_payment_discount", "early_payment_days", "early_payment_min_amount", "reminder_text",
