@@ -541,7 +541,8 @@
       "lineLabelRequired": "Remplis la désignation pour ajouter la ligne.",
       "resourceFieldsRequired": "Remplis la désignation et l'unité pour ajouter la ligne aux ressources.",
       "resourceExists": "Cette ressource existe déjà ({{code}}) : même type, désignation, unité et prix. Choisis-la dans le catalogue.",
-      "resourceAdded": "Ressource {{code}} créée et ligne ajoutée."
+      "resourceAdded": "Ressource {{code}} créée et ligne ajoutée.",
+      "resourceExistsInSection": "Cette ressource existe déjà ({{code}}) et figure déjà dans cette section."
     },
     "form": {
       "newQuote": "Nouvelle offre",
@@ -582,7 +583,6 @@
       "moveTo": "Passer à « {{status}} »",
       "style": "Modèle",
       "styleHint": "La présentation, les textes et les conditions de ce document. Les textes encore tels que le modèle les avait écrits suivent le nouveau modèle.",
-      "styleSaved": "Modèle des documents enregistré.",
       "manageTemplates": "Gérer les modèles",
       "discountLine": "Rabais ({{rate}} %)",
       "paymentTerms": "Conditions de paiement",

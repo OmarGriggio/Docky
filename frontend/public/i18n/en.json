@@ -541,7 +541,8 @@
       "lineLabelRequired": "Fill in the designation to add the line.",
       "resourceFieldsRequired": "Fill in the designation and the unit to add the line to the resources.",
       "resourceExists": "This resource already exists ({{code}}): same type, designation, unit and price. Pick it from the catalog.",
-      "resourceAdded": "Resource {{code}} created and line added."
+      "resourceAdded": "Resource {{code}} created and line added.",
+      "resourceExistsInSection": "This resource already exists ({{code}}) and is already in this section."
     },
     "form": {
       "newQuote": "New quote",
@@ -582,7 +583,6 @@
       "moveTo": "Move to “{{status}}”",
       "style": "Template",
       "styleHint": "This document's look, texts and conditions. Texts still as the template wrote them follow the new template.",
-      "styleSaved": "Document template saved.",
       "manageTemplates": "Manage templates",
       "discountLine": "Discount ({{rate}} %)",
       "paymentTerms": "Payment terms",
