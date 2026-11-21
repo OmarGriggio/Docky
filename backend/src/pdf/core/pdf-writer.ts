@@ -17,6 +17,8 @@ const DEFAULT_OPTIONS: Required<PdfDocumentOptions> = {
 };
 
 const LINE_SPACING = 16;
+// Room left between a wrapped table cell and the next column.
+const TABLE_CELL_GAP = 8;
 
 const BLACK: PdfColor = { r: 0, g: 0, b: 0 };
 
@@ -156,8 +158,8 @@ export class PdfWriter {
     }
 
     /**
-     * Flowing text with styled passages (rich-text.ts: bold, the company's
-     * two colors on the characters or as a band behind them) - like text(),
+     * Flowing text with styled passages (rich-text.ts: bold, the palette's
+     * colors on the characters or as a band behind them) - like text(),
      * line by line. `palette`: the template's colors, [c1] being the first;
      * one it doesn't have leaves its passages in the text color, without a band.
      */
@@ -282,22 +284,32 @@ export class PdfWriter {
         this.line();
 
         for (const row of table.rows) {
+            // A left-aligned cell wraps within its column (a little gap kept
+            // before the next one); an amount stays on one line. The row
+            // takes its tallest cell's height, kept on one page.
+            const cells = table.columns.map(column => {
+                const value = row[column.key];
+                const text = this.printable(value == null ? "" : String(value), this.fonts.regular);
+                return column.align === "right" ? [text] : this.wrapText(text, this.fonts.regular, 11, column.width - TABLE_CELL_GAP);
+            });
+            const lineCount = Math.max(1, ...cells.map(lines => lines.length));
             this.ensureSpace();
+            this.reserve((lineCount - 1) * LINE_SPACING);
 
             x = this.options.margin;
-            for (const column of table.columns) {
-                const value = row[column.key];
-                const text = value == null ? "" : String(value);
-                this.page.drawText(this.printable(text, this.fonts.regular), {
-                    x: column.align === "right" ? x + column.width - this.textWidth(text) : x,
-                    y: this.cursorY,
-                    size: 11,
-                    font: this.fonts.regular,
-                    color: rgb(this.textColor.r, this.textColor.g, this.textColor.b),
+            table.columns.forEach((column, index) => {
+                cells[index].forEach((text, line) => {
+                    this.page.drawText(text, {
+                        x: column.align === "right" ? x + column.width - this.textWidth(text) : x,
+                        y: this.cursorY - line * LINE_SPACING,
+                        size: 11,
+                        font: this.fonts.regular,
+                        color: rgb(this.textColor.r, this.textColor.g, this.textColor.b),
+                    });
                 });
                 x += column.width;
-            }
-            this.cursorY -= LINE_SPACING;
+            });
+            this.cursorY -= lineCount * LINE_SPACING;
         }
     }
 
