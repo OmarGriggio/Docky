@@ -172,6 +172,12 @@
         <div class="flex gap-6 w-80 justify-between">
           <span>{{ 'documents.form.subtotal' | transloco }}</span><span>{{ documentSubtotal() | price }} CHF</span>
         </div>
+        @if (discount() > 0) {
+          <div class="flex gap-6 w-80 justify-between">
+            <span>{{ 'documents.form.discountLine' | transloco: { rate: discount() } }}</span
+            ><span>-{{ documentSubtotal() - documentTotalAfterDiscount() | price }} CHF</span>
+          </div>
+        }
         <div class="flex gap-6 w-80 justify-between">
           <span>{{ 'documents.form.totalAfterDiscount' | transloco }}</span
           ><span>{{ documentTotalAfterDiscount() | price }} CHF</span>
@@ -258,6 +264,23 @@
           [(text)]="conclusion"
         />
       </div>
+      <!-- An invoice's own payment terms, copied from its template when it's
+           created - a quote prints its template's as they are. -->
+      @if (type() === 'INVOICE') {
+        <div class="ui-form__full" data-tour="payment-terms">
+          <p class="m-0 mb-1 text-sm font-medium text-gray-700">{{ 'documents.form.paymentTerms' | transloco }}</p>
+          <app-document-text-block
+            field="paymentTerms"
+            [placeholder]="'documents.form.paymentTermsPlaceholder' | transloco"
+            [type]="type()"
+            [resolve]="resolvePlaceholders"
+            [template]="canManageTemplates() ? selectedTemplate() : null"
+            (templateSaved)="onTemplateSaved($event)"
+            [locked]="locked()"
+            [(text)]="paymentTerms"
+          />
+        </div>
+      }
     </div>
 
   </p-card>

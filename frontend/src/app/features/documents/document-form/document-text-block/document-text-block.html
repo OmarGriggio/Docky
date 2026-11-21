@@ -1,9 +1,12 @@
 @if (locked()) {
   @if (text()) {
-    <p class="text-sm text-[#333] m-0 whitespace-pre-wrap"><app-rich-text-view [text]="text()" [colors]="colors()" [resolve]="resolve()" /></p>
+    <p class="text-sm text-[#333] m-0 whitespace-pre-wrap">@if (styled()) {<app-rich-text-view [text]="text()" [colors]="colors()" [resolve]="resolve()" />} @else {<span>{{ text() }}</span>}</p>
   }
-} @else if (editing() || !text()) {
-  <app-text-style-toolbar [target]="textarea" [colors]="colors()" />
+} @else if (editing()) {
+  <!-- The payment terms print as typed - no styles, no variables. -->
+  @if (styled()) {
+    <app-text-style-toolbar [target]="textarea" [colors]="colors()" />
+  }
   <textarea
     #textarea
     pTextarea
@@ -14,6 +17,7 @@
     class="w-full"
     [placeholder]="placeholder()"
   ></textarea>
+  @if (styled()) {
   <div class="flex items-center gap-1 mt-1">
     <p class="m-0 text-xs text-gray-500">{{ placeholdersHint() }}</p>
     <app-help-button>
@@ -25,6 +29,7 @@
       </ul>
     </app-help-button>
   </div>
+  }
   <div class="flex justify-end items-center gap-3 mt-2">
     <a class="text-sm text-[#666] hover:underline cursor-pointer" (click)="cancelEdit()">{{ 'common.cancel' | transloco }}</a>
     <p-button [label]="'documents.textBlock.apply' | transloco" size="small" severity="secondary" [text]="true" (onClick)="apply()" />
@@ -35,8 +40,12 @@
   @if (saveError()) {
     <p class="m-0 mt-2 text-sm text-[#d32f2f]">{{ saveError() }}</p>
   }
+} @else if (!text()) {
+  <a class="text-sm hover:underline cursor-pointer text-green-700" (click)="startEdit()">
+    <i class="pi pi-plus text-xs mr-1"></i>{{ addLabel() | transloco }}
+  </a>
 } @else {
-  <p class="text-sm text-[#333] m-0 whitespace-pre-wrap"><app-rich-text-view [text]="text()" [colors]="colors()" [resolve]="resolve()" /> ... <a class="text-sm hover:underline cursor-pointer text-green-700" (click)="startEdit()">{{ 'documents.textBlock.editText' | transloco }}</a></p>
+  <p class="text-sm text-[#333] m-0 whitespace-pre-wrap">@if (styled()) {<app-rich-text-view [text]="text()" [colors]="colors()" [resolve]="resolve()" />} @else {<span>{{ text() }}</span>} ... <a class="text-sm hover:underline cursor-pointer text-green-700" (click)="startEdit()">{{ 'documents.textBlock.editText' | transloco }}</a></p>
 }
 
 <app-confirm-dialog

@@ -198,6 +198,7 @@
                   class="block"
                   [(ngModel)]="draft.label"
                   [placeholder]="'resources.columnName' | transloco"
+                  [invalid]="invalidDraftSectionId() === section.id && !draft.label.trim()"
                 />
               </td>
               <td class="py-[0.3rem] px-[0.2rem] align-middle">
@@ -216,6 +217,7 @@
                   [placeholder]="'resources.columnUnit' | transloco"
                   [ngModel]="draft.unit"
                   (ngModelChange)="draft.unit = $event"
+                  [invalid]="invalidDraftSectionId() === section.id && !!draft.label.trim() && !draft.unit?.trim()"
                 />
               </td>
               <td class="py-[0.3rem] px-[0.2rem] align-middle">
@@ -228,13 +230,30 @@
               </td>
               <td class="py-[0.3rem] px-[0.2rem] align-middle"></td>
               <td class="py-[0.3rem] px-[0.2rem] align-middle">
-                <p-button
-                  size="small"
-                  type="button"
-                  icon="pi pi-plus"
-                  [text]="true"
-                  (onClick)="addLine(section.id)"
-                />
+                <div class="flex items-center">
+                  <p-button
+                    size="small"
+                    type="button"
+                    icon="pi pi-plus"
+                    [text]="true"
+                    [ariaLabel]="'documents.sections.addLine' | transloco"
+                    [title]="'documents.sections.addLine' | transloco"
+                    (onClick)="addLine(section.id)"
+                  />
+                  @if (canCreateResource()) {
+                    <p-button
+                      size="small"
+                      type="button"
+                      icon="pi pi-bookmark"
+                      [text]="true"
+                      severity="secondary"
+                      [loading]="savingResourceSectionId() === section.id"
+                      [ariaLabel]="'documents.sections.addToResources' | transloco"
+                      [title]="'documents.sections.addToResources' | transloco"
+                      (onClick)="addDraftToResources(section.id)"
+                    />
+                  }
+                </div>
               </td>
             </tr>
             }
@@ -258,7 +277,7 @@
         <p-select
           size="small"
           class="block w-65 max-w-full"
-          [options]="availableCatalogResourceOptions()"
+          [options]="catalogOptionsBySection().get(section.id) ?? []"
           optionLabel="label"
           optionValue="value"
           [ngModel]="null"

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { DraftLine, DraftSection, blankSection, isBlankSection, lineTotal, nextDraftId, sectionTotal, usedResourceIds } from './document-draft';
+import { DraftLine, DraftSection, blankSection, isBlankSection, lineTotal, nextDraftId, sectionTotal, usedResourceIds, findSameResource } from './document-draft';
 
 const line = (overrides: Partial<DraftLine> = {}): DraftLine => ({
   id: 1, type: 'MATERIAL', label: 'Sac', quantity: 2, unit: 'Sac', unit_price: 10, discount: 0, resource_id: null,
@@ -67,4 +67,25 @@ describe('isBlankSection', () => {
     expect(isBlankSection({ ...blankSection(), lines: [line()] })).toBe(false);
   });
 
+});
+
+describe('findSameResource', () => {
+  const resource = { id: 7, type: 'MATERIAL' as const, name: 'Sac de ciment', unit: 'Sac', selling_price: 12.5 };
+
+  it('finds a resource with the same type, designation, unit and price', () => {
+    expect(findSameResource(line({ label: '  sac de CIMENT ', unit: 'sac', unit_price: 12.5 }), [resource])).toBe(resource);
+  });
+
+  it('ignores one differing by type, designation, unit or price', () => {
+    const typed = line({ label: 'Sac de ciment', unit: 'Sac', unit_price: 12.5 });
+    expect(findSameResource({ ...typed, type: 'SERVICE' }, [resource])).toBeUndefined();
+    expect(findSameResource({ ...typed, label: 'Sac de chaux' }, [resource])).toBeUndefined();
+    expect(findSameResource({ ...typed, unit: 'kg' }, [resource])).toBeUndefined();
+    expect(findSameResource({ ...typed, unit_price: 12.55 }, [resource])).toBeUndefined();
+  });
+
+  it('reads a price sent as text to the cent', () => {
+    const fromApi = { ...resource, selling_price: '12.50' as unknown as number };
+    expect(findSameResource(line({ label: 'Sac de ciment', unit: 'Sac', unit_price: 12.5 }), [fromApi])).toBe(fromApi);
+  });
 });

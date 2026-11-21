@@ -16,7 +16,7 @@ import { Resource } from '../../../../shared/models/resource';
 import { DocumentType } from '../../../../shared/models/document';
 import { PricePipe } from '../../../../shared/pipes/price.pipe';
 import { TabIndentDirective } from '../../../../shared/directives/tab-indent.directive';
-import { DraftLine, DraftLineType, DraftSection, blankSection, lineTotal, nextDraftId, sectionTotal, usedResourceIds } from '../document-draft';
+import { DraftLine, DraftLineType, DraftSection, blankSection, lineTotal, nextDraftId, sectionTotal, usedResourceIds, findSameResource } from '../document-draft';
 import { NotificationService } from '../../../../shared/services/notification.service';
 
 // The "Détails" block of the document form: its sections and, in each, a
@@ -64,11 +64,16 @@ export class DocumentSections implements OnInit {
   // didn't anticipate).
   resources = signal<Resource[]>([]);
 
-  availableCatalogResourceOptions = computed(() => {
-    const used = usedResourceIds(this.sections());
-    return this.resources()
-      .filter(resource => !used.has(resource.id))
+  // Per section: a resource already a line of that section isn't offered
+  // again there - another section can still take it (the same material in
+  // two parts of the work).
+  catalogOptionsBySection = computed(() => {
+    const options = this.resources()
       .map(resource => ({ label: resource.reference ? `${resource.name} — ${resource.reference}` : resource.name, value: resource.id }));
+    return new Map(this.sections().map(section => {
+      const used = usedResourceIds([section]);
+      return [section.id, options.filter(option => !used.has(option.value))];
+    }));
   });
 
   // A catalog resource's reference number, shown under the label of a line
@@ -199,18 +204,68 @@ export class DocumentSections implements OnInit {
     };
   }
 
+  // The add-row whose required fields were missing on its last "+" or
+  // "Ajouter aux ressources" - outlined in red until its next attempt.
+  invalidDraftSectionId = signal<number | null>(null);
+  savingResourceSectionId = signal<number | null>(null);
+
   addLine(sectionId: number): void {
     const draft = this.newLineFor(sectionId);
     if (!draft.label.trim()) {
+      this.invalidDraftSectionId.set(sectionId);
+      this.notifications.warn('documents.sections.lineLabelRequired');
       return;
     }
+    this.pushDraftLine(sectionId, draft.resource_id);
+  }
 
-    const line: DraftLine = { ...draft, id: nextDraftId() };
-
+  private pushDraftLine(sectionId: number, resource_id: number | null): void {
+    const line: DraftLine = { ...this.newLineFor(sectionId), id: nextDraftId(), resource_id };
     this.sections.update(sections =>
       sections.map(s => s.id === sectionId ? { ...s, lines: [...s.lines, line] } : s)
     );
     this.newLineDrafts.set(sectionId, this.emptyLine());
+    this.invalidDraftSectionId.set(null);
+  }
+
+  // The add-row's second button: the line typed in becomes a catalog
+  // resource too (its type, designation, unit and selling price), then a
+  // line of the section linked to it - unless the catalog already has the
+  // same one (findSameResource), which is then said and nothing is created.
+  addDraftToResources(sectionId: number): void {
+    const draft = this.newLineFor(sectionId);
+    if (!draft.label.trim() || !draft.unit?.trim()) {
+      this.invalidDraftSectionId.set(sectionId);
+      this.notifications.warn('documents.sections.resourceFieldsRequired');
+      return;
+    }
+    const existing = findSameResource(draft, this.resources());
+    if (existing) {
+      this.notifications.warn('documents.sections.resourceExists', { code: existing.code });
+      return;
+    }
+
+    this.savingResourceSectionId.set(sectionId);
+    this.resourceService.createResource({
+      type: draft.type,
+      name: draft.label.trim(),
+      unit: draft.unit.trim(),
+      selling_price: draft.unit_price ?? 0,
+      purchase_price: null,
+      reference: null,
+      parent_resource_id: null,
+    }).subscribe({
+      next: resource => {
+        this.savingResourceSectionId.set(null);
+        this.resources.update(resources => [...resources, resource]);
+        this.pushDraftLine(sectionId, resource.id);
+        this.notifications.success('documents.sections.resourceAdded', { code: resource.code });
+      },
+      error: err => {
+        this.savingResourceSectionId.set(null);
+        this.notifications.error('document-sections', err);
+      },
+    });
   }
 
   // Edits an already-added line in place (type/label/quantity/unit/price) -

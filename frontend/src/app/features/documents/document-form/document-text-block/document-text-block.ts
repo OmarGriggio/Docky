@@ -13,7 +13,8 @@ import { Template } from '../../../../shared/models/template';
 import { TextStyleToolbar } from '../../../../shared/components/text-style-toolbar/text-style-toolbar';
 import { DocumentColors, RichTextView } from '../../../../shared/components/rich-text-view/rich-text-view';
 
-// The document's introduction or conclusion (one component, used for both):
+// The document's introduction, conclusion or (an invoice's) payment terms
+// (one component, used for all three):
 // a read-only preview + "Modifier le texte" by default - clicking it swaps
 // to an editable textarea, pre-filled with the *current* text (`draft`),
 // independent of `text` until applied or saved. "Appliquer" only changes
@@ -36,7 +37,7 @@ export class DocumentTextBlock {
 
   // The document's own text - two-way, the form saves it with the document.
   text = model('');
-  field = input.required<'introduction' | 'conclusion'>();
+  field = input.required<'introduction' | 'conclusion' | 'paymentTerms'>();
   type = input.required<DocumentType>();
   placeholder = input('');
   // A document that can no longer be edited: just the text, no editor and
@@ -71,6 +72,17 @@ export class DocumentTextBlock {
   allPlaceholders = computed(() => DOCUMENT_PLACEHOLDERS.map(([name, label]) => ({
     token: placeholderToken(name, this.transloco.activeLang()), label: `documentTemplates.placeholders.${label}`,
   })));
+
+  // The introduction and conclusion take styles and variables; the payment
+  // terms print as typed.
+  styled = computed(() => this.field() !== 'paymentTerms');
+
+  // The link shown instead of an empty text.
+  addLabel = computed(() => ({
+    introduction: 'documents.textBlock.addIntroduction',
+    conclusion: 'documents.textBlock.addConclusion',
+    paymentTerms: 'documents.textBlock.addPaymentTerms',
+  })[this.field()]);
 
   editing = signal(false);
   draft = signal('');
@@ -107,7 +119,10 @@ export class DocumentTextBlock {
     // nav.invoices/nav.quotes are capitalized (nav-bar labels) - lowercased
     // here, this is mid-sentence.
     const noun = this.transloco.translate(this.type() === 'INVOICE' ? 'nav.invoices' : 'nav.quotes').toLowerCase();
-    this.confirmMessage.set(this.transloco.translate('documents.textBlock.saveDefaultMessage', { noun, template: template.name }));
+    // The payment terms are one text for both types - a quote prints its
+    // template's as they are.
+    const message = this.field() === 'paymentTerms' ? 'documents.textBlock.saveDefaultPaymentTermsMessage' : 'documents.textBlock.saveDefaultMessage';
+    this.confirmMessage.set(this.transloco.translate(message, { noun, template: template.name }));
     this.confirmVisible.set(true);
   }
 
@@ -121,7 +136,9 @@ export class DocumentTextBlock {
       return;
     }
     const draft = this.draft();
-    const field = `${this.type() === 'QUOTE' ? 'quote' : 'invoice'}_${this.field()}` as const;
+    const field = this.field() === 'paymentTerms'
+      ? 'payment_terms'
+      : `${this.type() === 'QUOTE' ? 'quote' : 'invoice'}_${this.field() as 'introduction' | 'conclusion'}` as const;
 
     this.saving.set(true);
     this.saveError.set(null);

@@ -185,7 +185,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
     const after = texts(next);
     if (!before || this.introduction() === before.introduction) this.introduction.set(after.introduction);
     if (!before || this.conclusion() === before.conclusion) this.conclusion.set(after.conclusion);
-    if (!before || this.paymentTerms === before.paymentTerms) this.paymentTerms = after.paymentTerms;
+    if (!before || this.paymentTerms() === before.paymentTerms) this.paymentTerms.set(after.paymentTerms);
     this.dueDays = quote ? next.quote_due_days : next.invoice_due_days;
     this.applyDefaultDueDate();
     this.templateId.set(next.id);
@@ -299,7 +299,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
       montant: chf(this.amountDue()),
       montant_ht: chf(this.documentTotalAfterDiscount()),
       montant_tva: chf(this.documentTotalInclVat() - this.documentTotalAfterDiscount()),
-      conditions_paiement: this.paymentTerms.trim(),
+      conditions_paiement: this.paymentTerms().trim(),
       signature_entreprise: company?.name ?? '',
       adresse_entreprise: [company?.street, `${company?.postal_code ?? ''} ${company?.city ?? ''}`.trim()].filter(Boolean).join(', '),
       telephone_entreprise: company?.phone ?? '',
@@ -437,7 +437,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
   // total doesn't update".
   introduction = signal('');
   conclusion = signal('');
-  paymentTerms = '';
+  paymentTerms = signal('');
   // Signals, not plain properties like the fields above - documentTotalAfterDiscount/
   // documentTotalInclVat below are computed() from these, which only
   // re-evaluates on a tracked *signal* read; a plain property mutated by
@@ -478,7 +478,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
   // work from the start, until it's created.
   private formState = computed(() => JSON.stringify([
     this.selectedClientId(), this.addressId(), this.referenceClient(), this.date(), this.dueDate(),
-    this.discount(), this.vatRate(), this.introduction(), this.conclusion(), this.templateId(),
+    this.discount(), this.vatRate(), this.introduction(), this.conclusion(), this.paymentTerms(), this.templateId(),
     this.recipientName(), this.recipientComplement(), this.recipientStreet(), this.recipientPostalCodeCity(),
     this.sections(),
   ]));
@@ -724,7 +724,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
       if (applyText) {
         this.introduction.set((quote ? template.quote_introduction : template.invoice_introduction) ?? '');
         this.conclusion.set((quote ? template.quote_conclusion : template.invoice_conclusion) ?? '');
-        this.paymentTerms = template.payment_terms ?? '';
+        this.paymentTerms.set(template.payment_terms ?? '');
       }
       this.dueDays = quote ? template.quote_due_days : template.invoice_due_days;
       this.applyDefaultDueDate();
@@ -793,7 +793,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
         }
         this.introduction.set(source.introduction ?? '');
         this.conclusion.set(source.conclusion ?? '');
-        this.paymentTerms = source.payment_terms ?? '';
+        this.paymentTerms.set(source.payment_terms ?? '');
         this.discount.set(source.discount);
         this.vatRate.set(source.vat_rate);
 
@@ -932,7 +932,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
 
         this.introduction.set(source.introduction ?? '');
         this.conclusion.set(source.conclusion ?? '');
-        this.paymentTerms = source.payment_terms ?? '';
+        this.paymentTerms.set(source.payment_terms ?? '');
         this.discount.set(source.discount);
         this.vatRate.set(source.vat_rate);
 
@@ -1188,7 +1188,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
           date: toDateOnly(this.date()),
           discount: this.discount(),
           vat_rate: this.vatRate(),
-          payment_terms: this.paymentTerms,
+          payment_terms: this.paymentTerms(),
           due_date: this.dueDateForApi(),
           introduction: this.introduction(),
           conclusion: this.conclusion(),
@@ -1214,7 +1214,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
         date: toDateOnly(this.date()),
         discount: this.discount(),
         vat_rate: this.vatRate(),
-        payment_terms: this.paymentTerms,
+        payment_terms: this.paymentTerms(),
         due_date: this.dueDateForApi(),
         introduction: this.introduction(),
         conclusion: this.conclusion(),

@@ -66,3 +66,18 @@ export const usedResourceIds = (sections: DraftSection[]): Set<number> =>
       .map(line => line.resource_id)
       .filter((id): id is number => id !== null)
   );
+
+// "Ajouter aux ressources": a typed-in line already in the catalog - same
+// type, designation, unit and price (designation and unit ignoring case and
+// surrounding spaces, the price to the cent).
+export const findSameResource = <R extends { type: DraftLineType; name: string; unit: string; selling_price: number }>(
+  line: DraftLine, resources: R[],
+): R | undefined => {
+  const same = (a: string | null, b: string | null) => (a ?? '').trim().toLowerCase() === (b ?? '').trim().toLowerCase();
+  return resources.find(resource =>
+    resource.type === line.type
+    && same(resource.name, line.label)
+    && same(resource.unit, line.unit)
+    && round2(Number(resource.selling_price)) === round2(line.unit_price ?? 0)
+  );
+};
