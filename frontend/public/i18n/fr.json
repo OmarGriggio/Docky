@@ -520,7 +520,11 @@
       "saveDefaultTitle": "Enregistrer dans le modèle",
       "saveDefaultMessage": "Ce texte deviendra le texte de départ des prochaines {{noun}} du modèle « {{template}} ». Continuer ?",
       "saveError": "Impossible d'enregistrer le modèle par défaut.",
-      "allPlaceholders": "Toutes les variables"
+      "allPlaceholders": "Toutes les variables",
+      "addIntroduction": "Ajouter une introduction",
+      "addConclusion": "Ajouter une conclusion",
+      "addPaymentTerms": "Ajouter des conditions de paiement",
+      "saveDefaultPaymentTermsMessage": "Ces conditions deviendront celles du modèle « {{template}} » : les prochaines factures partiront de ce texte, et toutes les offres de ce modèle l'imprimeront. Continuer ?"
     },
     "sections": {
       "details": "Détails",
@@ -531,7 +535,13 @@
       "sectionSubtotal": "Sous-total section",
       "addResource": "Ajouter une ressource",
       "quantityFull": "Quantité",
-      "timeHours": "Temps (h)"
+      "timeHours": "Temps (h)",
+      "addLine": "Ajouter la ligne à la section",
+      "addToResources": "Ajouter la ligne à la section et aux ressources",
+      "lineLabelRequired": "Remplis la désignation pour ajouter la ligne.",
+      "resourceFieldsRequired": "Remplis la désignation et l'unité pour ajouter la ligne aux ressources.",
+      "resourceExists": "Cette ressource existe déjà ({{code}}) : même type, désignation, unité et prix. Choisis-la dans le catalogue.",
+      "resourceAdded": "Ressource {{code}} créée et ligne ajoutée."
     },
     "form": {
       "newQuote": "Nouvelle offre",
@@ -573,7 +583,10 @@
       "style": "Modèle",
       "styleHint": "La présentation, les textes et les conditions de ce document. Les textes encore tels que le modèle les avait écrits suivent le nouveau modèle.",
       "styleSaved": "Modèle des documents enregistré.",
-      "manageTemplates": "Gérer les modèles"
+      "manageTemplates": "Gérer les modèles",
+      "discountLine": "Rabais ({{rate}} %)",
+      "paymentTerms": "Conditions de paiement",
+      "paymentTermsPlaceholder": "Ex. Payable à 30 jours net"
     },
     "pdfError": "Impossible de générer le PDF.",
     "kind": {
@@ -879,6 +892,8 @@
       "open": "Ouvrir le PDF",
       "hint": "Un document d'exemple, avec les coordonnées de votre entreprise et le modèle tel que vous le modifiez - rien n'est enregistré tant que vous ne cliquez pas sur Enregistrer.",
       "failed": "Aperçu pas à jour : un champ ne peut pas être enregistré tel quel."
-    }
+    },
+    "showCurrency": "Afficher la monnaie",
+    "showCurrencyHint": "« CHF » sur la ligne du total seulement - les lignes et les autres montants n'en ont jamais."
   }
 }

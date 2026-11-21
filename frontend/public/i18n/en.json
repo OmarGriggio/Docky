@@ -520,7 +520,11 @@
       "saveDefaultTitle": "Save in the template",
       "saveDefaultMessage": "This text will become the starting text of the next {{noun}} using the \"{{template}}\" template. Continue?",
       "saveError": "Could not save the default template.",
-      "allPlaceholders": "All variables"
+      "allPlaceholders": "All variables",
+      "addIntroduction": "Add an introduction",
+      "addConclusion": "Add a conclusion",
+      "addPaymentTerms": "Add payment terms",
+      "saveDefaultPaymentTermsMessage": "These terms will become the template \"{{template}}\"'s: the next invoices will start from this text, and every quote of this template will print it. Continue?"
     },
     "sections": {
       "details": "Details",
@@ -531,7 +535,13 @@
       "sectionSubtotal": "Section subtotal",
       "addResource": "Add a resource",
       "quantityFull": "Quantity",
-      "timeHours": "Time (h)"
+      "timeHours": "Time (h)",
+      "addLine": "Add the line to the section",
+      "addToResources": "Add the line to the section and to the resources",
+      "lineLabelRequired": "Fill in the designation to add the line.",
+      "resourceFieldsRequired": "Fill in the designation and the unit to add the line to the resources.",
+      "resourceExists": "This resource already exists ({{code}}): same type, designation, unit and price. Pick it from the catalog.",
+      "resourceAdded": "Resource {{code}} created and line added."
     },
     "form": {
       "newQuote": "New quote",
@@ -573,7 +583,10 @@
       "style": "Template",
       "styleHint": "This document's look, texts and conditions. Texts still as the template wrote them follow the new template.",
       "styleSaved": "Document template saved.",
-      "manageTemplates": "Manage templates"
+      "manageTemplates": "Manage templates",
+      "discountLine": "Discount ({{rate}} %)",
+      "paymentTerms": "Payment terms",
+      "paymentTermsPlaceholder": "E.g. Payable within 30 days net"
     },
     "pdfError": "Couldn't generate the PDF.",
     "kind": {
@@ -879,6 +892,8 @@
       "open": "Open the PDF",
       "hint": "A sample document, with your company's details and the template as you're editing it - nothing is saved until you click Save.",
       "failed": "Preview not up to date: a field can't be saved as it is."
-    }
+    },
+    "showCurrency": "Show the currency",
+    "showCurrencyHint": "\"CHF\" on the total's line only - the lines and other amounts never show it."
   }
 }
