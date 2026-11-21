@@ -2,6 +2,27 @@
 
 Every release of Docky, newest first. One version for the whole app (backend and frontend ship together from `main`), numbered `MAJOR.MINOR.PATCH` - see CLAUDE.md's Workflow for when each part goes up and how a release is made. Each release is tagged `vX.Y.Z` on `main`.
 
+## [1.6.0] - 2026-11-22
+
+### Added
+- Paramètres > Modèles: several templates per company, one of them the default, each with its own look (layout, font, header image), its own colors - a palette of up to 5 named colors and the color of each part of the PDF (title, total, footer...) - and its own texts and payment conditions. A quote or invoice picks its template from its form ("Modèle : ..."), and keeps the look it was sent with.
+- A live preview of the template beside its editor, on a sample quote, invoice or reminder, refreshed as you type.
+- Bold, colored and highlighted passages in an introduction, a conclusion or a reminder's text, with a toolbar above the text.
+- Every detail of the document, the client and the company can be inserted in a text (`{{numero_document}}`, `{{iban}}`, `{{lieu}}`...), under a French or an English name.
+- "Afficher la monnaie" on a template: "CHF" on the total's line.
+- On the quote and invoice form: a button saving a typed line to the resources too (refused when the same one already exists), a discount line in the totals, "Ajouter une introduction/conclusion" links for an empty text, and an invoice's payment terms editable like its other texts.
+
+### Changed
+- The PDFs' line tables no longer print "CHF" on every amount, start with each line's type (Matériel/Service), wrap long designations and align the section totals on the right.
+- The resources picker of a section only leaves out the resources already in that section.
+- A final invoice starts from its quote's template, like its deposits.
+- More space between the totals and the payment conditions on a classic invoice.
+- A quote keeps the payment conditions it was sent with, even if its template changes afterwards.
+
+### Fixed
+- "Charger chantier" no longer leaves out a chantier's lines whose resource is already on the invoice.
+- A final invoice's reminder printed a wrong VAT amount in its text.
+
 ## [1.5.0] - 2026-11-19
 
 ### Added
