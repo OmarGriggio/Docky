@@ -93,3 +93,16 @@ export const clientImportWriteRateLimiter = rateLimit({
   keyGenerator: (req) => `company:${req.user.company_id}`,
   message: { message: "Too many imports, please try again later" },
 });
+
+// The template editor's live preview (POST /template/:id/preview): a whole
+// PDF built on every call, fonts embedded - the editor asks at most every
+// 600 ms while typing, so a busy afternoon stays far under this; a script
+// looping on it doesn't slow the API down for every company.
+export const templatePreviewRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  limit: 300, // 300 previews per user per 15 minutes
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req) => `user:${req.user.userId}`,
+  message: { message: "Too many previews, please try again later" },
+});

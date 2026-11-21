@@ -79,12 +79,15 @@ export const duplicateTemplateServ = async (id: number, company_id: number, name
   return createTemplateInDB(company_id, normalizeTemplateData({ ...source, name }), { is_default: false, header_image: source.header_image });
 };
 
-// A field the request leaves out keeps its current value (like the company
-// profile): a page on an older version doesn't wipe one added since.
+// The template as `data` changes it - a field the request leaves out keeps its
+// current value (like the company profile): a page on an older version doesn't
+// wipe one added since.
+const changedBy = (current: Template, data: Partial<Record<keyof TemplateData, unknown>>): TemplateData =>
+  normalizeTemplateData({ ...current, ...Object.fromEntries(Object.entries(data ?? {}).filter(([, value]) => value !== undefined)) });
+
 export const updateTemplateServ = async (id: number, company_id: number, data: Partial<Record<keyof TemplateData, unknown>>): Promise<Template> => {
   const current = await getTemplateServ(id, company_id);
-  const sent = Object.fromEntries(Object.entries(data ?? {}).filter(([, value]) => value !== undefined));
-  const template = await updateTemplateInDB(id, company_id, normalizeTemplateData({ ...current, ...sent }));
+  const template = await updateTemplateInDB(id, company_id, changedBy(current, data));
   if (!template) {
     throw new NotFoundError("Template not found");
   }
@@ -94,8 +97,7 @@ export const updateTemplateServ = async (id: number, company_id: number, data: P
 /** The template as it would be saved with `data` - for the preview, nothing written (its header image the stored one's). */
 export const previewTemplateServ = async (id: number, company_id: number, data: Partial<Record<keyof TemplateData, unknown>>): Promise<Template> => {
   const current = await getTemplateServ(id, company_id);
-  const sent = Object.fromEntries(Object.entries(data ?? {}).filter(([, value]) => value !== undefined));
-  return { ...current, ...normalizeTemplateData({ ...current, ...sent }) };
+  return { ...current, ...changedBy(current, data) };
 };
 
 export const setDefaultTemplateServ = async (id: number, company_id: number): Promise<Template> => {
