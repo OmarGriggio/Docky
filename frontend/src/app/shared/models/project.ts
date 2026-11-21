@@ -33,6 +33,8 @@ export interface Project {
   // chantier with no such quote. See project.types.ts's own comment on the
   // backend.
   quote_number: string | null;
+  // That quote's template - "Facturer" starts the final invoice from it.
+  quote_template_id?: number | null;
 }
 
 export interface CreateProjectPayload {

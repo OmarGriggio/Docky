@@ -34,7 +34,7 @@ import { addDays, clientDisplayName, fromDateOnly, toDateOnly, fillPlaceholders,
 import { DocumentHeader } from './document-header/document-header';
 import { DocumentTextBlock } from './document-text-block/document-text-block';
 import { DocumentSections } from './document-sections/document-sections';
-import { DraftSection, blankSection, isBlankSection, nextDraftId, round2, sectionTotal, usedResourceIds } from './document-draft';
+import { DraftSection, blankSection, isBlankSection, nextDraftId, round2, sectionTotal } from './document-draft';
 import { matchClientByName } from './document-scan-match';
 import { qrBillErrorKey } from '../../../shared/utils/api-error';
 import { POSTAL_CODE_CITY_PATTERN, splitPostalCodeCity } from '../../../shared/utils/postal-code-search';
@@ -274,6 +274,21 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
     return this.clients().find(client => client.id === clientId)?.title ?? null;
   });
 
+  // {{lieu}}: the address it was sent to's Lieu/Bâtiment once frozen, the
+  // picked Lieu/Bâtiment otherwise - as the backend's billed-address.ts
+  // formats it ("Attention : street, NPA town").
+  private previewLocation(): string {
+    const frozen = this.billedAddress()?.location;
+    if (frozen) {
+      return frozen;
+    }
+    const address = this.clientAddresses().find(a => a.id === this.addressId());
+    if (!address) {
+      return '';
+    }
+    return `${address.attention ? `${address.attention} : ` : ''}${address.street}, ${address.postal_code} ${address.city}`;
+  }
+
   // The introduction/conclusion as the PDF will print it (see the backend's
   // pdf/templates/document.placeholders.ts): {{titre_client}} (Madame,
   // Monsieur if the client has none), {{date}} (the document's), {{montant}}
@@ -291,7 +306,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
       titre_client: this.selectedClientTitle()?.trim() || DEFAULT_CLIENT_TITLE,
       client: client ? clientDisplayName(client) : this.recipientName().trim(),
       numero_client: client?.client_number ?? '',
-      lieu: '',
+      lieu: this.previewLocation(),
       numero_document: this.documentNumber() ?? '',
       date: formatLongDate(this.date()),
       date_echeance: this.dueDate() ? formatLongDate(this.dueDate()!) : '',
@@ -745,6 +760,11 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
     if (!project) {
       return;
     }
+    // The final invoice starts from its quote's template, like its deposits
+    // (the default one stays when there's no quote or it's archived).
+    if (project.quote_template_id != null) {
+      this.pickTemplate(project.quote_template_id);
+    }
 
     // The chantier's own address (see project.service.ts's acceptQuoteServ -
     // it lives on the chantier's own backing document, not duplicated on
@@ -1054,8 +1074,9 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
   // buildDraftSections used for "Dupliquer" an offer - a chantier's resource
   // ledger IS a document now, not a flat list, so there's no "Matériel"/
   // "Service" regrouping to do anymore, its own section titles are kept
-  // as-is). Skips any line whose resource is already used elsewhere in this
-  // document, and drops a section left with nothing to import. Replaces
+  // as-is). Every line comes in - a resource already on a section typed by
+  // hand still gets billed for the chantier's own quantity (a resource is
+  // only kept out of its own section's picker) - an empty section doesn't. Replaces
   // whatever a previous load had imported - never touches a section the
   // user added by hand.
   loadProjectResources(): void {
@@ -1067,13 +1088,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
 
     this.documentCompleteService.getDocumentComplete(this.selectedProjectDocumentId).subscribe({
       next: source => {
-        const usedIds = usedResourceIds(this.sections());
-        const importedSections = this.buildDraftSections(source)
-          .map(section => ({
-            ...section,
-            lines: section.lines.filter(line => line.resource_id === null || !usedIds.has(line.resource_id)),
-          }))
-          .filter(section => section.lines.length > 0);
+        const importedSections = this.buildDraftSections(source).filter(section => section.lines.length > 0);
 
         for (const section of importedSections) {
           this.importedSectionIds.add(section.id);
@@ -1192,7 +1207,9 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
           due_date: this.dueDateForApi(),
           introduction: this.introduction(),
           conclusion: this.conclusion(),
-          template_id: this.templateId(),
+          // Left out when the templates couldn't load: the backend keeps the
+          // document's own (null would switch it to the default one).
+          ...(this.templateId() !== null ? { template_id: this.templateId() } : {}),
           ...this.recipientForApi(),
         }));
 

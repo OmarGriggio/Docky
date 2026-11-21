@@ -46,7 +46,7 @@ export class DocumentTextBlock {
   // How the PDF will print a text ({{placeholders}} filled in) - shown in the
   // read-only preview. Passed in since it depends on the form's own values.
   resolve = input.required<(text: string) => string>();
-  // The company's two document colors - the toolbar's swatches and the
+  // The template's palette (up to 5 colors) - the toolbar's swatches and the
   // preview's styled passages ([c1], [f2]... see shared/utils/rich-text.ts).
   colors = input<DocumentColors>([]);
   // The document's template - "Sauvegarder" writes into it (null: no button).
