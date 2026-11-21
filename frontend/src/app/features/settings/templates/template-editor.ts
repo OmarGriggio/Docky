@@ -14,6 +14,7 @@ import { FloatLabel } from 'primeng/floatlabel';
 import { FileUpload, FileUploadHandlerEvent } from 'primeng/fileupload';
 import { Tabs, TabList, Tab, TabPanels, TabPanel } from 'primeng/tabs';
 import { SelectButton } from 'primeng/selectbutton';
+import { Checkbox } from 'primeng/checkbox';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe, TranslocoService, translateSignal } from '@jsverse/transloco';
 import { PreviewKind, TemplateService } from './template.service';
@@ -47,7 +48,7 @@ const earlyPaymentDaysRequired: ValidatorFn = (group: AbstractControl): Validati
   selector: 'app-template-editor',
   standalone: true,
   imports: [
-    ReactiveFormsModule, FormsModule, SelectButton, RouterLink, Card, Button, InputText, InputNumber, Textarea, FloatLabel, FileUpload,
+    ReactiveFormsModule, FormsModule, SelectButton, Checkbox, RouterLink, Card, Button, InputText, InputNumber, Textarea, FloatLabel, FileUpload,
     Tabs, TabList, Tab, TabPanels, TabPanel, TabIndentDirective, TextStyleToolbar, DocumentStylePicker, ConfirmDialogComponent, TranslocoPipe,
   ],
   templateUrl: './template-editor.html',
@@ -123,6 +124,7 @@ export class TemplateEditor implements OnInit {
     name: ['', [Validators.required, Validators.maxLength(100)]],
     layout: ['CLASSIC' as DocumentLayout],
     font: ['HELVETICA' as DocumentFont],
+    show_currency: [false],
     quote_introduction: [''],
     quote_conclusion: [''],
     quote_due_days: [null as number | null, Validators.min(0)],
@@ -240,6 +242,7 @@ export class TemplateEditor implements OnInit {
       name: template.name,
       layout: template.layout,
       font: template.font,
+      show_currency: template.show_currency ?? false,
       quote_introduction: template.quote_introduction ?? '',
       quote_conclusion: template.quote_conclusion ?? '',
       quote_due_days: template.quote_due_days,

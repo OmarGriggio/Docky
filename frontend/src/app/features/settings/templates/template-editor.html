@@ -30,6 +30,14 @@
         (layoutChange)="pickLayout($event)" (fontChange)="pickFont($event)"
       />
 
+      <div class="ui-form__full flex items-start gap-2">
+        <p-checkbox inputId="show_currency" formControlName="show_currency" [binary]="true" />
+        <label for="show_currency" class="text-sm">
+          {{ 'templates.showCurrency' | transloco }}
+          <span class="block text-xs text-gray-500">{{ 'templates.showCurrencyHint' | transloco }}</span>
+        </label>
+      </div>
+
       <!-- The palette: up to 5 named colors (a native color input - the
            browser's own picker, on a phone too). -->
       <div class="ui-form__full flex flex-col gap-2">

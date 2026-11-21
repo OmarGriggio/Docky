@@ -39,6 +39,8 @@ export interface Template {
   // text's [c1]...[c5] / [f1]...[f5] print in the palette's too.
   palette: PaletteColor[];
   element_colors: ElementColors;
+  // "CHF" printed on the total's line of its PDFs - nowhere else. Off by default.
+  show_currency: boolean;
   // A storage key, set by its own upload route only.
   header_image: string | null;
 
@@ -64,4 +66,4 @@ export interface Template {
 export type TemplateData = Omit<Template, 'id' | 'company_id' | 'is_default' | 'is_active' | 'header_image'>;
 
 /** A document's look: what it was frozen with once sent. */
-export type TemplateStyle = Pick<Template, 'layout' | 'font' | 'palette' | 'element_colors' | 'header_image'>;
+export type TemplateStyle = Pick<Template, 'layout' | 'font' | 'palette' | 'element_colors' | 'show_currency' | 'header_image'>;
