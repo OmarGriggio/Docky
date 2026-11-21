@@ -46,9 +46,9 @@ export class ReminderPdfGenerator extends DocumentPdfGenerator<PreparedReminder>
 
         return {
             // What's left to pay: a final invoice's deposits are invoices of their own.
-            reminder: createReminderDto({ ...document, amount_incl_vat: source.amountDue }, client, company, source.style, text),
+            reminder: createReminderDto(document, client, company, source.style, text, source.amountDue),
             qrBill: await prepareQrBill(source),
-            logoBytes: await this.readCompanyImage(company, "logo"),
+            logoBytes: await this.readCompanyLogo(company),
             headerImageBytes: await this.readHeaderImage(company, source.style),
         };
     }

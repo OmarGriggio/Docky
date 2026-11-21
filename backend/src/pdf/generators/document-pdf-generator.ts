@@ -94,8 +94,8 @@ export abstract class DocumentPdfGenerator<TPrepared> {
     // stored in companies.logo or a template's header_image (another
     // company's private attachment, say) is ignored rather than embedded in
     // this PDF.
-    protected async readCompanyImage(company: Company, kind: "logo"): Promise<Buffer | null> {
-        return this.readImage(company.logo, new RegExp(`^companies/${company.id}/${kind}\\.(jpg|png)$`));
+    protected async readCompanyLogo(company: Company): Promise<Buffer | null> {
+        return this.readImage(company.logo, new RegExp(`^companies/${company.id}/logo\\.(jpg|png)$`));
     }
 
     /** The document's header image (its style's) - the company's own templates' keys only, the one migrated from the profile included. */

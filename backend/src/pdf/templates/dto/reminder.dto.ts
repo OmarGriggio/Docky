@@ -9,7 +9,9 @@ import { buildLetterDto, placeholderSourceOf } from "./shared";
 import { TemplateStyle } from "../../../modules/templates/template.types";
 
 // templateText is the template's reminder text, raw (with its {{placeholders}}).
-export const createReminderDto = (document: DocumentComplete, client: ClientWithAddresses, company: Company, style: TemplateStyle, templateText: string): ReminderDto => {
+// amountDue: what's left to pay - a final invoice's deposits deducted - for
+// {{montant}}; {{montant_tva}} stays the invoice's own VAT.
+export const createReminderDto = (document: DocumentComplete, client: ClientWithAddresses, company: Company, style: TemplateStyle, templateText: string, amountDue: number = document.amount_incl_vat): ReminderDto => {
     const language = toPdfLanguage(client.language);
     const today = new Date();
     const letter = buildLetterDto(document, client, company, style, language);
@@ -19,6 +21,6 @@ export const createReminderDto = (document: DocumentComplete, client: ClientWith
         // the reminder's text stands in for them.
         letter: { ...letter, date: today, introduction: [], conclusion: [] },
         greeting: client.title?.trim() || PDF_LABELS[language].defaultClientTitle,
-        text: richTextOf(templateText, buildReminderValues(placeholderSourceOf(document, client, company, language), today)),
+        text: richTextOf(templateText, buildReminderValues(placeholderSourceOf(document, client, company, language, amountDue), today)),
     };
 };
