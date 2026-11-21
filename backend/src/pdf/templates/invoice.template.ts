@@ -1,7 +1,7 @@
 import { PdfWriter } from "../core/pdf-writer";
 import { InvoiceDto } from "./invoice.types";
 import { formatLongDate, PDF_LABELS } from "./pdf-labels";
-import { drawConditionsBlock, drawConclusion, drawLetterDetails, drawLetterHead, drawPositions, drawTotalsTable } from "./business-letter";
+import { CLASSIC_CONDITIONS_GAP, drawConditionsBlock, drawConclusion, drawLetterDetails, drawLetterHead, drawPositions, drawTotalsTable } from "./business-letter";
 import { drawModernHead, drawModernItems, drawModernTotals } from "./modern-letter";
 import { formatShortDate } from "./format";
 
@@ -48,7 +48,8 @@ export class InvoiceTemplate {
         if (invoice.paymentTerms) {
             conditions.push(invoice.paymentTerms);
         }
-        drawConditionsBlock(pdf, labels.paymentConditions, conditions, invoice.company.colors, invoice.paymentScale);
+        drawConditionsBlock(pdf, labels.paymentConditions, conditions, invoice.company.colors, invoice.paymentScale,
+            invoice.company.layout === "CLASSIC" ? CLASSIC_CONDITIONS_GAP : undefined);
     }
 
     static renderDetails(pdf: PdfWriter, invoice: InvoiceDto) {

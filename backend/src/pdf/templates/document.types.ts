@@ -2,6 +2,7 @@
 // they're printed, each total already computed (see dto/shared.ts) so the
 // templates only draw.
 export interface DocumentLineDto {
+    type: "MATERIAL" | "SERVICE";
     label: string;
     quantity: number;
     unit: string | null;

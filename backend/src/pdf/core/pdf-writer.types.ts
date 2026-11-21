@@ -29,6 +29,9 @@ export interface PdfTableColumn {
 
     width: number;
 
+    // "right": the title and values end at the column's right edge (amounts).
+    align?: "left" | "right";
+
 }
 
 export interface PdfTable {

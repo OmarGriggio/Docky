@@ -269,7 +269,7 @@ export class PdfWriter {
         let x = this.options.margin;
         for (const column of table.columns) {
             this.page.drawText(this.printable(column.title, this.fonts.bold), {
-                x,
+                x: column.align === "right" ? x + column.width - this.textWidth(column.title, { bold: true }) : x,
                 y: this.cursorY,
                 size: 11,
                 font: this.fonts.bold,
@@ -287,8 +287,9 @@ export class PdfWriter {
             x = this.options.margin;
             for (const column of table.columns) {
                 const value = row[column.key];
-                this.page.drawText(this.printable(value == null ? "" : String(value), this.fonts.regular), {
-                    x,
+                const text = value == null ? "" : String(value);
+                this.page.drawText(this.printable(text, this.fonts.regular), {
+                    x: column.align === "right" ? x + column.width - this.textWidth(text) : x,
                     y: this.cursorY,
                     size: 11,
                     font: this.fonts.regular,

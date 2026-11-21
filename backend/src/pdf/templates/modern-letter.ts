@@ -28,7 +28,11 @@ const BOX_LEFT = 330;
 const QTY_RIGHT = 385;
 const PRICE_RIGHT = 465;
 const CELL_PADDING = 6;
-const DESCRIPTION_WIDTH = QTY_RIGHT - 70 - 50 - CELL_PADDING;
+// The line's type (Matériel/Service) first, then its description, wrapping
+// before the quantity.
+const TYPE_X = 50 + CELL_PADDING;
+const DESCRIPTION_X = TYPE_X + 62;
+const DESCRIPTION_WIDTH = QTY_RIGHT - 60 - DESCRIPTION_X;
 
 const LOGO_MAX_WIDTH = 140;
 const LOGO_MAX_HEIGHT = 60;
@@ -127,7 +131,8 @@ export const drawModernItems = (pdf: PdfWriter, letter: LetterDto) => {
         pdf.drawRect(left, top - TABLE_HEADER_HEIGHT, RIGHT - left, TABLE_HEADER_HEIGHT, headerColor);
         const options: PdfTextOptions = { size: 9, bold: true, color: textColorOn(headerColor) };
         const y = top - 13.5;
-        pdf.drawTextAt(labels.description, left + CELL_PADDING, y, options);
+        pdf.drawTextAt(labels.lineType, TYPE_X, y, options);
+        pdf.drawTextAt(labels.description, DESCRIPTION_X, y, options);
         pdf.drawTextRightAt(labels.quantity, QTY_RIGHT, y, options);
         pdf.drawTextRightAt(labels.price, PRICE_RIGHT, y, options);
         pdf.drawTextRightAt(labels.total, RIGHT - CELL_PADDING, y, options);
@@ -147,7 +152,7 @@ export const drawModernItems = (pdf: PdfWriter, letter: LetterDto) => {
     drawHeader();
     letter.sections.forEach((section, index) => {
         drawSectionTitle(pdf, section, labels.position(index + 1), letter.company.colors.sectionTitles, reserveRow);
-        section.lines.forEach((line, lineIndex) => drawLine(pdf, line, lineIndex % 2 === 1, reserveRow));
+        section.lines.forEach((line, lineIndex) => drawLine(pdf, line, labels.lineTypes[line.type], lineIndex % 2 === 1, reserveRow));
         drawSectionTotal(pdf, `${labels.total} ${labels.position(index + 1)}`, section.total, reserveRow);
     });
     pdf.moveDown(10);
@@ -173,7 +178,7 @@ const drawSectionTitle = (
     pdf.moveDown(height + 2);
 };
 
-const drawLine = (pdf: PdfWriter, line: DocumentLineDto, shaded: boolean, reserveRow: (height: number) => void) => {
+const drawLine = (pdf: PdfWriter, line: DocumentLineDto, typeLabel: string, shaded: boolean, reserveRow: (height: number) => void) => {
     const left = pdf.marginValue();
     const options: PdfTextOptions = { size: 9.5 };
     const labelLines = pdf.wrapLines(line.label, DESCRIPTION_WIDTH, options);
@@ -184,7 +189,8 @@ const drawLine = (pdf: PdfWriter, line: DocumentLineDto, shaded: boolean, reserv
         pdf.drawRect(left, top - height, RIGHT - left, height, ZEBRA);
     }
     const y = top - LINE_HEIGHT + 1;
-    labelLines.forEach((text, index) => pdf.drawTextAt(text, left + CELL_PADDING + 10, y - index * LINE_HEIGHT, options));
+    labelLines.forEach((text, index) => pdf.drawTextAt(text, DESCRIPTION_X, y - index * LINE_HEIGHT, options));
+    pdf.drawTextAt(typeLabel, TYPE_X, y, { ...options, color: GRAY });
     pdf.drawTextRightAt(line.unit ? `${line.quantity} ${line.unit}` : `${line.quantity}`, QTY_RIGHT, y, options);
     pdf.drawTextRightAt(formatAmount(line.unitPrice), PRICE_RIGHT, y, options);
     pdf.drawTextRightAt(formatAmount(line.total), RIGHT - CELL_PADDING, y, options);
@@ -207,6 +213,9 @@ interface BoxRow {
     // "total": the amount owed, on a band of the main color (gray without
     // one); "early": the early payment line, on a lighter one.
     band?: "total" | "early";
+    // Printed before the amount (the total's and the balance's, when the
+    // template shows the currency).
+    currency?: string | null;
 }
 
 /** The totals in a box on the right, kept in one piece: the sections' sum, the discount, the VAT, the total on a band - then a final invoice's deposits and its balance, and an invoice's early payment discount. */
@@ -228,12 +237,12 @@ export const drawModernTotals = (
         // The VAT number goes under the box - too long for its column.
         rows.push({ label: `${labels.vat} ${formatPercent(letter.vatRate)}`, value: letter.amountInclVat - letter.amountExclVat });
     }
-    rows.push({ label: labels.total.toUpperCase(), value: letter.amountInclVat, band: "total" });
+    rows.push({ label: labels.total.toUpperCase(), value: letter.amountInclVat, band: "total", currency: letter.currency });
     if (letter.deductions?.length && letter.amountDue !== undefined) {
         for (const deduction of letter.deductions) {
             rows.push({ label: deduction.label, value: -deduction.amount });
         }
-        rows.push({ label: letter.amountDue >= 0 ? labels.amountDue : labels.creditBalance, value: Math.abs(letter.amountDue), band: "total" });
+        rows.push({ label: letter.amountDue >= 0 ? labels.amountDue : labels.creditBalance, value: Math.abs(letter.amountDue), band: "total", currency: letter.currency });
     }
     if (earlyPayment) {
         rows.push({ label: `${labels.earlyPayment(earlyPayment.days)} ${formatPercent(earlyPayment.rate)}`, value: earlyPayment.net, band: "early" });
@@ -270,7 +279,8 @@ export const drawModernTotals = (
         }
         const firstBaseline = lines.length > 1 ? rowTop - 11 : rowTop - rowHeightValue / 2 - (options.size ?? 10) / 2 + 2;
         lines.forEach((line, index) => pdf.drawTextAt(line, labelX, firstBaseline - index * 11, options));
-        pdf.drawTextRightAt(formatAmount(row.value), valueRight, firstBaseline, options);
+        const amount = formatAmount(row.value);
+        pdf.drawTextRightAt(row.currency ? `${row.currency} ${amount}` : amount, valueRight, firstBaseline, options);
         y -= rowHeightValue;
     }
     // The box's frame.

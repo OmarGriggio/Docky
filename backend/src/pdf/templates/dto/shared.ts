@@ -25,6 +25,7 @@ export const buildSections = (document: DocumentComplete): DocumentSectionDto[] 
                 .filter(line => line.section_id === section.id)
                 .sort((a, b) => a.position - b.position)
                 .map(line => ({
+                    type: line.type,
                     label: line.label,
                     quantity: line.quantity,
                     unit: line.unit,
@@ -106,6 +107,7 @@ export const buildLetterDto = (
         amountInclVat: document.amount_incl_vat,
         vatRate: document.vat_rate,
         discount: document.discount,
+        currency: style.show_currency ? "CHF" : null,
         introduction: richTextOf(document.introduction ?? "", placeholders),
         conclusion: richTextOf(document.conclusion ?? "", placeholders),
     };

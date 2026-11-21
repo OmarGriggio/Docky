@@ -61,6 +61,9 @@ export interface LetterDto {
     vatRate: number;
     // A percentage, 0 when none is applied.
     discount: number;
+    // "CHF" on the total's line (and a final invoice's balance) when the
+    // template shows the currency (templates.show_currency) - nowhere else.
+    currency: string | null;
     // Styled by the author (rich-text.ts), placeholders already filled in.
     introduction: TextRun[];
     conclusion: TextRun[];
@@ -107,6 +110,9 @@ const HEADER_GAP = 33;
 const FOOTER_TOP = 64;
 // Between what's above the payment conditions block and the block itself.
 const CONDITIONS_GAP = 20;
+// The classic layout's, after its borderless totals table - a little more air so
+// the conditions don't read as part of the totals.
+export const CLASSIC_CONDITIONS_GAP = 40;
 
 /** Every page from now on starts with the header image (if any) and keeps its flowing text clear of the footer. Call before drawing anything. */
 export const setUpLetterPages = (pdf: PdfWriter, headerImage: PDFImage | null) => {
@@ -232,7 +238,7 @@ export const drawTotalsTable = (
         band(pdf, pdf.remainingHeight() + 4, totalHeight, tint(accent, TOTAL_BAND_TINT));
     }
     rule(pdf, accent);
-    row(pdf, labels.total, { total: letter.amountInclVat }, { size: 14, bold: true }, totalHeight);
+    row(pdf, labels.total, { total: letter.amountInclVat, currency: letter.currency }, { size: 14, bold: true }, totalHeight);
     rule(pdf, accent);
 
     // A final invoice: each deposit deducted, then the balance - owed, or the
@@ -248,7 +254,7 @@ export const drawTotalsTable = (
             band(pdf, pdf.remainingHeight() + 4, totalHeight, tint(accent, TOTAL_BAND_TINT));
         }
         rule(pdf, accent);
-        row(pdf, letter.amountDue >= 0 ? labels.amountDue : labels.creditBalance, { total: Math.abs(letter.amountDue) }, { size: 14, bold: true }, totalHeight);
+        row(pdf, letter.amountDue >= 0 ? labels.amountDue : labels.creditBalance, { total: Math.abs(letter.amountDue), currency: letter.currency }, { size: 14, bold: true }, totalHeight);
         rule(pdf, accent);
     }
 
@@ -303,6 +309,7 @@ export const drawConditionsBlock = (
     lines: string[],
     colors: PrintColors,
     scale: PaymentScaleRow[] = [],
+    gap = CONDITIONS_GAP,
 ) => {
     if (lines.length === 0 && scale.length === 0) {
         return;
@@ -314,7 +321,7 @@ export const drawConditionsBlock = (
     ];
     const scaleHeight = scale.length > 0 ? SCALE_GAP + scale.length * SCALE_ROW : 0;
     const height = blocks.reduce((sum, block) => sum + pdf.textHeight(block.text, block.options), 0) + scaleHeight;
-    pdf.moveDown(CONDITIONS_GAP);
+    pdf.moveDown(gap);
     pdf.reserve(height);
     for (const block of blocks) {
         pdf.text(block.text, block.options);
@@ -354,11 +361,12 @@ export const drawLetterDetails = (pdf: PdfWriter, letter: LetterDto, heading: st
 };
 
 // One line of the recap: a label on the left and up to three right-aligned
-// columns (a rate or "Pos n", a deduction, a running total).
+// columns (a rate or "Pos n", a deduction, a running total - after its
+// currency, when given).
 const row = (
     pdf: PdfWriter,
     label: string,
-    columns: { rate?: string; deduction?: number; total: number },
+    columns: { rate?: string; deduction?: number; total: number; currency?: string | null },
     options: PdfTextOptions = { size: 10 },
     height = ROW,
 ) => {
@@ -371,7 +379,8 @@ const row = (
     if (columns.deduction !== undefined) {
         pdf.drawTextRightAt(formatAmount(columns.deduction), DEDUCTION_RIGHT, y, { ...options, bold: false });
     }
-    pdf.drawTextRightAt(formatAmount(columns.total), TOTAL_RIGHT, y, options);
+    const total = formatAmount(columns.total);
+    pdf.drawTextRightAt(columns.currency ? `${columns.currency} ${total}` : total, TOTAL_RIGHT, y, options);
     pdf.moveDown(height);
 };
 

@@ -3,6 +3,7 @@ import { PdfWriter } from "../core/pdf-writer";
 import { PdfColor, PdfTable } from "../core/pdf-writer.types";
 import { DocumentSectionDto } from "./document.types";
 import { PDF_LABELS, PdfLanguage } from "./pdf-labels";
+import { formatAmount } from "./format";
 
 // Drawing steps shared by the letter-like PDFs: the logo, the header image
 // and the itemized section details (used by business-letter.ts, the
@@ -84,24 +85,49 @@ export const drawSectionDetails = (
             pdf.text(section.description, { size: 10, marginBottom: 4 });
         }
         pdf.table(createSectionTable(section, language));
-        pdf.text(`${labels.total} ${section.title} : ${section.total.toFixed(2)} CHF`, { bold: true, marginTop: 4 });
+        drawSectionTotal(pdf, `${labels.total} ${section.title} :`, formatAmount(section.total));
     }
+};
+
+// The table's right edge - where its amounts end (the page's text width).
+const TABLE_RIGHT = 545;
+
+// "Total Peinture :" on the left, its amount ending under the lines' totals -
+// the label cut short ("…") rather than running into the amount.
+const drawSectionTotal = (pdf: PdfWriter, label: string, amount: string) => {
+    const options = { bold: true };
+    const left = pdf.marginValue();
+    const maxWidth = TABLE_RIGHT - pdf.textWidth(amount, options) - 12 - left;
+    let text = label;
+    while (text.length > 1 && pdf.textWidth(text, options) > maxWidth) {
+        text = `${text.slice(0, -2)}…`;
+    }
+    pdf.moveDown(4);
+    pdf.reserve(16);
+    const y = pdf.remainingHeight();
+    pdf.drawTextAt(text, left, y, options);
+    pdf.drawTextRightAt(amount, TABLE_RIGHT, y, options);
+    pdf.moveDown(16);
 };
 
 const createSectionTable = (section: DocumentSectionDto, language: PdfLanguage): PdfTable => {
     const labels = PDF_LABELS[language];
     return {
         columns: [
-            { key: "description", title: labels.description, width: 260 },
-            { key: "quantity", title: labels.quantity, width: 60 },
-            { key: "price", title: labels.price, width: 80 },
-            { key: "total", title: labels.total, width: 80 },
+            // 495 in all: from the margin to TABLE_RIGHT.
+            { key: "type", title: labels.lineType, width: 65 },
+            { key: "description", title: labels.description, width: 205 },
+            { key: "quantity", title: labels.quantity, width: 75 },
+            { key: "price", title: labels.price, width: 70, align: "right" },
+            { key: "total", title: labels.total, width: 80, align: "right" },
         ],
+        // No currency on the lines - only ever on the total's (LetterDto.currency).
         rows: section.lines.map(line => ({
             description: line.label,
+            type: labels.lineTypes[line.type],
             quantity: line.unit ? `${line.quantity} ${line.unit}` : `${line.quantity}`,
-            price: `${line.unitPrice.toFixed(2)} CHF`,
-            total: `${line.total.toFixed(2)} CHF`,
+            price: formatAmount(line.unitPrice),
+            total: formatAmount(line.total),
         })),
     };
 };
