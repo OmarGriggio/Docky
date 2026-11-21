@@ -216,11 +216,13 @@ export class DocumentSections implements OnInit {
       this.notifications.warn('documents.sections.lineLabelRequired');
       return;
     }
-    this.pushDraftLine(sectionId, draft.resource_id);
+    this.pushDraftLine(sectionId, draft, draft.resource_id);
   }
 
-  private pushDraftLine(sectionId: number, resource_id: number | null): void {
-    const line: DraftLine = { ...this.newLineFor(sectionId), id: nextDraftId(), resource_id };
+  // `typed`: the add-row's values as they were when its button was clicked -
+  // the row stays editable while a resource is being created.
+  private pushDraftLine(sectionId: number, typed: DraftLine, resource_id: number | null): void {
+    const line: DraftLine = { ...typed, id: nextDraftId(), resource_id };
     this.sections.update(sections =>
       sections.map(s => s.id === sectionId ? { ...s, lines: [...s.lines, line] } : s)
     );
@@ -233,7 +235,7 @@ export class DocumentSections implements OnInit {
   // line of the section linked to it - unless the catalog already has the
   // same one (findSameResource), which is then said and nothing is created.
   addDraftToResources(sectionId: number): void {
-    const draft = this.newLineFor(sectionId);
+    const draft = { ...this.newLineFor(sectionId) };
     if (!draft.label.trim() || !draft.unit?.trim()) {
       this.invalidDraftSectionId.set(sectionId);
       this.notifications.warn('documents.sections.resourceFieldsRequired');
@@ -241,7 +243,9 @@ export class DocumentSections implements OnInit {
     }
     const existing = findSameResource(draft, this.resources());
     if (existing) {
-      this.notifications.warn('documents.sections.resourceExists', { code: existing.code });
+      // Already a line of this section: its picker doesn't offer it any more.
+      const inSection = this.sections().find(s => s.id === sectionId)?.lines.some(line => line.resource_id === existing.id);
+      this.notifications.warn(inSection ? 'documents.sections.resourceExistsInSection' : 'documents.sections.resourceExists', { code: existing.code });
       return;
     }
 
@@ -258,7 +262,7 @@ export class DocumentSections implements OnInit {
       next: resource => {
         this.savingResourceSectionId.set(null);
         this.resources.update(resources => [...resources, resource]);
-        this.pushDraftLine(sectionId, resource.id);
+        this.pushDraftLine(sectionId, draft, resource.id);
         this.notifications.success('documents.sections.resourceAdded', { code: resource.code });
       },
       error: err => {
