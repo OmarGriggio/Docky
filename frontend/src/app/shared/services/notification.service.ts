@@ -23,8 +23,8 @@ export class NotificationService {
     this.show('error', 'notifications.errorTitle', httpErrorKey(err), 8000);
   }
 
-  warn(key: string): void {
-    this.show('warn', 'notifications.warnTitle', key, 6000);
+  warn(key: string, params?: Record<string, unknown>): void {
+    this.show('warn', 'notifications.warnTitle', key, 6000, params);
   }
 
   success(key: string, params?: Record<string, unknown>): void {
