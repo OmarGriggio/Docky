@@ -34,6 +34,9 @@ export interface ProjectListItem extends ProjectWithType {
   // document's own parent_document_id to that quote's id) - null for a
   // chantier with no such quote.
   quote_number: string | null;
+  // That quote's template - its final invoice starts from it, like its
+  // deposits (null: none, the default template then).
+  quote_template_id: number | null;
 }
 
 export interface CreateProjectData {

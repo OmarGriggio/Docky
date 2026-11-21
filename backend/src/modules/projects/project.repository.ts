@@ -15,7 +15,7 @@ import { Project, ProjectListItem, CreateProjectData, UpdateProjectData } from "
 // which reads as the table shuffling itself.
 export const getProjectsFromDB = async (company_id: number, includeArchived = false): Promise<ProjectListItem[]> => {
   const query = includeArchived
-    ? `SELECT p.*, pt.label AS project_type, closest.date_start AS closest_section_date, quote.number AS quote_number
+    ? `SELECT p.*, pt.label AS project_type, closest.date_start AS closest_section_date, quote.number AS quote_number, quote.template_id AS quote_template_id
        FROM projects p
        LEFT JOIN project_types pt ON pt.id = p.project_type_id
        LEFT JOIN LATERAL (
@@ -29,7 +29,7 @@ export const getProjectsFromDB = async (company_id: number, includeArchived = fa
        LEFT JOIN documents quote ON quote.id = pd.parent_document_id
        WHERE p.company_id = $1
        ORDER BY (p.status = 'COMPLETED'), closest.date_start IS NULL, ABS(EXTRACT(EPOCH FROM (closest.date_start - NOW()))), p.id`
-    : `SELECT p.*, pt.label AS project_type, closest.date_start AS closest_section_date, quote.number AS quote_number
+    : `SELECT p.*, pt.label AS project_type, closest.date_start AS closest_section_date, quote.number AS quote_number, quote.template_id AS quote_template_id
        FROM projects p
        LEFT JOIN project_types pt ON pt.id = p.project_type_id
        LEFT JOIN LATERAL (
