@@ -132,7 +132,7 @@
               <div class="ui-form pt-2">
                 <div class="ui-form__full">
                   @if (canManage()) {
-                    <app-text-style-toolbar [target]="introduction" [colors]="colors()" />
+                    <app-text-style-toolbar [target]="introduction" [colors]="palette()" />
                   }
                   <p-floatlabel variant="on">
                     <textarea #introduction pTextarea [id]="kind + '_introduction'" [formControlName]="kind + '_introduction'" rows="3"></textarea>
@@ -142,7 +142,7 @@
 
                 <div class="ui-form__full">
                   @if (canManage()) {
-                    <app-text-style-toolbar [target]="conclusion" [colors]="colors()" />
+                    <app-text-style-toolbar [target]="conclusion" [colors]="palette()" />
                   }
                   <p-floatlabel variant="on">
                     <textarea #conclusion pTextarea [id]="kind + '_conclusion'" [formControlName]="kind + '_conclusion'" rows="3"></textarea>
@@ -171,7 +171,7 @@
             <div class="ui-form pt-2">
               <div class="ui-form__full">
                 @if (canManage()) {
-                  <app-text-style-toolbar [target]="reminder_text" [colors]="colors()" />
+                  <app-text-style-toolbar [target]="reminder_text" [colors]="palette()" />
                 }
                 <p-floatlabel variant="on">
                   <textarea #reminder_text pTextarea id="reminder_text" formControlName="reminder_text" rows="8"></textarea>

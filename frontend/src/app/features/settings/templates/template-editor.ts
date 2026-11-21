@@ -25,7 +25,6 @@ import { NotificationService } from '../../../shared/services/notification.servi
 import { TabIndentDirective } from '../../../shared/directives/tab-indent.directive';
 import { TextStyleToolbar } from '../../../shared/components/text-style-toolbar/text-style-toolbar';
 import { DocumentStylePicker } from '../../../shared/components/document-style-picker/document-style-picker';
-import { DocumentColors } from '../../../shared/components/rich-text-view/rich-text-view';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
 import { DOCUMENT_PLACEHOLDERS, placeholderToken, REMINDER_PLACEHOLDERS } from '../../../shared/utils/display';
 import { BreakpointService } from '../../../shared/services/breakpoint.service';
@@ -40,7 +39,7 @@ const earlyPaymentDaysRequired: ValidatorFn = (group: AbstractControl): Validati
 };
 
 // One template, everything in it on one page: its look (layout and font,
-// the two colors, the header image), the texts a new quote or invoice starts
+// its palette and each element's color, the currency, the header image), the texts a new quote or invoice starts
 // from and the reminder's, and the conditions (due days, payment terms, an
 // invoice's early payment discount). Saved in one go - the header image has
 // its own upload, saved at once. Read only for anyone but the admin.
@@ -139,8 +138,6 @@ export class TemplateEditor implements OnInit {
     reminder_text: [''],
   }, { validators: earlyPaymentDaysRequired });
 
-  // What the text toolbars show, as the palette is being edited.
-  colors = computed<DocumentColors>(() => this.palette());
   private formStatus = toSignal(this.form.statusChanges, { initialValue: this.form.status });
   missingEarlyPaymentDays = computed(() => {
     this.formStatus();
