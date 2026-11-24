@@ -112,7 +112,6 @@
     "invoiceDueDays": "Default due date",
     "quoteDueDays": "Default validity",
     "daysSuffix": " days",
-    "reminderText": "Reminder text",
     "paymentTerms": "Default payment terms",
     "adminOnly": "Only an admin can edit the document templates.",
     "save": "Save",
@@ -486,7 +485,6 @@
     "acceptMessage": "Validating this quote will create a project and carry its used resources over. Continue?",
     "acceptConfirmLabel": "Validate",
     "modify": "Edit",
-    "reminderPdf": "Reminder (PDF)",
     "status": {
       "DRAFT": "Draft",
       "SENT": "Sent",
@@ -812,7 +810,12 @@
     "codes": {
       "DEPOSIT_DRAFT_PENDING": "A deposit of this site is still a draft: send or cancel it before the final invoice.",
       "DEPOSIT_DEDUCTED": "This deposit is deducted from the final invoice already sent: cancel the final invoice first.",
-      "DEPOSIT_NEEDS_QUOTE": "This site has no quote: give an amount rather than a percentage."
+      "DEPOSIT_NEEDS_QUOTE": "This site has no quote: give an amount rather than a percentage.",
+      "REMINDER_INVOICE_NOT_SENT": "Only a sent, unpaid invoice can be reminded.",
+      "REMINDER_NOT_OVERDUE": "The invoice isn't overdue yet.",
+      "REMINDER_NONE_LEFT": "There's no reminder left to send for this invoice.",
+      "REMINDER_NOT_DUE": "This reminder isn't due yet: its delay hasn't passed.",
+      "REMINDER_NOT_LATEST": "Only an invoice's latest reminder can be taken back."
     }
   },
   "invoicingReadiness": {
@@ -895,5 +898,58 @@
     },
     "showCurrency": "Show the currency",
     "showCurrencyHint": "\"CHF\" on the total's line only - the lines and other amounts never show it."
+  },
+  "reminders": {
+    "levels": {
+      "1": "1st reminder",
+      "2": "2nd reminder",
+      "3": "Formal notice"
+    },
+    "tag": "Reminder {{level}}",
+    "settings": {
+      "menu": "Reminders",
+      "title": "Reminder levels",
+      "description": "The payment reminders of an unpaid invoice, in order: each level can be sent once its delay has passed since the previous one (the 1st since the invoice's due date). Its fees are added to the reminder's QR-bill, never to the invoice.",
+      "delayAfterDue": "Delay after the invoice's due date",
+      "delayAfterPrevious": "Delay after the previous reminder",
+      "days": "days",
+      "fee": "Fee",
+      "textsHint": "Each level's text is set in the templates (Settings > Templates, Reminder tab).",
+      "adminOnly": "Only the company's administrator can change the reminders.",
+      "saved": "Reminder levels saved."
+    },
+    "dialog": {
+      "menu": "Reminders",
+      "title": "Reminders",
+      "amountDue": "Left to pay:",
+      "sentTitle": "Reminders sent",
+      "fees": "fees",
+      "fee": "fee",
+      "pdf": "View the PDF",
+      "delete": "Take this reminder back",
+      "noneSent": "No reminder sent yet.",
+      "nextTitle": "Next reminder",
+      "dueSince": "due since",
+      "dueOn": "from",
+      "preview": "Preview",
+      "sendLevel": {
+        "1": "Send the 1st reminder",
+        "2": "Send the 2nd reminder",
+        "3": "Send the formal notice"
+      },
+      "notDueYet": "Its delay hasn't passed yet (Settings > Reminders).",
+      "allSent": "Every reminder has been sent.",
+      "nothingToRemind": "Nothing to remind: the invoice isn't sent, isn't overdue or is already paid.",
+      "sendMessage": "The reminder is recorded with today's date, then its PDF opens to print it or send it to the client. Continue?",
+      "sendConfirm": "Send",
+      "sent": "Reminder recorded: {{level}}.",
+      "deleteMessage": "This reminder will be removed, as if it had never been sent - for instance if it was created by mistake. Continue?",
+      "deleteConfirm": "Take it back"
+    },
+    "dashboard": {
+      "title": "Invoices to remind",
+      "dueSince": "Due on",
+      "remind": "Remind"
+    }
   }
 }

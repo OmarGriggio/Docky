@@ -112,7 +112,6 @@
     "invoiceDueDays": "Échéance par défaut",
     "quoteDueDays": "Validité par défaut",
     "daysSuffix": " jours",
-    "reminderText": "Texte du rappel",
     "paymentTerms": "Conditions de paiement par défaut",
     "adminOnly": "Seul un administrateur peut modifier les modèles de documents.",
     "save": "Enregistrer",
@@ -486,7 +485,6 @@
     "acceptMessage": "Valider cette offre va créer un chantier et y reporter les ressources utilisées. Continuer ?",
     "acceptConfirmLabel": "Valider",
     "modify": "Modifier",
-    "reminderPdf": "Rappel (PDF)",
     "status": {
       "DRAFT": "Brouillon",
       "SENT": "Envoyée",
@@ -812,7 +810,12 @@
     "codes": {
       "DEPOSIT_DRAFT_PENDING": "Un acompte de ce chantier est encore en brouillon : envoie-le ou annule-le avant la facture finale.",
       "DEPOSIT_DEDUCTED": "Cet acompte est déduit de la facture finale déjà envoyée : annule d'abord la facture finale.",
-      "DEPOSIT_NEEDS_QUOTE": "Ce chantier n'a pas d'offre : indique un montant plutôt qu'un pourcentage."
+      "DEPOSIT_NEEDS_QUOTE": "Ce chantier n'a pas d'offre : indique un montant plutôt qu'un pourcentage.",
+      "REMINDER_INVOICE_NOT_SENT": "Seule une facture envoyée et non payée peut être relancée.",
+      "REMINDER_NOT_OVERDUE": "La facture n'est pas encore en retard.",
+      "REMINDER_NONE_LEFT": "Il n'y a plus de rappel à envoyer pour cette facture.",
+      "REMINDER_NOT_DUE": "Ce rappel n'est pas encore dû : son délai n'est pas écoulé.",
+      "REMINDER_NOT_LATEST": "Seul le dernier rappel d'une facture peut être annulé."
     }
   },
   "invoicingReadiness": {
@@ -895,5 +898,58 @@
     },
     "showCurrency": "Afficher la monnaie",
     "showCurrencyHint": "« CHF » sur la ligne du total seulement - les lignes et les autres montants n'en ont jamais."
+  },
+  "reminders": {
+    "levels": {
+      "1": "1er rappel",
+      "2": "2e rappel",
+      "3": "Mise en demeure"
+    },
+    "tag": "Rappel {{level}}",
+    "settings": {
+      "menu": "Rappels",
+      "title": "Niveaux de rappel",
+      "description": "Les rappels de paiement d'une facture impayée, dans l'ordre : chaque niveau peut être envoyé une fois son délai écoulé depuis le précédent (le 1er depuis l'échéance de la facture). Ses frais s'ajoutent au bulletin QR du rappel, jamais à la facture.",
+      "delayAfterDue": "Délai après l'échéance de la facture",
+      "delayAfterPrevious": "Délai après le rappel précédent",
+      "days": "jours",
+      "fee": "Frais",
+      "textsHint": "Le texte de chaque niveau se règle dans les modèles (Paramètres > Modèles, onglet Rappel).",
+      "adminOnly": "Seul l'administrateur de l'entreprise peut modifier les rappels.",
+      "saved": "Niveaux de rappel enregistrés."
+    },
+    "dialog": {
+      "menu": "Rappels",
+      "title": "Rappels",
+      "amountDue": "Reste à payer :",
+      "sentTitle": "Rappels envoyés",
+      "fees": "frais",
+      "fee": "frais",
+      "pdf": "Voir le PDF",
+      "delete": "Annuler ce rappel",
+      "noneSent": "Aucun rappel envoyé pour l'instant.",
+      "nextTitle": "Prochain rappel",
+      "dueSince": "dû depuis le",
+      "dueOn": "à partir du",
+      "preview": "Aperçu",
+      "sendLevel": {
+        "1": "Envoyer le 1er rappel",
+        "2": "Envoyer le 2e rappel",
+        "3": "Envoyer la mise en demeure"
+      },
+      "notDueYet": "Son délai n'est pas encore écoulé (Paramètres > Rappels).",
+      "allSent": "Tous les rappels ont été envoyés.",
+      "nothingToRemind": "Rien à relancer : la facture n'est pas envoyée, pas en retard ou déjà réglée.",
+      "sendMessage": "Le rappel est enregistré à la date d'aujourd'hui, puis son PDF s'ouvre pour l'imprimer ou l'envoyer au client. Continuer ?",
+      "sendConfirm": "Envoyer",
+      "sent": "Rappel enregistré : {{level}}.",
+      "deleteMessage": "Ce rappel sera retiré, comme s'il n'avait jamais été envoyé - par exemple s'il a été créé par erreur. Continuer ?",
+      "deleteConfirm": "Annuler le rappel"
+    },
+    "dashboard": {
+      "title": "Factures à relancer",
+      "dueSince": "Échue le",
+      "remind": "Relancer"
+    }
   }
 }
