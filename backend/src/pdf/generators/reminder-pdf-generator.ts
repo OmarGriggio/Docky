@@ -1,13 +1,11 @@
 import { PdfWriter } from "../core/pdf-writer";
 import { ReminderTemplate } from "../templates/reminder.template";
 import { createReminderDto } from "../templates/dto/reminder.dto";
-import { ReminderDto } from "../templates/reminder.types";
+import { ReminderDto, ReminderToPrint } from "../templates/reminder.types";
 import { DocumentComplete } from "../../modules/documents/document_complete.types";
-import { reminderTextOf } from "../../modules/templates/template.service";
 import { AppError } from "../../shared/types/errors";
 import { DocumentPdfGenerator, PdfSource } from "./document-pdf-generator";
 import { PreparedQrBill, prepareQrBill, renderQrBillPage } from "./qr-bill-page";
-import { toPdfLanguage } from "../templates/pdf-labels";
 import { withCurrentAddress } from "../../modules/documents/billed-address";
 import { embedImage } from "../templates/letter";
 import { drawLetterFooters, setUpLetterPages } from "../templates/business-letter";
@@ -19,13 +17,20 @@ interface PreparedReminder {
     headerImageBytes: Buffer | null;
 }
 
-// A payment reminder for an invoice: a one-page letter laid out like the
-// invoice (its header image, colors and footer), then the Swiss QR-bill
-// alone on page 2 (always a fresh page - unlike the invoice there's
-// no details table to share one with). Nothing here is stored: it's rebuilt
-// from the invoice each time, so it always shows its current amount/due
-// date.
+const round2 = (value: number) => Math.round((value + Number.EPSILON) * 100) / 100;
+
+// A payment reminder for an invoice - `reminder` says which one (a reminder
+// already sent, printed as it went out, or the next one previewed - see
+// reminder.service.ts): a one-page letter laid out like the invoice (its
+// header image, colors and footer), then the Swiss QR-bill alone on page 2
+// (always a fresh page - unlike the invoice there's no details table to
+// share one with), asking for the invoice's balance plus the reminders'
+// fees.
 export class ReminderPdfGenerator extends DocumentPdfGenerator<PreparedReminder> {
+
+    constructor(private readonly reminder: ReminderToPrint) {
+        super();
+    }
 
     protected override validate(document: DocumentComplete): void {
         if (document.type !== "INVOICE") {
@@ -33,21 +38,21 @@ export class ReminderPdfGenerator extends DocumentPdfGenerator<PreparedReminder>
         }
     }
 
-    // The reminder and its QR-bill go to the client's current address, not
-    // the one the invoice was frozen with - a client may have moved since
+    // The address it was sent to, or the client's current one for a preview
+    // - not the one the invoice was frozen with: a client may have moved since
     // (billed-address.ts's withCurrentAddress).
-    protected async prepare(sentSource: PdfSource): Promise<PreparedReminder> {
-        const source = { ...sentSource, document: withCurrentAddress(sentSource.document) };
-        const { document, client, company } = source;
-
-        // The invoice's template's text - the default one, in the client's own
-        // language, when it has none.
-        const text = reminderTextOf(source.template, toPdfLanguage(client.language));
+    protected async prepare(source: PdfSource): Promise<PreparedReminder> {
+        const document = this.reminder.billedAddress === undefined
+            ? withCurrentAddress(source.document)
+            : { ...source.document, billed_address: this.reminder.billedAddress };
+        const { client, company } = source;
+        // What's left to pay on the invoice (a final invoice's deposits are
+        // invoices of their own), then the fees on top for the QR-bill.
+        const balance = this.reminder.amountDue ?? source.amountDue;
 
         return {
-            // What's left to pay: a final invoice's deposits are invoices of their own.
-            reminder: createReminderDto(document, client, company, source.style, text, source.amountDue),
-            qrBill: await prepareQrBill(source),
+            reminder: createReminderDto(document, client, company, source.style, this.reminder, balance),
+            qrBill: await prepareQrBill({ ...source, document, amountDue: round2(balance + this.reminder.totalFees) }),
             logoBytes: await this.readCompanyLogo(company),
             headerImageBytes: await this.readHeaderImage(company, source.style),
         };

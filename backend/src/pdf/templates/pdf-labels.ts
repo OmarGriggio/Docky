@@ -40,7 +40,10 @@ export const PDF_LABELS = {
         depositLine: (n: number, percent: number | null, quoteNumber: string | null) =>
             `Acompte n° ${n}${percent !== null ? ` – ${formatPercentLabel(percent)} %` : ""}${quoteNumber ? ` selon offre ${quoteNumber}` : ""}`,
         quote: "Offre",
-        reminderTitle: "Rappel - Facture N°",
+        reminderTitles: { 1: "Rappel - Facture N°", 2: "2e rappel - Facture N°", 3: "Mise en demeure - Facture N°" },
+        reminderInvoiceBalance: (number: string) => `Solde de la facture ${number}`,
+        reminderFees: "Frais de rappel",
+        reminderTotal: "Total à payer",
         location: "Lieu/Bâtiment",
         discount: "Rabais",
         vat: "TVA",
@@ -89,7 +92,10 @@ export const PDF_LABELS = {
         depositLine: (n: number, percent: number | null, quoteNumber: string | null) =>
             `Deposit no. ${n}${percent !== null ? ` – ${formatPercentLabel(percent)}%` : ""}${quoteNumber ? ` of quote ${quoteNumber}` : ""}`,
         quote: "Quote",
-        reminderTitle: "Reminder - Invoice No.",
+        reminderTitles: { 1: "Reminder - Invoice No.", 2: "Second reminder - Invoice No.", 3: "Formal notice - Invoice No." },
+        reminderInvoiceBalance: (number: string) => `Balance of invoice ${number}`,
+        reminderFees: "Reminder fees",
+        reminderTotal: "Total due",
         location: "Site/Building",
         discount: "Discount",
         vat: "VAT",

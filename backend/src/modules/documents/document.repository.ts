@@ -20,6 +20,9 @@ const frozenStyleOf = (templateId: string) => `(
 // client-detail.ts's own expandable rows (a client's own documents), kept
 // as a plain appended condition rather than duplicating this whole function
 // per combination.
+// An invoice's highest payment reminder sent (invoice_reminders) - null without one, the lists' "Rappel 2" tag.
+const REMINDER_LEVEL = "(SELECT MAX(r.level) FROM invoice_reminders r WHERE r.document_id = documents.id AND r.company_id = documents.company_id) AS reminder_level";
+
 export const getDocumentsFromDB = async (company_id: number, includeArchived = false, client_id?: number) => {
   const conditions = ["company_id = $1"];
   const values: number[] = [company_id];
@@ -32,7 +35,7 @@ export const getDocumentsFromDB = async (company_id: number, includeArchived = f
     conditions.push("is_active = true");
   }
 
-  const query = `SELECT * FROM documents WHERE ${conditions.join(" AND ")} ORDER BY id DESC`;
+  const query = `SELECT *, ${REMINDER_LEVEL} FROM documents WHERE ${conditions.join(" AND ")} ORDER BY id DESC`;
   const result = await db().query(query, values);
   return result.rows;
 };
@@ -49,7 +52,7 @@ export const getDocumentsByTypeFromDB = async (type: string, company_id: number,
     conditions.push("is_active = true");
   }
 
-  const query = `SELECT * FROM documents WHERE ${conditions.join(" AND ")} ORDER BY id DESC`;
+  const query = `SELECT *, ${REMINDER_LEVEL} FROM documents WHERE ${conditions.join(" AND ")} ORDER BY id DESC`;
   const result = await db().query(query, values);
   return result.rows;
 };

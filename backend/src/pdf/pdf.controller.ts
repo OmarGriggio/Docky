@@ -12,7 +12,9 @@ export const getInvoicePdf = async (req: Request, res: Response) => {
 };
 
 export const getReminderPdf = async (req: Request, res: Response) => {
-  const bytes = await generateReminderPdfServ(Number(req.params.id), req.user.company_id);
+  // ?level=n: the reminder of that level already sent - none: the next one, previewed.
+  const level = req.query.level === undefined ? undefined : Number(req.query.level);
+  const bytes = await generateReminderPdfServ(Number(req.params.id), req.user.company_id, level);
 
   res.setHeader("Content-Type", "application/pdf");
   res.setHeader("Content-Disposition", "inline; filename=reminder.pdf");

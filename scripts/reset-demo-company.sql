@@ -85,6 +85,10 @@ DELETE FROM numbering WHERE company_id = 2;
 -- And the default employee permissions (023_add_employee_permissions.sql).
 DELETE FROM employee_permissions WHERE company_id = 2;
 
+-- And the default reminder levels (033_add_reminder_settings.sql) - its
+-- reminders went with its documents (invoice_reminders cascades).
+DELETE FROM reminder_settings WHERE company_id = 2;
+
 -- Same as 004_set_demo_company_language.sql.
 UPDATE users SET language = 'EN' WHERE company_id = 2;
 

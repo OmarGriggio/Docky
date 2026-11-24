@@ -12,6 +12,7 @@ import documentCompleteRoutes from "./modules/documents/document_complete.routes
 import documentLineRoutes from "./modules/documents/document_line.routes";
 import documentSectionRoutes from "./modules/documents/document_section.routes";
 import templateRoutes from "./modules/templates/template.routes";
+import reminderRoutes from "./modules/reminders/reminder.routes";
 import numberingRoutes from "./modules/numbering/numbering.routes";
 import permissionRoutes from "./modules/permissions/permission.routes";
 import { hidePricesFromEmployees } from "./modules/permissions/permission.middleware";
@@ -101,6 +102,8 @@ app.use("/document-line", documentLineRoutes);
 app.use("/document-section", documentSectionRoutes);
 
 app.use("/template", templateRoutes);
+
+app.use("/reminder", reminderRoutes);
 
 app.use("/numbering", numberingRoutes);
 

@@ -62,7 +62,7 @@ export const removeTemplateHeaderImage = async (req: Request, res: Response) => 
 
 // The editor's live preview: { type: QUOTE | INVOICE | REMINDER, template: the unsaved fields }.
 export const previewTemplate = async (req: Request, res: Response) => {
-  const bytes = await generateTemplatePreviewServ(Number(req.params.id), req.user.company_id, req.body?.type, req.body?.template ?? {}, req.user.language);
+  const bytes = await generateTemplatePreviewServ(Number(req.params.id), req.user.company_id, req.body?.type, req.body?.template ?? {}, req.user.language, req.body?.level);
   res.setHeader("Content-Type", "application/pdf");
   res.setHeader("Content-Disposition", "inline; filename=preview.pdf");
   res.send(Buffer.from(bytes));
