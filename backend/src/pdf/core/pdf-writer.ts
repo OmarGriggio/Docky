@@ -19,6 +19,8 @@ const DEFAULT_OPTIONS: Required<PdfDocumentOptions> = {
 const LINE_SPACING = 16;
 // Room left between a wrapped table cell and the next column.
 const TABLE_CELL_GAP = 8;
+// Between a table's column titles and the rule under them.
+const TABLE_HEADER_RULE_GAP = 6;
 
 const BLACK: PdfColor = { r: 0, g: 0, b: 0 };
 
@@ -279,7 +281,8 @@ export class PdfWriter {
             });
             x += column.width;
         }
-        this.cursorY -= LINE_SPACING;
+        // The rule just under the titles, a line's room before the first row.
+        this.cursorY -= TABLE_HEADER_RULE_GAP;
 
         this.line();
 

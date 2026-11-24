@@ -80,21 +80,26 @@ export const drawSectionDetails = (
             pdf.moveDown(sectionGap);
         }
         const title = numbered ? `${labels.position(index + 1)} – ${section.title}` : section.title;
-        pdf.text(title, { bold: true, size: 12, marginTop: 10, marginBottom: section.description ? 2 : 4, ...titleColor });
+        pdf.text(title, { bold: true, size: 12, marginTop: 10, marginBottom: section.description ? 2 : TABLE_TOP_GAP, ...titleColor });
         if (section.description) {
-            pdf.text(section.description, { size: 10, marginBottom: 4 });
+            pdf.text(section.description, { size: 10, marginBottom: TABLE_TOP_GAP });
         }
         pdf.table(createSectionTable(section, language));
-        drawSectionTotal(pdf, `${labels.total} ${section.title} :`, formatAmount(section.total));
+        drawSectionTotal(pdf, `${labels.total} ${section.title} :`, formatAmount(section.total), color);
     }
 };
+
+// Above a section's table: room between its column titles and the title or
+// description over them.
+const TABLE_TOP_GAP = 18;
 
 // The table's right edge - where its amounts end (the page's text width).
 const TABLE_RIGHT = 545;
 
 // "Total Peinture :" on the left, its amount ending under the lines' totals -
-// the label cut short ("…") rather than running into the amount.
-const drawSectionTotal = (pdf: PdfWriter, label: string, amount: string) => {
+// the label cut short ("…") rather than running into the amount - then a rule
+// across the table, closing the section (in the sections' titles color, if any).
+const drawSectionTotal = (pdf: PdfWriter, label: string, amount: string, color: PdfColor | null) => {
     const options = { bold: true };
     const left = pdf.marginValue();
     const maxWidth = TABLE_RIGHT - pdf.textWidth(amount, options) - 12 - left;
@@ -107,6 +112,7 @@ const drawSectionTotal = (pdf: PdfWriter, label: string, amount: string) => {
     const y = pdf.remainingHeight();
     pdf.drawTextAt(text, left, y, options);
     pdf.drawTextRightAt(amount, TABLE_RIGHT, y, options);
+    pdf.drawLineAt({ x: left, y: y - 6 }, { x: TABLE_RIGHT, y: y - 6 }, 0.75, color ?? undefined);
     pdf.moveDown(16);
 };
 
