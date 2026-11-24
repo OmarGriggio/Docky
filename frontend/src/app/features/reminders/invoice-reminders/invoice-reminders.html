@@ -1,0 +1,96 @@
+<p-dialog
+  [(visible)]="visible"
+  [header]="('reminders.dialog.title' | transloco) + ' – ' + documentNumber()"
+  [modal]="true"
+  [style]="{ width: '34rem' }"
+>
+  @if (loading() && !state()) {
+    <p class="m-0">{{ 'common.loading' | transloco }}</p>
+  } @else if (state(); as current) {
+    <div class="flex flex-col gap-4">
+      <p class="m-0 text-sm text-gray-600">
+        {{ 'reminders.dialog.amountDue' | transloco }} <span class="font-semibold text-gray-900">{{ current.amount_due | price }} CHF</span>
+      </p>
+
+      <section class="flex flex-col gap-2">
+        <h3 class="m-0 text-sm font-semibold text-gray-700">{{ 'reminders.dialog.sentTitle' | transloco }}</h3>
+        @for (reminder of current.reminders; track reminder.id; let last = $last) {
+          <div class="flex items-center gap-2 border border-gray-200 rounded-md px-3 py-2">
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-medium">{{ levelKey(reminder.level) | transloco }}</div>
+              <div class="text-xs text-gray-500">
+                {{ reminder.date | appDate }}
+                @if (reminder.total_fees > 0) {
+                  · {{ 'reminders.dialog.fees' | transloco }} {{ reminder.total_fees | price }} CHF
+                }
+              </div>
+            </div>
+            <p-button
+              type="button" size="small" icon="pi pi-file-pdf" [text]="true" severity="secondary"
+              [ariaLabel]="'reminders.dialog.pdf' | transloco" [title]="'reminders.dialog.pdf' | transloco"
+              (onClick)="showSent(reminder)"
+            />
+            @if (last && canWrite()) {
+              <p-button
+                type="button" size="small" icon="pi pi-undo" [text]="true" severity="danger"
+                [ariaLabel]="'reminders.dialog.delete' | transloco" [title]="'reminders.dialog.delete' | transloco"
+                (onClick)="askDelete(reminder)"
+              />
+            }
+          </div>
+        } @empty {
+          <p class="m-0 text-sm text-gray-500 italic">{{ 'reminders.dialog.noneSent' | transloco }}</p>
+        }
+      </section>
+
+      <section class="flex flex-col gap-2 border-t border-gray-200 pt-4">
+        @if (current.next; as next) {
+          <h3 class="m-0 text-sm font-semibold text-gray-700">{{ 'reminders.dialog.nextTitle' | transloco }}</h3>
+          <p class="m-0 text-sm">
+            <span class="font-medium">{{ levelKey(next.level) | transloco }}</span>
+            – {{ (isDue() ? 'reminders.dialog.dueSince' : 'reminders.dialog.dueOn') | transloco }} {{ next.due_on | appDate }}
+            @if (next.fee > 0) {
+              · {{ 'reminders.dialog.fee' | transloco }} {{ next.fee | price }} CHF
+            }
+          </p>
+          <div class="flex flex-wrap justify-end gap-2">
+            <p-button type="button" size="small" severity="secondary" [outlined]="true" icon="pi pi-eye" [label]="'reminders.dialog.preview' | transloco" (onClick)="preview()" />
+            @if (canWrite()) {
+              <p-button
+                type="button" size="small" icon="pi pi-send" [label]="sendLabel()" [loading]="sending()" [disabled]="!isDue()"
+                (onClick)="confirmSendVisible.set(true)"
+              />
+            }
+          </div>
+          @if (!isDue()) {
+            <p class="m-0 text-xs text-gray-500 text-right">{{ 'reminders.dialog.notDueYet' | transloco }}</p>
+          }
+        } @else {
+          <p class="m-0 text-sm text-gray-500 italic">
+            {{ (current.reminders.length > 0 && current.amount_due > 0 ? 'reminders.dialog.allSent' : 'reminders.dialog.nothingToRemind') | transloco }}
+          </p>
+        }
+      </section>
+
+      @if (pdfError()) {
+        <p class="m-0 text-sm text-red-600">{{ pdfError() }}</p>
+      }
+    </div>
+  }
+</p-dialog>
+
+<app-confirm-dialog
+  [(visible)]="confirmSendVisible"
+  [title]="sendLabel()"
+  [message]="'reminders.dialog.sendMessage' | transloco"
+  [confirmLabel]="'reminders.dialog.sendConfirm' | transloco"
+  (confirmed)="send()"
+/>
+
+<app-confirm-dialog
+  [(visible)]="confirmDeleteVisible"
+  [title]="'reminders.dialog.delete' | transloco"
+  [message]="'reminders.dialog.deleteMessage' | transloco"
+  [confirmLabel]="'reminders.dialog.deleteConfirm' | transloco"
+  (confirmed)="deleteConfirmed()"
+/>

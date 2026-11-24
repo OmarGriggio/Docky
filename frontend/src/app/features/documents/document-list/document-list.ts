@@ -1,3 +1,4 @@
+import { InvoiceRemindersDialog } from '../../reminders/invoice-reminders/invoice-reminders';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { PermissionService } from '../../../shared/services/permission.service';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -31,7 +32,7 @@ import { NotificationService } from '../../../shared/services/notification.servi
 @Component({
   selector: 'app-document-list',
   standalone: true,
-  imports: [RouterLink, ListToolbarComponent, Tabs, TabList, Tab, TableModule, TagModule, Button, Menu, Select, FormsModule, AppDatePipe, PricePipe, ConfirmDialogComponent, DocumentLedger, TranslocoPipe],
+  imports: [RouterLink, ListToolbarComponent, Tabs, TabList, Tab, TableModule, TagModule, Button, Menu, Select, FormsModule, AppDatePipe, PricePipe, ConfirmDialogComponent, DocumentLedger, InvoiceRemindersDialog, TranslocoPipe],
   templateUrl: './document-list.html'
 })
 export class DocumentListComponent implements OnInit {
@@ -225,7 +226,7 @@ export class DocumentListComponent implements OnInit {
     this.router.navigate(['/documents/new'], this.currentType() ? { queryParams: { type: this.currentType() } } : {});
   }
 
-  private loadDocuments(): void {
+  loadDocuments(): void {
     this.documentService.getDocuments(this.currentType() ?? undefined, this.showArchived()).subscribe({
       next: data => {
         this.documents.set(data);
@@ -350,9 +351,10 @@ export class DocumentListComponent implements OnInit {
         label: this.transloco.translate('documents.modify'),
         command: () => this.router.navigate(['/documents', document.id])
       },
-      // Only an overdue invoice gets a payment reminder (see daysOverdue).
-      ...(this.overdueDays(document) !== null
-        ? [{ label: this.transloco.translate('documents.reminderPdf'), command: () => this.openReminderPdf(document) }]
+      // An overdue invoice gets payment reminders (see daysOverdue) - and one
+      // that already has some shows them, paid since or not.
+      ...(this.overdueDays(document) !== null || document.reminder_level
+        ? [{ label: this.transloco.translate('reminders.dialog.menu'), command: () => this.openReminders(document) }]
         : []),
       // A quote or an invoice - a new draft pre-filled from this one (see
       // document-form.ts's applyDuplicateFrom). Not a deposit: a deposit only
@@ -438,8 +440,18 @@ export class DocumentListComponent implements OnInit {
     this.openBlob(document.type === 'INVOICE' ? this.documentService.getInvoicePdf(document.id) : this.documentService.getQuotePdf(document.id));
   }
 
-  private openReminderPdf(document: Document): void {
-    this.openBlob(this.documentService.getReminderPdf(document.id));
+  // The invoice's payment reminders (InvoiceRemindersDialog).
+  remindersVisible = signal(false);
+  remindersDocument = signal<Document | null>(null);
+
+  private openReminders(document: Document): void {
+    this.remindersDocument.set(document);
+    this.remindersVisible.set(true);
+  }
+
+  // "Rappel 2" - the highest reminder sent.
+  reminderTag(level: number): string {
+    return this.transloco.translate('reminders.tag', { level });
   }
 
   // Shown above the list when a PDF can't be generated - most often the

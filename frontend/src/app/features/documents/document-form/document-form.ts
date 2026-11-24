@@ -1,3 +1,4 @@
+import { InvoiceRemindersDialog } from '../../reminders/invoice-reminders/invoice-reminders';
 import { Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
 import { PricePipe } from '../../../shared/pipes/price.pipe';
 import { FormsModule } from '@angular/forms';
@@ -79,7 +80,7 @@ const isOpenForEditing = (type: DocumentType, status: DocumentStatus | null): bo
 @Component({
   selector: 'app-document-form',
   standalone: true,
-  imports: [FormsModule, RouterLink, PricePipe, InputNumber, FloatLabel, Button, Card, Dialog, DocumentHeader, DocumentTextBlock, DocumentSections, ConfirmDialogComponent, GuidedTour, Popover, TranslocoPipe],
+  imports: [FormsModule, RouterLink, PricePipe, InputNumber, FloatLabel, Button, Card, Dialog, DocumentHeader, DocumentTextBlock, DocumentSections, ConfirmDialogComponent, GuidedTour, Popover, InvoiceRemindersDialog, TranslocoPipe],
   templateUrl: './document-form.html',
   styleUrl: './document-form.css',
 })
@@ -482,6 +483,8 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
   // editing (loadForEdit). Shown and changed from the status bar in the
   // toolbar (statusSteps, requestStatus), or from the documents list.
   status = signal<DocumentStatus>('DRAFT');
+  // The "Rappels" dialog of a sent invoice.
+  remindersVisible = signal(false);
   // An archived document keeps its status - no change offered (refused
   // server-side).
   private isActive = signal(true);

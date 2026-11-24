@@ -91,7 +91,4 @@ export class DocumentService {
     return this.http.post(`${API_BASE}/pdf/qr-bill-slip`, payer, { responseType: 'text' });
   }
 
-  getReminderPdf(id: number) {
-    return this.http.get(`${API_BASE}/pdf/reminder/${id}`, { responseType: 'blob' });
-  }
 }

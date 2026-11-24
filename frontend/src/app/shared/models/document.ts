@@ -51,6 +51,8 @@ export interface Document {
   billed_address?: BilledAddress | null;
   // STANDARD, or DEPOSIT for a chantier's deposit invoice (backend deposit.ts).
   invoice_kind?: 'STANDARD' | 'DEPOSIT';
+  // The highest payment reminder sent (lists only) - null without one.
+  reminder_level?: 1 | 2 | 3 | null;
   // A chantier's final invoice, once sent: the deposits it deducts.
   deposit_deductions?: DepositDeduction[] | null;
   // The template it's printed with (Paramètres > Modèles) - the company's

@@ -39,7 +39,10 @@ export const qrBillErrorKey = async (err: unknown, fallbackKey: string): Promise
 
 // Codes the backend sends with an error the user can act on precisely - each
 // has its own message under notifications.codes.*.
-const ERROR_CODES = ['DEPOSIT_DRAFT_PENDING', 'DEPOSIT_DEDUCTED', 'DEPOSIT_NEEDS_QUOTE'];
+const ERROR_CODES = [
+  'DEPOSIT_DRAFT_PENDING', 'DEPOSIT_DEDUCTED', 'DEPOSIT_NEEDS_QUOTE',
+  'REMINDER_INVOICE_NOT_SENT', 'REMINDER_NOT_OVERDUE', 'REMINDER_NONE_LEFT', 'REMINDER_NOT_DUE', 'REMINDER_NOT_LATEST',
+];
 
 // The message a failed request shows the user (NotificationService): a code's
 // own one, else by HTTP status - what they can do about it, never the

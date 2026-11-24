@@ -41,6 +41,7 @@ export class Settings {
   private languageLabel = translateSignal('settings.language');
   private numberingLabel = translateSignal('settings.numberingMenu');
   private permissionsLabel = translateSignal('settings.permissionsMenu');
+  private remindersLabel = translateSignal('reminders.settings.menu');
   private uiKitLabel = translateSignal('settings.uiKit');
   private companiesLabel = translateSignal('settings.companies');
   private usersLabel = translateSignal('settings.users');
@@ -52,12 +53,13 @@ export class Settings {
     const menu: MenuItem[] = [
       { label: this.documentTemplatesLabel(), icon: 'pi pi-file-edit', routerLink: '/settings/templates' },
       { label: this.numberingLabel(), icon: 'pi pi-hashtag', routerLink: '/settings/numbering' },
+      { label: this.remindersLabel(), icon: 'pi pi-bell', routerLink: '/settings/reminders' },
       { label: this.languageLabel(), icon: 'pi pi-language', routerLink: '/settings/language' },
     ];
 
     // The company's admin sets what its employees may do.
     if (this.authService.isAdmin() || this.isPlatformAdmin()) {
-      menu.splice(2, 0, { label: this.permissionsLabel(), icon: 'pi pi-lock', routerLink: '/settings/permissions' });
+      menu.splice(3, 0, { label: this.permissionsLabel(), icon: 'pi pi-lock', routerLink: '/settings/permissions' });
     }
 
     // User management was centralized to PLATFORM_ADMIN only (see

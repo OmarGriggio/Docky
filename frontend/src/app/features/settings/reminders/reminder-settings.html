@@ -1,0 +1,56 @@
+<p-card [header]="'reminders.settings.title' | transloco" styleClass="ui-card--elevated profile-card">
+  @if (loading()) {
+    <p>{{ 'common.loading' | transloco }}</p>
+  } @else {
+    <div class="flex flex-col gap-5">
+      <p class="m-0 text-sm text-gray-600">{{ 'reminders.settings.description' | transloco }}</p>
+
+      @for (level of levels(); track level.level) {
+        <section class="flex flex-col gap-3 border border-gray-200 rounded-lg p-4" [class.opacity-60]="!level.enabled">
+          <div class="flex items-center gap-2">
+            @if (level.level > 1) {
+              <p-checkbox
+                [inputId]="'enabled-' + level.level" [binary]="true" [disabled]="!canEdit()"
+                [ngModel]="level.enabled" (ngModelChange)="update(level, { enabled: $event })"
+              />
+            }
+            <label [for]="'enabled-' + level.level" class="m-0 text-base font-semibold">{{ levelKey(level.level) | transloco }}</label>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1.5">
+              <label [for]="'delay-' + level.level" class="text-sm font-medium">
+                {{ (level.level === 1 ? 'reminders.settings.delayAfterDue' : 'reminders.settings.delayAfterPrevious') | transloco }} *
+              </label>
+              <p-inputnumber
+                [inputId]="'delay-' + level.level" [min]="0" [max]="365" [useGrouping]="false" [fluid]="true"
+                [suffix]="' ' + ('reminders.settings.days' | transloco)"
+                [ngModel]="level.delay_days" (ngModelChange)="update(level, { delay_days: $event })"
+                [disabled]="!canEdit() || !level.enabled" [invalid]="showRequired() && level.delay_days === null"
+              />
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label [for]="'fee-' + level.level" class="text-sm font-medium">{{ 'reminders.settings.fee' | transloco }}</label>
+              <p-inputnumber
+                [inputId]="'fee-' + level.level" mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="2" [min]="0" [max]="10000"
+                [useGrouping]="false" prefix="CHF " [fluid]="true"
+                [ngModel]="level.fee" (ngModelChange)="update(level, { fee: $event })"
+                [disabled]="!canEdit() || !level.enabled"
+              />
+            </div>
+          </div>
+        </section>
+      }
+
+      <p class="m-0 text-xs text-gray-500">{{ 'reminders.settings.textsHint' | transloco }}</p>
+
+      @if (canEdit()) {
+        <div class="flex justify-end">
+          <p-button type="button" [label]="'common.save' | transloco" [loading]="saving()" (onClick)="save()" />
+        </div>
+      } @else {
+        <p class="m-0 text-sm text-gray-500">{{ 'reminders.settings.adminOnly' | transloco }}</p>
+      }
+    </div>
+  }
+</p-card>

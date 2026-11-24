@@ -100,6 +100,11 @@
         <!-- "Comment remplir ?": the guided tour of this form (guideSteps). -->
         <p-button data-tour="help" size="small" type="button" icon="pi pi-question-circle" severity="secondary" [text]="true" [rounded]="true" class="max-md:hidden"
           [title]="'documents.guide.open' | transloco" [ariaLabel]="'documents.guide.open' | transloco" (onClick)="tour.open()" />
+        <!-- A sent invoice's payment reminders (InvoiceRemindersDialog). -->
+        @if (type() === 'INVOICE' && status() !== 'DRAFT' && editingDocumentId() !== null) {
+          <p-button size="small" type="button" severity="secondary" [outlined]="true" icon="pi pi-bell"
+            [label]="'reminders.dialog.menu' | transloco" (onClick)="remindersVisible.set(true)" />
+        }
         @if (closingStatus(); as closing) {
           <p-button
             size="small"
@@ -332,3 +337,9 @@
     (cancelled)="leave.answer(false)"
   />
 </div>
+
+<app-invoice-reminders
+  [(visible)]="remindersVisible"
+  [documentId]="editingDocumentId()"
+  [documentNumber]="documentNumber() ?? ''"
+/>

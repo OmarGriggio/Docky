@@ -37,6 +37,9 @@
               @if (kindLabel(document); as kind) {
                 <p-tag [value]="kind" severity="secondary" class="ml-1" />
               }
+              @if (document.reminder_level) {
+                <p-tag [value]="reminderTag(document.reminder_level)" severity="warn" class="ml-1" />
+              }
             </span>
             <span class="shrink-0 font-medium text-gray-900 whitespace-nowrap">{{ amountDue(document) | price }} CHF</span>
           </div>
@@ -116,6 +119,9 @@
           @if (kindLabel(document); as kind) {
             <p-tag [value]="kind" severity="secondary" class="ml-1" />
           }
+          @if (document.reminder_level) {
+            <p-tag [value]="reminderTag(document.reminder_level)" severity="warn" class="ml-1" />
+          }
         </td>
         <td>{{ clientName(document) }}</td>
         <td>{{ location(document) }}</td>
@@ -187,4 +193,11 @@
   [confirmLabel]="'documents.acceptConfirmLabel' | transloco"
   (confirmed)="onAcceptConfirmed()"
   (cancelled)="onAcceptCancelled()"
+/>
+
+<app-invoice-reminders
+  [(visible)]="remindersVisible"
+  [documentId]="remindersDocument()?.id ?? null"
+  [documentNumber]="remindersDocument()?.number ?? ''"
+  (changed)="loadDocuments()"
 />

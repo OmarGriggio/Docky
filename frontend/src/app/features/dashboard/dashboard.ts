@@ -1,3 +1,6 @@
+import { InvoiceRemindersDialog } from '../reminders/invoice-reminders/invoice-reminders';
+import { ReminderService } from '../reminders/reminder.service';
+import { InvoiceToRemind, reminderLevelKey } from '../../shared/models/reminder';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { PermissionService } from '../../shared/services/permission.service';
 import { RouterLink } from '@angular/router';
@@ -34,7 +37,7 @@ interface BarChartData {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [UIChart, Tag, RouterLink, PricePipe, InvoicingReadinessBanner, TranslocoPipe],
+  imports: [UIChart, Tag, RouterLink, PricePipe, InvoicingReadinessBanner, InvoiceRemindersDialog, TranslocoPipe],
   templateUrl: './dashboard.html',
 })
 export class Dashboard implements OnInit {
@@ -44,6 +47,27 @@ export class Dashboard implements OnInit {
   // Each card with its own module (an employee's permissions).
   canSeeInvoices = computed(() => this.permissions.can('invoices'));
   canSeeProjects = computed(() => this.permissions.can('projects'));
+  canWriteInvoices = computed(() => this.permissions.can('invoices', 'WRITE'));
+  private reminderService = inject(ReminderService);
+
+  // The invoices whose next payment reminder is due, and the one whose
+  // reminders are open (InvoiceRemindersDialog).
+  toRemind = signal<InvoiceToRemind[]>([]);
+  remindersVisible = signal(false);
+  remindersInvoice = signal<InvoiceToRemind | null>(null);
+  readonly levelKey = reminderLevelKey;
+
+  openReminders(invoice: InvoiceToRemind): void {
+    this.remindersInvoice.set(invoice);
+    this.remindersVisible.set(true);
+  }
+
+  loadToRemind(): void {
+    this.reminderService.getInvoicesToRemind().subscribe({
+      next: rows => this.toRemind.set(rows),
+      error: err => this.notifications.error('dashboard', err)
+    });
+  }
   private dashboardService = inject(DashboardService);
   private companyService = inject(CompanyService);
   private authService = inject(AuthService);
@@ -106,6 +130,8 @@ export class Dashboard implements OnInit {
       error: err => this.notifications.error('dashboard', err)
     });
 
+    this.loadToRemind();
+
     this.dashboardService.getOpenInvoices().subscribe({
       next: data => this.openInvoiceRows.set(data),
       error: err => this.notifications.error('dashboard', err)
@@ -123,7 +149,7 @@ export class Dashboard implements OnInit {
   // A document made out to the "Non défini" client shows the recipient
   // typed on it, or the placeholder's translated name when grouped (the
   // paid-by-client chart has no single recipient to show).
-  clientName(row: PaidAmountByClient | OpenInvoice | ProjectInProgress): string {
+  clientName(row: PaidAmountByClient | OpenInvoice | ProjectInProgress | InvoiceToRemind): string {
     if (row.is_placeholder) {
       return ('recipient_name' in row && row.recipient_name) || this.transloco.translate('clients.placeholderName');
     }
