@@ -28,3 +28,41 @@ export const DEFAULT_DOCUMENT_INTRODUCTION = "{{titre_client}},\n\n";
 // Same, for the conclusion: just the company's signature (see
 // pdf/templates/document.placeholders.ts).
 export const DEFAULT_DOCUMENT_CONCLUSION = "{{signature_entreprise}}";
+
+// The 2nd reminder's and the formal notice's default texts (one per level,
+// see reminderTextOf) - the reminder's own amounts block lists the fees.
+export const DEFAULT_SECOND_REMINDER_TEXT =
+    "Malgré notre précédent rappel, la facture N° {{numero_facture}} du {{date_facture}}, " +
+    "d'un montant de {{montant}}, échue le {{date_echeance}}, reste impayée à ce jour.\n\n" +
+    "Nous vous prions de bien vouloir la régler dans les 10 jours, " +
+    "au moyen du bulletin de versement en page 2, frais de rappel compris.\n\n" +
+    "Si votre paiement a été effectué entre-temps, nous vous prions de ne pas tenir compte de ce rappel.\n\n" +
+    "Nous vous adressons nos meilleures salutations.";
+
+export const DEFAULT_SECOND_REMINDER_TEXT_EN =
+    "Despite our previous reminder, invoice No. {{invoice_number}} dated {{invoice_date}}, " +
+    "for an amount of {{amount}}, which fell due on {{due_date}}, remains unpaid to date.\n\n" +
+    "We ask you to settle it within 10 days, " +
+    "using the payment slip on page 2, reminder fees included.\n\n" +
+    "If your payment has been made in the meantime, please disregard this reminder.\n\n" +
+    "Kind regards.";
+
+export const DEFAULT_FORMAL_NOTICE_TEXT =
+    "Malgré nos rappels, la facture N° {{numero_facture}} du {{date_facture}}, " +
+    "d'un montant de {{montant}}, échue le {{date_echeance}}, n'a toujours pas été réglée, " +
+    "{{jours_retard}} jours après son échéance.\n\n" +
+    "Par la présente, nous vous mettons en demeure de nous verser le montant dû, frais compris, " +
+    "dans un délai de 10 jours, au moyen du bulletin de versement en page 2.\n\n" +
+    "Passé ce délai, nous nous verrons contraints d'engager une procédure de recouvrement, " +
+    "sans autre avis de notre part et à vos frais.\n\n" +
+    "Veuillez agréer nos salutations distinguées.";
+
+export const DEFAULT_FORMAL_NOTICE_TEXT_EN =
+    "Despite our reminders, invoice No. {{invoice_number}} dated {{invoice_date}}, " +
+    "for an amount of {{amount}}, which fell due on {{due_date}}, is still unpaid, " +
+    "{{days_overdue}} days after its due date.\n\n" +
+    "We hereby give you formal notice to pay the amount due, fees included, " +
+    "within 10 days, using the payment slip on page 2.\n\n" +
+    "Should this deadline pass, we will have to start debt collection proceedings, " +
+    "without further notice and at your expense.\n\n" +
+    "Yours faithfully.";

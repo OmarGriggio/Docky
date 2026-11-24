@@ -69,9 +69,14 @@ export interface Template {
   early_payment_days: number | null;
   early_payment_min_amount: number;
 
-  // Read every time a reminder is printed - null or blank: the default text
-  // in the client's language (template.defaults.ts).
+  // A reminder's text, per level (1st, 2nd, formal notice -
+  // 034_add_template_reminder_texts.sql) - copied onto the reminder when
+  // it's sent (invoice_reminders.text), read as is by a preview. Null or
+  // blank: the default text of that level in the client's language
+  // (template.defaults.ts).
   reminder_text: string | null;
+  reminder_text_2: string | null;
+  reminder_text_3: string | null;
 }
 
 /** What a request may set - the rest (id, company, default, archived, header image) has its own route. */

@@ -8,7 +8,10 @@ import {
 } from "./template.repository";
 import { normalizeTemplateData } from "./template.rules";
 import { Template, TemplateData } from "./template.types";
-import { DEFAULT_DOCUMENT_CONCLUSION, DEFAULT_DOCUMENT_INTRODUCTION, DEFAULT_REMINDER_TEXT, DEFAULT_REMINDER_TEXT_EN } from "./template.defaults";
+import {
+  DEFAULT_DOCUMENT_CONCLUSION, DEFAULT_DOCUMENT_INTRODUCTION, DEFAULT_FORMAL_NOTICE_TEXT, DEFAULT_FORMAL_NOTICE_TEXT_EN,
+  DEFAULT_REMINDER_TEXT, DEFAULT_REMINDER_TEXT_EN, DEFAULT_SECOND_REMINDER_TEXT, DEFAULT_SECOND_REMINDER_TEXT_EN,
+} from "./template.defaults";
 
 /** The company's templates - its Standard one created first if it has none at all (see getDefaultTemplateServ). */
 export const getTemplatesServ = async (company_id: number, includeArchived = false): Promise<Template[]> => {
@@ -139,6 +142,20 @@ export const setTemplateHeaderImageServ = async (id: number, company_id: number,
   return template;
 };
 
-/** The reminder's text: the template's own, or the default one in the client's language when it has none. */
-export const reminderTextOf = (template: Pick<Template, "reminder_text">, language: Language): string =>
-  template.reminder_text?.trim() ? template.reminder_text : language === "EN" ? DEFAULT_REMINDER_TEXT_EN : DEFAULT_REMINDER_TEXT;
+const DEFAULT_REMINDER_TEXTS = {
+  1: { FR: DEFAULT_REMINDER_TEXT, EN: DEFAULT_REMINDER_TEXT_EN },
+  2: { FR: DEFAULT_SECOND_REMINDER_TEXT, EN: DEFAULT_SECOND_REMINDER_TEXT_EN },
+  3: { FR: DEFAULT_FORMAL_NOTICE_TEXT, EN: DEFAULT_FORMAL_NOTICE_TEXT_EN },
+} as const;
+
+const REMINDER_TEXT_FIELDS = { 1: "reminder_text", 2: "reminder_text_2", 3: "reminder_text_3" } as const;
+
+/** A reminder level's text (1st, 2nd, formal notice): the template's own, or that level's default in the client's language when it has none. */
+export const reminderTextOf = (
+  template: Pick<Template, "reminder_text" | "reminder_text_2" | "reminder_text_3">,
+  language: Language,
+  level: 1 | 2 | 3 = 1
+): string => {
+  const own = template[REMINDER_TEXT_FIELDS[level]];
+  return own?.trim() ? own : DEFAULT_REMINDER_TEXTS[level][language === "EN" ? "EN" : "FR"];
+};

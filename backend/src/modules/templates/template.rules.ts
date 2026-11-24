@@ -8,7 +8,7 @@ import { COLOR_ELEMENTS, DOCUMENT_LAYOUTS, ElementColors, FrozenTemplateStyle, M
 const MAX_AMOUNT = 9999999999.99;
 const MAX_TEXT = 10000;
 const TEXT_FIELDS = [
-  "quote_introduction", "quote_conclusion", "invoice_introduction", "invoice_conclusion", "payment_terms", "reminder_text",
+  "quote_introduction", "quote_conclusion", "invoice_introduction", "invoice_conclusion", "payment_terms", "reminder_text", "reminder_text_2", "reminder_text_3",
 ] as const;
 
 /** Up to 5 colors, each "#rrggbb" (stored lowercase) with a name of 30 characters at most - "Couleur n" when left blank. */

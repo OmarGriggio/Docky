@@ -16,7 +16,7 @@ const DATA_COLUMNS: (keyof TemplateData)[] = [
   "name", "layout", "font", "palette", "element_colors", "show_currency",
   "quote_introduction", "quote_conclusion", "quote_due_days",
   "invoice_introduction", "invoice_conclusion", "invoice_due_days",
-  "payment_terms", "early_payment_discount", "early_payment_days", "early_payment_min_amount", "reminder_text",
+  "payment_terms", "early_payment_discount", "early_payment_days", "early_payment_min_amount", "reminder_text", "reminder_text_2", "reminder_text_3",
 ];
 
 /** The company's templates, its default first, then by name - archived ones only when asked. */
