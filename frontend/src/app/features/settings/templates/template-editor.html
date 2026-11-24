@@ -169,14 +169,41 @@
 
           <p-tabpanel value="reminder">
             <div class="ui-form pt-2">
+              <!-- One text per level - the one picked is previewed. -->
+              <p-selectbutton
+                class="ui-form__full" size="small" [options]="reminderLevels()" optionLabel="label" optionValue="value" [allowEmpty]="false"
+                [ngModel]="reminderLevel()" (ngModelChange)="reminderLevel.set($event)" [ngModelOptions]="{ standalone: true }"
+              />
               <div class="ui-form__full">
-                @if (canManage()) {
-                  <app-text-style-toolbar [target]="reminder_text" [colors]="palette()" />
+                @switch (reminderLevel()) {
+                  @case (1) {
+                    @if (canManage()) {
+                      <app-text-style-toolbar [target]="reminder_text" [colors]="palette()" />
+                    }
+                    <p-floatlabel variant="on">
+                      <textarea #reminder_text pTextarea id="reminder_text" formControlName="reminder_text" rows="8"></textarea>
+                      <label for="reminder_text">{{ 'reminders.levels.1' | transloco }}</label>
+                    </p-floatlabel>
+                  }
+                  @case (2) {
+                    @if (canManage()) {
+                      <app-text-style-toolbar [target]="reminder_text_2" [colors]="palette()" />
+                    }
+                    <p-floatlabel variant="on">
+                      <textarea #reminder_text_2 pTextarea id="reminder_text_2" formControlName="reminder_text_2" rows="8"></textarea>
+                      <label for="reminder_text_2">{{ 'reminders.levels.2' | transloco }}</label>
+                    </p-floatlabel>
+                  }
+                  @case (3) {
+                    @if (canManage()) {
+                      <app-text-style-toolbar [target]="reminder_text_3" [colors]="palette()" />
+                    }
+                    <p-floatlabel variant="on">
+                      <textarea #reminder_text_3 pTextarea id="reminder_text_3" formControlName="reminder_text_3" rows="8"></textarea>
+                      <label for="reminder_text_3">{{ 'reminders.levels.3' | transloco }}</label>
+                    </p-floatlabel>
+                  }
                 }
-                <p-floatlabel variant="on">
-                  <textarea #reminder_text pTextarea id="reminder_text" formControlName="reminder_text" rows="8"></textarea>
-                  <label for="reminder_text">{{ 'documentTemplates.reminderText' | transloco }}</label>
-                </p-floatlabel>
                 <p class="m-0 mt-1 text-xs text-gray-500">{{ 'templates.reminderDefaultHint' | transloco }}</p>
               </div>
 

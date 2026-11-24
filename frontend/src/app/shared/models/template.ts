@@ -58,8 +58,11 @@ export interface Template {
   early_payment_days: number | null;
   early_payment_min_amount: number;
 
-  // Every reminder's text - null or blank: the default one in the client's language.
+  // A reminder's text per level - the 1st's, the 2nd's, the formal notice's.
+  // Null or blank: that level's default text in the client's language.
   reminder_text: string | null;
+  reminder_text_2: string | null;
+  reminder_text_3: string | null;
 }
 
 /** What a save sends - the default, the archive and the header image have their own requests. */

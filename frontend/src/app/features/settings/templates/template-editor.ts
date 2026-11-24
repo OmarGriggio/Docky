@@ -1,3 +1,4 @@
+import { ReminderLevel } from '../../../shared/models/reminder';
 import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -136,6 +137,8 @@ export class TemplateEditor implements OnInit {
     early_payment_days: [null as number | null, [Validators.min(1), Validators.max(365)]],
     early_payment_min_amount: [0, [Validators.min(0), Validators.max(9999999999.99)]],
     reminder_text: [''],
+    reminder_text_2: [''],
+    reminder_text_3: [''],
   }, { validators: earlyPaymentDaysRequired });
 
   private formStatus = toSignal(this.form.statusChanges, { initialValue: this.form.status });
@@ -168,6 +171,14 @@ export class TemplateEditor implements OnInit {
   previewKinds = computed(() => [
     { label: this.quoteLabel(), value: 'QUOTE' }, { label: this.invoiceLabel(), value: 'INVOICE' }, { label: this.reminderLabel(), value: 'REMINDER' },
   ]);
+  // The reminder text being edited (one per level) - and the one previewed.
+  reminderLevel = signal<ReminderLevel>(1);
+  private level1Label = translateSignal('reminders.levels.1');
+  private level2Label = translateSignal('reminders.levels.2');
+  private level3Label = translateSignal('reminders.levels.3');
+  reminderLevels = computed(() => [
+    { label: this.level1Label(), value: 1 }, { label: this.level2Label(), value: 2 }, { label: this.level3Label(), value: 3 },
+  ]);
   previewLoading = signal(false);
   previewFailed = signal(false);
   private previewObjectUrl = signal<string | null>(null);
@@ -184,13 +195,14 @@ export class TemplateEditor implements OnInit {
       toObservable(this.palette),
       toObservable(this.elementColors),
       toObservable(this.previewKind),
+      toObservable(this.reminderLevel),
       toObservable(this.template),
     ).pipe(
       debounceTime(600),
       map(() => this.template()),
       filter((template): template is Template => template !== null),
       tap(() => this.previewLoading.set(true)),
-      switchMap(template => this.templateService.preview(template.id, this.previewKind(), this.formData()).pipe(
+      switchMap(template => this.templateService.preview(template.id, this.previewKind(), this.formData(), this.reminderLevel()).pipe(
         catchError(() => of(null)),
       )),
       takeUntilDestroyed(this.destroyRef),
@@ -251,6 +263,8 @@ export class TemplateEditor implements OnInit {
       early_payment_days: template.early_payment_days,
       early_payment_min_amount: template.early_payment_min_amount ?? 0,
       reminder_text: template.reminder_text ?? '',
+      reminder_text_2: template.reminder_text_2 ?? '',
+      reminder_text_3: template.reminder_text_3 ?? '',
     });
   }
 
@@ -274,6 +288,8 @@ export class TemplateEditor implements OnInit {
       element_colors: this.elementColors(),
       payment_terms: value.payment_terms.trim() ? value.payment_terms : null,
       reminder_text: value.reminder_text.trim() ? value.reminder_text : null,
+      reminder_text_2: value.reminder_text_2.trim() ? value.reminder_text_2 : null,
+      reminder_text_3: value.reminder_text_3.trim() ? value.reminder_text_3 : null,
       // An emptied number field comes back null - stored as "none" (0).
       early_payment_discount: value.early_payment_discount ?? 0,
       early_payment_min_amount: value.early_payment_min_amount ?? 0,

@@ -1,3 +1,4 @@
+import { ReminderLevel } from '../../../shared/models/reminder';
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Template, TemplateData } from '../../../shared/models/template';
@@ -40,8 +41,9 @@ export class TemplateService {
   }
 
   // A sample document's PDF printed with `data` over the stored template - nothing saved.
-  preview(id: number, type: PreviewKind, data: Partial<TemplateData>) {
-    return this.http.post(`${API_BASE}/template/${id}/preview`, { type, template: data }, { responseType: 'blob' });
+  // `level`: a reminder's (1st, 2nd, formal notice).
+  preview(id: number, type: PreviewKind, data: Partial<TemplateData>, level: ReminderLevel = 1) {
+    return this.http.post(`${API_BASE}/template/${id}/preview`, { type, level, template: data }, { responseType: 'blob' });
   }
 
   setDefault(id: number) {
