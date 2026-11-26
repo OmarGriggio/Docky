@@ -25,6 +25,9 @@ export const DEFAULT_REMINDER_SETTINGS: ReminderLevelSettings[] = [
   { level: 3, enabled: true, delay_days: 14, fee: 0 },
 ];
 
+// At least a day: a reminder never goes out the day the invoice falls due
+// (it isn't overdue yet), nor the same day as the one before it.
+const MIN_DELAY_DAYS = 1;
 const MAX_DELAY_DAYS = 365;
 const MAX_FEE = 10_000;
 
@@ -32,7 +35,7 @@ const round2 = (value: number) => Math.round((value + Number.EPSILON) * 100) / 1
 
 /**
  * The three levels as stored: in order, the 1st always enabled, a delay of
- * 0-365 whole days, a fee of 0-10'000 CHF to the cent. A level left out
+ * 1-365 whole days, a fee of 0-10'000 CHF to the cent. A level left out
  * keeps its default. Anything else is a 400.
  */
 export const normalizeReminderSettings = (input: unknown): ReminderLevelSettings[] => {
@@ -46,8 +49,8 @@ export const normalizeReminderSettings = (input: unknown): ReminderLevelSettings
       return defaults;
     }
     const delay = sent.delay_days === undefined ? defaults.delay_days : Number(sent.delay_days);
-    if (!Number.isInteger(delay) || delay < 0 || delay > MAX_DELAY_DAYS) {
-      throw new AppError(`delay_days must be a whole number of days between 0 and ${MAX_DELAY_DAYS}`, 400);
+    if (!Number.isInteger(delay) || delay < MIN_DELAY_DAYS || delay > MAX_DELAY_DAYS) {
+      throw new AppError(`delay_days must be a whole number of days between ${MIN_DELAY_DAYS} and ${MAX_DELAY_DAYS}`, 400);
     }
     const fee = sent.fee === undefined || sent.fee === null || sent.fee === "" ? 0 : Number(sent.fee);
     if (!Number.isFinite(fee) || fee < 0 || fee > MAX_FEE) {
@@ -68,7 +71,12 @@ export const reminderSettingsOf = (stored: unknown): ReminderLevelSettings[] => 
     return DEFAULT_REMINDER_SETTINGS;
   }
   try {
-    return normalizeReminderSettings(stored);
+    // A delay of 0 was allowed before the minimum of a day: read as a day.
+    const levels = Array.isArray(stored)
+      ? stored.map(item => item && typeof item === "object" && Number((item as { delay_days?: unknown }).delay_days) === 0
+        ? { ...item, delay_days: MIN_DELAY_DAYS } : item)
+      : stored;
+    return normalizeReminderSettings(levels);
   } catch {
     return DEFAULT_REMINDER_SETTINGS;
   }

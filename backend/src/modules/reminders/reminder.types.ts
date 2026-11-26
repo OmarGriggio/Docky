@@ -1,4 +1,4 @@
-import { BilledAddress } from "../documents/document.types";
+import { BilledAddress, DocumentStatus } from "../documents/document.types";
 import { NextReminder, ReminderLevel } from "./reminder.rules";
 
 /** A reminder sent for an invoice (invoice_reminders - 035_add_invoice_reminders.sql). */
@@ -20,9 +20,13 @@ export type NewInvoiceReminder = Omit<InvoiceReminder, "id">;
 
 /** An invoice's reminders so far and its next one - what the "Rappels" dialog shows. */
 export interface InvoiceReminders {
+  document_id: number;
+  // The invoice's status: only a SENT one gets reminded, or has a reminder taken back.
+  status: DocumentStatus | null;
   reminders: InvoiceReminder[];
   // Null once every level was sent, or while the invoice can't be reminded
-  // (not sent, nothing left to pay, not due yet for the 1st).
+  // (not sent, nothing left to pay) - due later than today otherwise
+  // (`due_on`).
   next: NextReminder | null;
   // What the invoice still asks for (incl. VAT, deposits deducted).
   amount_due: number;

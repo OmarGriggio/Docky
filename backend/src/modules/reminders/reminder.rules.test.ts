@@ -24,6 +24,9 @@ describe("normalizeReminderSettings", () => {
   it("refuses a delay or a fee out of bounds, or no list", () => {
     expect(() => normalizeReminderSettings([{ level: 1, delay_days: 1.5 }])).toThrow();
     expect(() => normalizeReminderSettings([{ level: 1, delay_days: -1 }])).toThrow();
+    // Never the due date itself, nor the same day as the previous reminder.
+    expect(() => normalizeReminderSettings([{ level: 1, delay_days: 0 }])).toThrow();
+    expect(() => normalizeReminderSettings([{ level: 2, delay_days: 0 }])).toThrow();
     expect(() => normalizeReminderSettings([{ level: 2, fee: -5 }])).toThrow();
     expect(() => normalizeReminderSettings([{ level: 2, fee: "abc" }])).toThrow();
     expect(() => normalizeReminderSettings({ level: 1 })).toThrow();
@@ -32,6 +35,15 @@ describe("normalizeReminderSettings", () => {
   it("reads what can't be read back as the defaults", () => {
     expect(reminderSettingsOf(null)).toEqual(DEFAULT_REMINDER_SETTINGS);
     expect(reminderSettingsOf("broken")).toEqual(DEFAULT_REMINDER_SETTINGS);
+  });
+
+  it("reads a delay of 0 stored before the one-day minimum as a day, the rest kept", () => {
+    expect(reminderSettingsOf([{ level: 1, enabled: true, delay_days: 0, fee: 5 }, { level: 2, enabled: false, delay_days: 0, fee: 0 }]))
+      .toEqual([
+        { level: 1, enabled: true, delay_days: 1, fee: 5 },
+        { level: 2, enabled: false, delay_days: 1, fee: 0 },
+        DEFAULT_REMINDER_SETTINGS[2],
+      ]);
   });
 });
 

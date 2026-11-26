@@ -57,7 +57,13 @@ export const getInvoiceRemindersServ = async (documentId: number, company_id: nu
   const document = invoiceOf(await getDocumentByIdFromDB(documentId, company_id));
   const reminders = await getRemindersOfDocumentFromDB(document.id, company_id);
   const balance = await balanceOf(document, company_id);
-  return { reminders, next: nextOf(document, balance, reminders, await getReminderSettingsServ(company_id)), amount_due: balance };
+  return {
+    document_id: document.id,
+    status: document.status,
+    reminders,
+    next: nextOf(document, balance, reminders, await getReminderSettingsServ(company_id)),
+    amount_due: balance,
+  };
 };
 
 /**
@@ -104,14 +110,22 @@ export const sendReminderServ = async (documentId: number, company_id: number, t
     });
   });
 
-/** Takes a reminder back (sent by mistake) - only the latest of its invoice, so the levels stay in order. */
+/**
+ * Takes a reminder back (sent by mistake) - only the latest of its invoice,
+ * so the levels stay in order, and only while the invoice is still SENT: once
+ * paid or cancelled, the reminders it got are its history (a formal notice
+ * sent counts in a debt collection).
+ */
 export const deleteReminderServ = async (id: number, company_id: number): Promise<void> =>
   withTransaction(async () => {
     const reminder = await getReminderByIdFromDB(id, company_id);
     if (!reminder) {
       throw new NotFoundError("Reminder not found");
     }
-    await getDocumentByIdForUpdateFromDB(reminder.document_id, company_id);
+    const document = await getDocumentByIdForUpdateFromDB(reminder.document_id, company_id);
+    if (document?.status !== "SENT") {
+      throw new AppError("A reminder can only be taken back while its invoice is still sent", 409, "REMINDER_INVOICE_CLOSED");
+    }
     const latest = (await getRemindersOfDocumentFromDB(reminder.document_id, company_id)).at(-1);
     if (latest?.id !== reminder.id) {
       throw new AppError("Only the latest reminder of an invoice can be taken back", 409, "REMINDER_NOT_LATEST");
