@@ -935,7 +935,11 @@
       "approval": "« Bon pour accord », au-dessus de la date et de la signature (offres).",
       "footer": "Le filet, le nom de l'entreprise, le site et l'e-mail du pied de page.",
       "footer_BANNER": "La bande du pied de page, son filet, le nom de l'entreprise, le site et l'e-mail."
-    }
+    },
+    "spot": "Repérer dans l'aperçu",
+    "spotOff": "Ne plus repérer",
+    "spotted": "« {{element}} » est en rose vif dans l'aperçu. Rien n'est enregistré.",
+    "spottedNeedsDiscount": "Visible seulement avec un escompte : règle-le dans les conditions plus bas."
   },
   "reminders": {
     "levels": {

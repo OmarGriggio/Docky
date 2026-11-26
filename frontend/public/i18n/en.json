@@ -935,7 +935,11 @@
       "approval": "\"Agreed and accepted\", above the date and signature (quotes).",
       "footer": "The rule, the company's name, website and email in the footer.",
       "footer_BANNER": "The footer's band, its rule, the company's name, website and email."
-    }
+    },
+    "spot": "Spot in the preview",
+    "spotOff": "Stop spotting",
+    "spotted": "\"{{element}}\" is in bright pink in the preview. Nothing is saved.",
+    "spottedNeedsDiscount": "Only visible with an early payment discount: set it in the conditions below."
   },
   "reminders": {
     "levels": {
