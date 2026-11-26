@@ -43,6 +43,7 @@ Written 2026-11-13 (version 1.2.3), from an honest review of what Docky lacks to
 - [ ] **Payment matching from a bank file** - import a camt.054/camt.053, match payments by their reference (in place since 1.2.3), propose a match for those without one, mark invoices paid once confirmed. Needs a real, anonymized camt file from a bank.
 - [ ] **QR reference with a bank customer id (BESR-ID)** - some banks require one at the start of a QR reference with a QR-IBAN; a field to add if a pilot's bank does.
 - [ ] **Deposits' ergonomics** - to be reworked (noted when they shipped in 1.2.0).
+- [ ] **A website for Docky** - before looking for pilots (nothing to send them otherwise). A marketing site apart from the app (`docky.ch` / `app.docky.ch`): home, features (quotes, QR invoices, reminders, chantiers, planning), pricing, the demo account, contact, the legal pages; help, blog and German later. Leaning towards Astro + Tailwind (fast, good for search engines, texts in Markdown, static hosting) over Angular (heavy for a showcase) or a no-code builder (monthly fee, less control). In order: positioning and the one-sentence promise, the texts first, a wireframe, the design (logo, `#037a3f`, real screenshots), the build, then local SEO and privacy-friendly analytics (Plausible/Umami, nLPD). Needs the real domain name, a first pricing and the legal texts.
 - [ ] **2-3 pilot companies** in French-speaking Switzerland, at a reduced price in exchange for feedback.
 
 ## Phase 3 - Selling beyond a few pilots
