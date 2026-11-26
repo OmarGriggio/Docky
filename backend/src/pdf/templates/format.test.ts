@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatAmount, formatIban, formatPercent, formatPlainDate, formatShortDate } from "./format";
+import { formatAmount, formatIban, formatPercent, formatPlainDate, formatShortDate, servicePeriodOf } from "./format";
 
 describe("invoice formats", () => {
 
@@ -28,4 +28,17 @@ describe("formatPlainDate", () => {
   it("reads a plain date as written", () => {
     expect(formatPlainDate("2026-03-01")).toBe("01.03.2026");
   });
+});
+
+describe("servicePeriodOf", () => {
+    it("prints a single date or a period", () => {
+        expect(servicePeriodOf("2026-10-01", null)).toEqual({ single: true, value: "01.10.2026" });
+        expect(servicePeriodOf("2026-10-01", "2026-10-15")).toEqual({ single: false, value: "01.10.2026 – 15.10.2026" });
+        expect(servicePeriodOf(new Date(2026, 9, 1), new Date(2026, 9, 15))).toEqual({ single: false, value: "01.10.2026 – 15.10.2026" });
+    });
+
+    it("prints an end on the start day as one date, nothing without a start", () => {
+        expect(servicePeriodOf("2026-10-01", "2026-10-01")).toEqual({ single: true, value: "01.10.2026" });
+        expect(servicePeriodOf(null, "2026-10-15")).toBeNull();
+    });
 });

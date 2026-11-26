@@ -6,9 +6,9 @@ import { drawModernHead, drawModernItems, drawModernTotals } from "./modern-lett
 import { formatShortDate } from "./format";
 
 // The shared invoice/quote layout (business-letter.ts), with what's an
-// invoice's own: its Lieu/Bâtiment under the reference, the early payment
-// discount under the total, and the payment conditions after the
-// conclusion. See invoice-pdf-generator.ts for how the pages are stitched
+// invoice's own: its service date or period and its Lieu/Bâtiment under
+// the reference, the early payment discount under the total, and the
+// payment conditions after the conclusion. See invoice-pdf-generator.ts for how the pages are stitched
 // together (and where the Swiss QR-bill lands).
 export class InvoiceTemplate {
 
@@ -24,6 +24,7 @@ export class InvoiceTemplate {
                 hasHeaderImage,
                 info: [
                     ...(invoice.dueDate ? [{ label: labels.dueDate, value: formatShortDate(invoice.dueDate) }] : []),
+                    ...(invoice.servicePeriod ? [{ label: labels.serviceShort, value: invoice.servicePeriod.value }] : []),
                     ...(invoice.location ? [{ label: labels.location, value: invoice.location }] : []),
                 ],
             });
@@ -34,7 +35,12 @@ export class InvoiceTemplate {
                 title,
                 logoBytes,
                 hasHeaderImage,
-                extraReferenceLines: invoice.location ? [`${labels.location} : ${invoice.location}`] : [],
+                extraReferenceLines: [
+                    ...(invoice.servicePeriod
+                        ? [`${invoice.servicePeriod.single ? labels.serviceDate : labels.servicePeriod} : ${invoice.servicePeriod.value}`]
+                        : []),
+                    ...(invoice.location ? [`${labels.location} : ${invoice.location}`] : []),
+                ],
             });
             drawPositions(pdf, invoice);
             drawTotalsTable(pdf, invoice, invoice.earlyPayment);

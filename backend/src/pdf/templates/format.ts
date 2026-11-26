@@ -28,3 +28,19 @@ export const formatPlainDate = (value: string): string => {
 // CH85 0079 0016 2476 1501 2 - the IBAN in groups of four, as it's read out
 // and printed on the QR-bill itself.
 export const formatIban = (iban: string): string => iban.replace(/\s+/g, "").replace(/(.{4})(?=.)/g, "$1 ");
+
+const dayOf = (value: Date | string): string => typeof value === "string" ? formatPlainDate(value) : formatShortDate(value);
+
+// An invoice's service date or period (documents.service_date_*, art. 26
+// LTVA): one date, or "01.10.2026 – 15.10.2026" - null when none was given.
+export const servicePeriodOf = (
+    start: Date | string | null,
+    end: Date | string | null
+): { single: boolean; value: string } | null => {
+    if (!start) {
+        return null;
+    }
+    const from = dayOf(start);
+    const to = end ? dayOf(end) : null;
+    return to && to !== from ? { single: false, value: `${from} – ${to}` } : { single: true, value: from };
+};

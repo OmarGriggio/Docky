@@ -45,6 +45,11 @@ export const PDF_LABELS = {
         reminderFees: "Frais de rappel",
         reminderTotal: "Total à payer",
         location: "Lieu/Bâtiment",
+        // The date or period of the work an invoice bills (art. 26 LTVA) - the
+        // short one in the modern layout's narrow column.
+        serviceDate: "Date de la prestation",
+        servicePeriod: "Période de la prestation",
+        serviceShort: "Prestation",
         discount: "Rabais",
         vat: "TVA",
         total: "Total",
@@ -97,6 +102,9 @@ export const PDF_LABELS = {
         reminderFees: "Reminder fees",
         reminderTotal: "Total due",
         location: "Site/Building",
+        serviceDate: "Date of service",
+        servicePeriod: "Service period",
+        serviceShort: "Service",
         discount: "Discount",
         vat: "VAT",
         total: "Total",

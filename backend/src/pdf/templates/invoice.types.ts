@@ -15,6 +15,9 @@ export interface InvoiceDto extends LetterDto {
     earlyPayment: { days: number; rate: number; amount: number; net: number } | null;
     // documents.due_date - null shows nothing rather than a bare "-".
     dueDate: Date | null;
+    // The date or period of the service it bills (documents.service_date_*,
+    // art. 26 LTVA) - "01.10.2026" or "01.10.2026 – 15.10.2026", null: none given.
+    servicePeriod: { single: boolean; value: string } | null;
     paymentTerms: string | null;
     // The early payment discount's scale under the payment conditions (see
     // payment-scale.ts) - empty without one.

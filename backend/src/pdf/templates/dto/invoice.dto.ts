@@ -9,7 +9,7 @@ import { buildLetterDto } from "./shared";
 import { TemplateStyle } from "../../../modules/templates/template.types";
 import { billedAddressOf, formatLocation } from "../../../modules/documents/billed-address";
 import { DepositDeduction } from "../../../modules/documents/document.types";
-import { formatPlainDate, formatShortDate } from "../format";
+import { formatPlainDate, formatShortDate, servicePeriodOf } from "../format";
 
 // `deductions`/`amountDue`: a chantier's final invoice's deposits and what's
 // left to pay (see deposit.ts) - none and the whole total for any other.
@@ -43,6 +43,7 @@ export const createInvoiceDto = (
         location: billedAddressOf(document, client)?.location ?? formatLocation(document, client),
         earlyPayment: days && earlyPayment ? { days, rate: document.early_payment_discount, ...earlyPayment } : null,
         dueDate: document.due_date,
+        servicePeriod: servicePeriodOf(document.service_date_start, document.service_date_end),
         paymentTerms: document.payment_terms,
         paymentScale,
         invoiceKind: document.invoice_kind,
