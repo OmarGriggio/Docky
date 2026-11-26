@@ -25,9 +25,13 @@ export class ReminderTemplate {
         const labels = PDF_LABELS[letter.language];
 
         // The company's layout's own letterhead (business-letter.ts, modern-letter.ts or banner-letter.ts).
-        const head = { title: `${labels.reminderTitles[reminder.level].toUpperCase()} ${letter.number}`, logoBytes, hasHeaderImage };
+        const titleLabel = labels.reminderTitles[reminder.level];
+        const head = { title: `${titleLabel.toUpperCase()} ${letter.number}`, logoBytes, hasHeaderImage };
         if (letter.company.layout === "BANNER") {
-            await drawBannerHead(pdf, letter, head);
+            // "2E RAPPEL" large, "Facture N° FAC-..." under it.
+            const at = titleLabel.indexOf(" - ");
+            const [kind, of] = at > 0 ? [titleLabel.slice(0, at), titleLabel.slice(at + 3)] : [titleLabel, ""];
+            await drawBannerHead(pdf, letter, { kind: kind.toUpperCase(), number: `${of} ${letter.number}`.trim(), logoBytes, hasHeaderImage });
         } else {
             await (letter.company.layout === "MODERN" ? drawModernHead : drawLetterHead)(pdf, letter, head);
         }

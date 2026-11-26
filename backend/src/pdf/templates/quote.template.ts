@@ -29,13 +29,17 @@ export class QuoteTemplate {
             // Every line here, a table per section (banner-letter.ts) - no
             // details page - and the conditions beside the totals.
             const details = quote.validUntil ? [{ label: labels.validUntilShort, value: formatShortDate(quote.validUntil) }] : [];
-            await drawBannerHead(pdf, quote, { title, logoBytes, hasHeaderImage, details });
+            await drawBannerHead(pdf, quote, { kind: labels.quote.toUpperCase(), number: `N° ${quote.number}`, logoBytes, hasHeaderImage, details });
             drawBannerItems(pdf, quote);
             // Its validity is in the grid already.
             const terms = quote.paymentTerms ? [quote.paymentTerms] : [];
-            drawModernTotals(pdf, quote, null, conditionsBesideTotals(pdf, labels.paymentConditions, terms, quote.company.colors));
+            const beside = conditionsBesideTotals(pdf, labels.paymentConditions, terms, quote.company.colors);
+            drawModernTotals(pdf, quote, null, beside);
             drawConclusion(pdf, quote);
             this.drawApproval(pdf, quote);
+            if (!beside) {
+                drawConditionsBlock(pdf, labels.paymentConditions, terms, quote.company.colors);
+            }
             return;
         } else if (quote.company.layout === "MODERN") {
             // Every line right here (modern-letter.ts) - no details page.

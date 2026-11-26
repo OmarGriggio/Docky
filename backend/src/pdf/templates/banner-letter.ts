@@ -35,6 +35,8 @@ const LOGO_MAX_HEIGHT = 46;
 const LOGO_PADDING = 5;
 
 const GRID_ROW = 31;
+// Between two lines of a grid value too long for one.
+const VALUE_LINE = 12;
 const GRID_COLUMNS = 3;
 const CELL_PADDING = 7;
 
@@ -57,11 +59,20 @@ export interface BannerDetail {
     value: string;
 }
 
-// "FACTURE N° FAC-2026-0012" as its kind and its number, on two lines in the band.
-const splitTitle = (title: string): [string, string | null] => {
-    const at = title.lastIndexOf(" N° ");
-    return at > 0 ? [title.slice(0, at), title.slice(at + 1)] : [title, null];
+// The largest size from `size` down to `min` at which `text` fits `maxWidth`
+// (cut with "…" at `min` if it still doesn't) - a long kind ("SECOND
+// REMINDER", "MISE EN DEMEURE") or company name shrinks rather than overlapping.
+const shrinkToFit = (pdf: PdfWriter, text: string, options: PdfTextOptions, min: number, maxWidth: number): [string, PdfTextOptions] => {
+    let current = options;
+    while ((current.size ?? 11) > min && pdf.textWidth(text, current) > maxWidth) {
+        current = { ...current, size: Math.max(min, (current.size ?? 11) - 0.5) };
+    }
+    return [fit(pdf, text, maxWidth, current), current];
 };
+
+// The band's right-hand side, the kind and number, never more than this
+// share of the width between the margins - the company keeps the rest.
+const TITLE_SHARE = 0.42;
 
 // Cut with "…" rather than running past `maxWidth`.
 const fit = (pdf: PdfWriter, text: string, maxWidth: number, options: PdfTextOptions): string => {
@@ -75,12 +86,13 @@ const fit = (pdf: PdfWriter, text: string, maxWidth: number, options: PdfTextOpt
     return `${cut.trimEnd()}…`;
 };
 
-/** Page 1 down to the introduction: the band (who, what), the client's address, the document's details in a grid. `details`: the document's own after its date, client number and reference (a due date, a service period, a location...). */
+/** Page 1 down to the introduction: the band (who, what), the client's address, the document's details in a grid. `kind` ("FACTURE", "2E RAPPEL") and `number` ("N° FAC-2026-0012", "Facture N° FAC-...") on two lines in the band. `details`: the document's own after its date, client number and reference (a due date, a service period, a location...). */
 export const drawBannerHead = async (
     pdf: PdfWriter,
     letter: LetterDto,
-    { title, logoBytes, hasHeaderImage, details = [] }: {
-        title: string;
+    { kind, number, logoBytes, hasHeaderImage, details = [] }: {
+        kind: string;
+        number: string;
         logoBytes: Buffer | null;
         hasHeaderImage: boolean;
         details?: BannerDetail[];
@@ -91,7 +103,6 @@ export const drawBannerHead = async (
     const company = letter.company;
     const bandColor = company.colors.title ?? DARK;
     const onBand = textColorOn(bandColor);
-    const [kind, number] = splitTitle(title);
 
     // The band: across the whole page at its top, or under the header image
     // between the margins (the image already names the company).
@@ -100,21 +111,19 @@ export const drawBannerHead = async (
     const [bandLeft, bandRight] = hasHeaderImage ? [left, RIGHT] : [0, pdf.pageWidth()];
     pdf.drawRect(bandLeft, bandTop - bandHeight, bandRight - bandLeft, bandHeight, bandColor);
 
-    const kindOptions: PdfTextOptions = { size: hasHeaderImage ? 15 : 20, bold: true, color: onBand };
-    const numberOptions: PdfTextOptions = { size: 10.5, color: onBand };
+    // Without a header image the kind and number keep a share of the band,
+    // the company the rest; under one they have the band to themselves.
+    const titleMax = hasHeaderImage ? RIGHT - left - 24 : (RIGHT - left) * TITLE_SHARE;
+    const [kindText, kindOptions] = shrinkToFit(pdf, kind, { size: hasHeaderImage ? 15 : 20, bold: true, color: onBand }, 12, titleMax);
+    const [numberText, numberOptions] = shrinkToFit(pdf, number, { size: 10.5, color: onBand }, 8, titleMax);
     const textRight = hasHeaderImage ? RIGHT - 12 : RIGHT;
     const middle = bandTop - bandHeight / 2;
-    if (number) {
-        pdf.drawTextRightAt(kind, textRight, middle + 2, kindOptions);
-        pdf.drawTextRightAt(number, textRight, middle - 14, numberOptions);
-    } else {
-        pdf.drawTextRightAt(kind, textRight, middle - 6, kindOptions);
-    }
+    pdf.drawTextRightAt(kindText, textRight, middle + 2, kindOptions);
+    pdf.drawTextRightAt(numberText, textRight, middle - 14, numberOptions);
 
     if (!hasHeaderImage) {
-        // The kind and number keep the band's right side - the company's
-        // name and address stop short of them.
-        const titleWidth = Math.max(pdf.textWidth(kind, kindOptions), number ? pdf.textWidth(number, numberOptions) : 0);
+        // The company's name and address stop short of the kind and number.
+        const titleWidth = Math.max(pdf.textWidth(kindText, kindOptions), pdf.textWidth(numberText, numberOptions));
         const maxRight = RIGHT - titleWidth - 24;
         let x = left;
         if (logoBytes) {
@@ -128,13 +137,13 @@ export const drawBannerHead = async (
                 x += width + LOGO_PADDING * 2 + 14;
             }
         }
-        const nameOptions: PdfTextOptions = { size: 14, bold: true, color: onBand };
+        const [nameText, nameOptions] = shrinkToFit(pdf, company.name, { size: 14, bold: true, color: onBand }, 10, maxRight - x);
         const detailOptions: PdfTextOptions = { size: 8.5, color: onBand };
         const lines = [company.street, company.postalCodeCity.trim(), [company.phone, company.email].filter(Boolean).join(" · ")]
             .filter((line): line is string => !!line);
         const blockHeight = 16 + lines.length * 11;
         let y = middle + blockHeight / 2 - 12;
-        pdf.drawTextAt(fit(pdf, company.name, maxRight - x, nameOptions), x, y, nameOptions);
+        pdf.drawTextAt(nameText, x, y, nameOptions);
         y -= 17;
         for (const line of lines) {
             pdf.drawTextAt(fit(pdf, line, maxRight - x, detailOptions), x, y, detailOptions);
@@ -167,7 +176,9 @@ export const drawBannerHead = async (
 
 // The document's details in a framed grid of three columns: a cell's label
 // small and gray, its value under it. A value too wide for its cell takes
-// two or three (the rest of the row left to it when nothing else fits).
+// two or three (the rest of the row left to it when nothing else fits), and
+// wraps past the whole width - a long reference or location is never cut,
+// a sent document has nowhere else to show it.
 const drawDetailsGrid = (pdf: PdfWriter, details: BannerDetail[]) => {
     const left = pdf.marginValue();
     const columnWidth = (RIGHT - left) / GRID_COLUMNS;
@@ -198,25 +209,31 @@ const drawDetailsGrid = (pdf: PdfWriter, details: BannerDetail[]) => {
         cells[cells.length - 1].span += GRID_COLUMNS - taken;
     }
 
-    const height = rows.length * GRID_ROW;
+    // Each value's lines, and each row's height from its tallest cell.
+    const laidOut = rows.map(cells => {
+        const withLines = cells.map(cell => ({ ...cell, lines: pdf.wrapLines(cell.detail.value, cell.span * columnWidth - CELL_PADDING * 2, valueOptions) }));
+        return { cells: withLines, height: GRID_ROW + (Math.max(...withLines.map(cell => cell.lines.length)) - 1) * VALUE_LINE };
+    });
+    const height = laidOut.reduce((sum, item) => sum + item.height, 0);
     pdf.reserve(height + 20);
     const top = pdf.remainingHeight();
-    rows.forEach((cells, rowIndex) => {
-        const rowTop = top - rowIndex * GRID_ROW;
+    let rowTop = top;
+    laidOut.forEach(({ cells, height: rowHeight }, rowIndex) => {
         let column = 0;
         cells.forEach((cell, cellIndex) => {
             const x = left + column * columnWidth;
             const width = cell.span * columnWidth;
             if (cellIndex > 0) {
-                pdf.drawLineAt({ x, y: rowTop }, { x, y: rowTop - GRID_ROW }, 0.5, LIGHT_GRAY);
+                pdf.drawLineAt({ x, y: rowTop }, { x, y: rowTop - rowHeight }, 0.5, LIGHT_GRAY);
             }
             pdf.drawTextAt(fit(pdf, cell.detail.label, width - CELL_PADDING * 2, labelOptions), x + CELL_PADDING, rowTop - 11, labelOptions);
-            pdf.drawTextAt(fit(pdf, cell.detail.value, width - CELL_PADDING * 2, valueOptions), x + CELL_PADDING, rowTop - 24, valueOptions);
+            cell.lines.forEach((line, index) => pdf.drawTextAt(line, x + CELL_PADDING, rowTop - 24 - index * VALUE_LINE, valueOptions));
             column += cell.span;
         });
         if (rowIndex > 0) {
             pdf.drawLineAt({ x: left, y: rowTop }, { x: RIGHT, y: rowTop }, 0.5, LIGHT_GRAY);
         }
+        rowTop -= rowHeight;
     });
     // The frame.
     const bottom = top - height;
@@ -271,13 +288,16 @@ const drawSectionTitle = (pdf: PdfWriter, section: DocumentSectionDto, position:
     const left = pdf.marginValue();
     const titleOptions: PdfTextOptions = { size: 11, bold: true, ...(titleColor ? { color: titleColor } : {}) };
     const descriptionOptions: PdfTextOptions = { size: 8.5, color: GRAY };
+    // A long title wraps rather than being cut - there's no details page to show it whole.
+    const titleLines = pdf.wrapLines(`${position} – ${section.title}`, RIGHT - left - 12, titleOptions);
     const descriptionLines = section.description ? pdf.wrapLines(section.description, RIGHT - left - 12, descriptionOptions) : [];
-    const height = 18 + descriptionLines.length * 11;
+    const titleHeight = titleLines.length * 14;
+    const height = 4 + titleHeight + descriptionLines.length * 11;
     pdf.reserve(height + COLUMNS_HEIGHT + LINE_HEIGHT + 12);
     const top = pdf.remainingHeight();
-    pdf.drawRect(left, top - 16, 3.5, 14, barColor);
-    pdf.drawTextAt(fit(pdf, `${position} – ${section.title}`, RIGHT - left - 12, titleOptions), left + 10, top - 13, titleOptions);
-    descriptionLines.forEach((line, index) => pdf.drawTextAt(line, left + 10, top - 26 - index * 11, descriptionOptions));
+    pdf.drawRect(left, top - 2 - titleHeight, 3.5, titleHeight, barColor);
+    titleLines.forEach((line, index) => pdf.drawTextAt(line, left + 10, top - 13 - index * 14, titleOptions));
+    descriptionLines.forEach((line, index) => pdf.drawTextAt(line, left + 10, top - 12 - titleHeight - index * 11, descriptionOptions));
     pdf.moveDown(height + 4);
 };
 
@@ -324,7 +344,11 @@ const SCALE_ROW = 14;
 const SCALE_TINT = 0.18;
 const SCALE_GRAY: PdfColor = { r: 0.92, g: 0.92, b: 0.92 };
 
-/** "Conditions de paiement :", its lines and an invoice's payment scale, drawn beside the totals - null when there's nothing to say. */
+// Beyond this, the conditions go under the totals instead, where they can
+// run onto the next page (drawn beside, they're one block on one page).
+const BESIDE_MAX_HEIGHT = 220;
+
+/** "Conditions de paiement :", its lines and an invoice's payment scale, drawn beside the totals - null when there's nothing to say, or too much for beside them (the caller prints them under, see drawConditionsBlock). */
 export const conditionsBesideTotals = (
     pdf: PdfWriter,
     heading: string,
@@ -341,6 +365,9 @@ export const conditionsBesideTotals = (
     const textOptions: PdfTextOptions = { size: 9.5 };
     const wrapped = lines.flatMap(line => pdf.wrapLines(line, width, textOptions));
     const height = 16 + wrapped.length * 12 + (scale.length > 0 ? 6 + scale.length * SCALE_ROW : 0);
+    if (height > BESIDE_MAX_HEIGHT) {
+        return null;
+    }
     return {
         height,
         draw: (top: number) => {

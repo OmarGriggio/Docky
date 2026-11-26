@@ -16,7 +16,8 @@ export class InvoiceTemplate {
     static async renderRecap(pdf: PdfWriter, invoice: InvoiceDto, logoBytes: Buffer | null, hasHeaderImage: boolean) {
         const labels = PDF_LABELS[invoice.language];
 
-        const title = `${(invoice.invoiceKind === "DEPOSIT" ? labels.depositInvoice : invoice.deductions?.length ? labels.finalInvoice : labels.invoice).toUpperCase()} N° ${invoice.number}`;
+        const kind = (invoice.invoiceKind === "DEPOSIT" ? labels.depositInvoice : invoice.deductions?.length ? labels.finalInvoice : labels.invoice).toUpperCase();
+        const title = `${kind} N° ${invoice.number}`;
         // Its own details, in the modern and banner layouts' right-hand column or grid.
         const details = [
             ...(invoice.dueDate ? [{ label: labels.dueDate, value: formatShortDate(invoice.dueDate) }] : []),
@@ -34,13 +35,17 @@ export class InvoiceTemplate {
         if (invoice.company.layout === "BANNER") {
             // Every line here too (banner-letter.ts), a table per section - no
             // details page - and the payment conditions beside the totals.
-            await drawBannerHead(pdf, invoice, { title, logoBytes, hasHeaderImage, details });
+            await drawBannerHead(pdf, invoice, { kind, number: `N° ${invoice.number}`, logoBytes, hasHeaderImage, details });
             drawBannerItems(pdf, invoice);
             // The due date is in the grid already.
             const terms = invoice.paymentTerms ? [invoice.paymentTerms] : [];
-            drawModernTotals(pdf, invoice, invoice.earlyPayment,
-                conditionsBesideTotals(pdf, labels.paymentConditions, terms, invoice.company.colors, invoice.paymentScale));
+            const beside = conditionsBesideTotals(pdf, labels.paymentConditions, terms, invoice.company.colors, invoice.paymentScale);
+            drawModernTotals(pdf, invoice, invoice.earlyPayment, beside);
             drawConclusion(pdf, invoice);
+            if (!beside) {
+                // Too long to sit beside the totals (or nothing to say).
+                drawConditionsBlock(pdf, labels.paymentConditions, terms, invoice.company.colors, invoice.paymentScale);
+            }
             return;
         } else if (invoice.company.layout === "MODERN") {
             // Every line right here (modern-letter.ts) - no details page.

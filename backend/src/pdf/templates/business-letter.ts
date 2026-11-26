@@ -129,12 +129,7 @@ export const setUpLetterPages = (pdf: PdfWriter, headerImage: PDFImage | null) =
 /** The footer on every page left in the numbering - call last, once every page exists. The banner layout's on its band (banner-letter.ts), without the rule. */
 export const drawLetterFooters = (pdf: PdfWriter, letter: LetterDto) => {
     const banner = letter.company.layout === "BANNER";
-    pdf.forEachNumberedPage(() => {
-        if (banner) {
-            drawBannerFooterBand(pdf, letter);
-        }
-        drawFooter(pdf, letter, !banner);
-    });
+    pdf.forEachNumberedPage(() => drawFooter(pdf, letter, !banner, banner ? () => drawBannerFooterBand(pdf, letter) : undefined));
 };
 
 /** Page 1 down to the title and reference: who, when, what - "FACTURE N° 3183" / "OFFRE N° 1057". */
@@ -426,7 +421,8 @@ const fitText = (pdf: PdfWriter, text: string, maxWidth: number, options: PdfTex
 // - a long bank name or website).
 const FOOTER_COLUMN_WIDTH = 220;
 
-const drawFooter = (pdf: PdfWriter, letter: LetterDto, withRule = true) => {
+// `behind`: drawn first, only when the footer has something to say (the banner layout's band).
+const drawFooter = (pdf: PdfWriter, letter: LetterDto, withRule = true, behind?: () => void) => {
     const company = letter.company;
     const left = pdf.marginValue();
     const options: PdfTextOptions = { size: 7, color: GRAY };
@@ -449,6 +445,7 @@ const drawFooter = (pdf: PdfWriter, letter: LetterDto, withRule = true) => {
     if (![...leftLines, ...rightLines].some(Boolean)) {
         return;
     }
+    behind?.();
     if (withRule) {
         pdf.drawLineAt({ x: left, y: 48 }, { x: TOTAL_RIGHT, y: 48 }, 0.4, accent ?? undefined);
     }
