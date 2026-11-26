@@ -72,27 +72,28 @@
             <div class="flex flex-col">
               <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 border-b border-gray-200 pb-1 mb-1">{{ 'templates.zones.' + group.zone | transloco }}</span>
               @for (element of group.elements; track element) {
-                <label class="flex items-center gap-2 py-1.5 min-w-0 rounded -mx-1 px-1" [class.bg-pink-50]="spotted() === element">
+                <!-- A div, not a label: the eye button and the select are two controls. -->
+                <div class="flex items-center gap-2 py-1.5 min-w-0 rounded -mx-1 px-1" [class.bg-pink-50]="spotted() === element">
                   <!-- "Repérer": this element alone in a vivid color in the preview. -->
                   <button type="button" class="shrink-0 w-7 h-7 flex items-center justify-center rounded border-0 cursor-pointer"
                     [class]="spotted() === element ? 'bg-pink-600 text-white' : 'bg-transparent text-gray-400 hover:text-gray-700 hover:bg-gray-100'"
                     [attr.aria-pressed]="spotted() === element" [title]="'templates.spot' | transloco" [attr.aria-label]="'templates.spot' | transloco"
-                    (click)="$event.preventDefault(); spot(element)">
+                    (click)="spot(element)">
                     <i class="pi pi-eye text-sm" aria-hidden="true"></i>
                   </button>
                   <span class="w-4 h-4 rounded-sm border border-gray-300 shrink-0" [style.background-color]="colorOfElement(element) ?? (element === 'text' ? '#000000' : '#ffffff')"></span>
                   <span class="flex-1 min-w-0 flex flex-col">
-                    <span class="text-sm text-gray-800">{{ 'templates.elements.' + element | transloco }}</span>
+                    <label class="text-sm text-gray-800" [for]="'element-color-' + element">{{ 'templates.elements.' + element | transloco }}</label>
                     <span class="text-xs text-gray-500">{{ elementHint(element, layoutValue()) | transloco }}</span>
                   </span>
-                  <select class="text-sm border border-gray-300 rounded px-2 py-1 bg-white w-40 max-w-full shrink-0" [disabled]="!canManage()"
+                  <select [id]="'element-color-' + element" class="text-sm border border-gray-300 rounded px-2 py-1 bg-white w-40 max-w-full shrink-0" [disabled]="!canManage()"
                     [value]="elementColors()[element] ?? ''" (change)="setElementColor(element, $any($event.target).value ? +$any($event.target).value : null)">
                     <option value="">{{ (element === 'text' ? 'templates.black' : 'templates.noColor') | transloco }}</option>
                     @for (entry of palette(); track $index; let position = $index) {
                       <option [value]="position + 1" [selected]="elementColors()[element] === position + 1">{{ entry.name }}</option>
                     }
                   </select>
-                </label>
+                </div>
               }
             </div>
           }

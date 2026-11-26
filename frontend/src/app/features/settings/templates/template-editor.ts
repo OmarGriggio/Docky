@@ -1,5 +1,5 @@
 import { ReminderLevel } from '../../../shared/models/reminder';
-import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, DestroyRef, effect, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { catchError, debounceTime, filter, map, merge, of, switchMap, tap } from 'rxjs';
@@ -213,6 +213,13 @@ export class TemplateEditor implements OnInit {
   previewHref = computed(() => this.previewObjectUrl());
 
   constructor() {
+    // An element spotted that the layout now picked doesn't print: no longer spotted.
+    effect(() => {
+      const element = this.spotted();
+      if (element && !colorZonesOf(this.layoutValue()).some(group => group.elements.includes(element))) {
+        this.spotted.set(null);
+      }
+    });
     merge(
       this.form.valueChanges,
       toObservable(this.palette),
