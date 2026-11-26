@@ -917,8 +917,8 @@
     },
     "elementHints": {
       "text": "Every text without a color of its own: addresses, grid, lines, amounts, introduction, conclusion.",
-      "title_CLASSIC": "\"INVOICE No. …\" and its underline, above the positions.",
-      "title_MODERN": "\"INVOICE No. …\" in large type, under the address.",
+      "title_CLASSIC": "\"INVOICE N° …\" and its underline, above the positions.",
+      "title_MODERN": "\"INVOICE N° …\" in large type, under the address.",
       "title_BANNER": "The band across the top of page 1 - its text turns white or black to suit the color.",
       "companyName": "The company's name top right - only without a header image.",
       "tableHeader_MODERN": "The table's title row (Type, Description, Qty…), its text white or black.",
