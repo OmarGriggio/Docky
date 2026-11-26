@@ -508,7 +508,10 @@
       "recipientComplement": "Address complement",
       "recipientStreet": "Street and building number",
       "recipientPostalCodeCity": "Postcode and town",
-      "frozenAddress": "Address frozen when sent - the one printed on the PDF."
+      "frozenAddress": "Address frozen when sent - the one printed on the PDF.",
+      "serviceStart": "Service from",
+      "serviceEnd": "to",
+      "serviceHint": "The date or period of the work invoiced - printed on the invoice, required by Swiss VAT law. A single date: leave \"to\" empty."
     },
     "textBlock": {
       "placeholdersHint": "Variables:",
@@ -815,7 +818,9 @@
       "REMINDER_NOT_OVERDUE": "The invoice isn't overdue yet.",
       "REMINDER_NONE_LEFT": "There's no reminder left to send for this invoice.",
       "REMINDER_NOT_DUE": "This reminder isn't due yet: its delay hasn't passed.",
-      "REMINDER_NOT_LATEST": "Only an invoice's latest reminder can be taken back."
+      "REMINDER_NOT_LATEST": "Only an invoice's latest reminder can be taken back.",
+      "SERVICE_DATE_INVALID": "The service date isn't valid.",
+      "SERVICE_PERIOD_INVALID": "The service period can't end before it starts."
     }
   },
   "invoicingReadiness": {

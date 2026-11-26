@@ -508,7 +508,10 @@
       "recipientComplement": "Complément",
       "recipientStreet": "Rue et n° du bâtiment",
       "recipientPostalCodeCity": "NPA et ville",
-      "frozenAddress": "Adresse figée à l'envoi - celle imprimée sur le PDF."
+      "frozenAddress": "Adresse figée à l'envoi - celle imprimée sur le PDF.",
+      "serviceStart": "Prestation du",
+      "serviceEnd": "au",
+      "serviceHint": "La date ou la période des travaux facturés - imprimée sur la facture, exigée par la loi sur la TVA. Une seule date : laisse « au » vide."
     },
     "textBlock": {
       "placeholdersHint": "Variables :",
@@ -815,7 +818,9 @@
       "REMINDER_NOT_OVERDUE": "La facture n'est pas encore en retard.",
       "REMINDER_NONE_LEFT": "Il n'y a plus de rappel à envoyer pour cette facture.",
       "REMINDER_NOT_DUE": "Ce rappel n'est pas encore dû : son délai n'est pas écoulé.",
-      "REMINDER_NOT_LATEST": "Seul le dernier rappel d'une facture peut être annulé."
+      "REMINDER_NOT_LATEST": "Seul le dernier rappel d'une facture peut être annulé.",
+      "SERVICE_DATE_INVALID": "La date de la prestation n'est pas valable.",
+      "SERVICE_PERIOD_INVALID": "La période de la prestation ne peut pas finir avant de commencer."
     }
   },
   "invoicingReadiness": {
