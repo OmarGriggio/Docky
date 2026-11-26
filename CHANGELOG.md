@@ -2,6 +2,19 @@
 
 Every release of Docky, newest first. One version for the whole app (backend and frontend ship together from `main`), numbered `MAJOR.MINOR.PATCH` - see CLAUDE.md's Workflow for when each part goes up and how a release is made. Each release is tagged `vX.Y.Z` on `main`.
 
+## [1.7.0] - 2026-11-26
+
+### Added
+- Payment reminder levels: a 1st reminder, a 2nd reminder and a formal notice ("mise en demeure"), set on Paramètres > Rappels - each one's delay after the previous reminder (the 1st after the invoice's due date) and its fee in CHF, the 2nd and the formal notice can be turned off.
+- A "Rappels" window on an invoice (from the documents list, the invoice form and the dashboard): the reminders sent, each one's PDF as it went out, the next one with the day it's due and its fee, a preview, and "Envoyer le 2e rappel" - recorded, then its PDF opened. The latest one can be taken back while the invoice is still unpaid.
+- The reminder's PDF is titled by its level ("2E RAPPEL", "MISE EN DEMEURE"), lists the invoice's balance, the fees and the total when there are fees, and its QR-bill asks for the balance plus the fees.
+- One reminder text per level in the templates (Modèles > Rappel), with default texts for the 2nd reminder and the formal notice in French and English.
+- "Factures à relancer" on the dashboard: the invoices whose next reminder is due. The documents list tags an invoice with the highest level sent.
+- The date or period of the service on invoices ("Prestation du / au", required by Swiss VAT law), prefilled from the chantier's planned dates and printed under the reference.
+
+### Changed
+- On the PDFs, a rule closes each section under its total, and the column titles sit closer to their rule.
+
 ## [1.6.0] - 2026-11-22
 
 ### Added
