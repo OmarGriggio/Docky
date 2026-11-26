@@ -12,6 +12,23 @@ describe('servicePeriodOfSections', () => {
     ])).toEqual({ start: day(2026, 10, 5), end: day(2026, 10, 14) });
   });
 
+  it('reads an all-day end at midnight as the day before, like the calendar shows it', () => {
+    // Stretched on the calendar over Monday 5 to Wednesday 7 October.
+    expect(servicePeriodOfSections([{ date_start: '2026-10-05T00:00:00', date_end: '2026-10-08T00:00:00' }]))
+      .toEqual({ start: day(2026, 10, 5), end: day(2026, 10, 7) });
+    // One day, stretched: ends at midnight the next day.
+    expect(servicePeriodOfSections([{ date_start: '2026-10-05T00:00:00', date_end: '2026-10-06T00:00:00' }]))
+      .toEqual({ start: day(2026, 10, 5), end: null });
+    // Dropped on one day: starts and ends at the same midnight.
+    expect(servicePeriodOfSections([{ date_start: '2026-10-05T00:00:00', date_end: '2026-10-05T00:00:00' }]))
+      .toEqual({ start: day(2026, 10, 5), end: null });
+  });
+
+  it('never ends before it starts, whatever a section says', () => {
+    expect(servicePeriodOfSections([{ date_start: '2026-10-12T07:00:00', date_end: '2026-10-09T17:00:00' }]))
+      .toEqual({ start: day(2026, 10, 12), end: null });
+  });
+
   it('counts a section with one date for both', () => {
     expect(servicePeriodOfSections([
       { date_start: '2026-10-05T07:00:00', date_end: null },
