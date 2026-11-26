@@ -2,5 +2,32 @@
   "attribution": {
     "commit": "",
     "pr": ""
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/checks.mjs\" edit",
+            "timeout": 120,
+            "statusMessage": "Backend type check..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/checks.mjs\" stop",
+            "timeout": 300,
+            "statusMessage": "Checking what changed (tsc / ng build)..."
+          }
+        ]
+      }
+    ]
   }
 }

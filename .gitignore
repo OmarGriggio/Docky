@@ -6,3 +6,6 @@ backend/.env
 # User-uploaded files (logos, etc.) — never belong in the repo
 uploads/
 backend/uploads/
+
+# Claude Code hooks: what the last passing check saw (.claude/hooks/checks.mjs)
+.claude/hooks/.state.json
