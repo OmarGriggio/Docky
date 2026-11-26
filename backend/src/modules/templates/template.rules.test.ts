@@ -11,6 +11,7 @@ describe("normalizeTemplateData", () => {
 
   it("keeps known layouts and fonts, the defaults otherwise", () => {
     expect(normalizeTemplateData({ name: "a", layout: "MODERN", font: "LATO" })).toMatchObject({ layout: "MODERN", font: "LATO" });
+    expect(normalizeTemplateData({ name: "a", layout: "BANNER" })).toMatchObject({ layout: "BANNER" });
     expect(normalizeTemplateData({ name: "a", layout: "FANCY", font: 3 })).toMatchObject({ layout: "CLASSIC", font: "HELVETICA" });
   });
 
@@ -66,6 +67,7 @@ describe("documentStyleOf", () => {
   it("is what the document was frozen with once sent, whatever its template is now", () => {
     const frozen = { layout: "CLASSIC" as const, font: "PT_SERIF" as const, palette: [{ name: "Bleu", color: "#1d4ed8" }], element_colors: { title: 1 }, show_currency: false, header_image: null };
     expect(documentStyleOf(frozen, template)).toEqual(frozen);
+    expect(documentStyleOf({ ...frozen, layout: "BANNER" }, template).layout).toBe("BANNER");
   });
 
   it("reads anything unknown in a frozen look as the default, a broken palette as none", () => {

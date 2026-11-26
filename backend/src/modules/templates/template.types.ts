@@ -1,7 +1,12 @@
 import { PdfFontFamily } from "../../pdf/core/pdf-fonts";
 
-export const DOCUMENT_LAYOUTS = ["CLASSIC", "MODERN"] as const;
+// CLASSIC (business-letter.ts), MODERN (modern-letter.ts), BANNER (banner-letter.ts).
+export const DOCUMENT_LAYOUTS = ["CLASSIC", "MODERN", "BANNER"] as const;
 export type DocumentLayout = typeof DOCUMENT_LAYOUTS[number];
+
+/** A layout as stored or frozen - anything unknown is the classic one. */
+export const layoutOf = (value: unknown): DocumentLayout =>
+  (DOCUMENT_LAYOUTS as readonly unknown[]).includes(value) ? value as DocumentLayout : "CLASSIC";
 
 // The elements of a PDF a template colors (028_add_template_palette.sql):
 // the body text, the document's title (and its underline), the company's

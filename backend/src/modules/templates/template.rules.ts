@@ -3,7 +3,7 @@
 
 import { isFontFamily } from "../../pdf/core/pdf-fonts";
 import { AppError } from "../../shared/types/errors";
-import { COLOR_ELEMENTS, DOCUMENT_LAYOUTS, ElementColors, FrozenTemplateStyle, MAX_PALETTE, PaletteColor, Template, TemplateData, TemplateStyle } from "./template.types";
+import { COLOR_ELEMENTS, ElementColors, layoutOf, FrozenTemplateStyle, MAX_PALETTE, PaletteColor, Template, TemplateData, TemplateStyle } from "./template.types";
 
 const MAX_AMOUNT = 9999999999.99;
 const MAX_TEXT = 10000;
@@ -100,7 +100,7 @@ export const normalizeTemplateData = (data: Partial<Record<keyof TemplateData, u
 
   return {
     name,
-    layout: (DOCUMENT_LAYOUTS as readonly unknown[]).includes(data.layout) ? data.layout as TemplateData["layout"] : "CLASSIC",
+    layout: layoutOf(data.layout),
     font: isFontFamily(data.font) ? data.font : "HELVETICA",
     palette,
     element_colors: normalizeElementColors(data.element_colors, palette.length),
@@ -139,7 +139,7 @@ export const documentStyleOf = (frozen: Partial<TemplateStyle> | null, template:
     return styleOf(template);
   }
   return {
-    layout: frozen.layout === "MODERN" ? "MODERN" : "CLASSIC",
+    layout: layoutOf(frozen.layout),
     font: isFontFamily(frozen.font) ? frozen.font : "HELVETICA",
     ...frozenColorsOf(frozen),
     show_currency: frozen.show_currency === true,
