@@ -46,7 +46,7 @@
     <ng-content select="[documentTotals]" />
   </div>
 
-  <div data-tour="recipient" class="flex flex-col gap-3 w-full max-w-70">
+  <div data-tour="recipient" class="flex flex-col gap-3 w-full max-w-80">
     <p-selectbutton
       size="small"
       class="w-full [&_*]:whitespace-nowrap"
@@ -154,6 +154,21 @@
         <input pInputText pSize="small" id="reference_client" [ngModel]="referenceClient()" (ngModelChange)="referenceClient.set($event)" [disabled]="locked()" [fluid]="true" />
         <label for="reference_client">{{ 'documents.header.referenceClient' | transloco }}</label>
       </p-floatlabel>
+
+      <!-- When the work invoiced was done (art. 26 LTVA) - one date, or a period. -->
+      <div data-tour="service-period" class="flex items-center gap-2 w-full">
+        <p-floatlabel variant="on" class="flex-1 min-w-0">
+          <p-datepicker inputId="service_date_start" size="small" [ngModel]="serviceDateStart()" (ngModelChange)="serviceDateStart.set($event)" dateFormat="dd.mm.yy" [showClear]="!locked()" [disabled]="locked()" [fluid]="true" />
+          <label for="service_date_start">{{ 'documents.header.serviceStart' | transloco }}</label>
+        </p-floatlabel>
+        <p-floatlabel variant="on" class="flex-1 min-w-0">
+          <p-datepicker inputId="service_date_end" size="small" [ngModel]="serviceDateEnd()" (ngModelChange)="serviceDateEnd.set($event)" dateFormat="dd.mm.yy" [minDate]="serviceDateStart()" [showClear]="!locked()" [disabled]="locked()" [fluid]="true" [invalid]="servicePeriodInvalid()" />
+          <label for="service_date_end">{{ 'documents.header.serviceEnd' | transloco }}</label>
+        </p-floatlabel>
+        <app-help-button>
+          <p class="m-0 text-sm max-w-64">{{ 'documents.header.serviceHint' | transloco }}</p>
+        </app-help-button>
+      </div>
     }
   </div>
 </div>

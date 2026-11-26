@@ -19,18 +19,20 @@ import { clientDisplayName, addressLabel } from '../../../../shared/utils/displa
 import { PostalCodeCity } from '../../../../shared/components/postal-code-city/postal-code-city';
 import { POSTAL_CODE_CITY_PATTERN } from '../../../../shared/utils/postal-code-search';
 import { BilledAddress } from '../../../../shared/models/document';
+import { HelpButton } from '../../../../shared/components/help-button/help-button';
 
 // The top of the document form: the company's own block, the page title,
 // date/due date/number, then the client column (client, its billing
-// address, the "Lieu/Bâtiment" picker, the client's reference). It owns no
-// document state: the form's own signals come in as models (the date, the
-// due date, the Lieu, the reference) or as inputs + outputs where the form
+// address, the "Lieu/Bâtiment" picker, the client's reference, an
+// invoice's service date or period). It owns no document state: the form's
+// own signals come in as models (the date, the due date, the Lieu, the
+// reference, the service dates) or as inputs + outputs where the form
 // has to react (picking or creating a client - it loads that client's
 // addresses and resets what depended on the previous one).
 @Component({
   selector: 'app-document-header',
   standalone: true,
-  imports: [FormsModule, InputText, FloatLabel, Select, DatePicker, Button, Dialog, SelectButton, ClientForm, PostalCodeCity, TranslocoPipe],
+  imports: [FormsModule, InputText, FloatLabel, Select, DatePicker, Button, Dialog, SelectButton, ClientForm, PostalCodeCity, TranslocoPipe, HelpButton],
   templateUrl: './document-header.html',
   host: { class: 'block' },
 })
@@ -75,6 +77,14 @@ export class DocumentHeader {
   dueDate = model<Date | null>(null);
   addressId = model<number | null>(null);
   referenceClient = model('');
+  // An invoice's service date or period (the end left empty: one date).
+  serviceDateStart = model<Date | null>(null);
+  serviceDateEnd = model<Date | null>(null);
+  servicePeriodInvalid = computed(() => {
+    const start = this.serviceDateStart();
+    const end = this.serviceDateEnd();
+    return !!start && !!end && end < start;
+  });
 
   // "Saisie manuelle": no client picked from the list - the recipient's
   // name and address are typed below instead, and the document is made out

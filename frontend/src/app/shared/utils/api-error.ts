@@ -42,6 +42,7 @@ export const qrBillErrorKey = async (err: unknown, fallbackKey: string): Promise
 const ERROR_CODES = [
   'DEPOSIT_DRAFT_PENDING', 'DEPOSIT_DEDUCTED', 'DEPOSIT_NEEDS_QUOTE',
   'REMINDER_INVOICE_NOT_SENT', 'REMINDER_NOT_OVERDUE', 'REMINDER_NONE_LEFT', 'REMINDER_NOT_DUE', 'REMINDER_NOT_LATEST',
+  'SERVICE_DATE_INVALID', 'SERVICE_PERIOD_INVALID',
 ];
 
 // The message a failed request shows the user (NotificationService): a code's

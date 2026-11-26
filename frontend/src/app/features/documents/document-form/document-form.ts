@@ -32,6 +32,7 @@ import { DocumentColors } from '../../../shared/components/rich-text-view/rich-t
 import { DocumentContentSection, DocumentRecipient, DocumentStatus, DocumentType, BilledAddress } from '../../../shared/models/document';
 import { DocumentComplete } from '../../../shared/models/document-complete';
 import { addDays, clientDisplayName, fromDateOnly, toDateOnly, fillPlaceholders, formatLongDate, DEFAULT_CLIENT_TITLE } from '../../../shared/utils/display';
+import { servicePeriodOfSections } from '../../../shared/utils/service-period';
 import { DocumentHeader } from './document-header/document-header';
 import { DocumentTextBlock } from './document-text-block/document-text-block';
 import { DocumentSections } from './document-sections/document-sections';
@@ -428,6 +429,20 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
     }
   }
 
+  private applyServicePeriod(source: Pick<DocumentComplete, 'service_date_start' | 'service_date_end'>): void {
+    this.serviceDateStart.set(source.service_date_start ? fromDateOnly(source.service_date_start) : null);
+    this.serviceDateEnd.set(source.service_date_end ? fromDateOnly(source.service_date_end) : null);
+  }
+
+  // A quote has none (the backend drops them anyway).
+  private servicePeriodForApi(): { service_date_start: string | null; service_date_end: string | null } {
+    const start = this.serviceDateStart();
+    const end = this.serviceDateEnd();
+    return this.type() === 'INVOICE'
+      ? { service_date_start: start ? toDateOnly(start) : null, service_date_end: end ? toDateOnly(end) : null }
+      : { service_date_start: null, service_date_end: null };
+  }
+
   private dueDateForApi(): string | null {
     const due = this.dueDate();
     return due ? toDateOnly(due) : null;
@@ -443,6 +458,10 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
   // a QUOTE has no field for it. Bound directly via ngModel like the other
   // plain text fields below (paymentTerms etc.), so it has to be public.
   referenceClient = signal('');
+  // An invoice's service date or period (art. 26 LTVA, printed on its PDF) -
+  // prefilled from the chantier's planned sections (loadProjectResources).
+  serviceDateStart = signal<Date | null>(null);
+  serviceDateEnd = signal<Date | null>(null);
   // Signals, not plain properties - this app is zoneless (no zone.js, see
   // package.json), so a plain property mutated from an HTTP subscribe
   // callback (loadTemplate/loadForEdit/etc. below) never schedules a
@@ -496,6 +515,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
   // work from the start, until it's created.
   private formState = computed(() => JSON.stringify([
     this.selectedClientId(), this.addressId(), this.referenceClient(), this.date(), this.dueDate(),
+    this.serviceDateStart(), this.serviceDateEnd(),
     this.discount(), this.vatRate(), this.introduction(), this.conclusion(), this.paymentTerms(), this.templateId(),
     this.recipientName(), this.recipientComplement(), this.recipientStreet(), this.recipientPostalCodeCity(),
     this.sections(),
@@ -822,6 +842,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
 
         if (this.type() === 'INVOICE') {
           this.referenceClient.set(source.reference_client ?? '');
+          this.applyServicePeriod(source);
 
           // parent_document_id is the chantier's own PROJECT document -
           // resolved back to which Project that is, same as loadForEdit. Not
@@ -943,6 +964,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
         this.dueDate.set(source.due_date ? fromDateOnly(source.due_date) : null);
         this.dueDateTouched = true;
         this.referenceClient.set(source.reference_client ?? '');
+        this.applyServicePeriod(source);
 
         this.onClientChange(source.client_id, source.address_id);
         this.applyRecipient(source);
@@ -1097,6 +1119,13 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
           this.importedSectionIds.add(section.id);
         }
         this.sections.update(sections => [...sections.filter(section => !isBlankSection(section)), ...importedSections]);
+        // When the work was done: the chantier's planned dates, unless the
+        // invoice already says.
+        if (!this.serviceDateStart() && !this.serviceDateEnd()) {
+          const period = servicePeriodOfSections(source.sections);
+          this.serviceDateStart.set(period.start);
+          this.serviceDateEnd.set(period.end);
+        }
       },
       error: err => this.notifications.error('document-form', err)
     });
@@ -1190,6 +1219,12 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
       this.errorMessage.set(this.transloco.translate('documents.form.recipientTooLong'));
       return;
     }
+    const serviceStart = this.serviceDateStart();
+    const serviceEnd = this.serviceDateEnd();
+    if (this.type() === 'INVOICE' && serviceStart && serviceEnd && serviceEnd < serviceStart) {
+      this.errorMessage.set(this.transloco.translate('notifications.codes.SERVICE_PERIOD_INVALID'));
+      return;
+    }
 
     this.errorMessage.set(null);
     this.saveMessage.set(null);
@@ -1208,6 +1243,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
           vat_rate: this.vatRate(),
           payment_terms: this.paymentTerms(),
           due_date: this.dueDateForApi(),
+          ...this.servicePeriodForApi(),
           introduction: this.introduction(),
           conclusion: this.conclusion(),
           // Left out when the templates couldn't load: the backend keeps the
@@ -1236,6 +1272,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
         vat_rate: this.vatRate(),
         payment_terms: this.paymentTerms(),
         due_date: this.dueDateForApi(),
+        ...this.servicePeriodForApi(),
         introduction: this.introduction(),
         conclusion: this.conclusion(),
         template_id: this.templateId(),

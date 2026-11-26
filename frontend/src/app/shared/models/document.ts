@@ -36,6 +36,11 @@ export interface Document {
   conclusion: string | null;
   payment_terms: string | null;
   due_date: string | null;
+  // The date or period of the service an invoice bills (art. 26 LTVA, printed
+  // on its PDF): a single date in the start, a period with the end too.
+  // Always null for a quote.
+  service_date_start: string | null;
+  service_date_end: string | null;
   is_active: boolean;
   // The recipient typed by hand on a document made out to the "Non défini"
   // client (null otherwise) - what its PDF prints instead of a client's
