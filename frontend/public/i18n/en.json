@@ -885,18 +885,18 @@
     "noColor": "None",
     "qrBillNote": "The QR-bill payment slip is never colored: the Swiss standard requires black on white.",
     "elements": {
-      "text": "Body text (address, lines, amounts, texts)",
-      "title": "Document title and its underline",
-      "companyName": "Company name in the header (Modern)",
-      "sectionTitles": "Position and section titles",
-      "tableHeader": "Lines table header (Modern)",
-      "total": "Total (band and rules)",
+      "text": "Body text",
+      "title": "Document title",
+      "companyName": "Company name",
+      "sectionTitles": "Section titles",
+      "tableHeader": "Table header",
+      "total": "Total",
       "earlyPayment": "Early payment line",
-      "conditionsHeading": "\"Payment conditions\" heading",
-      "scaleEarly": "Payment scale: early payment row",
-      "scaleNet": "Payment scale: net row",
-      "approval": "\"Approved\" lines (quote)",
-      "footer": "Footer (rule, name, website, email)"
+      "conditionsHeading": "Conditions heading",
+      "scaleEarly": "Scale: discount",
+      "scaleNet": "Scale: net",
+      "approval": "Agreed and accepted",
+      "footer": "Footer"
     },
     "preview": {
       "title": "Preview",
@@ -905,7 +905,37 @@
       "failed": "Preview not up to date: a field can't be saved as it is."
     },
     "showCurrency": "Show the currency",
-    "showCurrencyHint": "\"CHF\" on the total's line only - the lines and other amounts never show it."
+    "showCurrencyHint": "\"CHF\" on the total's line only - the lines and other amounts never show it.",
+    "zones": {
+      "header": "Header",
+      "table": "Line table",
+      "totals": "Totals",
+      "conditions": "Conditions and approval",
+      "details": "Details pages",
+      "footer": "Footer",
+      "body": "Text"
+    },
+    "elementHints": {
+      "text": "Every text without a color of its own: addresses, grid, lines, amounts, introduction, conclusion.",
+      "title_CLASSIC": "\"INVOICE No. …\" and its underline, above the positions.",
+      "title_MODERN": "\"INVOICE No. …\" in large type, under the address.",
+      "title_BANNER": "The band across the top of page 1 - its text turns white or black to suit the color.",
+      "companyName": "The company's name top right - only without a header image.",
+      "tableHeader_MODERN": "The table's title row (Type, Description, Qty…), its text white or black.",
+      "tableHeader_BANNER": "The light background of each section's column titles.",
+      "sectionTitles_CLASSIC": "The \"Pos 1 – …\" titles of the details pages.",
+      "sectionTitles_MODERN": "The \"Pos 1 – …\" titles inside the table.",
+      "sectionTitles_BANNER": "The small bar and the \"Pos 1 – …\" title of each section.",
+      "total_CLASSIC": "The band behind the Total line and its rules.",
+      "total": "The band behind the TOTAL, in the totals box.",
+      "earlyPayment": "The band of the early payment line, under the total (invoice with a discount).",
+      "conditionsHeading": "The \"Payment terms:\" heading.",
+      "scaleEarly": "The \"10 days -2%\" line of the discount scale.",
+      "scaleNet": "The \"30 days Net\" line of the discount scale.",
+      "approval": "\"Agreed and accepted\", above the date and signature (quotes).",
+      "footer": "The rule, the company's name, website and email in the footer.",
+      "footer_BANNER": "The footer's band, its rule, the company's name, website and email."
+    }
   },
   "reminders": {
     "levels": {

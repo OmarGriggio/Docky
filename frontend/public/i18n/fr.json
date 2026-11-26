@@ -885,18 +885,18 @@
     "noColor": "Aucune",
     "qrBillNote": "Le bulletin de versement QR n'est jamais coloré : la norme suisse impose le noir sur blanc.",
     "elements": {
-      "text": "Texte courant (adresse, lignes, montants, textes)",
-      "title": "Titre du document et son soulignement",
-      "companyName": "Nom de l'entreprise en en-tête (Moderne)",
-      "sectionTitles": "Titres des positions et des sections",
-      "tableHeader": "En-tête du tableau des lignes (Moderne)",
-      "total": "Total (trame et filets)",
+      "text": "Texte courant",
+      "title": "Titre du document",
+      "companyName": "Nom de l'entreprise",
+      "sectionTitles": "Titres des sections",
+      "tableHeader": "En-tête du tableau",
+      "total": "Total",
       "earlyPayment": "Ligne d'escompte",
-      "conditionsHeading": "Titre « Conditions de paiement »",
-      "scaleEarly": "Barème : ligne d'escompte",
-      "scaleNet": "Barème : ligne net",
-      "approval": "« Bon pour accord » (offre)",
-      "footer": "Pied de page (filet, nom, site web, email)"
+      "conditionsHeading": "Titre des conditions",
+      "scaleEarly": "Barème : escompte",
+      "scaleNet": "Barème : net",
+      "approval": "Bon pour accord",
+      "footer": "Pied de page"
     },
     "preview": {
       "title": "Aperçu",
@@ -905,7 +905,37 @@
       "failed": "Aperçu pas à jour : un champ ne peut pas être enregistré tel quel."
     },
     "showCurrency": "Afficher la monnaie",
-    "showCurrencyHint": "« CHF » sur la ligne du total seulement - les lignes et les autres montants n'en ont jamais."
+    "showCurrencyHint": "« CHF » sur la ligne du total seulement - les lignes et les autres montants n'en ont jamais.",
+    "zones": {
+      "header": "En-tête",
+      "table": "Tableau des lignes",
+      "totals": "Totaux",
+      "conditions": "Conditions et accord",
+      "details": "Pages de détail",
+      "footer": "Pied de page",
+      "body": "Texte"
+    },
+    "elementHints": {
+      "text": "Tout le texte sans couleur propre : adresses, grille, lignes, montants, introduction, conclusion.",
+      "title_CLASSIC": "« FACTURE N° … » et son soulignement, au-dessus des positions.",
+      "title_MODERN": "« FACTURE N° … » en grand, sous l'adresse.",
+      "title_BANNER": "Le bandeau du haut de la page 1 - son texte passe en blanc ou en noir selon la couleur.",
+      "companyName": "Le nom de l'entreprise en haut à droite - seulement sans image d'en-tête.",
+      "tableHeader_MODERN": "La ligne de titres du tableau (Type, Description, Qté…), son texte en blanc ou noir.",
+      "tableHeader_BANNER": "Le fond clair des titres de colonnes de chaque section.",
+      "sectionTitles_CLASSIC": "Les titres « Pos 1 – … » des pages de détail.",
+      "sectionTitles_MODERN": "Les titres « Pos 1 – … » dans le tableau.",
+      "sectionTitles_BANNER": "La petite barre et le titre « Pos 1 – … » de chaque section.",
+      "total_CLASSIC": "La bande derrière la ligne Total et ses filets.",
+      "total": "La bande derrière le TOTAL, dans l'encadré des totaux.",
+      "earlyPayment": "La bande de la ligne d'escompte, sous le total (facture avec escompte).",
+      "conditionsHeading": "Le titre « Conditions de paiement : ».",
+      "scaleEarly": "La ligne « 10 jours -2% » du barème d'escompte.",
+      "scaleNet": "La ligne « 30 jours Net » du barème d'escompte.",
+      "approval": "« Bon pour accord », au-dessus de la date et de la signature (offres).",
+      "footer": "Le filet, le nom de l'entreprise, le site et l'e-mail du pied de page.",
+      "footer_BANNER": "La bande du pied de page, son filet, le nom de l'entreprise, le site et l'e-mail."
+    }
   },
   "reminders": {
     "levels": {
