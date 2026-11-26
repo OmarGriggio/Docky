@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { COLOR_ELEMENTS, DocumentLayout } from '../../../shared/models/template';
-import { colorZonesOf, elementHintKey } from './color-elements';
+import { colorZonesOf, elementHintKey, previewKindFor } from './color-elements';
 
 const elementsOf = (layout: DocumentLayout) => colorZonesOf(layout).flatMap(group => group.elements);
 
@@ -27,5 +27,18 @@ describe('elementHintKey', () => {
     expect(elementHintKey('title', 'BANNER')).toBe('templates.elementHints.title_BANNER');
     expect(elementHintKey('footer', 'MODERN')).toBe('templates.elementHints.footer');
     expect(elementHintKey('scaleNet', 'CLASSIC')).toBe('templates.elementHints.scaleNet');
+  });
+});
+
+describe('previewKindFor', () => {
+  it('shows an element on a document that prints it', () => {
+    expect(previewKindFor('approval', 'INVOICE')).toBe('QUOTE');
+    expect(previewKindFor('scaleNet', 'QUOTE')).toBe('INVOICE');
+    expect(previewKindFor('tableHeader', 'REMINDER')).toBe('INVOICE');
+  });
+
+  it('keeps the current preview when it prints the element', () => {
+    expect(previewKindFor('title', 'REMINDER')).toBe('REMINDER');
+    expect(previewKindFor('total', 'QUOTE')).toBe('QUOTE');
   });
 });

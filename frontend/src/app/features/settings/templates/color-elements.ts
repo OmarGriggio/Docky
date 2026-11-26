@@ -60,3 +60,29 @@ const HINT_PER_LAYOUT: Partial<Record<ColorElement, DocumentLayout[]>> = {
 /** Where an element is on the page, as a Transloco key - the layout's own wording when it differs. */
 export const elementHintKey = (element: ColorElement, layout: DocumentLayout): string =>
   HINT_PER_LAYOUT[element]?.includes(layout) ? `templates.elementHints.${element}_${layout}` : `templates.elementHints.${element}`;
+
+type PreviewKind = 'QUOTE' | 'INVOICE' | 'REMINDER';
+
+// What each kind of document prints: a quote's "Bon pour accord", an
+// invoice's early payment line and scale, a reminder only its letterhead,
+// text and footer.
+const ONLY_ON: Partial<Record<ColorElement, PreviewKind>> = {
+  approval: 'QUOTE',
+  earlyPayment: 'INVOICE',
+  scaleEarly: 'INVOICE',
+  scaleNet: 'INVOICE',
+};
+const ON_A_REMINDER: ColorElement[] = ['title', 'companyName', 'text', 'footer'];
+
+/** The preview to show an element spotted ("Repérer") in: the current one when it prints it, else one that does. */
+export const previewKindFor = (element: ColorElement, current: PreviewKind): PreviewKind => {
+  const only = ONLY_ON[element];
+  if (only) {
+    return only;
+  }
+  return current === 'REMINDER' && !ON_A_REMINDER.includes(element) ? 'INVOICE' : current;
+};
+
+/** Whether an element only prints with an early payment discount on the template (the line under the total, the scale). */
+export const needsEarlyPayment = (element: ColorElement): boolean =>
+  element === 'earlyPayment' || element === 'scaleEarly' || element === 'scaleNet';

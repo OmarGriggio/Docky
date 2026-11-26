@@ -20,7 +20,7 @@ import { FormsModule } from '@angular/forms';
 import { TranslocoPipe, TranslocoService, translateSignal } from '@jsverse/transloco';
 import { PreviewKind, TemplateService } from './template.service';
 import { ColorElement, DocumentFont, DocumentLayout, ElementColors, MAX_PALETTE, PaletteColor, Template, TemplateData } from '../../../shared/models/template';
-import { colorZonesOf, elementHintKey } from './color-elements';
+import { colorZonesOf, elementHintKey, needsEarlyPayment, previewKindFor } from './color-elements';
 import { AuthService } from '../../auth/auth.service';
 import { CompanyService } from '../../profile/company.service';
 import { NotificationService } from '../../../shared/services/notification.service';
@@ -81,6 +81,23 @@ export class TemplateEditor implements OnInit {
   // By zone of the page, in the order and with the elements of the layout picked.
   colorZones = computed(() => colorZonesOf(this.layoutValue()));
   readonly elementHint = elementHintKey;
+
+  // "Repérer": the element printed alone in a vivid color in the preview -
+  // on a document that prints it (previewKindFor). Clicked again: off.
+  spotted = signal<ColorElement | null>(null);
+  spot(element: ColorElement): void {
+    if (this.spotted() === element) {
+      this.spotted.set(null);
+      return;
+    }
+    this.spotted.set(element);
+    this.previewKind.set(previewKindFor(element, this.previewKind()));
+  }
+  // An early payment line or scale spotted on a template without a discount: nothing to see.
+  spottedHidden = computed(() => {
+    const element = this.spotted();
+    return !!element && needsEarlyPayment(element) && !(Number(this.discountValue()) > 0);
+  });
   palette = signal<PaletteColor[]>([]);
   elementColors = signal<ElementColors>({});
 
@@ -147,6 +164,7 @@ export class TemplateEditor implements OnInit {
   private formStatus = toSignal(this.form.statusChanges, { initialValue: this.form.status });
   // The layout picked - the element colors follow it (colorZones).
   layoutValue = toSignal(this.form.controls.layout.valueChanges, { initialValue: this.form.controls.layout.value });
+  private discountValue = toSignal(this.form.controls.early_payment_discount.valueChanges, { initialValue: this.form.controls.early_payment_discount.value });
   missingEarlyPaymentDays = computed(() => {
     this.formStatus();
     return this.form.hasError('earlyPaymentDaysRequired');
@@ -201,13 +219,14 @@ export class TemplateEditor implements OnInit {
       toObservable(this.elementColors),
       toObservable(this.previewKind),
       toObservable(this.reminderLevel),
+      toObservable(this.spotted),
       toObservable(this.template),
     ).pipe(
       debounceTime(600),
       map(() => this.template()),
       filter((template): template is Template => template !== null),
       tap(() => this.previewLoading.set(true)),
-      switchMap(template => this.templateService.preview(template.id, this.previewKind(), this.formData(), this.reminderLevel()).pipe(
+      switchMap(template => this.templateService.preview(template.id, this.previewKind(), this.formData(), this.reminderLevel(), this.spotted()).pipe(
         catchError(() => of(null)),
       )),
       takeUntilDestroyed(this.destroyRef),

@@ -1,7 +1,7 @@
 import { ReminderLevel } from '../../../shared/models/reminder';
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Template, TemplateData } from '../../../shared/models/template';
+import { ColorElement, Template, TemplateData } from '../../../shared/models/template';
 import { environment } from '../../../../environments/environment';
 
 const API_BASE = environment.apiUrl;
@@ -41,9 +41,10 @@ export class TemplateService {
   }
 
   // A sample document's PDF printed with `data` over the stored template - nothing saved.
-  // `level`: a reminder's (1st, 2nd, formal notice).
-  preview(id: number, type: PreviewKind, data: Partial<TemplateData>, level: ReminderLevel = 1) {
-    return this.http.post(`${API_BASE}/template/${id}/preview`, { type, level, template: data }, { responseType: 'blob' });
+  // `level`: a reminder's (1st, 2nd, formal notice). `highlight`: an element
+  // printed alone in a vivid color ("Repérer"), nothing else changed.
+  preview(id: number, type: PreviewKind, data: Partial<TemplateData>, level: ReminderLevel = 1, highlight: ColorElement | null = null) {
+    return this.http.post(`${API_BASE}/template/${id}/preview`, { type, level, highlight, template: data }, { responseType: 'blob' });
   }
 
   setDefault(id: number) {
