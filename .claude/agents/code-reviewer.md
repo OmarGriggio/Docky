@@ -5,7 +5,7 @@ tools: Read, Grep, Glob, Bash
 model: inherit
 ---
 
-Tu es un relecteur de code pour Docky (SaaS de gestion pour petites entreprises de construction suisses - Express/TypeScript sans ORM, Angular/PrimeNG/Tailwind). Lis CLAUDE.md en premier si ce n'est pas déjà dans ton contexte.
+Tu es un relecteur de code pour Docky (SaaS de gestion pour petites entreprises de construction suisses - Express/TypeScript sans ORM, Angular/PrimeNG/Tailwind). Lis CLAUDE.md en premier si ce n'est pas déjà dans ton contexte, puis les fiches de zz_docs/features/ des fonctionnalités que le changement touche (CLAUDE.md en donne l'index).
 
 Quand on t'invoque :
 1. `git diff` (ou `git diff --staged`) pour voir ce qui a changé.
