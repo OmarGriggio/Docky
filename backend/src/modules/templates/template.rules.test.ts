@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { documentStyleOf, normalizeTemplateData, quotePaymentTermsOf, styleOf } from "./template.rules";
+import { documentStyleOf, HIGHLIGHT_COLOR, normalizeTemplateData, quotePaymentTermsOf, styleOf, withHighlight } from "./template.rules";
 
 describe("normalizeTemplateData", () => {
   it("trims the name and requires one", () => {
@@ -88,5 +88,22 @@ describe("quotePaymentTermsOf", () => {
   it("is what the quote was sent with, whatever its template says now", () => {
     expect(quotePaymentTermsOf({ layout: "CLASSIC", payment_terms: "30 jours net" }, template)).toBe("30 jours net");
     expect(quotePaymentTermsOf({ layout: "CLASSIC", payment_terms: null }, template)).toBeNull();
+  });
+});
+
+describe("withHighlight", () => {
+  const template = { palette: [{ name: "Vert", color: "#037a3f" }], element_colors: { total: 1, footer: 1 } };
+
+  it("prints one element alone in the highlight color, the others as they are", () => {
+    expect(withHighlight(template, "footer")).toEqual({
+      palette: [{ name: "Vert", color: "#037a3f" }, { name: "highlight", color: HIGHLIGHT_COLOR }],
+      element_colors: { total: 1, footer: 2 },
+    });
+    expect(withHighlight(template, "title").element_colors).toEqual({ total: 1, footer: 1, title: 2 });
+  });
+
+  it("leaves the template as it is for anything but an element", () => {
+    expect(withHighlight(template, "__proto__")).toBe(template);
+    expect(withHighlight(template, undefined)).toBe(template);
   });
 });

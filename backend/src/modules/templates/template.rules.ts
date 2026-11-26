@@ -157,3 +157,16 @@ const frozenColorsOf = (frozen: Partial<TemplateStyle>): Pick<TemplateStyle, "pa
     return { palette: [], element_colors: {} };
   }
 };
+
+// The editor's "Repérer" (spot): one element printed in a color no template
+// would pick, so the preview shows where it is. Preview only - never saved.
+export const HIGHLIGHT_COLOR = "#e6007e";
+
+/** The template with `element` alone in the highlight color - one more palette entry, past the five a template can hold. Anything but an element: unchanged. */
+export const withHighlight = <T extends Pick<Template, "palette" | "element_colors">>(template: T, element: unknown): T => {
+  if (!(COLOR_ELEMENTS as readonly unknown[]).includes(element)) {
+    return template;
+  }
+  const palette = [...template.palette, { name: "highlight", color: HIGHLIGHT_COLOR }];
+  return { ...template, palette, element_colors: { ...template.element_colors, [element as string]: palette.length } };
+};

@@ -3,6 +3,7 @@ import { QuotePdfGenerator } from "./generators/quote-pdf-generator";
 import { ReminderPdfGenerator } from "./generators/reminder-pdf-generator";
 import { getCompanyByIdServ } from "../modules/companies/company.service";
 import { previewTemplateServ, reminderTextOf } from "../modules/templates/template.service";
+import { withHighlight } from "../modules/templates/template.rules";
 import { getReminderSettingsServ, reminderToPrintServ } from "../modules/reminders/reminder.service";
 import { ReminderToPrint } from "./templates/reminder.types";
 import { PREVIEW_KINDS, PreviewKind, sampleSourceOf } from "../modules/templates/template.sample";
@@ -36,12 +37,14 @@ export const generateTemplatePreviewServ = async (
     kind: unknown,
     data: Partial<Record<keyof TemplateData, unknown>>,
     language: Language,
-    level: unknown = 1
+    level: unknown = 1,
+    // An element printed alone in the highlight color (the editor's "Repérer").
+    highlight: unknown = null
 ): Promise<Uint8Array> => {
     if (!(PREVIEW_KINDS as readonly unknown[]).includes(kind)) {
         throw new AppError("type must be QUOTE, INVOICE or REMINDER", 400);
     }
-    const template = await previewTemplateServ(templateId, company_id, data);
+    const template = withHighlight(await previewTemplateServ(templateId, company_id, data), highlight);
     const company = await getCompanyByIdServ(company_id);
     const source = sampleSourceOf(company, template, kind as PreviewKind, language);
     if (kind === "REMINDER") {
