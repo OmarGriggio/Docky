@@ -820,7 +820,8 @@
       "REMINDER_NOT_DUE": "This reminder isn't due yet: its delay hasn't passed.",
       "REMINDER_NOT_LATEST": "Only an invoice's latest reminder can be taken back.",
       "SERVICE_DATE_INVALID": "The service date isn't valid.",
-      "SERVICE_PERIOD_INVALID": "The service period can't end before it starts."
+      "SERVICE_PERIOD_INVALID": "The service period can't end before it starts.",
+      "REMINDER_INVOICE_CLOSED": "A paid or cancelled invoice keeps its reminders: they can no longer be taken back."
     }
   },
   "invoicingReadiness": {
@@ -910,7 +911,6 @@
       "2": "2nd reminder",
       "3": "Formal notice"
     },
-    "tag": "Reminder {{level}}",
     "settings": {
       "menu": "Reminders",
       "title": "Reminder levels",
@@ -929,7 +929,6 @@
       "amountDue": "Left to pay:",
       "sentTitle": "Reminders sent",
       "fees": "fees",
-      "fee": "fee",
       "pdf": "View the PDF",
       "delete": "Take this reminder back",
       "noneSent": "No reminder sent yet.",

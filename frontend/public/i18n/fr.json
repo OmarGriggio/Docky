@@ -820,7 +820,8 @@
       "REMINDER_NOT_DUE": "Ce rappel n'est pas encore dû : son délai n'est pas écoulé.",
       "REMINDER_NOT_LATEST": "Seul le dernier rappel d'une facture peut être annulé.",
       "SERVICE_DATE_INVALID": "La date de la prestation n'est pas valable.",
-      "SERVICE_PERIOD_INVALID": "La période de la prestation ne peut pas finir avant de commencer."
+      "SERVICE_PERIOD_INVALID": "La période de la prestation ne peut pas finir avant de commencer.",
+      "REMINDER_INVOICE_CLOSED": "Une facture payée ou annulée garde ses rappels : ils ne peuvent plus être annulés."
     }
   },
   "invoicingReadiness": {
@@ -910,7 +911,6 @@
       "2": "2e rappel",
       "3": "Mise en demeure"
     },
-    "tag": "Rappel {{level}}",
     "settings": {
       "menu": "Rappels",
       "title": "Niveaux de rappel",
@@ -929,7 +929,6 @@
       "amountDue": "Reste à payer :",
       "sentTitle": "Rappels envoyés",
       "fees": "frais",
-      "fee": "frais",
       "pdf": "Voir le PDF",
       "delete": "Annuler ce rappel",
       "noneSent": "Aucun rappel envoyé pour l'instant.",
