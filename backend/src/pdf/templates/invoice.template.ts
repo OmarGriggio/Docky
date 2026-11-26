@@ -3,6 +3,7 @@ import { InvoiceDto } from "./invoice.types";
 import { formatLongDate, PDF_LABELS } from "./pdf-labels";
 import { CLASSIC_CONDITIONS_GAP, drawConditionsBlock, drawConclusion, drawLetterDetails, drawLetterHead, drawPositions, drawTotalsTable } from "./business-letter";
 import { drawModernHead, drawModernItems, drawModernTotals } from "./modern-letter";
+import { conditionsBesideTotals, drawBannerHead, drawBannerItems } from "./banner-letter";
 import { formatShortDate } from "./format";
 
 // The shared invoice/quote layout (business-letter.ts), with what's an
@@ -16,17 +17,38 @@ export class InvoiceTemplate {
         const labels = PDF_LABELS[invoice.language];
 
         const title = `${(invoice.invoiceKind === "DEPOSIT" ? labels.depositInvoice : invoice.deductions?.length ? labels.finalInvoice : labels.invoice).toUpperCase()} N° ${invoice.number}`;
-        if (invoice.company.layout === "MODERN") {
+        // Its own details, in the modern and banner layouts' right-hand column or grid.
+        const details = [
+            ...(invoice.dueDate ? [{ label: labels.dueDate, value: formatShortDate(invoice.dueDate) }] : []),
+            ...(invoice.servicePeriod ? [{ label: labels.serviceShort, value: invoice.servicePeriod.value }] : []),
+            ...(invoice.location ? [{ label: labels.location, value: invoice.location }] : []),
+        ];
+        const conditions: string[] = [];
+        if (invoice.dueDate) {
+            conditions.push(`${labels.dueDate} : ${formatLongDate(invoice.dueDate, invoice.language)}`);
+        }
+        if (invoice.paymentTerms) {
+            conditions.push(invoice.paymentTerms);
+        }
+
+        if (invoice.company.layout === "BANNER") {
+            // Every line here too (banner-letter.ts), a table per section - no
+            // details page - and the payment conditions beside the totals.
+            await drawBannerHead(pdf, invoice, { title, logoBytes, hasHeaderImage, details });
+            drawBannerItems(pdf, invoice);
+            // The due date is in the grid already.
+            const terms = invoice.paymentTerms ? [invoice.paymentTerms] : [];
+            drawModernTotals(pdf, invoice, invoice.earlyPayment,
+                conditionsBesideTotals(pdf, labels.paymentConditions, terms, invoice.company.colors, invoice.paymentScale));
+            drawConclusion(pdf, invoice);
+            return;
+        } else if (invoice.company.layout === "MODERN") {
             // Every line right here (modern-letter.ts) - no details page.
             await drawModernHead(pdf, invoice, {
                 title,
                 logoBytes,
                 hasHeaderImage,
-                info: [
-                    ...(invoice.dueDate ? [{ label: labels.dueDate, value: formatShortDate(invoice.dueDate) }] : []),
-                    ...(invoice.servicePeriod ? [{ label: labels.serviceShort, value: invoice.servicePeriod.value }] : []),
-                    ...(invoice.location ? [{ label: labels.location, value: invoice.location }] : []),
-                ],
+                info: details,
             });
             drawModernItems(pdf, invoice);
             drawModernTotals(pdf, invoice, invoice.earlyPayment);
@@ -46,14 +68,6 @@ export class InvoiceTemplate {
             drawTotalsTable(pdf, invoice, invoice.earlyPayment);
         }
         drawConclusion(pdf, invoice);
-
-        const conditions: string[] = [];
-        if (invoice.dueDate) {
-            conditions.push(`${labels.dueDate} : ${formatLongDate(invoice.dueDate, invoice.language)}`);
-        }
-        if (invoice.paymentTerms) {
-            conditions.push(invoice.paymentTerms);
-        }
         drawConditionsBlock(pdf, labels.paymentConditions, conditions, invoice.company.colors, invoice.paymentScale,
             invoice.company.layout === "CLASSIC" ? CLASSIC_CONDITIONS_GAP : undefined);
     }

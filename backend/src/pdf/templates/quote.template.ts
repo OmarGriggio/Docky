@@ -1,8 +1,10 @@
 import { PdfWriter } from "../core/pdf-writer";
 import { QuoteDto } from "./quote.types";
 import { formatLongDate, PDF_LABELS } from "./pdf-labels";
+import { formatShortDate } from "./format";
 import { drawConditionsBlock, drawConclusion, drawLetterDetails, drawLetterHead, drawPositions, drawTotalsTable } from "./business-letter";
 import { drawModernHead, drawModernItems, drawModernTotals } from "./modern-letter";
+import { conditionsBesideTotals, drawBannerHead, drawBannerItems } from "./banner-letter";
 
 // The shared invoice/quote layout (business-letter.ts), titled "OFFRE" -
 // what's a quote's own: no early payment discount (nothing to pay yet), the
@@ -15,7 +17,27 @@ export class QuoteTemplate {
         const labels = PDF_LABELS[quote.language];
 
         const title = `${labels.quote.toUpperCase()} N° ${quote.number}`;
-        if (quote.company.layout === "MODERN") {
+        const conditions: string[] = [];
+        if (quote.validUntil) {
+            conditions.push(labels.validUntil(formatLongDate(quote.validUntil, quote.language)));
+        }
+        if (quote.paymentTerms) {
+            conditions.push(quote.paymentTerms);
+        }
+
+        if (quote.company.layout === "BANNER") {
+            // Every line here, a table per section (banner-letter.ts) - no
+            // details page - and the conditions beside the totals.
+            const details = quote.validUntil ? [{ label: labels.validUntilShort, value: formatShortDate(quote.validUntil) }] : [];
+            await drawBannerHead(pdf, quote, { title, logoBytes, hasHeaderImage, details });
+            drawBannerItems(pdf, quote);
+            // Its validity is in the grid already.
+            const terms = quote.paymentTerms ? [quote.paymentTerms] : [];
+            drawModernTotals(pdf, quote, null, conditionsBesideTotals(pdf, labels.paymentConditions, terms, quote.company.colors));
+            drawConclusion(pdf, quote);
+            this.drawApproval(pdf, quote);
+            return;
+        } else if (quote.company.layout === "MODERN") {
             // Every line right here (modern-letter.ts) - no details page.
             await drawModernHead(pdf, quote, { title, logoBytes, hasHeaderImage });
             drawModernItems(pdf, quote);
@@ -27,14 +49,6 @@ export class QuoteTemplate {
         }
         drawConclusion(pdf, quote);
         this.drawApproval(pdf, quote);
-
-        const conditions: string[] = [];
-        if (quote.validUntil) {
-            conditions.push(labels.validUntil(formatLongDate(quote.validUntil, quote.language)));
-        }
-        if (quote.paymentTerms) {
-            conditions.push(quote.paymentTerms);
-        }
         drawConditionsBlock(pdf, labels.paymentConditions, conditions, quote.company.colors);
     }
 
@@ -42,11 +56,15 @@ export class QuoteTemplate {
     // the conclusion - blank date/signature lines to fill in by hand once
     // printed (no real e-signature yet), side by side on one row, both
     // labels at the exact same Y (drawTextAt, not the flowing cursor).
+    // Tighter in the banner layout, whose page 1 holds every line already.
     private static drawApproval(pdf: PdfWriter, quote: QuoteDto) {
         const labels = PDF_LABELS[quote.language];
-        pdf.reserve(70);
+        const compact = quote.company.layout === "BANNER";
+        const [marginTop, marginBottom] = compact ? [0, 12] : [10, 22];
+        // What it takes: the heading after its gap, the room under it, the row of lines.
+        pdf.reserve(marginTop + marginBottom + 30);
         const secondary = quote.company.colors.approval;
-        pdf.text(labels.approval, { bold: true, size: 10, marginTop: 10, marginBottom: 22, ...(secondary ? { color: secondary } : {}) });
+        pdf.text(labels.approval, { bold: true, size: 10, marginTop, marginBottom, ...(secondary ? { color: secondary } : {}) });
 
         const rowY = pdf.remainingHeight();
         const margin = pdf.marginValue();

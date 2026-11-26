@@ -218,11 +218,18 @@ interface BoxRow {
     currency?: string | null;
 }
 
-/** The totals in a box on the right, kept in one piece: the sections' sum, the discount, the VAT, the total on a band - then a final invoice's deposits and its balance, and an invoice's early payment discount. */
+/** Something drawn on the left of the totals box, its top level with the box's (the banner layout's payment conditions): its height, and how it draws from a given top. */
+export interface BesideTotals {
+    height: number;
+    draw: (top: number) => void;
+}
+
+/** The totals in a box on the right, kept in one piece: the sections' sum, the discount, the VAT, the total on a band - then a final invoice's deposits and its balance, and an invoice's early payment discount. `beside`: a block on its left, kept on the same page. */
 export const drawModernTotals = (
     pdf: PdfWriter,
     letter: LetterDto,
-    earlyPayment: { days: number; rate: number; amount: number; net: number } | null = null
+    earlyPayment: { days: number; rate: number; amount: number; net: number } | null = null,
+    beside: BesideTotals | null = null
 ) => {
     const labels = PDF_LABELS[letter.language];
     const subtotal = letter.sections.reduce((sum, section) => sum + section.total, 0);
@@ -269,8 +276,9 @@ export const drawModernTotals = (
     const vatNumberLine = letter.vatRate > 0 && letter.company.vatNumber ? vatLabelOf(letter) : null;
     const height = laidOut.reduce((sum, item) => sum + item.height, 0) + 12;
 
-    pdf.reserve(height + (vatNumberLine ? 22 : 10));
+    pdf.reserve(Math.max(height + (vatNumberLine ? 22 : 10), (beside?.height ?? 0) + 10));
     const top = pdf.remainingHeight();
+    beside?.draw(top);
     let y = top - 6;
     for (const { row, options, lines, height: rowHeightValue } of laidOut) {
         const rowTop = y;
@@ -292,5 +300,5 @@ export const drawModernTotals = (
     if (vatNumberLine) {
         pdf.drawTextRightAt(vatNumberLine, RIGHT, boxBottom - 11, { size: 8, color: GRAY });
     }
-    pdf.lowerCursorTo(boxBottom - (vatNumberLine ? 28 : 16));
+    pdf.lowerCursorTo(Math.min(boxBottom - (vatNumberLine ? 28 : 16), top - (beside?.height ?? 0) - 16));
 };

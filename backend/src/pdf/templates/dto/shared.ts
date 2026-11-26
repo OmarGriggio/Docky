@@ -1,7 +1,7 @@
 import { ClientWithAddresses } from "../../../modules/clients/client.types";
 import { clientDisplayName } from "../../../modules/clients/client.display";
 import { Company } from "../../../modules/companies/company.types";
-import { TemplateStyle } from "../../../modules/templates/template.types";
+import { layoutOf, TemplateStyle } from "../../../modules/templates/template.types";
 import { DocumentComplete } from "../../../modules/documents/document_complete.types";
 import { lineTotal, round2 } from "../../../modules/documents/document.calculations";
 import { ClientDto, CompanyDto, DocumentSectionDto } from "../document.types";
@@ -91,7 +91,7 @@ export const buildLetterDto = (
             bankAccount: company.bank_account,
             colors: printColorsOf(style),
             palette: paletteOf(style),
-            layout: style.layout === "MODERN" ? "MODERN" : "CLASSIC",
+            layout: layoutOf(style.layout),
         },
         client: {
             ...buildClientDto(client, document),

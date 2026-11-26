@@ -10,6 +10,7 @@ import { PaymentScaleRow } from "./payment-scale";
 import { DocumentLayout } from "../../modules/templates/template.types";
 import { TextRun } from "./rich-text";
 import { PrintColors } from "./element-colors";
+import { drawBannerFooterBand } from "./banner-letter";
 
 // The layout invoices and quotes share, modelled on the company's own Excel
 // invoices. Page 1: the client's number and the place/date on the left, the
@@ -125,9 +126,15 @@ export const setUpLetterPages = (pdf: PdfWriter, headerImage: PDFImage | null) =
     });
 };
 
-/** The footer on every page left in the numbering - call last, once every page exists. */
+/** The footer on every page left in the numbering - call last, once every page exists. The banner layout's on its band (banner-letter.ts), without the rule. */
 export const drawLetterFooters = (pdf: PdfWriter, letter: LetterDto) => {
-    pdf.forEachNumberedPage(() => drawFooter(pdf, letter));
+    const banner = letter.company.layout === "BANNER";
+    pdf.forEachNumberedPage(() => {
+        if (banner) {
+            drawBannerFooterBand(pdf, letter);
+        }
+        drawFooter(pdf, letter, !banner);
+    });
 };
 
 /** Page 1 down to the title and reference: who, when, what - "FACTURE N° 3183" / "OFFRE N° 1057". */
@@ -419,7 +426,7 @@ const fitText = (pdf: PdfWriter, text: string, maxWidth: number, options: PdfTex
 // - a long bank name or website).
 const FOOTER_COLUMN_WIDTH = 220;
 
-const drawFooter = (pdf: PdfWriter, letter: LetterDto) => {
+const drawFooter = (pdf: PdfWriter, letter: LetterDto, withRule = true) => {
     const company = letter.company;
     const left = pdf.marginValue();
     const options: PdfTextOptions = { size: 7, color: GRAY };
@@ -442,7 +449,9 @@ const drawFooter = (pdf: PdfWriter, letter: LetterDto) => {
     if (![...leftLines, ...rightLines].some(Boolean)) {
         return;
     }
-    pdf.drawLineAt({ x: left, y: 48 }, { x: TOTAL_RIGHT, y: 48 }, 0.4, accent ?? undefined);
+    if (withRule) {
+        pdf.drawLineAt({ x: left, y: 48 }, { x: TOTAL_RIGHT, y: 48 }, 0.4, accent ?? undefined);
+    }
     [39, 30, 21].forEach((y, index) => {
         if (leftLines[index]) {
             pdf.drawTextAt(fitText(pdf, leftLines[index], FOOTER_COLUMN_WIDTH, leftOptions[index]), left, y, leftOptions[index]);

@@ -3,6 +3,7 @@ import { ReminderDto } from "./reminder.types";
 import { PDF_LABELS } from "./pdf-labels";
 import { documentColorsOf, drawLetterHead } from "./business-letter";
 import { drawModernHead } from "./modern-letter";
+import { drawBannerHead } from "./banner-letter";
 import { formatAmount } from "./format";
 
 // Where the amounts block sits: from the middle of the page to the right margin.
@@ -23,13 +24,13 @@ export class ReminderTemplate {
         const { letter } = reminder;
         const labels = PDF_LABELS[letter.language];
 
-        // The company's layout's own letterhead (business-letter.ts or modern-letter.ts).
-        const draw = letter.company.layout === "MODERN" ? drawModernHead : drawLetterHead;
-        await draw(pdf, letter, {
-            title: `${labels.reminderTitles[reminder.level].toUpperCase()} ${letter.number}`,
-            logoBytes,
-            hasHeaderImage,
-        });
+        // The company's layout's own letterhead (business-letter.ts, modern-letter.ts or banner-letter.ts).
+        const head = { title: `${labels.reminderTitles[reminder.level].toUpperCase()} ${letter.number}`, logoBytes, hasHeaderImage };
+        if (letter.company.layout === "BANNER") {
+            await drawBannerHead(pdf, letter, head);
+        } else {
+            await (letter.company.layout === "MODERN" ? drawModernHead : drawLetterHead)(pdf, letter, head);
+        }
 
         pdf.text(reminder.greeting, { size: 11, marginBottom: 10 });
 
