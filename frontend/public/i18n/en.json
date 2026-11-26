@@ -757,7 +757,7 @@
     "imageRemoveError": "The image could not be removed.",
     "documentStyle": {
       "title": "Document template",
-      "hint": "How your invoices, quotes and reminders are laid out, and their font. The colors, logo and header image above apply to both templates.",
+      "hint": "The layout and font of your invoices, quotes and reminders. The colors, the logo and the header image apply to every layout.",
       "layout": "Layout",
       "font": "Font",
       "classic": "Classic",
@@ -767,7 +767,9 @@
       "detailsPage": "details",
       "helveticaHint": "Plain and classic",
       "latoHint": "Modern and rounded",
-      "ptSerifHint": "Serif, elegant"
+      "ptSerifHint": "Serif, elegant",
+      "banner": "Banner",
+      "bannerHint": "A colored band across the top with the company's name and the number, the document's details in a framed grid, a table per section. The client's address on the right."
     },
     "templatesMoved": "How documents look (colors, layout, header image), their texts and payment terms are set in the templates:",
     "templatesLink": "Settings › Templates"

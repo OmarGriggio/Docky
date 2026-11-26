@@ -757,7 +757,7 @@
     "imageRemoveError": "Impossible de retirer l'image.",
     "documentStyle": {
       "title": "Modèle des documents",
-      "hint": "La mise en page et la police de tes factures, offres et rappels. Les couleurs, le logo et l'image d'en-tête ci-dessus s'appliquent aux deux modèles.",
+      "hint": "La mise en page et la police de tes factures, offres et rappels. Les couleurs, le logo et l'image d'en-tête s'appliquent à toutes les mises en page.",
       "layout": "Mise en page",
       "font": "Police",
       "classic": "Classique",
@@ -767,7 +767,9 @@
       "detailsPage": "détail",
       "helveticaHint": "Sobre et classique",
       "latoHint": "Moderne et arrondie",
-      "ptSerifHint": "À empattements, élégante"
+      "ptSerifHint": "À empattements, élégante",
+      "banner": "Bandeau",
+      "bannerHint": "Un bandeau de couleur en haut avec le nom de l'entreprise et le numéro, les infos du document dans une grille encadrée, un tableau par section. L'adresse du client à droite."
     },
     "templatesMoved": "La présentation des documents (couleurs, mise en page, image d'en-tête), leurs textes et conditions de paiement se règlent dans les modèles :",
     "templatesLink": "Paramètres › Modèles"
