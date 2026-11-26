@@ -64,7 +64,7 @@
                     </span>
                     <span class="flex flex-col min-w-0 flex-1">
                       <span class="text-sm font-medium text-gray-900 truncate">{{ template.name }}</span>
-                      <span class="text-xs text-gray-500">{{ (template.layout === 'MODERN' ? 'profile.documentStyle.modern' : 'profile.documentStyle.classic') | transloco }}@if (template.is_default) { · {{ 'templates.default' | transloco }}}</span>
+                      <span class="text-xs text-gray-500">{{ layoutLabels[template.layout] | transloco }}@if (template.is_default) { · {{ 'templates.default' | transloco }}}</span>
                     </span>
                     @if (template.id === current.id) {
                       <i class="pi pi-check text-green-700"></i>

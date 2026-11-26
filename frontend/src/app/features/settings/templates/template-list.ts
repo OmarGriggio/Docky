@@ -6,7 +6,7 @@ import { Button } from 'primeng/button';
 import { Checkbox } from 'primeng/checkbox';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { TemplateService } from './template.service';
-import { Template } from '../../../shared/models/template';
+import { LAYOUT_LABELS, Template } from '../../../shared/models/template';
 import { AuthService } from '../../auth/auth.service';
 import { NotificationService } from '../../../shared/services/notification.service';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog';
@@ -23,6 +23,8 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
   templateUrl: './template-list.html',
 })
 export class TemplateList implements OnInit {
+
+  readonly layoutLabels = LAYOUT_LABELS;
 
   private templateService = inject(TemplateService);
   private authService = inject(AuthService);

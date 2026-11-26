@@ -2,8 +2,9 @@ import { Component, input, output } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { DocumentFont, DocumentLayout } from '../../models/template';
 
-// The company's document template as cards to pick: its two layouts
-// sketched in miniature (the modern one's table header in the main color)
+// The company's document template as cards to pick: its three layouts
+// sketched in miniature (the modern one's table header in the main color,
+// the banner one's band in the title's)
 // and its three fonts, each with a sample in a family that looks alike (the
 // browser has none of the embedded ones - see the backend's pdf-fonts.ts).
 // Presentational only - the page owning it saves the choice: the profile's
@@ -21,6 +22,8 @@ export class DocumentStylePicker {
   font = input.required<DocumentFont>();
   // "#rrggbb" - the modern sketch's table header, dark gray without one.
   accentColor = input<string | null>(null);
+  // "#rrggbb" - the banner sketch's band, dark gray without one.
+  titleColor = input<string | null>(null);
   disabled = input(false);
   compact = input(false);
 
@@ -30,6 +33,7 @@ export class DocumentStylePicker {
   readonly layoutOptions: { value: DocumentLayout; label: string; hint: string }[] = [
     { value: 'CLASSIC', label: 'profile.documentStyle.classic', hint: 'profile.documentStyle.classicHint' },
     { value: 'MODERN', label: 'profile.documentStyle.modern', hint: 'profile.documentStyle.modernHint' },
+    { value: 'BANNER', label: 'profile.documentStyle.banner', hint: 'profile.documentStyle.bannerHint' },
   ];
   readonly fontOptions: { value: DocumentFont; label: string; hint: string; family: string }[] = [
     { value: 'HELVETICA', label: 'Helvetica', hint: 'profile.documentStyle.helveticaHint', family: 'Helvetica, Arial, sans-serif' },

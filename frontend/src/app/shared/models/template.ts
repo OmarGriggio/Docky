@@ -1,4 +1,11 @@
-export type DocumentLayout = 'CLASSIC' | 'MODERN';
+export type DocumentLayout = 'CLASSIC' | 'MODERN' | 'BANNER';
+
+/** Each layout's name (profile.documentStyle.*). */
+export const LAYOUT_LABELS: Record<DocumentLayout, string> = {
+  CLASSIC: 'profile.documentStyle.classic',
+  MODERN: 'profile.documentStyle.modern',
+  BANNER: 'profile.documentStyle.banner',
+};
 export type DocumentFont = 'HELVETICA' | 'LATO' | 'PT_SERIF';
 
 // The elements of a PDF a template colors (the backend's template.types.ts)

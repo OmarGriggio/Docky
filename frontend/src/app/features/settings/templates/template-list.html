@@ -36,7 +36,7 @@
                 }
               </span>
               <span class="text-xs text-gray-500">
-                {{ (template.layout === 'MODERN' ? 'profile.documentStyle.modern' : 'profile.documentStyle.classic') | transloco }}
+                {{ layoutLabels[template.layout] | transloco }}
                 · {{ template.font === 'PT_SERIF' ? 'PT Serif' : template.font === 'LATO' ? 'Lato' : 'Helvetica' }}
               </span>
             </button>

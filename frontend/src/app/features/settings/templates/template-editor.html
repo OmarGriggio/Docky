@@ -26,13 +26,14 @@
 
       <app-document-style-picker
         class="ui-form__full"
-        [layout]="form.controls.layout.value" [font]="form.controls.font.value" [accentColor]="colorOfElement('tableHeader')" [disabled]="!canManage()"
+        [layout]="form.controls.layout.value" [font]="form.controls.font.value" [accentColor]="colorOfElement('tableHeader')" [titleColor]="colorOfElement('title')" [disabled]="!canManage()"
         (layoutChange)="pickLayout($event)" (fontChange)="pickFont($event)"
       />
 
       <div class="ui-form__full flex items-start gap-2">
-        <p-checkbox inputId="show_currency" formControlName="show_currency" [binary]="true" />
-        <label for="show_currency" class="text-sm">
+        <!-- w-auto: .ui-form gives every p-checkbox the full width. -->
+        <p-checkbox inputId="show_currency" formControlName="show_currency" [binary]="true" class="w-auto! shrink-0" />
+        <label for="show_currency" class="text-sm flex-1">
           {{ 'templates.showCurrency' | transloco }}
           <span class="block text-xs text-gray-500">{{ 'templates.showCurrencyHint' | transloco }}</span>
         </label>

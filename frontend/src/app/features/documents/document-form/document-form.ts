@@ -18,7 +18,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { DocumentService } from '../document.service';
 import { DocumentCompleteService } from '../document-complete.service';
 import { TemplateService } from '../../settings/templates/template.service';
-import { Template } from '../../../shared/models/template';
+import { LAYOUT_LABELS, Template } from '../../../shared/models/template';
 import { DocumentScannerService, ExtractedDocumentData } from '../../document-scanner/document-scanner.service';
 import { ClientService } from '../../clients/client.service';
 import { ProjectService } from '../../projects/project.service';
@@ -528,6 +528,7 @@ export class DocumentForm implements OnInit, HasUnsavedChanges {
   }
 
   readonly leave = new LeaveConfirmation();
+  readonly layoutLabels = LAYOUT_LABELS;
 
   confirmLeave(): Promise<boolean> {
     return this.leave.ask();
