@@ -251,6 +251,8 @@ export const updateDocumentInDB = async (
       early_payment_discount = $19,
       early_payment_days = $20,
       early_payment_min_amount = $21,
+      service_date_start = $22,
+      service_date_end = $23,
       -- A sent quote (still editable) is frozen with its template afresh -
       -- it may just have been changed. A draft stays unfrozen.
       template_style = CASE WHEN status = 'SENT' THEN ${frozenStyleOf("$18::integer")} ELSE template_style END
@@ -280,7 +282,9 @@ export const updateDocumentInDB = async (
     data.template_id,
     data.early_payment_discount,
     data.early_payment_days,
-    data.early_payment_min_amount
+    data.early_payment_min_amount,
+    data.service_date_start,
+    data.service_date_end
   ];
 
   const result = await db().query(query, values);
@@ -292,8 +296,8 @@ export const updateDocumentInDB = async (
 // Its look isn't frozen either (template_style) - a chantier's PROJECT
 // document has no template at all.
 export const createDocumentInDB = async (
-  document: Omit<Document, "id" | "billed_address" | "invoice_kind" | "deposit_deductions" | "payment_reference" | "template_style" | "template_id">
-    & { invoice_kind?: InvoiceKind; template_id?: number | null }
+  document: Omit<Document, "id" | "billed_address" | "invoice_kind" | "deposit_deductions" | "payment_reference" | "template_style" | "template_id" | "service_date_start" | "service_date_end">
+    & { invoice_kind?: InvoiceKind; template_id?: number | null } & Partial<Pick<Document, "service_date_start" | "service_date_end">>
 ): Promise<Document> => {
   const query = `
     INSERT INTO documents (
@@ -323,9 +327,11 @@ export const createDocumentInDB = async (
       early_payment_days,
       early_payment_min_amount,
       invoice_kind,
-      template_id
+      template_id,
+      service_date_start,
+      service_date_end
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29)
     RETURNING *;
   `;
 
@@ -356,7 +362,9 @@ export const createDocumentInDB = async (
     document.early_payment_days,
     document.early_payment_min_amount,
     document.invoice_kind ?? "STANDARD",
-    document.template_id ?? null
+    document.template_id ?? null,
+    document.service_date_start ?? null,
+    document.service_date_end ?? null
   ];
 
   const result = await db().query(query, values);

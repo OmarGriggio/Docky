@@ -89,6 +89,9 @@ export const sampleSourceOf = (company: Company, template: Template, kind: Previ
     client_id: 0,
     address_id: null,
     reference_client: sample.reference,
+    // An invoice's work done over the two weeks before it.
+    service_date_start: isInvoice ? addDays(date, -14) : null,
+    service_date_end: isInvoice ? addDays(date, -3) : null,
     parent_document_id: null,
     type,
     number: `${isInvoice ? "FAC" : "OFF"}-${year}-0001`,

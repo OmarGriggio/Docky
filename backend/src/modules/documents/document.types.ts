@@ -59,6 +59,11 @@ export interface Document {
   conclusion: string | null;
   payment_terms: string | null;
   due_date: Date | null;
+  // The date or period of the service an invoice bills (art. 26 LTVA - see
+  // service-period.ts): a single date in the start, a period with the end
+  // too. Always null for a quote.
+  service_date_start: Date | string | null;
+  service_date_end: Date | string | null;
   // The early payment discount this invoice offers - copied from its
   // template when it's created (see addDocumentServ) and
   // frozen here, never re-read from the company afterwards. A percentage,
@@ -151,6 +156,7 @@ export interface DocumentContentSection {
 export type UpdateDocumentData = Pick<
   Document,
   "client_id" | "address_id" | "reference_client" | "date" | "discount" | "vat_rate" | "introduction" | "conclusion" | "payment_terms" | "due_date"
+  | "service_date_start" | "service_date_end"
   // Its template, and the early payment discount it gives a draft invoice -
   // set by updateDocumentServ, never taken from the request as such.
   | "template_id" | "early_payment_discount" | "early_payment_days" | "early_payment_min_amount"

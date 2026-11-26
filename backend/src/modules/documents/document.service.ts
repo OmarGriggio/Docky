@@ -1,3 +1,4 @@
+import { normalizeServicePeriod } from "./service-period";
 import { nextNumberServ } from "../numbering/numbering.service";
 import { CreateDocumentData, UpdateDocumentData, DocumentType, DocumentStatus, Document, DocumentContentSection, DocumentRecipient, DepositDeduction } from "./document.types";
 import { paymentReferenceFor } from "../../pdf/templates/dto/swiss-qr-bill.dto";
@@ -221,6 +222,7 @@ export const addDocumentServ = async (documentData: CreateDocumentData, company_
       ...documentData,
       ...recipient,
       ...earlyPayment,
+      ...normalizeServicePeriod(documentData.type, documentData.service_date_start, documentData.service_date_end),
       template_id: template.id,
       parent_document_id,
       company_id,
@@ -291,10 +293,17 @@ export const updateDocumentServ = async (id: number, company_id: number, documen
     ? earlyPaymentOf(template, document.type, document.invoice_kind)
     : { early_payment_discount: document.early_payment_discount, early_payment_days: document.early_payment_days, early_payment_min_amount: document.early_payment_min_amount };
 
+  // Its service date or period: kept when the request leaves both out (a
+  // page cached from before they existed), else checked (service-period.ts).
+  const servicePeriod = documentData.service_date_start === undefined && documentData.service_date_end === undefined
+    ? { service_date_start: document.service_date_start, service_date_end: document.service_date_end }
+    : normalizeServicePeriod(document.type, documentData.service_date_start, documentData.service_date_end);
+
   const updated = await updateDocumentInDB(id, company_id, {
     ...documentData,
     ...recipient,
     ...earlyPayment,
+    ...servicePeriod,
     template_id: template?.id ?? document.template_id,
   });
   if (!updated) {
