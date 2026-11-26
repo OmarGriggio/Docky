@@ -25,7 +25,12 @@ while (Date.now() < deadline) {
     const res = await fetch(`https://api.github.com/repos/${repo}/actions/runs?head_sha=${fullSha}&per_page=20`, {
       headers: { Accept: "application/vnd.github+json", "User-Agent": "docky-release-check" },
     });
-    runs = (await res.json()).workflow_runs ?? [];
+    const body = await res.json();
+    if (!res.ok) {
+      // A rate limit or a wrong repository - said, not mistaken for "no run yet".
+      console.log(`GitHub answered ${res.status}: ${body.message ?? ""}`);
+    }
+    runs = body.workflow_runs ?? [];
   } catch (err) {
     console.log(`GitHub unreachable (${err.message}), retrying`);
   }

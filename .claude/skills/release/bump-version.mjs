@@ -30,7 +30,7 @@ if (!above(next, current)) {
 const bumpJson = (path, count) => {
   let text = read(path);
   let done = 0;
-  text = text.replace(new RegExp(`"version": "${current.replaceAll(".", "\.")}"`, "g"), (match) => done++ < count ? `"version": "${next}"` : match);
+  text = text.replace(new RegExp(`"version": "${current.replaceAll(".", "\\.")}"`, "g"), (match) => done++ < count ? `"version": "${next}"` : match);
   if (done < count) {
     throw new Error(`${path}: expected ${count} "version": "${current}", found ${done}`);
   }
