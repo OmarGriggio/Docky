@@ -19,7 +19,8 @@ import { Checkbox } from 'primeng/checkbox';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe, TranslocoService, translateSignal } from '@jsverse/transloco';
 import { PreviewKind, TemplateService } from './template.service';
-import { COLOR_ELEMENTS, ColorElement, DocumentFont, DocumentLayout, ElementColors, MAX_PALETTE, PaletteColor, Template, TemplateData } from '../../../shared/models/template';
+import { ColorElement, DocumentFont, DocumentLayout, ElementColors, MAX_PALETTE, PaletteColor, Template, TemplateData } from '../../../shared/models/template';
+import { colorZonesOf, elementHintKey } from './color-elements';
 import { AuthService } from '../../auth/auth.service';
 import { CompanyService } from '../../profile/company.service';
 import { NotificationService } from '../../../shared/services/notification.service';
@@ -77,7 +78,9 @@ export class TemplateEditor implements OnInit {
   // of the PDF is printed in - kept apart from the reactive form (a list and
   // a map), saved with it, marking it dirty when changed.
   readonly maxPalette = MAX_PALETTE;
-  readonly elements = COLOR_ELEMENTS;
+  // By zone of the page, in the order and with the elements of the layout picked.
+  colorZones = computed(() => colorZonesOf(this.layoutValue()));
+  readonly elementHint = elementHintKey;
   palette = signal<PaletteColor[]>([]);
   elementColors = signal<ElementColors>({});
 
@@ -142,6 +145,8 @@ export class TemplateEditor implements OnInit {
   }, { validators: earlyPaymentDaysRequired });
 
   private formStatus = toSignal(this.form.statusChanges, { initialValue: this.form.status });
+  // The layout picked - the element colors follow it (colorZones).
+  layoutValue = toSignal(this.form.controls.layout.valueChanges, { initialValue: this.form.controls.layout.value });
   missingEarlyPaymentDays = computed(() => {
     this.formStatus();
     return this.form.hasError('earlyPaymentDaysRequired');

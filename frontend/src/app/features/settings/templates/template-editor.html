@@ -66,19 +66,28 @@
       <div class="ui-form__full flex flex-col gap-1">
         <span class="text-sm font-medium">{{ 'templates.elementColors' | transloco }}</span>
         <p class="m-0 mb-1 text-sm text-gray-500">{{ 'templates.elementColorsHint' | transloco }}</p>
-        <div class="grid sm:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2 gap-x-6 gap-y-1">
-          @for (element of elements; track element) {
-            <label class="flex items-center gap-2 py-1 min-w-0">
-              <span class="w-4 h-4 rounded-sm border border-gray-300 shrink-0" [style.background-color]="colorOfElement(element) ?? (element === 'text' ? '#000000' : '#ffffff')"></span>
-              <span class="flex-1 min-w-0 text-sm text-gray-700">{{ 'templates.elements.' + element | transloco }}</span>
-              <select class="text-sm border border-gray-300 rounded px-2 py-1 bg-white w-44 max-w-full" [disabled]="!canManage()"
-                [value]="elementColors()[element] ?? ''" (change)="setElementColor(element, $any($event.target).value ? +$any($event.target).value : null)">
-                <option value="">{{ (element === 'text' ? 'templates.black' : 'templates.noColor') | transloco }}</option>
-                @for (entry of palette(); track $index; let position = $index) {
-                  <option [value]="position + 1" [selected]="elementColors()[element] === position + 1">{{ entry.name }}</option>
-                }
-              </select>
-            </label>
+        <!-- By zone of the page, as the layout picked prints them (color-elements.ts). -->
+        <div class="flex flex-col gap-3">
+          @for (group of colorZones(); track group.zone) {
+            <div class="flex flex-col">
+              <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 border-b border-gray-200 pb-1 mb-1">{{ 'templates.zones.' + group.zone | transloco }}</span>
+              @for (element of group.elements; track element) {
+                <label class="flex items-center gap-2 py-1.5 min-w-0">
+                  <span class="w-4 h-4 rounded-sm border border-gray-300 shrink-0" [style.background-color]="colorOfElement(element) ?? (element === 'text' ? '#000000' : '#ffffff')"></span>
+                  <span class="flex-1 min-w-0 flex flex-col">
+                    <span class="text-sm text-gray-800">{{ 'templates.elements.' + element | transloco }}</span>
+                    <span class="text-xs text-gray-500">{{ elementHint(element, layoutValue()) | transloco }}</span>
+                  </span>
+                  <select class="text-sm border border-gray-300 rounded px-2 py-1 bg-white w-40 max-w-full shrink-0" [disabled]="!canManage()"
+                    [value]="elementColors()[element] ?? ''" (change)="setElementColor(element, $any($event.target).value ? +$any($event.target).value : null)">
+                    <option value="">{{ (element === 'text' ? 'templates.black' : 'templates.noColor') | transloco }}</option>
+                    @for (entry of palette(); track $index; let position = $index) {
+                      <option [value]="position + 1" [selected]="elementColors()[element] === position + 1">{{ entry.name }}</option>
+                    }
+                  </select>
+                </label>
+              }
+            </div>
           }
         </div>
         <p class="m-0 mt-1 text-xs text-gray-500">{{ 'templates.qrBillNote' | transloco }}</p>
