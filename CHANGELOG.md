@@ -2,6 +2,19 @@
 
 Every release of Docky, newest first. One version for the whole app (backend and frontend ship together from `main`), numbered `MAJOR.MINOR.PATCH` - see CLAUDE.md's Workflow for when each part goes up and how a release is made. Each release is tagged `vX.Y.Z` on `main`.
 
+## [1.8.0] - 2026-11-26
+
+### Added
+- A third layout for templates, "Bandeau" (Banner): a colored band across the top with the company's logo, name and address and the document's kind and number, the client's address on the right, every detail of the document (date, client number, reference, due date or validity, service period, location) in a framed grid, each section in a table of its own with its subtotal, the payment conditions beside the totals, and the footer on a band. For quotes, invoices and reminders.
+- "Repérer" (spot) in the template editor: an eye next to each element color prints that element alone in bright pink in the live preview - on a quote, an invoice or a reminder, whichever shows it - so you see what each color changes. Nothing is saved.
+
+### Changed
+- The template editor's element colors are grouped by zone of the page (header, line table, totals, conditions, footer, text) in the order of the layout picked, each with a line saying where it prints, and only the elements that layout uses.
+- The layout cards of the template editor are stacked, so the three fit side by side.
+
+### Fixed
+- The "Afficher la monnaie" checkbox sat far from its label in the template editor.
+
 ## [1.7.0] - 2026-11-26
 
 ### Added
