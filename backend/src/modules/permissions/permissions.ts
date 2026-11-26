@@ -72,6 +72,8 @@ const PRICE_FIELDS = new Set([
     // Amounts computed from those - a final invoice's balance, a client's
     // payments, a scanned document's estimate.
     "amount_due", "total_paid", "estimated_amount",
+    // A payment reminder's fees.
+    "fee", "total_fees",
 ]);
 
 /** A response body with every price and amount set to null, however deep - for an employee who may not see them. A date is kept as is. */
