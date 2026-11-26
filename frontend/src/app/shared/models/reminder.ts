@@ -34,6 +34,9 @@ export interface NextReminder {
 }
 
 export interface InvoiceReminders {
+  document_id: number;
+  // Only a SENT invoice gets reminded, or has its latest reminder taken back.
+  status: string | null;
   reminders: InvoiceReminder[];
   next: NextReminder | null;
   amount_due: number;

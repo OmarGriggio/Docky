@@ -165,11 +165,12 @@ export const routes: Routes = [
         data: { breadcrumb: 'settings.numberingMenu' }
       },
       {
-        // The company's reminder levels - read by every role, changed by its
-        // admin (the backend's reminder.routes.ts), the page says so.
+        // The company's reminder levels - read by whoever reads invoices,
+        // changed by its admin (the backend's reminder.routes.ts), the page says so.
         path: 'reminders',
         loadComponent: () => import('./features/settings/reminders/reminder-settings').then(m => m.ReminderSettings),
-        data: { breadcrumb: 'reminders.settings.menu' }
+        canActivate: [permissionGuard],
+        data: { permission: ['invoices'], breadcrumb: 'reminders.settings.menu' }
       },
       {
         // What the company's employees may do - its admin's page.

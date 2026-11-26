@@ -30,7 +30,7 @@
               [ariaLabel]="'reminders.dialog.pdf' | transloco" [title]="'reminders.dialog.pdf' | transloco"
               (onClick)="showSent(reminder)"
             />
-            @if (last && canWrite()) {
+            @if (last && canWrite() && current.status === 'SENT') {
               <p-button
                 type="button" size="small" icon="pi pi-undo" [text]="true" severity="danger"
                 [ariaLabel]="'reminders.dialog.delete' | transloco" [title]="'reminders.dialog.delete' | transloco"
@@ -50,7 +50,7 @@
             <span class="font-medium">{{ levelKey(next.level) | transloco }}</span>
             – {{ (isDue() ? 'reminders.dialog.dueSince' : 'reminders.dialog.dueOn') | transloco }} {{ next.due_on | appDate }}
             @if (next.fee > 0) {
-              · {{ 'reminders.dialog.fee' | transloco }} {{ next.fee | price }} CHF
+              · {{ 'reminders.dialog.fees' | transloco }} {{ next.fee | price }} CHF
             }
           </p>
           <div class="flex flex-wrap justify-end gap-2">
@@ -67,7 +67,7 @@
           }
         } @else {
           <p class="m-0 text-sm text-gray-500 italic">
-            {{ (current.reminders.length > 0 && current.amount_due > 0 ? 'reminders.dialog.allSent' : 'reminders.dialog.nothingToRemind') | transloco }}
+            {{ (current.status === 'SENT' && current.reminders.length > 0 && current.amount_due > 0 ? 'reminders.dialog.allSent' : 'reminders.dialog.nothingToRemind') | transloco }}
           </p>
         }
       </section>

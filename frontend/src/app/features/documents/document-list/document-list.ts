@@ -449,9 +449,9 @@ export class DocumentListComponent implements OnInit {
     this.remindersVisible.set(true);
   }
 
-  // "Rappel 2" - the highest reminder sent.
+  // The highest reminder sent, by its level's name.
   reminderTag(level: number): string {
-    return this.transloco.translate('reminders.tag', { level });
+    return this.transloco.translate(`reminders.levels.${level}`);
   }
 
   // Shown above the list when a PDF can't be generated - most often the

@@ -4,6 +4,7 @@ import { Menu } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
 import { translateSignal } from '@jsverse/transloco';
 import { AuthService } from '../auth/auth.service';
+import { PermissionService } from '../../shared/services/permission.service';
 
 // Layout for the whole /settings section, not just a landing page: this
 // component wraps every sub-page (templates, users, uitest...) via the child
@@ -20,6 +21,7 @@ import { AuthService } from '../auth/auth.service';
 export class Settings {
 
   private authService = inject(AuthService);
+  private permissions = inject(PermissionService);
   private route = inject(ActivatedRoute);
 
   // A page whose route data says `wide` (the template editor and its
@@ -53,13 +55,16 @@ export class Settings {
     const menu: MenuItem[] = [
       { label: this.documentTemplatesLabel(), icon: 'pi pi-file-edit', routerLink: '/settings/templates' },
       { label: this.numberingLabel(), icon: 'pi pi-hashtag', routerLink: '/settings/numbering' },
-      { label: this.remindersLabel(), icon: 'pi pi-bell', routerLink: '/settings/reminders' },
+      // The reminder levels are the invoices' - an employee who can't read those doesn't see them.
+      ...(this.permissions.can('invoices', 'READ')
+        ? [{ label: this.remindersLabel(), icon: 'pi pi-bell', routerLink: '/settings/reminders' }]
+        : []),
       { label: this.languageLabel(), icon: 'pi pi-language', routerLink: '/settings/language' },
     ];
 
     // The company's admin sets what its employees may do.
     if (this.authService.isAdmin() || this.isPlatformAdmin()) {
-      menu.splice(3, 0, { label: this.permissionsLabel(), icon: 'pi pi-lock', routerLink: '/settings/permissions' });
+      menu.splice(menu.length - 1, 0, { label: this.permissionsLabel(), icon: 'pi pi-lock', routerLink: '/settings/permissions' });
     }
 
     // User management was centralized to PLATFORM_ADMIN only (see

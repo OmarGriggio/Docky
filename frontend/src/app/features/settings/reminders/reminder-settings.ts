@@ -53,7 +53,8 @@ export class ReminderSettings implements OnInit {
   }
 
   save(): void {
-    if (this.levels().some(level => level.delay_days === null)) {
+    // At least a day - the backend refuses less.
+    if (this.levels().some(level => level.delay_days === null || level.delay_days < 1)) {
       this.showRequired.set(true);
       this.notifications.warn('common.requiredFields');
       return;

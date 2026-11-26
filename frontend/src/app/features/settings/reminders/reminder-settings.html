@@ -23,10 +23,10 @@
                 {{ (level.level === 1 ? 'reminders.settings.delayAfterDue' : 'reminders.settings.delayAfterPrevious') | transloco }} *
               </label>
               <p-inputnumber
-                [inputId]="'delay-' + level.level" [min]="0" [max]="365" [useGrouping]="false" [fluid]="true"
+                [inputId]="'delay-' + level.level" [min]="1" [max]="365" [useGrouping]="false" [fluid]="true"
                 [suffix]="' ' + ('reminders.settings.days' | transloco)"
                 [ngModel]="level.delay_days" (ngModelChange)="update(level, { delay_days: $event })"
-                [disabled]="!canEdit() || !level.enabled" [invalid]="showRequired() && level.delay_days === null"
+                [disabled]="!canEdit() || !level.enabled" [invalid]="showRequired() && (level.delay_days === null || level.delay_days < 1)"
               />
             </div>
             <div class="flex flex-col gap-1.5">

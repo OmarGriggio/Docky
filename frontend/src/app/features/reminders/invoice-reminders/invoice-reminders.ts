@@ -69,19 +69,31 @@ export class InvoiceRemindersDialog {
     });
   }
 
+  // One dialog serves every invoice of a list: another invoice's reminders
+  // are never shown meanwhile (cleared first), and an answer that comes back
+  // once another invoice was opened is dropped.
   private load(): void {
     const id = this.documentId();
     if (id === null) {
       return;
     }
+    if (this.state()?.document_id !== id) {
+      this.state.set(null);
+    }
     this.loading.set(true);
     this.pdfError.set(null);
     this.reminderService.getInvoiceReminders(id).subscribe({
       next: state => {
+        if (this.documentId() !== id) {
+          return;
+        }
         this.state.set(state);
         this.loading.set(false);
       },
       error: err => {
+        if (this.documentId() !== id) {
+          return;
+        }
         this.loading.set(false);
         this.notifications.error('invoice-reminders', err);
       },
