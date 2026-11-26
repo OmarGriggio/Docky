@@ -24,7 +24,7 @@ Written 2026-11-13 (version 1.2.3), from an honest review of what Docky lacks to
 - [ ] **A company admin manages its own users** - adding, deactivating, resetting employees is `PLATFORM_ADMIN`-only today (see CLAUDE.md's Roles); a customer can't do it themselves.
 - [ ] **Credit notes ("notes de crédit")** - only cancelling exists; a discount granted afterwards or a partial refund needs one.
 - [ ] **Export for the accountant ("fiduciaire")** - invoices, payments (and credit notes) over a period, as CSV/Excel at least; ideally a format Bexio/Abacus/Banana import. Often the deciding point for a Swiss SME.
-- [ ] **Date or period of the service on invoices** - required by art. 26 LTVA (VAT), not printed today. Check the exact wording with an accountant.
+- [x] **Date or period of the service on invoices** - required by art. 26 LTVA (VAT): "Prestation du / au" on the invoice, prefilled from the chantier's planned dates, printed under the reference (on `develop`, next release). Check the exact wording with an accountant.
 - [ ] **Legal framework**:
   - [ ] Terms of service and a privacy policy (nLPD), linked from the app.
   - [ ] A data processing agreement with each customer (Docky holds their own clients' data).
